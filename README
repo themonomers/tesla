@@ -1,0 +1,9 @@
+These scripts are based on Google Apps Script (https://script.google.com/home), which is free!  There are 3 components to this project:
+
+1.  Smart Charger.gs - sends an email if you forget to plug in your vehicle and calculates then sets the optimal charge start time.
+2.  Telemetry.gs - logs data from your vehicle for analysis, e.g. miles, efficiency, battery capacity, etc.
+3.  Logging.gs - logs error messages in the try/catch blocks.
+
+I need to find a way to either share the Google Sheets format or refactor these into a database.
+
+I created several in-depth videos walking through the functionality and code:  https://www.youtube.com/watch?v=l1pqhlGSuVg&list=PLgiPnlzk2O712gwiTIquUzdfVlzIMyS2M
