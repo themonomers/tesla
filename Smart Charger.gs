@@ -1,5 +1,5 @@
-var M3_VID = '0123456789';  // this is the value of the attribute “id_s”
-var MX_VID = '0123456789';  // this is the value of the attribute “id_s”
+var M3_VIN = '0123456789';  
+var MX_VIN = '0123456789';  
 var WAIT_TIME = 30000;
 var R = 3958.8;  // Earth radius in miles
 var HOME_LAT = 20.123456789;  // you can get this from Google Maps
@@ -23,7 +23,7 @@ function notifyIsM3PluggedIn() {
     }
     
     // get car info
-    var data = JSON.parse(getVehicleChargeState(M3_VID).getContentText());
+    var data = JSON.parse(getVehicleChargeState(M3_VIN).getContentText());
     var charge_port_door_open = data.response.charge_port_door_open;
     var battery_level = data.response.battery_level;
     var battery_range = data.response.battery_range;
@@ -41,7 +41,7 @@ function notifyIsM3PluggedIn() {
   } catch (e) {
     logError(e);
 
-    wakeVehicle(M3_VID);
+    wakeVehicle(M3_VIN);
     Utilities.sleep(WAIT_TIME);
     notifyIsM3PluggedIn();
   }
@@ -56,7 +56,7 @@ function notifyIsMXPluggedIn() {
     }
     
     // get car info
-    var data = JSON.parse(getVehicleChargeState(MX_VID).getContentText());
+    var data = JSON.parse(getVehicleChargeState(MX_VIN).getContentText());
     var charge_port_door_open = data.response.charge_port_door_open;
     var battery_level = data.response.battery_level;
     var battery_range = data.response.battery_range;
@@ -74,7 +74,7 @@ function notifyIsMXPluggedIn() {
   } catch (e) {
     logError(e);
 
-    wakeVehicle(MX_VID);
+    wakeVehicle(MX_VIN);
     Utilities.sleep(WAIT_TIME);
     notifyIsMXPluggedIn();
   }
@@ -104,9 +104,9 @@ function scheduleM3Charging() {
     // set the right date of the estimated charge time based on AM or PM
     if (start_time.toString().indexOf('AM') >= 0) {
       var tomorrowDate = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
-      var estimatedChargeStartTime = new Date (tomorrowDate + ' ' + start_time + ' -0700');
+      var estimatedChargeStartTime = new Date (tomorrowDate + ' ' + start_time);
     } else {
-      var estimatedChargeStartTime = new Date (new Date().toLocaleDateString() + ' ' + start_time + ' -0700');
+      var estimatedChargeStartTime = new Date (new Date().toLocaleDateString() + ' ' + start_time);
     }
     
     // create trigger
@@ -138,9 +138,9 @@ function scheduleMXCharging() {
     // set the right date of the estimated charge time based on AM or PM
     if (start_time.toString().indexOf('AM') >= 0) {
       var tomorrowDate = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
-      var estimatedChargeStartTime = new Date (tomorrowDate + ' ' + start_time + ' -0700');
+      var estimatedChargeStartTime = new Date (tomorrowDate + ' ' + start_time);
     } else {
-      var estimatedChargeStartTime = new Date (new Date().toLocaleDateString() + ' ' + start_time + ' -0700');
+      var estimatedChargeStartTime = new Date (new Date().toLocaleDateString() + ' ' + start_time);
     }
     
     // create trigger
@@ -173,7 +173,7 @@ function writeStartTimes() {
   
   try {
     // get vehicle charge data
-    var data = JSON.parse(getVehicleChargeState(M3_VID).getContentText());
+    var data = JSON.parse(getVehicleChargeState(M3_VIN).getContentText());
     
     // write m3 range to Google Sheet
     inputs.push({range: 'Smart Charger!B10', values: [[data.response.battery_range]]});
@@ -199,14 +199,14 @@ function writeStartTimes() {
   } catch (e) {
     logError(e);
     
-    wakeVehicle(M3_VID);
+    wakeVehicle(M3_VIN);
     Utilities.sleep(WAIT_TIME);
     writeStartTimes();
   }
     
   try {    
     // get vehicle charge data
-    data = JSON.parse(getVehicleChargeState(MX_VID).getContentText());
+    data = JSON.parse(getVehicleChargeState(MX_VIN).getContentText());
     
     // write mx range to Google Sheet
     inputs.push({range: 'Smart Charger!B9', values: [[data.response.battery_range]]});
@@ -232,7 +232,7 @@ function writeStartTimes() {
   } catch (e) {
     logError(e);
     
-    wakeVehicle(MX_VID);
+    wakeVehicle(MX_VIN);
     Utilities.sleep(WAIT_TIME);
     writeStartTimes();
   }
@@ -248,7 +248,7 @@ function writeStartTimes() {
  * of Caltech and NASA's Jet Propulsion Laboratory as described on the U.S. Census Bureau Web site.
  */
 function isM3Home() { 
-  var data = JSON.parse(getVehicleDriveState(M3_VID).getContentText());
+  var data = JSON.parse(getVehicleDriveState(M3_VIN).getContentText());
   //    var timestamp = data.response.gps_as_of;
   var d = getDistanceFromHome(data.response.latitude, data.response.longitude);
   
@@ -261,7 +261,7 @@ function isM3Home() {
 }
 
 function isMXHome() { 
-  var data = JSON.parse(getVehicleDriveState(MX_VID).getContentText());
+  var data = JSON.parse(getVehicleDriveState(MX_VIN).getContentText());
   
   var d = getDistanceFromHome(data.response.latitude, data.response.longitude);
   
@@ -275,11 +275,11 @@ function isMXHome() {
 
 function chargeM3() {
   try {
-    chargeVehicle(M3_VID);
+    chargeVehicle(M3_VIN);
   } catch (e) {
     logError(e);
     
-    wakeVehicle(M3_VID)
+    wakeVehicle(M3_VIN)
     Utilities.sleep(WAIT_TIME);
     chargeM3();
   }
@@ -288,11 +288,11 @@ function chargeM3() {
 function chargeM3Backup() {
   try {
     // add check to see if car is already charging or do nothing else since sending a charge command while it's charging doesn't do anything.
-    chargeVehicle(M3_VID);
+    chargeVehicle(M3_VIN);
   } catch (e) {
     logError(e);
     
-    wakeVehicle(M3_VID)
+    wakeVehicle(M3_VIN)
     Utilities.sleep(WAIT_TIME);
     chargeM3();
   }
@@ -300,11 +300,11 @@ function chargeM3Backup() {
 
 function chargeMX() {
   try {
-    chargeVehicle(MX_VID);
+    chargeVehicle(MX_VIN);
   } catch (e) {
     logError(e);
     
-    wakeVehicle(MX_VID)
+    wakeVehicle(MX_VIN)
     Utilities.sleep(WAIT_TIME);
     chargeMX();
   }
@@ -313,11 +313,11 @@ function chargeMX() {
 function chargeMXBackup() {
   try {
     // add check to see if car is already charging or do nothing else since sending a charge command while it's charging doesn't do anything.
-    chargeVehicle(MX_VID);
+    chargeVehicle(MX_VIN);
   } catch (e) {
     logError(e);
     
-    wakeVehicle(MX_VID)
+    wakeVehicle(MX_VIN)
     Utilities.sleep(WAIT_TIME);
     chargeMX();
   }
@@ -338,8 +338,8 @@ function toRad(x) {
   return x * Math.PI / 180;
 }
 
-function getVehicleDriveState(vid) {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + vid + '/data_request/drive_state';
+function getVehicleDriveState(vin) {
+  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + getVehicleId(vin) + '/data_request/drive_state';
   
   var options = {
     "headers": {
@@ -350,8 +350,8 @@ function getVehicleDriveState(vid) {
   return UrlFetchApp.fetch(url, options);
 }
 
-function getVehicleChargeState(vid) {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + vid + '/data_request/charge_state';
+function getVehicleChargeState(vin) {
+  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + getVehicleId(vin) + '/data_request/charge_state';
   
   var options = {
     "headers": {
@@ -362,8 +362,8 @@ function getVehicleChargeState(vid) {
   return UrlFetchApp.fetch(url, options);
 }
 
-function chargeVehicle(vid) {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + vid + '/command/charge_start';
+function chargeVehicle(vin) {
+  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + getVehicleId(vin) + '/command/charge_start';
   var options = {
     "headers": {
       "authorization": "Bearer " + ACCESS_TOKEN
@@ -374,9 +374,9 @@ function chargeVehicle(vid) {
   return UrlFetchApp.fetch(url, options);
 }
 
-function wakeVehicle(vid) {
+function wakeVehicle(vin) {
   try {
-    var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + vid + '/wake_up';
+    var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + getVehicleId(vin) + '/wake_up';
     var options = {
       "headers": {
         "authorization": "Bearer " + ACCESS_TOKEN
@@ -389,7 +389,23 @@ function wakeVehicle(vid) {
     logError(e);
 
     Utilities.sleep(WAIT_TIME);    
-    wakeVehicle(vid)
+    wakeVehicle(vin)
+  }
+}
+
+function getVehicleId(vin) {
+  var url = 'https://owner-api.teslamotors.com/api/1/vehicles';
+  
+  var options = {
+    "headers": {
+      "authorization": "Bearer " + ACCESS_TOKEN
+    }
+  };
+  var response = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
+  for (var x = 0; x < response.response.length; x++) {
+    if (response.response[x].vin == vin) {
+      return response.response[x].id_s;
+    }
   }
 }
 
