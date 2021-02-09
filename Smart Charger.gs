@@ -422,23 +422,147 @@ function getVehicles() {
 }
 
 function getToken() {  // This expires periodically, I forget how long
-  var email = '';  // I suggest not storing this here, at least not until 2FA
-  var password = '';  // I suggest not storing this here, at least not until 2FA
-  var url = 'https://owner-api.teslamotors.com/oauth/token?grant_type=password';
+  var email = '';  
+  var password = '';  
+  var passcode = '';
 
-  var data = {
-    "client_id": "81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384",
-    "client_secret": "c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3",
-    "email": email,
-    "password": password
-  };  // not sure how often client_id and client_secret changes, if at all
-  
-  var options = {
-    "method": "post",
-    "contentType": "application/json",
-    "payload": JSON.stringify(data),
-    muteHttpExceptions: true
-  };
-  
-  return UrlFetchApp.fetch(url, options);
+  try {
+    // Step 1: Obtain the login page
+    var code_verifier = new Array(86).join().replace(
+      /(.|$)/g, 
+      function() {
+        return ((Math.random()*36)|0).toString(36)[Math.random()<.5?"toString":"toUpperCase"]();
+      }
+    );
+    var code_challenge = Utilities.base64EncodeWebSafe(
+      Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, code_verifier)
+    );
+    var url = 'https://auth.tesla.com/oauth2/v3/authorize';
+        url += '?client_id=ownerapi';
+        url += '&code_challenge=' + code_challenge;
+        url += '&code_challenge_method=S256';
+        url += '&redirect_uri=' + encodeURI('https://auth.tesla.com/void/callback');
+        url += '&response_type=code';
+        url += '&scope=' + encodeURI('openid email offline_access');
+        url += '&state=state';
+    var options = {
+      'headers': {'User-Agent': 'GoogleAppsScript'},
+      'method': 'get'
+    };
+    var response = UrlFetchApp.fetch(url, options);
+    var csrf = response.getContentText().substring(
+      response.getContentText().search('name="_csrf"') + 20, 
+      response.getContentText().search('name="_csrf"') + 56
+    );
+    var phase = response.getContentText().substring(
+      response.getContentText().search('name="_phase"') + 21, 
+      response.getContentText().search('name="_phase"') + 33
+    );
+    var process = response.getContentText().substring(
+      response.getContentText().search('name="_process"') + 23, 
+      response.getContentText().search('name="_process"') + 24
+    );
+    var transaction_id = response.getContentText().substring(
+      response.getContentText().search('name="transaction_id"') + 29, 
+      response.getContentText().search('name="transaction_id"') + 37
+    );
+    var cookie = response.getAllHeaders()['Set-Cookie'];
+
+    // Step 2: Authenticate user name and password
+    var data = {
+      '_csrf': csrf,
+      '_phase': phase,
+      '_process': process,
+      'transaction_id': transaction_id,
+      'cancel': '',
+      'identity': email,
+      'credential': password
+    };
+    options = {
+      'headers': {'User-Agent': 'GoogleAppsScript', 'Cookie': cookie},
+      'method': 'post',
+      'payload': data
+    };
+    response = UrlFetchApp.fetch(url, options);
+
+    // Step 3: Authenticate MFA
+    url = 'https://auth.tesla.com/oauth2/v3/authorize/mfa/factors';
+    url += '?transaction_id=' + transaction_id;
+    options = {
+      'headers': {'User-Agent': 'GoogleAppsScript', 'Cookie': cookie},
+      'method': 'get'
+    };
+    response = UrlFetchApp.fetch(url, options);
+    var factor_id = JSON.parse(response).data[0].id;
+    url = 'https://auth.tesla.com/oauth2/v3/authorize/mfa/verify';
+    data = {
+      'factor_id': factor_id,
+      'transaction_id': transaction_id,
+      'passcode': passcode
+    };
+    options = {
+      'headers': {'User-Agent': 'GoogleAppsScript', 'Cookie': cookie},
+      'method': 'post',
+      'contentType': 'application/json',
+      'payload': JSON.stringify(data)
+    };
+    response = UrlFetchApp.fetch(url, options);
+
+    // Step 4: Obtain an authorization code and exchange authorization code for bearer token
+    url = 'https://auth.tesla.com/oauth2/v3/authorize';
+    url += '?client_id=ownerapi';
+    url += '&code_challenge=' + code_challenge;
+    url += '&code_challenge_method=S256';
+    url += '&redirect_uri=' + encodeURI('https://auth.tesla.com/void/callback');
+    url += '&response_type=code';
+    url += '&scope=' + encodeURI('openid email offline_access');
+    url += '&state=state';
+    data = {
+      'transaction_id': transaction_id
+    };
+    options = {
+      'headers': {'User-Agent': 'GoogleAppsScript', 'Cookie': cookie},
+      'method': 'post',
+      'followRedirects': false,
+      'payload': data
+    };
+    response = UrlFetchApp.fetch(url, options);
+    var code = response.getContentText().substring(
+      response.getContentText().search('code') + 5, 
+      response.getContentText().search('&')
+    );
+    url = 'https://auth.tesla.com/oauth2/v3/token';
+    data = {
+      'grant_type': 'authorization_code',
+      'client_id': 'ownerapi',
+      'code': code,
+      'code_verifier': code_verifier,
+      'redirect_uri': 'https://auth.tesla.com/void/callback'
+    };
+    options = {
+      'headers': {'User-Agent': 'GoogleAppsScript', 'Cookie': cookie},
+      'method': 'post',
+      'contentType': 'application/json',
+      'payload': JSON.stringify(data)
+    };
+    response = JSON.parse(UrlFetchApp.fetch(url, options));
+
+    // Step 5: Exchange bearer token for access token
+    url = 'https://owner-api.teslamotors.com/oauth/token';
+    var data = {
+      'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      'client_id': '81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384',
+      'client_secret': 'c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3'
+    };
+    var options = {
+      'headers': {'authorization': 'Bearer ' + response.access_token},
+      "method": "post",
+      "contentType": "application/json",
+      "payload": JSON.stringify(data)
+    };
+    response = JSON.parse(UrlFetchApp.fetch(url, options));
+    Logger.log('access token: ' + response.access_token);
+  } catch (e) {
+    logError('getToken(): ' + e);
+  }
 }
