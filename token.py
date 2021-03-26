@@ -4,12 +4,13 @@ import base64
 import urllib
 import json
 import datetime
+import getpass
 from random import choice
 from string import hexdigits
 
-email = ''
-password = ''
-passcode = ''
+email = raw_input('email: ')
+password = getpass.getpass('password: ')
+passcode = raw_input('passcode: ')
 
 # Step 1: Obtain the login page
 code_verifier = ''.join(choice(hexdigits) for i in range(86))
