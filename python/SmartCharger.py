@@ -355,4 +355,30 @@ def main():
     email_notification = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!H9').execute().get('values', [])
     service.close()
     
-    
+    # check if email notification is set to "on" first
+    if (email_notification[0][0] == 'on'):
+      # send an email if the charge port door is not open, i.e. not plugged in
+      if (charge_port_door_open == False):
+        message =  'Your car is not plugged in.  \n\nCurrent battery level is '
+        message += str(battery_level) + '%, '
+        message += str(battery_range) + ' estimated miles.  \n\n-Your Model X'
+        sendEmail(email_address2, 'Please Plug In Your Model X', message, email_address1)
+        #print('send email: ' + message)
+
+    # set trigger for charging
+    scheduleM3Charging(m3_data, mx_data)
+    scheduleMXCharging(m3_data, mx_data)
+
+    # set cabin preconditioning the next morning
+    #setM3Precondition(m3_data);
+    #setMXPrecondition(mx_data);
+  except Exception as e:
+    print('notifyIsTeslaPluggedIn(): ' + str(e))
+    logError('notifyIsTeslaPluggedIn(): ' + str(e))
+    wakeVehicle(M3_VIN)
+    wakeVehicle(MX_VIN)
+    time.sleep(WAIT_TIME)
+    main()
+
+if __name__ == "__main__":
+  main()
