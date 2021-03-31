@@ -4,6 +4,7 @@ import time
 from TeslaVehicleAPI import *
 from GoogleAPI import *
 from SendEmail import *
+from SmartClimate import *
 from Utilities import *
 from Logger import *
 from datetime import timedelta, datetime
