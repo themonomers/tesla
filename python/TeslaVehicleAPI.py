@@ -78,3 +78,68 @@ def chargeVehicle(vin):
   except Exception as e:
     print('chargeVehicle(' + vin + '): ' + e)
     logError('chargeVehicle(' + vin + '): ' + e)
+
+##
+# Function to set vehicle temperature.
+#
+# author: mjhwa@yahoo.com
+##
+def setCarTemp(vin, d_temp, p_temp):
+  url =  'https://owner-api.teslamotors.com/api/1/vehicles/'
+  url += getVehicleId(vin)
+  url += '/command/set_temps'
+
+  payload = {
+    'driver_temp': d_temp,
+    'passenger_temp': p_temp
+  }
+
+  requests.post(url, data=payload, headers={'authorization': 'Bearer ' + ACCESS_TOKEN})
+}
+
+##
+# Function to set vehicle seat heater level.
+#
+# author: mjhwa@yahoo.com
+##
+def setCarSeatHeating(vin, seat, setting):
+  url =  'https://owner-api.teslamotors.com/api/1/vehicles/'
+  url += getVehicleId(vin)
+  url += '/command/remote_seat_heater_request'
+
+  payload = {
+    'heater': seat,
+    'level': setting
+  }
+#    "payload": JSON.stringify({'heater': '0', 'level': seats[0],
+#                               'heater': '1', 'level': seats[1],
+#                               'heater': '2', 'level': seats[2],
+#                               'heater': '4', 'level': seats[3],
+#                               'heater': '5', 'level': seats[4]})
+
+  requests.post(url, data=payload, headers={'authorization': 'Bearer ' + ACCESS_TOKEN})
+  
+##
+# Function to start vehicle preconditioning.
+#
+# author: mjhwa@yahoo.com
+##
+def preconditionCarStart(vin):
+  url =  'https://owner-api.teslamotors.com/api/1/vehicles/'
+  url += getVehicleId(vin)
+  url += '/command/auto_conditioning_start'
+
+  requests.post(url, headers={'authorization': 'Bearer ' + ACCESS_TOKEN})
+}
+
+##
+# Function to stop vehicle preconditioning.
+#
+# author: mjhwa@yahoo.com
+##
+def preconditionCarStop(vin):
+  url =  'https://owner-api.teslamotors.com/api/1/vehicles/'
+  url += getVehicleId(vin)
+  url += '/command/auto_conditioning_stop'
+
+  requests.post(url, headers={'authorization': 'Bearer ' + ACCESS_TOKEN})
