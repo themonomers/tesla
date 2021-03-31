@@ -16,7 +16,7 @@ def main():
     logError('preconditionMXStop(): ' + e)
     wakeVehicle(MX_VIN)
     time.sleep(WAIT_TIME)
-    preconditionMXStop()
+    main()
 
 if __name__ == "__main__":
   main()
