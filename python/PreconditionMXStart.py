@@ -180,7 +180,7 @@ def main():
     logError('preconditionMXStart(): ' + e)
     wakeVehicle(MX_VIN)
     time.sleep(WAIT_TIME)
-    preconditionMXStart();
+    main();
 
 if __name__ == "__main__":
   main()
