@@ -303,8 +303,8 @@ def main():
     scheduleMXCharging(m3_data, mx_data)
 
     # set cabin preconditioning the next morning
-    #setM3Precondition(m3_data);
-    #setMXPrecondition(mx_data);
+    setM3Precondition(m3_data);
+    setMXPrecondition(mx_data);
   except Exception as e:
     print('notifyIsTeslaPluggedIn(): ' + str(e))
     logError('notifyIsTeslaPluggedIn(): ' + str(e))
