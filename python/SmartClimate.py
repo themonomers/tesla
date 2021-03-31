@@ -3,9 +3,9 @@ import time
 
 from TeslaVehicleAPI import *
 from GoogleAPI import *
+from Utilities import *
 from Logger import *
 from datetime import timedelta, datetime
-from crontab import CronTab
 
 OPENWEATHERMAP_KEY = '';
 M3_VIN = ''
