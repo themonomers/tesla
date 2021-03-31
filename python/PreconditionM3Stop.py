@@ -16,7 +16,7 @@ def main():
     logError('preconditionM3Stop(): ' + e)
     wakeVehicle(M3_VIN)
     time.sleep(WAIT_TIME)
-    preconditionM3Stop()
+    main()
 
 if __name__ == "__main__":
   main()
