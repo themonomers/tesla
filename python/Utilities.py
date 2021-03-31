@@ -1,4 +1,6 @@
 import math
+import json
+import requests
 
 from crontab import CronTab
 
@@ -7,6 +9,7 @@ HOME_LAT =
 HOME_LNG = 
 NAPA_LAT = 
 NAPA_LNG = 
+OPENWEATHERMAP_KEY = ''
 
 ##
 #
@@ -69,3 +72,13 @@ def getDistance(car_lat, car_lng, x_lat, x_lng):
 
 def toRad(x):
   return x * math.pi / 180
+
+def getWeather(zipcode):
+  url =  'https://api.openweathermap.org/data/2.5/weather'
+  url += '?zip=' + zipcode
+  url += '&APPID=' + OPENWEATHERMAP_KEY
+  url += '&units=metric'
+
+  response = requests.get(url)
+
+  return json.loads(response.text)
