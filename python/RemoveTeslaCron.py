@@ -22,5 +22,21 @@ def main():
   cron.remove(job)
   cron.write()
 
+  cron = CronTab(user='pi')
+  job = cron.find_command('/home/pi/tesla/PreconditionM3Start.py')
+  cron.remove(job)
+  cron.write()
+  job = cron.find_command('/home/pi/tesla/PreconditionM3Stop.py')
+  cron.remove(job)
+  cron.write()
+
+  cron = CronTab(user='pi')
+  job = cron.find_command('/home/pi/tesla/PreconditionMXStart.py')
+  cron.remove(job)
+  cron.write()
+  job = cron.find_command('/home/pi/tesla/PreconditionMXStop.py')
+  cron.remove(job)
+  cron.write()
+  
 if __name__ == "__main__":
   main()
