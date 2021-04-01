@@ -95,7 +95,6 @@ def setCarTemp(vin, d_temp, p_temp):
   }
 
   requests.post(url, data=payload, headers={'authorization': 'Bearer ' + ACCESS_TOKEN})
-}
 
 ##
 # Function to set vehicle seat heater level.
@@ -130,7 +129,6 @@ def preconditionCarStart(vin):
   url += '/command/auto_conditioning_start'
 
   requests.post(url, headers={'authorization': 'Bearer ' + ACCESS_TOKEN})
-}
 
 ##
 # Function to stop vehicle preconditioning.
