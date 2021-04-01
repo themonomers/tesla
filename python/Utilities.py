@@ -17,10 +17,13 @@ OPENWEATHERMAP_KEY = ''
 #
 ##
 def deleteCronTab(command):
-  cron = CronTab(user='pi')
-  job = cron.find_command(command)
-  cron.remove(job)
-  cron.write()
+  try:
+    cron = CronTab(user='pi')
+    job = cron.find_command(command)
+    cron.remove(job)
+    cron.write()
+  except Exception as e:
+    logError('deleteCronTab(' + command + '): ' + e)
 
 ##
 #
@@ -28,11 +31,14 @@ def deleteCronTab(command):
 #
 ##
 def createCronTab(command, hour, minute):
-  cron = CronTab(user='pi')
-  job = cron.new(command=command)
-  job.hour.on(hour)
-  job.minute.on(minute)
-  cron.write()
+  try:
+    cron = CronTab(user='pi')
+    job = cron.new(command=command)
+    job.hour.on(hour)
+    job.minute.on(minute)
+    cron.write()
+  except Exception as e:
+    logError('createCronTab(' + command + '): ' + e)
 
 ##
 # Calculates if the distance of the car is greater than 0.25 miles away from
@@ -52,13 +58,16 @@ def isVehicleAtNapa(data):
   return isVehicleAtLocation(data, NAPA_LAT, NAPA_LNG)
 
 def isVehicleAtLocation(data, lat, lng):
-  d = getDistance(data['response']['drive_state']['latitude'], data['response']['drive_state']['longitude'], lat, lng)
+  try: 
+    d = getDistance(data['response']['drive_state']['latitude'], data['response']['drive_state']['longitude'], lat, lng)
 
-  # check if the car is more than a quarter of a mile away
-  if (d < 0.25):
-    return True
-  else:
-    return False
+    # check if the car is more than a quarter of a mile away
+    if (d < 0.25):
+      return True
+    else:
+      return False
+  except Exception as e:
+    logError('isVehicleAtLocation(): ' + e)
 
 def getDistance(car_lat, car_lng, x_lat, x_lng):
   diff_lat = toRad(car_lat - x_lat)
@@ -74,11 +83,15 @@ def toRad(x):
   return x * math.pi / 180
 
 def getWeather(zipcode):
-  url =  'https://api.openweathermap.org/data/2.5/weather'
-  url += '?zip=' + zipcode
-  url += '&APPID=' + OPENWEATHERMAP_KEY
-  url += '&units=metric'
+  try: 
+    url =  'https://api.openweathermap.org/data/2.5/weather'
+    url += '?zip=' + zipcode
+    url += '&APPID=' + OPENWEATHERMAP_KEY
+    url += '&units=metric'
 
-  response = requests.get(url)
+    response = requests.get(url)
 
-  return json.loads(response.text)
+    return json.loads(response.text)
+  except Exception as e:
+    logError('getWeather(): ' + e)
+    
