@@ -33,56 +33,56 @@ def main():
     if (wdata['main']['temp'] < cold_temp_threshold):
       # get pre-heat preferences
       if (day_of_week == 0): # Sunday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I9').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J9').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I9').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J9').execute().get('values', [])[0][0]
         
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
 
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K9').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L9').execute().get('values', [])[0][0])
       elif (day_of_week == 1): # Monday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I3').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J3').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I3').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J3').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
 
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K3').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L3').execute().get('values', [])[0][0])
       elif (day_of_week == 2): # Tuesday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I4').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J4').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I4').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J4').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
 
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K4').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L4').execute().get('values', [])[0][0])
       elif (day_of_week == 3): # Wednesday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I5').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J5').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I5').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J5').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
         
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K5').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L5').execute().get('values', [])[0][0])
       elif (day_of_week == 4): # Thursday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I6').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J6').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I6').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J6').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
 
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K6').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L6').execute().get('values', [])[0][0])
       elif (day_of_week == 5): # Friday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I7').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J7').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I7').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J7').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
 
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K7').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L7').execute().get('values', [])[0][0])
       elif (day_of_week == 6): # Saturday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I8').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J8').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I8').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J8').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
         
@@ -93,56 +93,56 @@ def main():
     elif (wdata['main']['temp'] > hot_temp_threshold):
       # get pre-cool preferences
       if (day_of_week == 0): # Sunday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I18').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J18').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I18').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J18').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
 
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K18').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L18').execute().get('values', [])[0][0])
       elif (day_of_week == 1): # Monday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I12').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J12').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I12').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J12').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
 
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K12').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L12').execute().get('values', [])[0][0])
       elif (day_of_week == 2): # Tuesday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I13').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J13').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I13').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J13').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
         
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K13').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L13').execute().get('values', [])[0][0])
       elif (day_of_week == 3): # Wednesday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I14').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J14').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I14').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J14').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
 
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K14').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L14').execute().get('values', [])[0][0])
       elif (day_of_week == 4): # Thursday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I15').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J15').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I15').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J15').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
 
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K15').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L15').execute().get('values', [])[0][0])
       elif (day_of_week == 5): # Friday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I16').execute().get('values', [])[0][0]
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J16').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I16').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J16').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
         
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!K16').execute().get('values', [])[0][0])
         seats.append(service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!L16').execute().get('values', [])[0][0])
       elif (day_of_week == 6): # Saturday
-        d_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I17').execute().get('values', [])[0][0]
-        p_temp = = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J17').execute().get('values', [])[0][0]
+        d_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!I17').execute().get('values', [])[0][0]
+        p_temp = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Climate!J17').execute().get('values', [])[0][0]
 
         if ((d_temp.isnumeric() == False) or (p_temp.isnumeric() == False)): return
 
