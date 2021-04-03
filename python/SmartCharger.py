@@ -12,11 +12,11 @@ from datetime import timedelta, datetime
 M3_VIN = ''
 MX_VIN = ''
 WAIT_TIME = 30
-R = 3958.8;  #Earth radius in miles
 TEST_EV_SPREADSHEET_ID = ''
 
 email_address1 = 'mjhwa@yahoo.com'
 email_address2 = ''
+
 
 ##
 # Writes to a Google Sheet that calculates optimum charging start times for
@@ -37,13 +37,19 @@ def writeM3StartTimes(data):
     # write m3 time and date stamp to Google Sheet
     inputs.append({
       'range': 'Smart Charger!D10',
-      'values': [[datetime.today().strftime('%H:%M:%S') + ', ' + datetime.today().strftime('%m/%d/%Y')]]
+      'values': [[(
+        datetime.today().strftime('%H:%M:%S')
+        + ', '
+        + datetime.today().strftime('%m/%d/%Y')
+      )]]
     })
-    
+
     # write m3 scheduled charge time to Google Sheet
     inputs.append({
       'range': 'Smart Charger!E28',
-      'values': [[data['response']['charge_state']['scheduled_charging_start_time']]]
+      'values': [[
+        data['response']['charge_state']['scheduled_charging_start_time']
+      ]]
     })
 
     # write m3 charge limit to Google Sheet
@@ -55,17 +61,24 @@ def writeM3StartTimes(data):
     # write m3 max range
     inputs.append({
       'range': 'Smart Charger!B6',
-      'values': [[data['response']['charge_state']['battery_range']/(data['response']['charge_state']['battery_level']/100.0)]]
+      'values': [[(
+        data['response']['charge_state']['battery_range']
+        / (data['response']['charge_state']['battery_level']
+           / 100.0)
+      )]]
     })
 
     # batch write data to sheet
     service = getGoogleSheetService()
-    service.spreadsheets().values().batchUpdate(spreadsheetId=TEST_EV_SPREADSHEET_ID, body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}).execute()
+    service.spreadsheets().values().batchUpdate(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
+    ).execute()
   except Exception as e:
-    print('writeM3StartTimes(): ' + str(e))
     logError('writeM3StartTimes(): ' + str(e))
   finally:
     service.close()
+
 
 def writeMXStartTimes(data):
   try:
@@ -80,13 +93,19 @@ def writeMXStartTimes(data):
     # write mx time and date stamp to Google Sheet
     inputs.append({
       'range': 'Smart Charger!D9',
-      'values': [[datetime.today().strftime('%H:%M:%S') + ', ' + datetime.today().strftime('%m/%d/%Y')]]
+      'values': [[(
+        datetime.today().strftime('%H:%M:%S')
+        + ', '
+        + datetime.today().strftime('%m/%d/%Y')
+      )]]
     })
-    
+
     # write mx scheduled charge time to Google Sheet
     inputs.append({
       'range': 'Smart Charger!F28',
-      'values': [[data['response']['charge_state']['scheduled_charging_start_time']]]
+      'values': [[
+        data['response']['charge_state']['scheduled_charging_start_time']
+      ]]
     })
 
     # write mx charge limit to Google Sheet
@@ -98,17 +117,24 @@ def writeMXStartTimes(data):
     # write mx max range
     inputs.append({
       'range': 'Smart Charger!B5',
-      'values': [[data['response']['charge_state']['battery_range']/(data['response']['charge_state']['battery_level']/100.0)]]
+      'values': [[(
+        data['response']['charge_state']['battery_range']
+        / (data['response']['charge_state']['battery_level']
+           / 100.0)
+      )]]
     })
 
     # batch write data to sheet
     service = getGoogleSheetService()
-    service.spreadsheets().values().batchUpdate(spreadsheetId=TEST_EV_SPREADSHEET_ID, body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}).execute()
+    service.spreadsheets().values().batchUpdate(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
+    ).execute()
   except Exception as e:
-    print('writeMXStartTimes(): ' + str(e))
     logError('writeMXStartTimes(): ' + str(e))
   finally:
     service.close()
+
 
 ##
 # Read vehicle range and estimated charge start time from a the Google Sheet,
@@ -132,57 +158,122 @@ def scheduleM3Charging(m3_data, mx_data):
 
     service = getGoogleSheetService()
 
-    target_soc = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!B18').execute().get('values', [])[0][0]
-    current_soc = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!B10').execute().get('values', [])[0][0]
+    target_soc = service.spreadsheets().values().get(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      range='Smart Charger!B18'
+    ).execute().get('values', [])[0][0]
+    current_soc = service.spreadsheets().values().get(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      range='Smart Charger!B10'
+    ).execute().get('values', [])[0][0]
 
     # if the target SoC is greater than the current SoC and charging state isn't
     # Complete, create a crontab for charging
-    if ((target_soc > current_soc) and (m3_data['response']['charge_state']['charging_state'] != 'Complete')):
+    if (
+      (target_soc > current_soc)
+      and (m3_data['response']['charge_state']['charging_state'] != 'Complete')
+    ):
       # get calculated start time depending on location of cars
-      if ((isVehicleAtHome(m3_data) == True) and (isVehicleAtHome(mx_data) == True)):
-        start_time = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!E26').execute().get('values', [])[0][0]
-      elif ((isVehicleAtHome(m3_data) == True) and (isVehicleAtHome(mx_data) == False)):
-        start_time = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!J25').execute().get('values', [])[0][0]
+      if (
+        (isVehicleAtHome(m3_data) == True)
+        and (isVehicleAtHome(mx_data) == True)
+      ):
+        start_time = service.spreadsheets().values().get(
+          spreadsheetId=TEST_EV_SPREADSHEET_ID,
+          range='Smart Charger!E26'
+        ).execute().get('values', [])[0][0]
+      elif (
+        (isVehicleAtHome(m3_data) == True)
+        and (isVehicleAtHome(mx_data) == False)
+      ):
+        start_time = service.spreadsheets().values().get(
+          spreadsheetId=TEST_EV_SPREADSHEET_ID,
+          range='Smart Charger!J25'
+        ).execute().get('values', [])[0][0]
       elif (isVehicleAtNapa(m3_data)):
-        start_time = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!J26').execute().get('values', [])[0][0]
+        start_time = service.spreadsheets().values().get(
+          spreadsheetId=TEST_EV_SPREADSHEET_ID,
+          range='Smart Charger!J26'
+        ).execute().get('values', [])[0][0]
       else:
         return
-      
+
       # set the right date of the estimated charge time based on AM or PM
       if (str(start_time).find('AM') >= 0):
         tomorrow_date = datetime.today() + timedelta(1)
         start_time = datetime.strptime(start_time, '%I:%M %p').time()
-        estimated_charge_start_time = datetime(tomorrow_date.year, tomorrow_date.month, tomorrow_date.day, start_time.hour, start_time.minute)
+        estimated_charge_start_time = datetime(
+          tomorrow_date.year,
+          tomorrow_date.month,
+          tomorrow_date.day,
+          start_time.hour,
+          start_time.minute
+        )
+        #print('estimated charge start time: ' + str(estimated_charge_start_time))
       else:
         start_time = datetime.strptime(start_time, '%I:%M %p').time()
-        estimated_charge_start_time = datetime(datetime.today().year, datetime.today().month, datetime.today().day, start_time.hour, start_time.minute)
+        estimated_charge_start_time = datetime(
+          datetime.today().year,
+          datetime.today().month,
+          datetime.today().day,
+          start_time.hour,
+          start_time.minute
+        )
+        #print('estimated charge start time: ' + str(estimated_charge_start_time))
 
       # if the estimated start time is after the car's onboard scheduled start
       # time, exit
       # TODO:  Check if it's AM or PM
-      car_charge_schedule = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!E27').execute().get('values', [])[0][0]
+      car_charge_schedule = service.spreadsheets().values().get(
+        spreadsheetId=TEST_EV_SPREADSHEET_ID,
+        range='Smart Charger!E27'
+      ).execute().get('values', [])[0][0]
       tomorrow_date = datetime.today() + timedelta(1)
-      car_charge_schedule = datetime.strptime(car_charge_schedule, '%I:%M %p').time()
-      car_charge_schedule = datetime(tomorrow_date.year, tomorrow_date.month, tomorrow_date.day, car_charge_schedule.hour, car_charge_schedule.minute)
+      car_charge_schedule = datetime.strptime(
+        car_charge_schedule,
+        '%I:%M %p'
+      ).time()
+      car_charge_schedule = datetime(
+        tomorrow_date.year,
+        tomorrow_date.month,
+        tomorrow_date.day,
+        car_charge_schedule.hour,
+        car_charge_schedule.minute
+      )
+      #print('estimated charge start time: ' + str(estimated_charge_start_time))
+      #print('car charge schedule: ' + str(car_charge_schedule))
       service.close()
 
       if (estimated_charge_start_time > car_charge_schedule):
         return
 
       # create crontab
-      createCronTab('/home/pi/tesla/ChargeM3.py', estimated_charge_start_time.hour, estimated_charge_start_time.minute)
+      createCronTab(
+        '/home/pi/tesla/ChargeM3.py',
+        estimated_charge_start_time.hour,
+        estimated_charge_start_time.minute
+      )
 
       # send email notification
-      message = 'The Model 3 is set to charge on ' + str(estimated_charge_start_time) + '.'
+      message = ('The Model 3 is set to charge on '
+                 + str(estimated_charge_start_time)
+                 + '.')
       sendEmail(email_address1, 'Model 3 Set to Charge', message, '')
 
       # create back up crontab for 15 minutes later
-      estimated_backup_charge_start_time = estimated_charge_start_time + timedelta(minutes=15)
-      createCronTab('/home/pi/tesla/ChargeM3Backup.py', estimated_backup_charge_start_time.hour, estimated_backup_charge_start_time.minute)
+      estimated_backup_charge_start_time = (
+        estimated_charge_start_time
+        + timedelta(minutes=15
+      )
+      createCronTab(
+        '/home/pi/tesla/ChargeM3Backup.py',
+        estimated_backup_charge_start_time.hour,
+        estimated_backup_charge_start_time.minute
+      )
   except Exception as e:
-    print('scheduleM3Charging(): ' + str(e))
     logError('scheduleM3Charging(): ' + str(e))
-    
+
+
 def scheduleMXCharging(m3_data, mx_data):
   try:
     deleteCronTab('/home/pi/tesla/ChargeMX.py')
@@ -190,19 +281,43 @@ def scheduleMXCharging(m3_data, mx_data):
 
     service = getGoogleSheetService()
 
-    target_soc = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!B17').execute().get('values', [])[0][0]
-    current_soc = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!B9').execute().get('values', [])[0][0]
+    target_soc = service.spreadsheets().values().get(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      range='Smart Charger!B17'
+    ).execute().get('values', [])[0][0]
+    current_soc = service.spreadsheets().values().get(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      range='Smart Charger!B9'
+    ).execute().get('values', [])[0][0]
 
     # if the target SoC is greater than the current SoC and charging state isn't
     # Complete, create a crontab for charging
-    if ((target_soc > current_soc) and (mx_data['response']['charge_state']['charging_state'] != 'Complete')):
+    if (
+      (target_soc > current_soc)
+      and (mx_data['response']['charge_state']['charging_state'] != 'Complete')
+    ):
       # get calculated start time depending on location of cars
-      if ((isVehicleAtHome(mx_data) == True) and (isVehicleAtHome(m3_data) == True)):
-        start_time = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!F26').execute().get('values', [])[0][0]
-      elif ((isVehicleAtHome(mx_data) == True) and (isVehicleAtHome(m3_data) == False)):
-        start_time = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!K26').execute().get('values', [])[0][0]
+      if (
+        (isVehicleAtHome(mx_data) == True)
+        and (isVehicleAtHome(m3_data) == True)
+      ):
+        start_time = service.spreadsheets().values().get(
+          spreadsheetId=TEST_EV_SPREADSHEET_ID,
+          range='Smart Charger!F26'
+        ).execute().get('values', [])[0][0]
+      elif (
+        (isVehicleAtHome(mx_data) == True)
+        and (isVehicleAtHome(m3_data) == False)
+      ):
+        start_time = service.spreadsheets().values().get(
+          spreadsheetId=TEST_EV_SPREADSHEET_ID,
+          range='Smart Charger!K26'
+        ).execute().get('values', [])[0][0]
       elif (isVehicleAtNapa(mx_data)):
-        start_time = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!K25').execute().get('values', [])[0][0]
+        start_time = service.spreadsheets().values().get(
+          spreadsheetId=TEST_EV_SPREADSHEET_ID,
+          range='Smart Charger!K25'
+        ).execute().get('values', [])[0][0]
       else:
         return
 
@@ -210,36 +325,77 @@ def scheduleMXCharging(m3_data, mx_data):
       if (str(start_time).find('AM') >= 0):
         tomorrow_date = datetime.today() + timedelta(1)
         start_time = datetime.strptime(start_time, '%I:%M %p').time()
-        estimated_charge_start_time = datetime(tomorrow_date.year, tomorrow_date.month, tomorrow_date.day, start_time.hour, start_time.minute)
+        estimated_charge_start_time = datetime(
+          tomorrow_date.year,
+          tomorrow_date.month,
+          tomorrow_date.day,
+          start_time.hour,
+          start_time.minute
+        )
+        #print('estimated charge start time: ' + str(estimated_charge_start_time))
       else:
         start_time = datetime.strptime(start_time, '%I:%M %p').time()
-        estimated_charge_start_time = datetime(datetime.today().year, datetime.today().month, datetime.today().day, start_time.hour, start_time.minute)
-        
+        estimated_charge_start_time = datetime(
+          datetime.today().year,
+          datetime.today().month,
+          datetime.today().day,
+          start_time.hour,
+          start_time.minute
+        )
+        #print('estimated charge start time: ' + str(estimated_charge_start_time))
+
       # if the estimated start time is after the car's onboard scheduled start
       # time, exit
       # TODO:  Check if it's AM or PM
-      car_charge_schedule = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!F27').execute().get('values', [])[0][0]
+      car_charge_schedule = service.spreadsheets().values().get(
+        spreadsheetId=TEST_EV_SPREADSHEET_ID,
+        range='Smart Charger!F27'
+      ).execute().get('values', [])[0][0]
       tomorrow_date = datetime.today() + timedelta(1)
-      car_charge_schedule = datetime.strptime(car_charge_schedule, '%I:%M %p').time()
-      car_charge_schedule = datetime(tomorrow_date.year, tomorrow_date.month, tomorrow_date.day, car_charge_schedule.hour, car_charge_schedule.minute)
+      car_charge_schedule = datetime.strptime(
+        car_charge_schedule,
+        '%I:%M %p'
+      ).time()
+      car_charge_schedule = datetime(
+        tomorrow_date.year,
+        tomorrow_date.month,
+        tomorrow_date.day,
+        car_charge_schedule.hour,
+        car_charge_schedule.minute
+      )
+      #print('estimated charge start time: ' + str(estimated_charge_start_time))
+      #print('car charge schedule: ' + str(car_charge_schedule))
       service.close()
 
       if (estimated_charge_start_time > car_charge_schedule):
         return
 
       # create crontab
-      createCronTab('/home/pi/tesla/ChargeMX.py', estimated_charge_start_time.hour, estimated_charge_start_time.minute)
+      createCronTab(
+        '/home/pi/tesla/ChargeMX.py',
+        estimated_charge_start_time.hour,
+        estimated_charge_start_time.minute
+      )
 
       # send email notification
-      message = 'The Model X is set to charge on ' + str(estimated_charge_start_time) + '.'
+      message = ('The Model X is set to charge on '
+                 + str(estimated_charge_start_time)
+                 + '.')
       sendEmail(email_address1, 'Model X Set to Charge', message, '')
 
       # create back up crontab for 15 minutes later
-      estimated_backup_charge_start_time = estimated_charge_start_time + timedelta(minutes=15)
-      createCronTab('/home/pi/tesla/ChargeMXBackup.py', estimated_backup_charge_start_time.hour, estimated_backup_charge_start_time.minute)
+      estimated_backup_charge_start_time = (
+        estimated_charge_start_time
+        + timedelta(minutes=15)
+      )
+      createCronTab(
+        '/home/pi/tesla/ChargeMXBackup.py',
+        estimated_backup_charge_start_time.hour,
+        estimated_backup_charge_start_time.minute
+      )
   except Exception as e:
-    print('scheduleMXCharging(): ' + str(e))
     logError('scheduleMXCharging(): ' + str(e))
+
 
 ##
 # Checks to see if the vehicles are plugged in, inferred from the charge port
@@ -271,43 +427,57 @@ def main():
     battery_range = m3_data['response']['charge_state']['battery_range']
 
     service = getGoogleSheetService()
-    email_notification = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!H10').execute().get('values', [])
+    email_notification = service.spreadsheets().values().get(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      range='Smart Charger!H10'
+    ).execute().get('values', [])
+    #print('email notify: ' + email_notification[0][0])
 
     # check if email notification is set to "on" first
     if (email_notification[0][0] == 'on'):
       # send an email if the charge port door is not open, i.e. not plugged in
       if (charge_port_door_open == False):
-        message =  'Your car is not plugged in.  \n\nCurrent battery level is '
-        message += str(battery_level) + '%, '
-        message += str(battery_range) + ' estimated miles.  \n\n-Your Model 3'
+        message = ('Your car is not plugged in.  \n\nCurrent battery level is '
+                   + str(battery_level)
+                   + '%, '
+                   + str(battery_range)
+                   + ' estimated miles.  \n\n-Your Model 3')
         sendEmail(email_address1, 'Please Plug In Your Model 3', message, '')
+        #print('send email: ' + message)
 
     charge_port_door_open = mx_data['response']['charge_state']['charge_port_door_open']
     battery_level = mx_data['response']['charge_state']['battery_level']
     battery_range = mx_data['response']['charge_state']['battery_range']
 
-    email_notification = service.spreadsheets().values().get(spreadsheetId=TEST_EV_SPREADSHEET_ID, range='Smart Charger!H9').execute().get('values', [])
+    email_notification = service.spreadsheets().values().get(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      range='Smart Charger!H9'
+    ).execute().get('values', [])
+    #print('email notify: ' + email_notification[0][0])
     service.close()
-    
+
     # check if email notification is set to "on" first
     if (email_notification[0][0] == 'on'):
       # send an email if the charge port door is not open, i.e. not plugged in
       if (charge_port_door_open == False):
-        message =  'Your car is not plugged in.  \n\nCurrent battery level is '
-        message += str(battery_level) + '%, '
-        message += str(battery_range) + ' estimated miles.  \n\n-Your Model X'
-        sendEmail(email_address2, 'Please Plug In Your Model X', message, email_address1)
+        message = ('Your car is not plugged in.  \n\nCurrent battery level is '
+                   + str(battery_level)
+                   + '%, '
+                   + str(battery_range)
+                   + ' estimated miles.  \n\n-Your Model X')
+        sendEmail(email_address2,
+                  'Please Plug In Your Model X',
+                  message, email_address1)
         #print('send email: ' + message)
 
-    # set trigger for charging
+    # set crontab for charging
     scheduleM3Charging(m3_data, mx_data)
     scheduleMXCharging(m3_data, mx_data)
 
     # set cabin preconditioning the next morning
-    setM3Precondition(m3_data);
-    setMXPrecondition(mx_data);
+    setM3Precondition(m3_data)
+    setMXPrecondition(mx_data)
   except Exception as e:
-    print('notifyIsTeslaPluggedIn(): ' + str(e))
     logError('notifyIsTeslaPluggedIn(): ' + str(e))
     wakeVehicle(M3_VIN)
     wakeVehicle(MX_VIN)
@@ -316,3 +486,5 @@ def main():
 
 if __name__ == "__main__":
   main()
+
+
