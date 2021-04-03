@@ -14,6 +14,7 @@ TELEMETRY_SHEET_ID = ''
 
 email_address1 = 'mjhwa@yahoo.com'
 
+
 ##
 # Contains functions to read/write the vehicle's data, e.g. mileage,
 # efficiency, etc. into a Google Sheet for tracking, analysis, and graphs.
@@ -38,7 +39,7 @@ def writeM3Telemetry():
       'range': 'Telemetry!B' + str(open_row),
       'values': [[datetime.today().strftime('%B %d, %Y')]]
     })
-    
+
     requests = []
     # copy mileage formulas down
     requests.append({
@@ -64,7 +65,11 @@ def writeM3Telemetry():
     # write max battery capacity
     inputs.append({
       'range': 'Telemetry!M' + str((open_row - 1)),
-      'values': [[data['response']['charge_state']['battery_range']/(data['response']['charge_state']['battery_level']/100.0)]]
+      'values': [[(
+        data['response']['charge_state']['battery_range']
+        / (data['response']['charge_state']['battery_level']
+           / 100.0)
+      )]]
     })
 
     # copy down battery degradation % formula
@@ -87,7 +92,7 @@ def writeM3Telemetry():
         'pasteType': 'PASTE_FORMULA'
       }
     })
-    
+
     # write target SoC %
     inputs.append({
       'range': 'Telemetry!O' + str(open_row),
@@ -95,16 +100,22 @@ def writeM3Telemetry():
     })
 
     # write data for efficiency calculation
-    starting_range = data['response']['charge_state']['battery_range']/(data['response']['charge_state']['battery_level']/100.0) * data['response']['charge_state']['charge_limit_soc']/100.0
+    starting_range = (
+      data['response']['charge_state']['battery_range']
+      / (data['response']['charge_state']['battery_level']
+         / 100.0)
+      * (data['response']['charge_state']['charge_limit_soc']
+         / 100.0)
+    )
     eod_range = data['response']['charge_state']['battery_range']
 
     # if the starting range is less than eod range or the car is not plugged
     # in or charging state is complete, the starting range is equal to the
     # eod range because it won't charge
     if (
-      (starting_range < eod_range) or
-      (data['response']['charge_state']['charge_port_door_open'] == False) or
-      (data['response']['charge_state']['charging_state'] == 'Complete')
+      (starting_range < eod_range)
+      or (data['response']['charge_state']['charge_port_door_open'] == False)
+      or (data['response']['charge_state']['charging_state'] == 'Complete')
     ):
       starting_range = eod_range
 
@@ -138,10 +149,14 @@ def writeM3Telemetry():
         'pasteType': 'PASTE_FORMULA'
       }
     })
-    
+
     # write temperature data into telemetry sheet
-    inside_temp = data['response']['climate_state']['inside_temp'] * 9/5 + 32  #convert to Fahrenheit
-    outside_temp = data['response']['climate_state']['outside_temp'] * 9/5 + 32
+    inside_temp = (data['response']['climate_state']['inside_temp']
+                   * 9/5
+                   + 32)  #convert to Fahrenheit
+    outside_temp = (data['response']['climate_state']['outside_temp']
+                    * 9/5
+                    + 32)
 
     inputs.append({
       'range': 'Telemetry!P' + str(open_row - 1),
@@ -154,19 +169,27 @@ def writeM3Telemetry():
 
     # batch write data and formula copies to sheet
     service = getGoogleSheetService()
-    service.spreadsheets().values().batchUpdate(spreadsheetId=TEST_EV_SPREADSHEET_ID, body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}).execute()
-    service.spreadsheets().batchUpdate(spreadsheetId=TEST_EV_SPREADSHEET_ID, body={'requests': requests}).execute()
+    service.spreadsheets().values().batchUpdate(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
+    ).execute()
+    service.spreadsheets().batchUpdate(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      body={'requests': requests}
+    ).execute()
     service.close()
 
     # send email notification
-    message = 'Model 3 telemetry successfully logged on ' + datetime.today().strftime('%B %d, %Y %H:%M:%S') + '.'
+    message = ('Model 3 telemetry successfully logged on '
+               + datetime.today().strftime('%B %d, %Y %H:%M:%S')
+               + '.')
     sendEmail(email_address1, 'Model 3 Telemetry Logged', message, '')
   except Exception as e:
-    print('writeM3Telemetry(): ' + str(e))
     logError('writeM3Telemetry(): ' + str(e))
     wakeVehicle(M3_VIN)
     time.sleep(WAIT_TIME)
     writeM3Telemetry()
+
 
 def writeMXTelemetry():
   try:
@@ -186,7 +209,7 @@ def writeMXTelemetry():
       'range': 'Telemetry!S' + str(open_row),
       'values': [[datetime.today().strftime('%B %d, %Y')]]
     })
-    
+
     requests = []
     # copy mileage formulas down
     requests.append({
@@ -212,7 +235,11 @@ def writeMXTelemetry():
     # write max battery capacity
     inputs.append({
       'range': 'Telemetry!AD' + str((open_row - 1)),
-      'values': [[data['response']['charge_state']['battery_range']/(data['response']['charge_state']['battery_level']/100.0)]]
+      'values': [[(
+        data['response']['charge_state']['battery_range']
+        / (data['response']['charge_state']['battery_level']
+           / 100.0)
+      )]]
     })
 
     # copy down battery degradation % formula
@@ -235,7 +262,7 @@ def writeMXTelemetry():
         'pasteType': 'PASTE_FORMULA'
       }
     })
-    
+
     # write target SoC %
     inputs.append({
       'range': 'Telemetry!AF' + str(open_row),
@@ -243,16 +270,21 @@ def writeMXTelemetry():
     })
 
     # write data for efficiency calculation
-    starting_range = data['response']['charge_state']['battery_range']/(data['response']['charge_state']['battery_level']/100.0) * data['response']['charge_state']['charge_limit_soc']/100.0
+    starting_range = (
+      data['response']['charge_state']['battery_range']
+      / (data['response']['charge_state']['battery_level']
+         / 100.0)
+      * (data['response']['charge_state']['charge_limit_soc']
+         / 100.0))
     eod_range = data['response']['charge_state']['battery_range']
 
     # if the starting range is less than eod range or the car is not plugged
     # in or charging state is complete, the starting range is equal to the
     # eod range because it won't charge
     if (
-      (starting_range < eod_range) or
-      (data['response']['charge_state']['charge_port_door_open'] == False) or
-      (data['response']['charge_state']['charging_state'] == 'Complete')
+      (starting_range < eod_range)
+      or (data['response']['charge_state']['charge_port_door_open'] == False)
+      or (data['response']['charge_state']['charging_state'] == 'Complete')
     ):
       starting_range = eod_range
 
@@ -286,10 +318,14 @@ def writeMXTelemetry():
         'pasteType': 'PASTE_FORMULA'
       }
     })
-    
+
     # write temperature data into telemetry sheet
-    inside_temp = data['response']['climate_state']['inside_temp'] * 9/5 + 32  #convert to Fahrenheit
-    outside_temp = data['response']['climate_state']['outside_temp'] * 9/5 + 32
+    inside_temp = (data['response']['climate_state']['inside_temp']
+                   * 9/5
+                   + 32)  #convert to Fahrenheit
+    outside_temp = (data['response']['climate_state']['outside_temp']
+                    * 9/5
+                    + 32)
 
     inputs.append({
       'range': 'Telemetry!AG' + str(open_row - 1),
@@ -302,19 +338,27 @@ def writeMXTelemetry():
 
     # batch write data and formula copies to sheet
     service = getGoogleSheetService()
-    service.spreadsheets().values().batchUpdate(spreadsheetId=TEST_EV_SPREADSHEET_ID, body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}).execute()
-    service.spreadsheets().batchUpdate(spreadsheetId=TEST_EV_SPREADSHEET_ID, body={'requests': requests}).execute()
+    service.spreadsheets().values().batchUpdate(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
+    ).execute()
+    service.spreadsheets().batchUpdate(
+      spreadsheetId=TEST_EV_SPREADSHEET_ID,
+      body={'requests': requests}
+    ).execute()
     service.close()
 
     # send email notification
-    message = 'Model X telemetry successfully logged on ' + datetime.today().strftime('%B %d, %Y %H:%M:%S') + '.'
+    message = ('Model X telemetry successfully logged on '
+               + datetime.today().strftime('%B %d, %Y %H:%M:%S')
+               + '.')
     sendEmail(email_address1, 'Model X Telemetry Logged', message, '')
   except Exception as e:
-    print('writeMXTelemetry(): ' + str(e))
     logError('writeMXTelemetry(): ' + str(e))
     wakeVehicle(MX_VIN)
     time.sleep(WAIT_TIME)
     writeMXTelemetry()
+
 
 ##
 # Looks for the next empty cell in a Google Sheet row to avoid overwriting data
@@ -326,16 +370,19 @@ def findOpenRow(sheet_id, sheet_name, range):
   try:
     service = getGoogleSheetService()
     range = sheet_name + '!' + range
-    values = service.spreadsheets().values().get(spreadsheetId=sheet_id, range=range).execute().get('values', [])
+    values = service.spreadsheets().values().get(
+      spreadsheetId=sheet_id,
+      range=range
+    ).execute().get('values', [])
     service.close()
 
     if (values == False):
       return 1
-    
-    return len(values) + 1;
+
+    return len(values) + 1
   except Exception as e:
-    print('findOpenRow(): ' + str(e))
     logError('findOpenRow(): ' + str(e))
+
 
 ##
 #
@@ -348,3 +395,5 @@ def main():
 
 if __name__ == "__main__":
   main()
+
+
