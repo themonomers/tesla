@@ -4,6 +4,7 @@ from datetime import datetime
 
 LOG_SPREADSHEET_ID = ''
 
+
 ##
 # Logs errors from try/catch blocks into a Google Sheet.
 #
@@ -26,5 +27,8 @@ def logError(msg):
 
   # batch write data and formula copies to sheet
   service = getGoogleSheetService()
-  service.spreadsheets().values().batchUpdate(spreadsheetId=LOG_SPREADSHEET_ID, body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}).execute()
+  service.spreadsheets().values().batchUpdate(
+    spreadsheetId=LOG_SPREADSHEET_ID, 
+    body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
+  ).execute()
   service.close()
