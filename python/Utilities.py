@@ -1,15 +1,21 @@
-import math
-import json
 import requests
+import math
+import configparser
 
+from Logger import *
 from crontab import CronTab
 
-R = 3958.8;  #Earth radius in miles
-HOME_LAT = 
-HOME_LNG = 
-NAPA_LAT = 
-NAPA_LNG = 
-OPENWEATHERMAP_KEY = ''
+R = 3958.8  #Earth radius in miles
+
+config = configparser.ConfigParser()
+config.sections()
+config.read('config.ini')
+
+HOME_LAT = float(config['vehicle']['home_lat'])
+HOME_LNG = float(config['vehicle']['home_lng'])
+NAPA_LAT = float(config['vehicle']['napa_lat'])
+NAPA_LNG = float(config['vehicle']['napa_lng'])
+OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
 
 ##
 # Removes crontab for a single command.
@@ -17,13 +23,13 @@ OPENWEATHERMAP_KEY = ''
 # author: mjhwa@yahoo.com
 ##
 def deleteCronTab(command):
-  try:
+  try: 
     cron = CronTab(user='pi')
     job = cron.find_command(command)
     cron.remove(job)
     cron.write()
   except Exception as e:
-    logError('deleteCronTab(' + command + '): ' + e)
+    logError('deleteCronTab(' + command + '): ' + str(e))
 
 
 ##
@@ -39,16 +45,16 @@ def createCronTab(command, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    logError('createCronTab(' + command + '): ' + e)
+    logError('createCronTab(' + command + '): ' + str(e))
 
 
 ##
-# Calculates if the distance of the car is greater than 0.25 miles away from
-# home.  The calculation uses Haversine Formula expressed in terms of a
-# two-argument inverse tangent function to calculate the great circle distance
-# between two points on the Earth. This is the method recommended for
-# calculating short distances by Bob Chamberlain (rgc@jpl.nasa.gov) of Caltech
-# and NASA's Jet Propulsion Laboratory as described on the U.S. Census Bureau
+# Calculates if the distance of the car is greater than 0.25 miles away from 
+# home.  The calculation uses Haversine Formula expressed in terms of a 
+# two-argument inverse tangent function to calculate the great circle distance 
+# between two points on the Earth. This is the method recommended for 
+# calculating short distances by Bob Chamberlain (rgc@jpl.nasa.gov) of Caltech 
+# and NASA's Jet Propulsion Laboratory as described on the U.S. Census Bureau 
 # Web site.
 #
 # author: mjhwa@yahoo.com
@@ -63,30 +69,30 @@ def isVehicleAtNapa(data):
 
 def isVehicleAtLocation(data, lat, lng):
   try:
-    d = getDistance(data['response']['drive_state']['latitude'],
-                    data['response']['drive_state']['longitude'],
+    d = getDistance(data['response']['drive_state']['latitude'], 
+                    data['response']['drive_state']['longitude'], 
                     lat, lng)
-
-    # check if the car is more than a quarter of a mile away
+  
+    # check if the car is more than a quarter of a mile away 
     if (d < 0.25):
       return True
     else:
       return False
   except Exception as e:
-    logError('isVehicleAtLocation(): ' + e)
+    logError('isVehicleAtLocation(): ' + str(e))
 
 
 def getDistance(car_lat, car_lng, x_lat, x_lng):
   diff_lat = toRad(car_lat - x_lat)
-  diff_lng = toRad(car_lng - x_lng)
-
-  a = ((math.sin(diff_lat/2) * math.sin(diff_lat/2))
-        + math.cos(x_lat)
-        * math.cos(car_lat)
+  diff_lng = toRad(car_lng - x_lng)  
+  
+  a = ((math.sin(diff_lat/2) * math.sin(diff_lat/2)) 
+        + math.cos(x_lat) 
+        * math.cos(car_lat) 
         * (math.sin(diff_lng/2) * math.sin(diff_lng/2)))
   c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
   d = R * c
-
+  
   return d
 
 
@@ -105,4 +111,5 @@ def getWeather(zipcode):
 
     return json.loads(response.text)
   except Exception as e:
-    logError('getWeather(): ' + e)
+    logError('getWeather(): ' + str(e))
+
