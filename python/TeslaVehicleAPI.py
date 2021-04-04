@@ -59,8 +59,7 @@ def getVehicleData(vin):
 
 ##
 # Function to repeatedly run (after a certain wait time) to wake the vehicle up
-# when it's asleep. It will time out from the Google Apps Script trigger after
-# 30s if it doesn't wake up.
+# when it's asleep.
 #
 # author: mjhwa@yahoo.com
 ##

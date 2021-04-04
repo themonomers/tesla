@@ -23,7 +23,7 @@ def main():
   try:
     # add check to see if car is already charging or do nothing else since 
     # sending a charge command while it's charging doesn't do anything.
-    chargeVehicle(MX_VIN);
+    chargeVehicle(MX_VIN)
   except Exception as e:
     logError('chargeMX(): ' + str(e))
     wakeVehicle(MX_VIN)

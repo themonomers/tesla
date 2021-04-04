@@ -13,7 +13,7 @@ EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
 
 
 ##
-# Creates a trigger to precondition the cabin for the following morning, based 
+# Creates a crontab to precondition the cabin for the following morning, based 
 # on if the car is at home or if "Eco Mode" is off similar to how Nest 
 # thermostats work for vacation scenarios.
 #
