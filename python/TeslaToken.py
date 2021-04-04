@@ -79,7 +79,7 @@ url += '?client_id=ownerapi'
 url += '&code_challenge=' + code_challenge
 url += '&code_challenge_method=S256'
 url += '&redirect_uri=' + urllib.quote('https://auth.tesla.com/void/callback')
-url += '&response_type=code';
+url += '&response_type=code'
 url += '&scope=' + urllib.quote('openid email offline_access')
 url += '&state=state'
 payload = {
@@ -92,7 +92,7 @@ code = response.content[response.content.find('code') + 5 : response.content.fin
 #print('code: ' + code)
 
 # Step 5: Exchange authorization code for bearer token
-url = 'https://auth.tesla.com/oauth2/v3/token';
+url = 'https://auth.tesla.com/oauth2/v3/token'
 payload = {
   'grant_type': 'authorization_code',
   'client_id': 'ownerapi',
@@ -104,7 +104,7 @@ payload = {
 response = requests.post(url, json=payload, headers={'Cookie': cookie})
 
 # Step 6: Exchange bearer token for access token
-url = 'https://owner-api.teslamotors.com/oauth/token';
+url = 'https://owner-api.teslamotors.com/oauth/token'
 payload = {
   'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
   'client_id': '81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384',
