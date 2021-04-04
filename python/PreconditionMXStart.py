@@ -374,8 +374,10 @@ def main():
       deleteCronTab('/home/pi/tesla/python/PreconditionMXStop.py')
       createCronTab(
         '/home/pi/tesla/python/PreconditionMXStop.py', 
-        estimated_charge_stop_time.hour, 
-        estimated_charge_stop_time.minute
+        estimated_stop_time.month, 
+        estimated_stop_time.day, 
+        estimated_stop_time.hour, 
+        estimated_stop_time.minute
       )
     service.close()
   except Exception as e: 
