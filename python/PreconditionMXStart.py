@@ -370,9 +370,9 @@ def main():
       )
 
       # create crontab to stop preconditioning
-      deleteCronTab('/home/pi/tesla/PreconditionMXStop.py')
+      deleteCronTab('/home/pi/tesla/python/PreconditionMXStop.py')
       createCronTab(
-        '/home/pi/tesla/PreconditionMXStop.py', 
+        '/home/pi/tesla/python/PreconditionMXStop.py', 
         estimated_charge_stop_time.hour, 
         estimated_charge_stop_time.minute
       )

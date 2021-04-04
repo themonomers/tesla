@@ -157,8 +157,8 @@ def writeMXStartTimes(data):
 ##
 def scheduleM3Charging(m3_data, mx_data): 
   try:
-    deleteCronTab('/home/pi/tesla/ChargeM3.py')
-    deleteCronTab('/home/pi/tesla/ChargeM3Backup.py')
+    deleteCronTab('/home/pi/tesla/python/ChargeM3.py')
+    deleteCronTab('/home/pi/tesla/python/ChargeM3Backup.py')
 
     service = getGoogleSheetService()
 
@@ -253,7 +253,7 @@ def scheduleM3Charging(m3_data, mx_data):
     
       # create crontab
       createCronTab(
-        '/home/pi/tesla/ChargeM3.py', 
+        '/home/pi/tesla/python/ChargeM3.py', 
         estimated_charge_start_time.hour, 
         estimated_charge_start_time.minute
       )
@@ -270,7 +270,7 @@ def scheduleM3Charging(m3_data, mx_data):
         + timedelta(minutes=15)
       )
       createCronTab(
-        '/home/pi/tesla/ChargeM3Backup.py', 
+        '/home/pi/tesla/python/ChargeM3Backup.py', 
         estimated_backup_charge_start_time.hour, 
         estimated_backup_charge_start_time.minute
       )
@@ -280,8 +280,8 @@ def scheduleM3Charging(m3_data, mx_data):
 
 def scheduleMXCharging(m3_data, mx_data): 
   try:
-    deleteCronTab('/home/pi/tesla/ChargeMX.py')
-    deleteCronTab('/home/pi/tesla/ChargeMXBackup.py')
+    deleteCronTab('/home/pi/tesla/python/ChargeMX.py')
+    deleteCronTab('/home/pi/tesla/python/ChargeMXBackup.py')
 
     service = getGoogleSheetService()
 
@@ -376,7 +376,7 @@ def scheduleMXCharging(m3_data, mx_data):
     
       # create crontab
       createCronTab(
-        '/home/pi/tesla/ChargeMX.py', 
+        '/home/pi/tesla/python/ChargeMX.py', 
         estimated_charge_start_time.hour, 
         estimated_charge_start_time.minute
       )
@@ -393,7 +393,7 @@ def scheduleMXCharging(m3_data, mx_data):
         + timedelta(minutes=15)
       )
       createCronTab(
-        '/home/pi/tesla/ChargeMXBackup.py', 
+        '/home/pi/tesla/python/ChargeMXBackup.py', 
         estimated_backup_charge_start_time.hour, 
         estimated_backup_charge_start_time.minute
       )
