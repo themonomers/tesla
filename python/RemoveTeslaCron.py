@@ -2,7 +2,9 @@ from crontab import CronTab
 
 
 ##
-#
+# Script to clean up crontabs created for Tesla Smart Charging, Smart Climate,
+# and Telemetry.  Should be set to run in the middle of the day as all the 
+# crontabs are evening or early morning.
 #
 # author: mjhwa@yahoo.com
 ##
