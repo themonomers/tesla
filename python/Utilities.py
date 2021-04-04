@@ -5,17 +5,17 @@ import configparser
 from Logger import *
 from crontab import CronTab
 
-R = 3958.8  #Earth radius in miles
-
 config = configparser.ConfigParser()
 config.sections()
 config.read('config.ini')
-
 HOME_LAT = float(config['vehicle']['home_lat'])
 HOME_LNG = float(config['vehicle']['home_lng'])
 NAPA_LAT = float(config['vehicle']['napa_lat'])
 NAPA_LNG = float(config['vehicle']['napa_lng'])
 OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
+
+R = 3958.8  #Earth radius in miles
+
 
 ##
 # Removes crontab for a single command.
