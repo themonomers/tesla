@@ -74,7 +74,7 @@ def wakeVehicle(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('wakeVehicle(' + vin + '): ' + e)
+    logError('wakeVehicle(' + vin + '): ' + str(e))
     time.sleep(WAIT_TIME)
     wakeVehicle(vin)
 
@@ -95,7 +95,7 @@ def chargeVehicle(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('chargeVehicle(' + vin + '): ' + e)
+    logError('chargeVehicle(' + vin + '): ' + str(e))
 
 
 ##
@@ -120,7 +120,7 @@ def setCarTemp(vin, d_temp, p_temp):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setCarTemp(' + vin + '): ' + e)
+    logError('setCarTemp(' + vin + '): ' + str(e))
 
 
 ##
@@ -150,7 +150,7 @@ def setCarSeatHeating(vin, seat, setting):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setCarSeatHeating(' + vin + '): ' + e)
+    logError('setCarSeatHeating(' + vin + '): ' + str(e))
 
 
 ##
@@ -169,7 +169,7 @@ def preconditionCarStart(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('preconditionCarStart(' + vin + '): ' + e)
+    logError('preconditionCarStart(' + vin + '): ' + str(e))
 
 
 ##
@@ -188,5 +188,5 @@ def preconditionCarStop(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('preconditionCarStop(' + vin + '): ' + e)
+    logError('preconditionCarStop(' + vin + '): ' + str(e))
 
