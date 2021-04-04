@@ -37,10 +37,12 @@ def deleteCronTab(command):
 #
 # author: mjhwa@yahoo.com
 ##
-def createCronTab(command, hour, minute):
+def createCronTab(command, month, day, hour, minute):
   try:
     cron = CronTab(user='pi')
     job = cron.new(command=command)
+    job.month.on(month)
+    job.day.on(day)
     job.hour.on(hour)
     job.minute.on(minute)
     cron.write()

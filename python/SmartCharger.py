@@ -254,6 +254,8 @@ def scheduleM3Charging(m3_data, mx_data):
       # create crontab
       createCronTab(
         '/home/pi/tesla/python/ChargeM3.py', 
+        estimated_charge_start_time.month, 
+        estimated_charge_start_time.day, 
         estimated_charge_start_time.hour, 
         estimated_charge_start_time.minute
       )
@@ -271,6 +273,8 @@ def scheduleM3Charging(m3_data, mx_data):
       )
       createCronTab(
         '/home/pi/tesla/python/ChargeM3Backup.py', 
+        estimated_backup_charge_start_time.month, 
+        estimated_backup_charge_start_time.day, 
         estimated_backup_charge_start_time.hour, 
         estimated_backup_charge_start_time.minute
       )
@@ -377,6 +381,8 @@ def scheduleMXCharging(m3_data, mx_data):
       # create crontab
       createCronTab(
         '/home/pi/tesla/python/ChargeMX.py', 
+        estimated_charge_start_time.month, 
+        estimated_charge_start_time.day, 
         estimated_charge_start_time.hour, 
         estimated_charge_start_time.minute
       )
@@ -394,6 +400,8 @@ def scheduleMXCharging(m3_data, mx_data):
       )
       createCronTab(
         '/home/pi/tesla/python/ChargeMXBackup.py', 
+        estimated_backup_charge_start_time.month, 
+        estimated_backup_charge_start_time.day, 
         estimated_backup_charge_start_time.hour, 
         estimated_backup_charge_start_time.minute
       )
