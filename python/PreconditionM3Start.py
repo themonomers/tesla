@@ -13,6 +13,7 @@ config.sections()
 config.read('config.ini')
 M3_VIN = config['vehicle']['m3_vin']
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id'] 
+ZIPCODE = config['weather']['zipcode']
 
 WAIT_TIME = 30 
 
@@ -42,7 +43,7 @@ def main():
     if (eco_mode == 'on'): return
     
     # get local weather
-    wdata = getWeather('94402')
+    wdata = getWeather(ZIPCODE)
     
     # get data
     cold_temp_threshold = service.spreadsheets().values().get(
