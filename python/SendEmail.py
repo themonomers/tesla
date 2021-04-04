@@ -4,6 +4,7 @@ from Logger import *
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+
 ##
 # Send email via Google SMTP
 #
@@ -11,7 +12,7 @@ from email.mime.text import MIMEText
 ##
 def sendEmail(to, subject, message, cc):
   try:
-    sender = ''
+    sender = 'michaeljhwa@gmail.com'
     cc = [cc]
     msg = MIMEMultipart()
     msg['From'] = sender
@@ -22,9 +23,8 @@ def sendEmail(to, subject, message, cc):
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.ehlo()
     server.starttls()
-    server.login(sender, '')
-    server.sendmail(sender, [to] + cc, msg.as_string())
+    server.login(sender, 'dptbhcmokhjgwfrx')
+    server.sendmail(sender, [to] + cc, msg.as_string()) 
     server.close()
   except Exception as e:
-    print('sendEmail(): ' + str(e))
     logError('sendEmail(): ' + str(e))
