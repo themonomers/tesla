@@ -3,6 +3,7 @@ import os
 from apiclient import discovery
 from google.oauth2 import service_account
 
+
 ##
 # Authenticates and returns a service to use methods for Google Sheets.
 #

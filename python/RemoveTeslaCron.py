@@ -1,5 +1,6 @@
 from crontab import CronTab
 
+
 ##
 #
 #
@@ -37,6 +38,6 @@ def main():
   job = cron.find_command('/home/pi/tesla/PreconditionMXStop.py')
   cron.remove(job)
   cron.write()
-  
+
 if __name__ == "__main__":
   main()

@@ -1,8 +1,13 @@
+import configparser
+
 from Telemetry import findOpenRow
 from GoogleAPI import *
 from datetime import datetime
 
-LOG_SPREADSHEET_ID = ''
+config = configparser.ConfigParser()
+config.sections()
+config.read('config.ini')
+LOG_SPREADSHEET_ID = config['google']['log_spreadsheet_id']
 
 
 ##
@@ -13,7 +18,7 @@ LOG_SPREADSHEET_ID = ''
 def logError(msg):
   # write this into an open row in logging Google Sheet
   open_row = findOpenRow(LOG_SPREADSHEET_ID, 'error', 'A:A')
-
+  
   inputs = []
   inputs.append({
     'range': 'error!A' + str(open_row),

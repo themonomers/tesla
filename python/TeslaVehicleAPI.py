@@ -1,26 +1,31 @@
 import requests
 import json
 import time
+import configparser
 
 from Logger import *
 
-WAIT_TIME = 30
-ACCESS_TOKEN = ''
+WAIT_TIME = 30 
+
+config = configparser.ConfigParser()
+config.sections()
+config.read('config.ini')
+ACCESS_TOKEN = config['vehicle']['access_token']
 
 
 ##
-# Retrieves the vehicle ID, which changes from time to time, by the VIN, which
+# Retrieves the vehicle ID, which changes from time to time, by the VIN, which 
 # doesn't change.  The vehicle ID is required for many of the API calls.
-#
-# author: mjhwa@yahoo.com
+# 
+# author: mjhwa@yahoo.com 
 ##
 def getVehicleId(vin):
   try:
     url = 'https://owner-api.teslamotors.com/api/1/vehicles'
-
+    
     response = json.loads(
       requests.get(
-        url,
+        url, 
         headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
       ).text
     )
@@ -32,19 +37,19 @@ def getVehicleId(vin):
 
 
 ##
-# Retrieves the vehicle data needed for higher level functions to drive
+# Retrieves the vehicle data needed for higher level functions to drive 
 # calcuations and actions.
-#
-# author: mjhwa@yahoo.com
+# 
+# author: mjhwa@yahoo.com 
 ##
 def getVehicleData(vin):
   try:
     url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
-           + getVehicleId(vin)
+           + getVehicleId(vin) 
            + '/vehicle_data')
 
     response = requests.get(
-      url,
+      url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
     return json.loads(response.text)
@@ -61,12 +66,12 @@ def getVehicleData(vin):
 ##
 def wakeVehicle(vin):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
-           + getVehicleId(vin)
+    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+           + getVehicleId(vin) 
            + '/wake_up')
 
     requests.post(
-      url,
+      url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
@@ -82,12 +87,12 @@ def wakeVehicle(vin):
 ##
 def chargeVehicle(vin):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
-           + getVehicleId(vin)
+    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+           + getVehicleId(vin) 
            + '/command/charge_start')
 
     requests.post(
-      url,
+      url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
@@ -101,8 +106,8 @@ def chargeVehicle(vin):
 ##
 def setCarTemp(vin, d_temp, p_temp):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
-           + getVehicleId(vin)
+    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+           + getVehicleId(vin) 
            + '/command/set_temps')
 
     payload = {
@@ -111,8 +116,8 @@ def setCarTemp(vin, d_temp, p_temp):
     }
 
     requests.post(
-      url,
-      data=payload,
+      url, 
+      data=payload, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
@@ -126,8 +131,8 @@ def setCarTemp(vin, d_temp, p_temp):
 ##
 def setCarSeatHeating(vin, seat, setting):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
-           + getVehicleId(vin)
+    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+           + getVehicleId(vin) 
            + '/command/remote_seat_heater_request')
 
     payload = {
@@ -141,8 +146,8 @@ def setCarSeatHeating(vin, seat, setting):
 #                               'heater': '5', 'level': seats[4]})
 
     requests.post(
-      url,
-      data=payload,
+      url, 
+      data=payload, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
@@ -155,13 +160,13 @@ def setCarSeatHeating(vin, seat, setting):
 # author: mjhwa@yahoo.com
 ##
 def preconditionCarStart(vin):
-  try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
-           + getVehicleId(vin)
+  try:  
+    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+           + getVehicleId(vin) 
            + '/command/auto_conditioning_start')
 
     requests.post(
-      url,
+      url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
@@ -180,10 +185,9 @@ def preconditionCarStop(vin):
            + '/command/auto_conditioning_stop')
 
     requests.post(
-      url,
+      url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
     logError('preconditionCarStop(' + vin + '): ' + e)
-
 

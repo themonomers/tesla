@@ -1,11 +1,17 @@
 import time
+import configparser
 
 from TeslaVehicleAPI import getVehicleData
 from Utilities import isVehicleAtHome
 from Logger import logError
 
-M3_VIN = ''
-WAIT_TIME = 30
+config = configparser.ConfigParser()
+config.sections()
+config.read('config.ini')
+M3_VIN = config['vehicle']['m3_vin']
+
+WAIT_TIME = 30 
+
 
 def main():
   try:
@@ -13,7 +19,7 @@ def main():
     if (isVehicleAtHome(data)): # no need to execute if unsure where the car is or if it's in motion
       preconditionCarStop(M3_VIN)
   except Exception as e:
-    logError('preconditionM3Stop(): ' + e)
+    logError('preconditionM3Stop(): ' + str(e))
     wakeVehicle(M3_VIN)
     time.sleep(WAIT_TIME)
     main()
