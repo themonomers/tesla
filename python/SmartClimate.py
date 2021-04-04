@@ -51,8 +51,8 @@ def setM3Precondition(data):
         )
       
         # create precondition start crontab
-        deleteCronTab('/home/pi/tesla/PreconditionM3Start.py')
-        createCronTab('/home/pi/tesla/PreconditionM3Start.py', 
+        deleteCronTab('/home/pi/tesla/python/PreconditionM3Start.py')
+        createCronTab('/home/pi/tesla/python/PreconditionM3Start.py', 
                       estimated_start_time.hour, 
                       estimated_start_time.minute)
     service.close()
@@ -92,8 +92,8 @@ def setMXPrecondition(data):
         )
       
         # create precondition start crontab
-        deleteCronTab('/home/pi/tesla/PreconditionMXStart.py')
-        createCronTab('/home/pi/tesla/PreconditionMXStart.py', 
+        deleteCronTab('/home/pi/tesla/python/PreconditionMXStart.py')
+        createCronTab('/home/pi/tesla/python/PreconditionMXStart.py', 
                       estimated_start_time.hour, 
                       estimated_start_time.minute)
     service.close()
