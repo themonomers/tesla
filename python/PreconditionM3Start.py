@@ -369,7 +369,10 @@ def main():
         return
     else:
       return # outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
-  
+
+    #print('d_temp: ' + str(d_temp))
+    #print('p_temp: ' + str(p_temp))
+    #print('seats: ' + str(seats))
     # no need to execute if unsure where the car is or if it's in motion
     data = getVehicleData(M3_VIN)
     if (isVehicleAtHome(data)):
