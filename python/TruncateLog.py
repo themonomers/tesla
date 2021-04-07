@@ -1,4 +1,4 @@
-from Logger import truncateLog, logError
+from Logger import truncateLog
 
 
 def main():
