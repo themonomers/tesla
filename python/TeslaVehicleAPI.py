@@ -10,7 +10,7 @@ WAIT_TIME = 30
 config = configparser.ConfigParser()
 config.sections()
 config.read('config.ini')
-ACCESS_TOKEN = config['vehicle']['access_token']
+ACCESS_TOKEN = config['tesla']['access_token']
 
 
 ##
