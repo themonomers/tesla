@@ -34,7 +34,7 @@ def deleteCronTab(command):
 
 
 ##
-# Creates crontab entry for a single command.
+# Creates crontab entry for a single command..
 #
 # author: mjhwa@yahoo.com
 ##
