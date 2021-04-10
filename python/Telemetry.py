@@ -365,30 +365,6 @@ def writeMXTelemetry():
 
 
 ##
-# Looks for the next empty cell in a Google Sheet row to avoid overwriting data 
-# when reading/writing values.
-#
-# author: mjhwa@yahoo.com
-##
-def findOpenRow(sheet_id, sheet_name, range):
-  try: 
-    service = getGoogleSheetService()
-    range = sheet_name + '!' + range
-    values = service.spreadsheets().values().get(
-      spreadsheetId=sheet_id, 
-      range=range
-    ).execute().get('values', [])
-    service.close()
-
-    if (values == False):
-      return 1
-
-    return len(values) + 1
-  except Exception as e:
-    logError('findOpenRow(): ' + str(e))
-
-
-##
 # 
 #
 # author: mjhwa@yahoo.com
