@@ -122,6 +122,54 @@ def getSiteInfo():
     logError('getSiteInfo(): ' + str(e))
 
 
+def setBatteryModeBackup():
+  setBatteryMode('backup')
+
+
+def setBatteryModeSelfPowered():
+  setBatteryMode('self_consumption')
+
+
+def setBatteryModeAdvanced() {
+  setBatteryMode('autonomous')
+
+
+def setBatteryMode(mode):
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+           + SITE_ID 
+           + '/operation')
+    payload = {
+      'default_real_mode': mode
+    }
+
+    response = requests.post(
+                 url,
+                 json=payload,
+                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+               )
+  except Exception as e:
+    logError('setBatteryMode( ' + mode + ' ): ' + str(e))
+
+
+def setBatteryBackupReserve(backup_percent):
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+           + SITE_ID 
+           + '/backup')
+    payload = {
+      'backup_reserve_percent': backup_percent
+    }
+
+    response = requests.post(
+                 url,
+                 json=payload,
+                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+               )
+  except Exception as e:
+    logError('setBatteryBackupReserve( ' + backup_percent + ' ): ' + str(e))
+
+
 def main():
   getSiteInfo()
 
