@@ -103,6 +103,12 @@ def toRad(x):
   return x * math.pi/180
 
 
+##
+# Uses a free weather service with API to look up data by zipcode or other 
+# attributes.
+#
+# author: mjhwa@yahoo.com
+##
 def getWeather(zipcode):
   try:
     url = ('https://api.openweathermap.org/data/2.5/weather'
