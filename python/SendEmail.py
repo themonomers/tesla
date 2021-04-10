@@ -18,10 +18,9 @@ SENDER_PASSWORD = config['notification']['sender_password']
 ##
 def sendEmail(to, subject, message, cc):
   try:
-    sender = SENDER_EMAIL
     cc = [cc]
     msg = MIMEMultipart()
-    msg['From'] = sender
+    msg['From'] = SENDER_EMAIL
     msg['To'] = to
     msg['Subject'] = subject
     msg.attach(MIMEText(message, 'plain'))
@@ -29,8 +28,8 @@ def sendEmail(to, subject, message, cc):
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.ehlo()
     server.starttls()
-    server.login(sender, SENDER_PASSWORD)
-    server.sendmail(sender, [to] + cc, msg.as_string()) 
+    server.login(SENDER_EMAIL, SENDER_PASSWORD)
+    server.sendmail(SENDER_EMAIL, [to] + cc, msg.as_string()) 
     server.close()
   except Exception as e:
     logError('sendEmail(): ' + str(e))
