@@ -1,6 +1,5 @@
 import configparser
 
-from Telemetry import findOpenRow
 from GoogleAPI import *
 from datetime import datetime, timedelta
 
@@ -16,27 +15,30 @@ ERROR_SHEET_ID = config['google']['error_sheet_id']
 # author: mjhwa@yahoo.com
 ##
 def logError(msg):
-  # write this into an open row in logging Google Sheet
-  open_row = findOpenRow(LOG_SPREADSHEET_ID, 'error', 'A:A')
+  try:
+    # write this into an open row in logging Google Sheet
+    open_row = findOpenRow(LOG_SPREADSHEET_ID, 'error', 'A:A')
   
-  inputs = []
-  inputs.append({
-    'range': 'error!A' + str(open_row),
-    'values': [[datetime.today().strftime('%-I:%M:%S %p, %-m/%-d/%Y')]]
-  })
+    inputs = []
+    inputs.append({
+      'range': 'error!A' + str(open_row),
+      'values': [[datetime.today().strftime('%-I:%M:%S %p, %-m/%-d/%Y')]]
+    })
 
-  inputs.append({
-    'range': 'error!B' + str(open_row),
-    'values': [[msg]]
-  })
+    inputs.append({
+      'range': 'error!B' + str(open_row),
+      'values': [[msg]]
+    })
 
-  # batch write data and formula copies to sheet
-  service = getGoogleSheetService()
-  service.spreadsheets().values().batchUpdate(
-    spreadsheetId=LOG_SPREADSHEET_ID, 
-    body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
-  ).execute()
-  service.close()
+    # batch write data and formula copies to sheet
+    service = getGoogleSheetService()
+    service.spreadsheets().values().batchUpdate(
+      spreadsheetId=LOG_SPREADSHEET_ID, 
+      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
+    ).execute()
+    service.close()
+  except Exception as e:
+    print('logError(): ' + str(e))
 
 
 ##
