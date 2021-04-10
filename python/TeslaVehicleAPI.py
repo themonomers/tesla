@@ -190,3 +190,58 @@ def preconditionCarStop(vin):
   except Exception as e:
     logError('preconditionCarStop(' + vin + '): ' + str(e))
 
+##
+# Loops through all vehicle data and prints to screen.  There are some additional
+# nested objects that aren't printed out to their own separate lines yet.
+#
+# author: mjhwa@yahoo.come
+##
+def printAllVehicleData(vin):
+  try:
+    data = getVehicleData(vin)
+
+    for key, value in data['response'].iteritems():
+      if key == 'charge_state':
+        print(key)
+
+        for key, value in data['response']['charge_state'].iteritems():
+          print('  ' + key + ' = ' + str(value))
+      elif key == 'climate_state':
+        print(key)
+
+        for key, value in data['response']['climate_state'].iteritems():
+          print('  ' + key + ' = ' + str(value))
+      elif key == 'vehicle_state':
+        print(key)
+
+        for key, value in data['response']['vehicle_state'].iteritems():
+          print('  ' + key + ' = ' + str(value))
+      elif key == 'drive_state':
+        print(key)
+
+        for key, value in data['response']['drive_state'].iteritems():
+          print('  ' + key + ' = ' + str(value))
+      elif key == 'gui_settings':
+        print(key)
+
+        for key, value in data['response']['gui_settings'].iteritems():
+          print('  ' + key + ' = ' + str(value))
+      elif key == 'vehicle_config':
+        print(key)
+
+        for key, value in data['response']['vehicle_config'].iteritems():
+          print('  ' + key + ' = ' + str(value))
+      else:
+        print(key + ' = ' + str(value))
+  except Exception as e:
+    logError('printAllVehicleData( ' + vin + '): ' + str(e))
+    wakeVehicle(vin)
+    printAllVehicleData(vin)
+
+
+def main():
+  vin = raw_input('printAllVehicleData VIN: ')
+  printAllVehicleData(vin)
+
+if __name__ == "__main__":
+  main()
