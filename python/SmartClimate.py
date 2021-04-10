@@ -104,7 +104,12 @@ def setMXPrecondition(data):
   except Exception as e:
     logError('setMXPrecondition(): ' + str(e))
 
-
+##
+# Helper function to reduce lines of repetitive code to retrieve seat heater 
+# settings in Google Sheet.
+#
+# author: mjhwa@yahoo.com
+##
 def getM3SeatSetting(data, s1, s2, s3, s5, s6):
   try:
     service = getGoogleSheetService()
