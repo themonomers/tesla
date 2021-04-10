@@ -1,9 +1,14 @@
 import smtplib
+import configparser
 
 from Logger import *
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+config = configparser.ConfigParser()
+config.sections()
+config.read('config.ini')
+SENDER_EMAIL = config['notification']['sender_email']
 
 ##
 # Send email via Google SMTP
@@ -12,7 +17,7 @@ from email.mime.text import MIMEText
 ##
 def sendEmail(to, subject, message, cc):
   try:
-    sender = 'michaeljhwa@gmail.com'
+    sender = SENDER_EMAIL
     cc = [cc]
     msg = MIMEMultipart()
     msg['From'] = sender
