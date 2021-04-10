@@ -9,6 +9,7 @@ config = configparser.ConfigParser()
 config.sections()
 config.read('config.ini')
 SENDER_EMAIL = config['notification']['sender_email']
+SENDER_PASSWORD = config['notification']['sender_password']
 
 ##
 # Send email via Google SMTP
@@ -28,7 +29,7 @@ def sendEmail(to, subject, message, cc):
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.ehlo()
     server.starttls()
-    server.login(sender, 'dptbhcmokhjgwfrx')
+    server.login(sender, SENDER_PASSWORD)
     server.sendmail(sender, [to] + cc, msg.as_string()) 
     server.close()
   except Exception as e:
