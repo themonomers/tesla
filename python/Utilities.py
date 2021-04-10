@@ -17,7 +17,7 @@ OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
 
 R = 3958.8  #Earth radius in miles
 
-
+ 
 ##
 # Removes crontab for a single command.
 #
