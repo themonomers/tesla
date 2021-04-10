@@ -171,7 +171,28 @@ def setBatteryBackupReserve(backup_percent):
 
 
 def main():
-  getSiteInfo()
+  print('[1] getSiteInfo()')
+  print('[2] setBatteryModeBackup()')
+  print('[3] setBatteryModeSelfPowered()')
+  print('[4] setBatteryModeAdvanced() \n')
+  try:
+    choice = int(raw_input('selection: '))
+  except ValueError:
+    return
+
+  if choice == 1:
+    getSiteInfo()
+  elif choice == 2:
+    setBatteryModeBackup()
+  elif choice == 3:
+    percent = float(raw_input('% battery reserve: '))
+    setBatteryModeSelfPowered()
+    setBatteryBackupReserve(percent)
+  elif choice == 4:
+    percent = float(raw_input('% battery reserve: '))
+    setBatteryModeAdvanced()
+    setBatteryBackupReserve(percent)
 
 if __name__ == "__main__":
   main()
+
