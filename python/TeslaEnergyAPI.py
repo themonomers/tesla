@@ -130,7 +130,7 @@ def setBatteryModeSelfPowered():
   setBatteryMode('self_consumption')
 
 
-def setBatteryModeAdvanced() {
+def setBatteryModeAdvanced():
   setBatteryMode('autonomous')
 
 
