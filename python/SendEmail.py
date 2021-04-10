@@ -12,12 +12,13 @@ SENDER_EMAIL = config['notification']['sender_email']
 SENDER_PASSWORD = config['notification']['sender_password']
 
 ##
-# Send email via Google SMTP
+# Send email via Google SMTP.
 #
 # author: mjhwa@yahoo.com
 ##
 def sendEmail(to, subject, message, cc):
   try:
+    sender = SENDER_EMAIL
     cc = [cc]
     msg = MIMEMultipart()
     msg['From'] = SENDER_EMAIL
