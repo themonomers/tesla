@@ -1,6 +1,7 @@
 import requests
 import math
 import json
+import datetime
 import configparser
 
 from Crypto import decrypt
@@ -126,3 +127,87 @@ def getWeather(zipcode):
   except Exception as e:
     logError('getWeather(): ' + str(e))
 
+
+def main():
+  print('[1] getDistance')
+  print('[2] getWeather')
+  try:
+    choice = int(raw_input('selection: '))
+  except ValueError:
+    return
+
+  if (choice == 1):
+    lat = float(raw_input('latitude: '))
+    lng = float(raw_input('longitude: '))
+    print(
+      'distance from home: ' 
+      + str(
+        getDistance(
+          lat, 
+          lng, 
+          HOME_LAT,
+          HOME_LNG
+        )
+      )
+    )
+  elif (choice == 2):
+    zip = raw_input('zip code: ')
+    data = getWeather(zip)
+    
+    for key, value in data.iteritems():
+      if (key == 'sys'):
+        print(key)
+
+        for key, value in data['sys'].iteritems():
+          if ((key == 'sunrise') or (key == 'sunset')):
+            print(
+              '  ' 
+              + key 
+              + ' = ' 
+              + str(
+                datetime.datetime.fromtimestamp(value)
+              )
+            )
+          else:
+            print('  ' + key + ' = ' + str(value))
+      elif (key == 'weather'):
+        print(key)
+       
+        for key, value in data['weather'][0].iteritems():
+          print('  ' + key + ' = ' + str(value))
+      elif (key == 'coord'):
+        print(key)
+       
+        for key, value in data['coord'].iteritems():
+          print('  ' + key + ' = ' + str(value))
+      elif (key == 'dt'):
+        print(
+          key
+          + ' = '
+          + str(
+            datetime.datetime.fromtimestamp(value)
+          )
+        )
+      elif (key == 'main'):
+        print(key)
+       
+        for key, value in data['main'].iteritems():
+          if (
+            (key == 'temp')
+            or (key == 'temp_max')
+            or (key == 'temp_min')
+            or (key == 'feels_like')
+          ):
+            print('  ' + key + '(F) = ' + str((value * 9 / 5) + 32))
+          else: 
+            print('  ' + key + ' = ' + str(value))
+      elif (key == 'wind'):
+        print(key)
+       
+        for key, value in data['wind'].iteritems():
+          print('  ' + key + ' = ' + str(value))
+      else:
+        print(key + ' = ' + str(value))
+
+if __name__ == "__main__":
+  main()
