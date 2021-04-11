@@ -7,17 +7,21 @@ from GoogleAPI import getGoogleSheetService
 from SendEmail import sendEmail
 from SmartClimate import setM3Precondition, setMXPrecondition
 from Utilities import deleteCronTab, createCronTab, isVehicleAtHome, isVehicleAtNapa
+from Crypto import decrypt
 from Logger import logError
 from datetime import timedelta, datetime
+from io import StringIO
 
+buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
-config.read('config.ini')
+config.readfp(buffer)
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
 EMAIL_1 = config['notification']['email_1']
 EMAIL_2 = config['notification']['email_2']
+buffer.close()
 
 WAIT_TIME = 30 
 

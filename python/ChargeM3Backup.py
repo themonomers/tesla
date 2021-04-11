@@ -2,12 +2,16 @@ import time
 import configparser
 
 from TeslaVehicleAPI import chargeVehicle, wakeVehicle
+from Crypto import decrypt
 from Logger import logError 
+from io import StringIO
 
+buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
-config.read('config.ini')
+config.readfp(buffer)
 M3_VIN = config['vehicle']['m3_vin']
+buffer.close()
 
 WAIT_TIME = 30
 

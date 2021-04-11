@@ -2,14 +2,18 @@ import requests
 import json
 import configparser
 
+from Crypto import decrypt
 from Logger import logError
 from datetime import timedelta, datetime
+from io import StringIO
 
+buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
-config.read('config.ini')
+config.readfp(buffer)
 ACCESS_TOKEN = config['tesla']['access_token']
 SITE_ID = config['energy']['site_id']
+buffer.close()
 
 
 def getSiteStatus():

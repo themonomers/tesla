@@ -2,13 +2,17 @@ import configparser
 
 from GoogleAPI import getGoogleSheetService
 from Utilities import isVehicleAtHome, deleteCronTab, createCronTab
+from Crypto import decrypt
 from Logger import logError
 from datetime import timedelta, datetime
+from io import StringIO
 
+buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
-config.read('config.ini')
+config.readfp(buffer)
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
+buffer.close()
 
 
 ##
