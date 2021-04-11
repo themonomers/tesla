@@ -2,12 +2,12 @@ import json
 import time
 import configparser
 
-from TeslaVehicleAPI import *
-from GoogleAPI import *
-from SendEmail import *
-from SmartClimate import *
-from Utilities import *
-from Logger import *
+from TeslaVehicleAPI import getVehicleData, wakeVehicle
+from GoogleAPI import getGoogleSheetService
+from SendEmail import sendEmail
+from SmartClimate import setM3Precondition, setMXPrecondition
+from Utilities import deleteCronTab, createCronTab, isVehicleAtHome, isVehicleAtNapa
+from Logger import logError
 from datetime import timedelta, datetime
 
 config = configparser.ConfigParser()

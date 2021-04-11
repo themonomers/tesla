@@ -1,7 +1,7 @@
 import smtplib
 import configparser
 
-from Logger import *
+from Logger import logError
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 

@@ -1,8 +1,8 @@
 import configparser
 
-from GoogleAPI import *
-from SendEmail import *
-from Logger import *
+from GoogleAPI import getGoogleSheetService
+from SendEmail import sendEmail
+from Logger import logError
 from datetime import timedelta, datetime
 
 config = configparser.ConfigParser()

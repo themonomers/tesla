@@ -1,9 +1,8 @@
 import configparser
 
-from TeslaVehicleAPI import *
-from GoogleAPI import *
-from Utilities import *
-from Logger import *
+from GoogleAPI import getGoogleSheetService
+from Utilities import isVehicleAtHome, deleteCronTab, createCronTab
+from Logger import logError
 from datetime import timedelta, datetime
 
 config = configparser.ConfigParser()
