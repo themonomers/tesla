@@ -154,60 +154,45 @@ def main():
     zip = raw_input('zip code: ')
     data = getWeather(zip)
     
-    for key, value in data.iteritems():
-      if (key == 'sys'):
-        print(key)
+    for key_1, value_1 in data.iteritems():
+      if (isinstance(value_1, dict) == True):
+        print(key_1)
 
-        for key, value in data['sys'].iteritems():
-          if ((key == 'sunrise') or (key == 'sunset')):
+        for key_2, value_2 in data[key_1].iteritems():
+          if ((key_2 == 'sunrise') or (key_2 == 'sunset')):
             print(
               '  ' 
-              + key 
+              + key_2 
               + ' = ' 
               + str(
-                datetime.datetime.fromtimestamp(value)
+                datetime.datetime.fromtimestamp(value_2)
               )
             )
+          elif (
+            (key_2 == 'temp')
+            or (key_2 == 'temp_max')
+            or (key_2 == 'temp_min')
+            or (key_2 == 'feels_like')
+          ):
+            print('  ' + key_2 + '(F) = ' + str((value_2 * 9 / 5) + 32))
           else:
-            print('  ' + key + ' = ' + str(value))
-      elif (key == 'weather'):
-        print(key)
-       
-        for key, value in data['weather'][0].iteritems():
-          print('  ' + key + ' = ' + str(value))
-      elif (key == 'coord'):
-        print(key)
-       
-        for key, value in data['coord'].iteritems():
-          print('  ' + key + ' = ' + str(value))
-      elif (key == 'dt'):
+            print('  ' + key_2 + ' = ' + str(value_2))
+      elif (isinstance(value_1, list) == True):
+        print(key_1)
+
+        for index in range(len(data[key_1])):
+          for key_2, value_2 in data[key_1][index].iteritems():
+            print('  ' + key_2 + ' = ' + str(value_2))
+      elif (key_1 == 'dt'):
         print(
-          key
+          key_1
           + ' = '
           + str(
-            datetime.datetime.fromtimestamp(value)
+            datetime.datetime.fromtimestamp(value_1)
           )
         )
-      elif (key == 'main'):
-        print(key)
-       
-        for key, value in data['main'].iteritems():
-          if (
-            (key == 'temp')
-            or (key == 'temp_max')
-            or (key == 'temp_min')
-            or (key == 'feels_like')
-          ):
-            print('  ' + key + '(F) = ' + str((value * 9 / 5) + 32))
-          else: 
-            print('  ' + key + ' = ' + str(value))
-      elif (key == 'wind'):
-        print(key)
-       
-        for key, value in data['wind'].iteritems():
-          print('  ' + key + ' = ' + str(value))
       else:
-        print(key + ' = ' + str(value))
+        print(key_1 + ' = ' + str(value_1))
 
 if __name__ == "__main__":
   main()
