@@ -23,7 +23,7 @@ WAIT_TIME = 30
 #
 # author: mjhwa@yahoo.com
 ##
-def main():
+def chargeMX():
   try:
     # add check to see if car is already charging or do nothing else since 
     # sending a charge command while it's charging doesn't do anything.
@@ -32,7 +32,11 @@ def main():
     logError('chargeMX(): ' + str(e))
     wakeVehicle(MX_VIN)
     time.sleep(WAIT_TIME)
-    main()
+    chargeMX()
+
+
+def main():
+  chargeMX()
 
 if __name__ == "__main__":
   main()

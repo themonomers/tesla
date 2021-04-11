@@ -425,7 +425,7 @@ def scheduleMXCharging(m3_data, mx_data):
 #
 # author: mjhwa@yahoo.com
 ##
-def main():
+def notifyIsTeslaPluggedIn():
   try:
     # get all vehicle data to avoid repeat API calls
     m3_data = getVehicleData(M3_VIN)
@@ -498,7 +498,11 @@ def main():
     wakeVehicle(M3_VIN)
     wakeVehicle(MX_VIN)
     time.sleep(WAIT_TIME)
-    main()
+    notifyIsTeslaPluggedIn()
+
+
+def main():
+  notifyIsTeslaPluggedIn()
 
 if __name__ == "__main__":
   main()

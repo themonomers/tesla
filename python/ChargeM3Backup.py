@@ -24,7 +24,7 @@ WAIT_TIME = 30
 #
 # author: mjhwa@yahoo.com
 ##
-def main():
+def chargeM3Backup():
   try:
     # add check to see if car is already charging or do nothing else since 
     # sending a charge command while it's charging doesn't do anything.
@@ -33,7 +33,11 @@ def main():
     logError('chargeM3Backup(): ' + str(e))
     wakeVehicle(M3_VIN)
     time.sleep(WAIT_TIME)
-    main()
+    chargeM3Backup()
+
+
+def main():
+  chargeM3Backup()
 
 if __name__ == "__main__":
   main()

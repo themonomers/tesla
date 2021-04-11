@@ -22,7 +22,7 @@ buffer.close()
 #
 # author:  mjhwa@yahoo.com
 ##
-def main():
+def checkTokenExpiration():
   try:
     # get token expiration date
     service = getGoogleSheetService()
@@ -46,6 +46,10 @@ def main():
     logError('checkTokenExpiration(): ' + str(e))
   finally:
     service.close()
+
+
+def main():
+  checkTokenExpiration()
 
 if __name__ == "__main__":
   main()
