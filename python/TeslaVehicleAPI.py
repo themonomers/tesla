@@ -3,14 +3,18 @@ import json
 import time
 import configparser
 
+from io import StringIO  
 from Logger import logError
+from Crypto import decrypt
 
 WAIT_TIME = 30 
 
+buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
-config.read('config.ini')
+config.readfp(buffer)
 ACCESS_TOKEN = config['tesla']['access_token']
+buffer.close()
 
 
 ##
