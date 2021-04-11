@@ -17,7 +17,7 @@ buffer.close()
 WAIT_TIME = 30 
 
 
-def main():
+def preconditionMXStop():
   try:
     data = getVehicleData(MX_VIN)
     if (isVehicleAtHome(data)): # no need to execute if unsure where the car is or if it's in motion
@@ -26,7 +26,11 @@ def main():
     logError('preconditionMXStop(): ' + str(e))
     wakeVehicle(MX_VIN)
     time.sleep(WAIT_TIME)
-    main()
+    preconditionMXStop()
+
+
+def main():
+  preconditionMXStop()
 
 if __name__ == "__main__":
   main()

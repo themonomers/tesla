@@ -35,7 +35,7 @@ WAIT_TIME = 30
 #
 # author: mjhwa@yahoo.com
 ##
-def main():
+def preconditionM3Start():
   try:
     # check if eco mode is off first so we don't have to even call the Tesla API if we don't have to
     service = getGoogleSheetService()
@@ -423,7 +423,11 @@ def main():
     logError('preconditionM3Start(): ' + str(e))
     wakeVehicle(M3_VIN)
     time.sleep(WAIT_TIME)
-    main()
+    preconditionM3Start()
+
+
+def main():
+  preconditionM3Start()
 
 if __name__ == "__main__":
   main()

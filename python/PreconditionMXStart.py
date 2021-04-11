@@ -22,7 +22,7 @@ buffer.close()
 WAIT_TIME = 30 
 
 
-def main():
+def preconditionMXStart():
   try:
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
@@ -367,7 +367,11 @@ def main():
     logError('preconditionMXStart(): ' + str(e))
     wakeVehicle(MX_VIN)
     time.sleep(WAIT_TIME)
-    main()
+    preconditionMXStart()
+
+
+def main():
+  preconditionMXStart()
 
 if __name__ == "__main__":
   main()
