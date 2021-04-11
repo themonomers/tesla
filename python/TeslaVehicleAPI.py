@@ -3,7 +3,7 @@ import json
 import time
 import configparser
 
-from Logger import *
+from Logger import logError
 
 WAIT_TIME = 30 
 

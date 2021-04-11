@@ -1,6 +1,6 @@
 import configparser
 
-from GoogleAPI import *
+from GoogleAPI import getGoogleSheetService, findOpenRow
 from datetime import datetime, timedelta
 
 config = configparser.ConfigParser()

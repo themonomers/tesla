@@ -1,7 +1,7 @@
 import time
 import configparser
 
-from TeslaVehicleAPI import getVehicleData
+from TeslaVehicleAPI import wakeVehicle, getVehicleData, preconditionCarStop
 from Utilities import isVehicleAtHome
 from Logger import logError
 

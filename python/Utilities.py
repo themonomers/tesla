@@ -3,7 +3,7 @@ import math
 import json
 import configparser
 
-from Logger import *
+from Logger import logError
 from crontab import CronTab
 
 config = configparser.ConfigParser()

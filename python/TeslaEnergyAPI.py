@@ -2,7 +2,7 @@ import requests
 import json
 import configparser
 
-from Logger import *
+from Logger import logError
 from datetime import timedelta, datetime
 
 config = configparser.ConfigParser()

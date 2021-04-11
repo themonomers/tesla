@@ -2,7 +2,7 @@ import time
 import configparser
 
 from TeslaVehicleAPI import chargeVehicle, wakeVehicle
-from Logger import *
+from Logger import logError
 
 config = configparser.ConfigParser()
 config.sections()
