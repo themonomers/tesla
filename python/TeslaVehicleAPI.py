@@ -195,8 +195,7 @@ def preconditionCarStop(vin):
     logError('preconditionCarStop(' + vin + '): ' + str(e))
 
 ##
-# Loops through all vehicle data and prints to screen.  There are some additional
-# nested objects that aren't printed out to their own separate lines yet.
+# Loops through all vehicle data and prints to screen.  
 #
 # author: mjhwa@yahoo.come
 ##
@@ -219,7 +218,18 @@ def printAllVehicleData(vin):
         print(key)
 
         for key, value in data['response']['vehicle_state'].iteritems():
-          print('  ' + key + ' = ' + str(value))
+          if key == 'speed_limit_mode':
+            print('  ' + key)
+            
+            for key, value in data['response']['vehicle_state']['speed_limit_mode'].iteritems():
+              print('    ' + key + ' = ' + str(value))
+          elif key == 'software_update':
+            print('  ' + key)
+            
+            for key, value in data['response']['vehicle_state']['software_update'].iteritems():
+              print('    ' + key + ' = ' + str(value))
+          else:
+            print('  ' + key + ' = ' + str(value))
       elif key == 'drive_state':
         print(key)
 
