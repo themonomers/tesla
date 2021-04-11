@@ -5,15 +5,19 @@ from TeslaVehicleAPI import wakeVehicle, setCarTemp, setCarSeatHeating, precondi
 from GoogleAPI import getGoogleSheetService
 from Utilities import deleteCronTab, createCronTab, isVehicleAtHome, getWeather
 from SmartClimate import getM3SeatSetting
+from Crypto import decrypt
 from Logger import logError
 from datetime import timedelta, datetime
+from io import StringIO
 
+buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
-config.read('config.ini')
+config.readfp(buffer)
 M3_VIN = config['vehicle']['m3_vin']
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id'] 
 ZIPCODE = config['weather']['zipcode']
+buffer.close()
 
 WAIT_TIME = 30 
 

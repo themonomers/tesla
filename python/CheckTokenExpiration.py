@@ -2,14 +2,18 @@ import configparser
 
 from GoogleAPI import getGoogleSheetService
 from SendEmail import sendEmail
+from Crypto import decrypt
 from Logger import logError
 from datetime import timedelta, datetime
+from io import StringIO
 
+buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
-config.read('config.ini')
+config.readfp(buffer)
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
 EMAIL_1 = config['notification']['email_1']
+buffer.close()
 
 
 ##

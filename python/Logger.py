@@ -1,13 +1,18 @@
 import configparser
 
 from GoogleAPI import getGoogleSheetService, findOpenRow
+from Crypto import decrypt
 from datetime import datetime, timedelta
+from io import StringIO
 
+buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
-config.read('config.ini')
+config.readfp(buffer)
 LOG_SPREADSHEET_ID = config['google']['log_spreadsheet_id']
 ERROR_SHEET_ID = config['google']['error_sheet_id']
+buffer.close()
+
 
 ##
 # Logs errors from try/catch blocks into a Google Sheet.

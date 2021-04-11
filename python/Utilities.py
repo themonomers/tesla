@@ -3,17 +3,21 @@ import math
 import json
 import configparser
 
+from Crypto import decrypt
 from Logger import logError
 from crontab import CronTab
+from io import StringIO
 
+buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
-config.read('config.ini')
+config.readfp(buffer)
 HOME_LAT = float(config['vehicle']['home_lat'])
 HOME_LNG = float(config['vehicle']['home_lng'])
 NAPA_LAT = float(config['vehicle']['napa_lat'])
 NAPA_LNG = float(config['vehicle']['napa_lng'])
 OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
+buffer.close()
 
 R = 3958.8  #Earth radius in miles
 
