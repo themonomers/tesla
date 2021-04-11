@@ -203,50 +203,20 @@ def printAllVehicleData(vin):
   try:
     data = getVehicleData(vin)
 
-    for key, value in data['response'].iteritems():
-      if key == 'charge_state':
-        print(key)
-
-        for key, value in data['response']['charge_state'].iteritems():
-          print('  ' + key + ' = ' + str(value))
-      elif key == 'climate_state':
-        print(key)
-
-        for key, value in data['response']['climate_state'].iteritems():
-          print('  ' + key + ' = ' + str(value))
-      elif key == 'vehicle_state':
-        print(key)
-
-        for key, value in data['response']['vehicle_state'].iteritems():
-          if key == 'speed_limit_mode':
-            print('  ' + key)
-            
-            for key, value in data['response']['vehicle_state']['speed_limit_mode'].iteritems():
-              print('    ' + key + ' = ' + str(value))
-          elif key == 'software_update':
-            print('  ' + key)
-            
-            for key, value in data['response']['vehicle_state']['software_update'].iteritems():
-              print('    ' + key + ' = ' + str(value))
+    for key_1, value_1 in data['response'].iteritems():
+      if (isinstance(value_1, dict) == True):
+        print(key_1)
+   
+        for key_2, value_2 in data['response'][key_1].iteritems():
+          if (isinstance(value_2, dict) == True):
+            print('  ' + key_2)
+   
+            for key_3, value_3 in data['response'][key_1][key_2].iteritems():
+              print('    ' + key_3 + ' = ' + str(value_3))
           else:
-            print('  ' + key + ' = ' + str(value))
-      elif key == 'drive_state':
-        print(key)
-
-        for key, value in data['response']['drive_state'].iteritems():
-          print('  ' + key + ' = ' + str(value))
-      elif key == 'gui_settings':
-        print(key)
-
-        for key, value in data['response']['gui_settings'].iteritems():
-          print('  ' + key + ' = ' + str(value))
-      elif key == 'vehicle_config':
-        print(key)
-
-        for key, value in data['response']['vehicle_config'].iteritems():
-          print('  ' + key + ' = ' + str(value))
+            print('  ' + key_2 + ' = ' + str(value_2))
       else:
-        print(key + ' = ' + str(value))
+        print(key_1 + ' = ' + str(value_1))
   except Exception as e:
     logError('printAllVehicleData( ' + vin + '): ' + str(e))
     wakeVehicle(vin)
