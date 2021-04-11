@@ -1,8 +1,5 @@
-Update (Apr 2021):  Ported Google Apps Scripts to python for more control
-over functionality and as a backup.  The method to retrieve the Tesla 
-authentication token changed and along with it, security blocking of the Google 
-servers such that the REST calls stopped working.  They work when running from 
-python on my own machine/IP address.
+Update (Apr 2021):  Ported Google Apps Scripts to python for more control over functionality and as a backup.  The method to retrieve the Tesla authentication token changed and along with it, security blocking of the Google 
+servers such that the REST calls stopped working.  They work when running from python on my own machine/IP address.
 
 
 These scripts are based on Google Apps Script (https://script.google.com/home), which is free!  There are 4 components to this project:
