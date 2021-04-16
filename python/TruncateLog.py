@@ -1,6 +1,7 @@
 import configparser
 
 from GoogleAPI import getGoogleSheetService
+from Logger import logError
 from Crypto import decrypt
 from datetime import datetime, timedelta
 from io import StringIO
