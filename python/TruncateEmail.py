@@ -1,7 +1,7 @@
 import configparser
+import Logger
 
 from GoogleAPI import getGoogleMailService
-from Logger import logError
 from Crypto import decrypt
 from datetime import datetime, timedelta
 from io import StringIO
