@@ -1,7 +1,7 @@
 import configparser
+import Logger
 
 from GoogleAPI import getGoogleSheetService
-from Logger import logError
 from Crypto import decrypt
 from datetime import datetime, timedelta
 from io import StringIO
@@ -36,7 +36,7 @@ def truncateLog():
     # get the date 30 days prior
     thirty_days = datetime.today() - timedelta(30)
     #print('today: ' + str(datetime.today().strftime('%I:%M:%S %p, %m/%d/%Y')))
-    print('30 days: ' + str(thirty_days))
+    #print('30 days: ' + str(thirty_days))
 
     # loop backwards through each log entry time stamp
     for index, item in reversed(list(enumerate(values))):
