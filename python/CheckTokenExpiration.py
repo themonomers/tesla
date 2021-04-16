@@ -1,9 +1,9 @@
 import configparser
+import Logger
 
 from GoogleAPI import getGoogleSheetService
 from SendEmail import sendEmail
 from Crypto import decrypt
-from Logger import logError
 from datetime import timedelta, datetime
 from io import StringIO
 

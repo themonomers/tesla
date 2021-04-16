@@ -2,8 +2,8 @@ from __future__ import print_function
 
 import os
 import os.path
+import Logger
 
-from Logger import logError
 from apiclient import discovery
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
