@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import os.path
 
+from Logger import logError
 from apiclient import discovery
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
@@ -28,7 +29,7 @@ def getGoogleSheetService():
     service = discovery.build('sheets', 'v4', credentials=credentials)
     return service
   except Exception as e:
-    print('getGoogleSheetService(): ' + str(e))
+    logError('getGoogleSheetService(): ' + str(e))
 
 
 ##
@@ -52,7 +53,7 @@ def findOpenRow(sheet_id, sheet_name, range):
 
     return len(values) + 1
   except Exception as e:
-    print('findOpenRow(): ' + str(e))
+    logError('findOpenRow(): ' + str(e))
 
 
 ##
@@ -96,6 +97,6 @@ def getGoogleMailService():
 
     return build('gmail', 'v1', credentials=creds)
   except Exception as e:
-    print('getGoogleMailService(): ' + str(e))
+    logError('getGoogleMailService(): ' + str(e))
 
 
