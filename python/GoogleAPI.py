@@ -1,7 +1,14 @@
+from __future__ import print_function
+
 import os
+import os.path
 
 from apiclient import discovery
 from google.oauth2 import service_account
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 
 
 ##
@@ -46,3 +53,49 @@ def findOpenRow(sheet_id, sheet_name, range):
     return len(values) + 1
   except Exception as e:
     print('findOpenRow(): ' + str(e))
+
+
+##
+# Authenticates and returns a service to use methods for Google Mail.
+#
+# author: mjhwa@yahoo.com
+##
+def getGoogleMailService():
+  try:
+    # If modifying these scopes, delete the file token.json.
+    scopes = ['https://mail.google.com/']
+
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists('token.json'):
+      creds = Credentials.from_authorized_user_file('token.json', scopes)
+
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+      if creds and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+      else:
+        flow = InstalledAppFlow.from_client_secrets_file(
+          'client_secret.json', 
+          scopes,
+          redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
+        )
+
+        # Tell the user to go to the authorization URL.
+        # The user will get an authorization code. This code is used to get the
+        # access token.
+        print('Please go to this URL: ')
+        auth_url, _ = flow.authorization_url(prompt='consent')
+        creds = flow.run_console(format(auth_url))
+
+      # Save the credentials for the next run
+      with open('token.json', 'w') as token:
+        token.write(creds.to_json())
+
+    return build('gmail', 'v1', credentials=creds)
+  except Exception as e:
+    print('getGoogleMailService(): ' + str(e))
+
+
