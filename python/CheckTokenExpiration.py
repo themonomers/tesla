@@ -43,7 +43,7 @@ def checkTokenExpiration():
                  + '.  Please generate a new token soon.')
       sendEmail(EMAIL_1, 'Tesla Access Token Expiring Soon', message, '')
   except Exception as e:
-    logError('checkTokenExpiration(): ' + str(e))
+    Logger.logError('checkTokenExpiration(): ' + str(e))
   finally:
     service.close()
 

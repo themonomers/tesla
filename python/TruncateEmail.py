@@ -57,7 +57,7 @@ def truncateEmail(query):
                     id=item['id']
                   ).execute() 
   except Exception as e:
-    logError('truncateEmail(): ' + str(e))
+    Logger.logError('truncateEmail(): ' + str(e))
   finally:
     service.close()
 
