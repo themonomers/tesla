@@ -64,7 +64,7 @@ def findOpenRow(sheet_id, sheet_name, range):
 def getGoogleMailService():
   try:
     # If modifying these scopes, delete the file token.json.
-    scopes = ['https://mail.google.com/']
+    scopes = ['https://www.googleapis.com/auth/gmail.modify']
 
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
