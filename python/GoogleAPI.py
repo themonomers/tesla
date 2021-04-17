@@ -29,7 +29,7 @@ def getGoogleSheetService():
     service = discovery.build('sheets', 'v4', credentials=credentials)
     return service
   except Exception as e:
-    logError('getGoogleSheetService(): ' + str(e))
+    Logger.logError('getGoogleSheetService(): ' + str(e))
 
 
 ##
@@ -53,7 +53,7 @@ def findOpenRow(sheet_id, sheet_name, range):
 
     return len(values) + 1
   except Exception as e:
-    logError('findOpenRow(): ' + str(e))
+    Logger.logError('findOpenRow(): ' + str(e))
 
 
 ##
@@ -97,6 +97,6 @@ def getGoogleMailService():
 
     return build('gmail', 'v1', credentials=creds)
   except Exception as e:
-    logError('getGoogleMailService(): ' + str(e))
+    Logger.logError('getGoogleMailService(): ' + str(e))
 
 

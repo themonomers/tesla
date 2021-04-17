@@ -67,7 +67,7 @@ def truncateLog():
 
         return
   except Exception as e:
-    logError('truncateLog(): ' + str(e))
+    Logger.logError('truncateLog(): ' + str(e))
   finally:
     service.close()
 
