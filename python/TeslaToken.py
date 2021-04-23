@@ -198,10 +198,10 @@ print(
 # write timestamp into Google Sheet for crontab expiration checks
 inputs = [{
   'range': 'Smart Charger!H5',
-  'values': [[str(datetime.datetime.fromtimestamp(
+  'values': [[datetime.datetime.fromtimestamp(
     json.loads(response.text)['created_at']
     + json.loads(response.text)['expires_in']
-  ))]]
+  ).strftime('%m/%d/%Y')]]
 }]
 service = GoogleAPI.getGoogleSheetService()
 service.spreadsheets().values().batchUpdate(
