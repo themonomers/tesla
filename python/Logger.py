@@ -1,6 +1,6 @@
 import configparser
+import GoogleAPI
 
-from GoogleAPI import getGoogleSheetService, findOpenRow
 from Crypto import decrypt
 from datetime import datetime
 from io import StringIO
@@ -21,7 +21,7 @@ buffer.close()
 def logError(msg):
   try:
     # write this into an open row in logging Google Sheet
-    open_row = findOpenRow(LOG_SPREADSHEET_ID, 'error', 'A:A')
+    open_row = GoogleAPI.findOpenRow(LOG_SPREADSHEET_ID, 'error', 'A:A')
   
     inputs = []
     inputs.append({
@@ -35,7 +35,7 @@ def logError(msg):
     })
 
     # batch write data and formula copies to sheet
-    service = getGoogleSheetService()
+    service = GoogleAPI.getGoogleSheetService()
     service.spreadsheets().values().batchUpdate(
       spreadsheetId=LOG_SPREADSHEET_ID, 
       body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
