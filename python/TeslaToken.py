@@ -5,9 +5,21 @@ import urllib
 import json
 import datetime
 import getpass
+import configparser
+import GoogleAPI
 
 from random import choice
 from string import hexdigits
+from Crypto import decrypt
+from io import StringIO
+
+buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
+config = configparser.ConfigParser()
+config.sections()
+config.readfp(buffer)
+EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
+buffer.close()
+
 
 email = raw_input('email: ')
 password = getpass.getpass('password: ')
@@ -162,6 +174,7 @@ response = requests.post(
                       + json.loads(response.text)['access_token']}
            ) 
 
+# print outputs to screen
 print('# access_token=' + json.loads(response.text)['access_token'])
 print(
   '# expires_at: ' 
@@ -181,4 +194,20 @@ print(
     )
   )
 )
+
+# write timestamp into Google Sheet for crontab expiration checks
+inputs = [{
+  'range': 'Smart Charger!H5',
+  'values': [[str(datetime.datetime.fromtimestamp(
+    json.loads(response.text)['created_at']
+    + json.loads(response.text)['expires_in']
+  ))]]
+}]
+service = GoogleAPI.getGoogleSheetService()
+service.spreadsheets().values().batchUpdate(
+  spreadsheetId=EV_SPREADSHEET_ID,
+  body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
+).execute()
+service.close()
+
 
