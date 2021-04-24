@@ -80,8 +80,14 @@ def getSiteInfo():
             for index, item in enumerate(
               response['response'][key_1][key_2]
             ): 
-              print('    ' + str(index + 1) + '. target' + ' = ' + item['target'])
-              print('       week_days = ' + str(item['week_days']))
+              print(
+                '    ' 
+                + str(index + 1) 
+                + '. week_days' 
+                + ' = ' 
+                + str(item['week_days'])
+              )
+              print('       target = ' + item['target'])
               print(
                 '       start_seconds = ' 
                 + str(
