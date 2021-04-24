@@ -67,35 +67,18 @@ def getSiteInfo():
       ).text
     )
 
-    for key, value in response['response'].items():
-      #print(key + ' = ' + str(value))
+    for key_1, value_1 in response['response'].items():
+      if (isinstance(value_1, dict) == True):
+        print(key_1)
 
-      if key == 'user_settings':
-        print(key)
+        for key_2, value_2 in response['response'][key_1].items():
+          if (isinstance(value_2, dict) == True):
+            print('  ' + key_2 + ' = ' + str(value_2))
+          elif (isinstance(value_2, list) == True):
+            print('  ' + key_2)
 
-        for key, value in response['response']['user_settings'].items():
-          print('  ' 
-                + key 
-                + ' = ' 
-                + str(value))
-
-      if key == 'components':
-        print(key)
-
-        for key, value in response['response']['components'].items():
-          print('  ' 
-                + key 
-                + ' = ' 
-                + str(value))
-
-      if key == 'tou_settings':
-        print(key)
-
-        for key, value in response['response']['tou_settings'].items():
-          if key == 'schedule':
-            print('  ' + key)
             for index, item in enumerate(
-              response['response']['tou_settings']['schedule']
+              response['response'][key_1][key_2]
             ): 
               print('    ' + str(index + 1) + '. target' + ' = ' + item['target'])
               print('       week_days = ' + str(item['week_days']))
@@ -116,12 +99,12 @@ def getSiteInfo():
                 )
               )
           else:
-            print('  '
-                  + key
-                  + ' = '
-                  + str(value))
+            print('  ' 
+              + key_2 
+              + ' = ' 
+              + str(value_2))
       else:
-        print(key + ' = ' + str(value))
+        print(key_1 + ' = ' + str(value_1))
   except Exception as e:
     logError('getSiteInfo(): ' + str(e))
 
