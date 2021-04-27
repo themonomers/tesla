@@ -146,7 +146,7 @@ def getSiteHistory(period):
           print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
 
           for key_2, value_2 in response['response'][key_1][i].items():
-            if (key_2 is not 'timestamp'):
+            if (key_2 != 'timestamp'):
               print('    ' + key_2 + ' = ' + str(value_2))
       else:
         print(key_1 + ' = ' + str(value_1))
