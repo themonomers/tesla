@@ -42,6 +42,11 @@ def writeSiteTelemetry():
       'values': [[data['response']['total_pack_energy']]]
     })
 
+    inputs.append({
+      'range': 'Telemetry!C' + str(open_row),
+      'values': [[data['response']['percentage_charged']]]
+    })
+
     # get solar data
     data = getSiteHistory('day')
 
