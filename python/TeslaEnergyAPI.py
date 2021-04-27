@@ -124,6 +124,38 @@ def getSiteInfo():
     logError('getSiteInfo(): ' + str(e))
 
 
+def getSiteHistory(period):
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+           + SITE_ID 
+           + '/history?kind=energy&period='
+           + period)
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+    for key_1, value_1 in response['response'].items():
+      if (isinstance(value_1, list) == True):
+        print(key_1)
+
+        for i in range(len(response['response'][key_1])):
+          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+
+          for key_2, value_2 in response['response'][key_1][i].items():
+            if (key_2 is not 'timestamp'):
+              print('    ' + key_2 + ' = ' + str(value_2))
+      else:
+        print(key_1 + ' = ' + str(value_1))
+
+    return response
+  except Exception as e:
+    logError('getSiteStatus(): ' + str(e))
+
+
 def setBatteryModeBackup():
   setBatteryMode('backup')
 
@@ -176,9 +208,10 @@ def main():
   print('[1] getSiteStatus()')
   print('[2] getSiteLiveStatus()')
   print('[3] getSiteInfo()')
-  print('[4] setBatteryModeBackup()')
-  print('[5] setBatteryModeSelfPowered()')
-  print('[6] setBatteryModeAdvanced() \n')
+  print('[4] getSiteHistory()')
+  print('[5] setBatteryModeBackup()')
+  print('[6] setBatteryModeSelfPowered()')
+  print('[7] setBatteryModeAdvanced() \n')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -191,12 +224,14 @@ def main():
   elif choice == 3:
     getSiteInfo()
   elif choice == 4:
-    setBatteryModeBackup()
+    getSiteHistory('day')
   elif choice == 5:
+    setBatteryModeBackup()
+  elif choice == 6:
     percent = float(raw_input('% battery reserve: '))
     setBatteryModeSelfPowered()
     setBatteryBackupReserve(percent)
-  elif choice == 6:
+  elif choice == 7:
     percent = float(raw_input('% battery reserve: '))
     setBatteryModeAdvanced()
     setBatteryBackupReserve(percent)
