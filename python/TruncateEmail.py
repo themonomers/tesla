@@ -46,6 +46,9 @@ def truncateEmail(query):
                  q=query
                ).execute()
 
+    if ('messages' not in messages):
+      return
+   
     # Loop through all the messages returned
     for item in messages['messages']:
       #print(item['id'])
