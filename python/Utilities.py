@@ -3,13 +3,19 @@ import math
 import json
 import datetime
 import configparser
+import os
 
 from Crypto import decrypt
 from Logger import logError
 from crontab import CronTab
 from io import StringIO
 
-buffer = StringIO(decrypt('/home/pi/tesla/python/config.rsa').decode('utf-8'))
+buffer = StringIO(
+  decrypt(
+    os.path.dirname(os.path.abspath(__file__))
+    + '/config.rsa'
+  ).decode('utf-8')
+)
 config = configparser.ConfigParser()
 config.sections()
 config.readfp(buffer)
