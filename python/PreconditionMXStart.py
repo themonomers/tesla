@@ -1,5 +1,6 @@
 import time
 import configparser
+import os
 
 from TeslaVehicleAPI import wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
 from GoogleAPI import getGoogleSheetService
@@ -10,7 +11,12 @@ from Logger import logError
 from datetime import timedelta, datetime
 from io import StringIO
 
-buffer = StringIO(decrypt('/home/pi/tesla/python/config.rsa').decode('utf-8'))
+buffer = StringIO(
+  decrypt(
+    os.path.dirname(os.path.abspath(__file__))
+    + '/config.rsa'
+  ).decode('utf-8')
+)
 config = configparser.ConfigParser()
 config.sections()
 config.readfp(buffer)
@@ -354,9 +360,9 @@ def preconditionMXStart():
       )
 
       # create crontab to stop preconditioning
-      deleteCronTab('/home/pi/tesla/python/PreconditionMXStop.py')
+      deleteCronTab('python /home/pi/tesla/python/PreconditionMXStop.py')
       createCronTab(
-        '/home/pi/tesla/python/PreconditionMXStop.py', 
+        'python /home/pi/tesla/python/PreconditionMXStop.py', 
         estimated_stop_time.month, 
         estimated_stop_time.day, 
         estimated_stop_time.hour, 
