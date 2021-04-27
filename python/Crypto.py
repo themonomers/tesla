@@ -23,7 +23,7 @@ def encrypt(read_fn, write_fn):
   # Generate private and public keys
   private_key = rsa.generate_private_key(
     public_exponent = 65537,
-    key_size = 8192,
+    key_size = 9000,
     backend = default_backend()
   )
   public_key = private_key.public_key()
