@@ -20,7 +20,10 @@ from google.auth.transport.requests import Request
 def getGoogleSheetService():
   try:
     scopes = ['https://www.googleapis.com/auth/spreadsheets']
-    secret_file = os.path.join(os.getcwd(), 'gsheet_credentials.json')
+    secret_file = os.path.join(
+      os.getcwd(), 
+      '/home/pi/tesla/python/gsheet_credentials.json'
+    )
 
     credentials = service_account.Credentials.from_service_account_file(
       secret_file, 
@@ -70,8 +73,11 @@ def getGoogleMailService():
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.json'):
-      creds = Credentials.from_authorized_user_file('token.json', scopes)
+    if os.path.exists('/home/pi/tesla/python/token.json'):
+      creds = Credentials.from_authorized_user_file(
+        '/home/pi/tesla/python/token.json', 
+        scopes
+      )
 
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
@@ -79,7 +85,7 @@ def getGoogleMailService():
         creds.refresh(Request())
       else:
         flow = InstalledAppFlow.from_client_secrets_file(
-          'client_secret.json', 
+          '/home/pi/tesla/python/client_secret.json', 
           scopes,
           redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
         )
@@ -92,7 +98,7 @@ def getGoogleMailService():
         creds = flow.run_console(format(auth_url))
 
       # Save the credentials for the next run
-      with open('token.json', 'w') as token:
+      with open('/home/pi/tesla/python/token.json', 'w') as token:
         token.write(creds.to_json())
 
     return build('gmail', 'v1', credentials=creds)

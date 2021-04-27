@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from io import StringIO
 
-buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
+buffer = StringIO(decrypt('/home/pi/tesla/python/config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
 config.readfp(buffer)

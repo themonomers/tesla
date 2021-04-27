@@ -6,10 +6,10 @@ from GoogleAPI import getGoogleSheetService, findOpenRow
 from SendEmail import sendEmail
 from Crypto import decrypt
 from Logger import logError
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import StringIO
 
-buffer = StringIO(decrypt('config.rsa').decode('utf-8'))
+buffer = StringIO(decrypt('/home/pi/tesla/python/config.rsa').decode('utf-8'))
 config = configparser.ConfigParser()
 config.sections()
 config.readfp(buffer)
@@ -34,7 +34,7 @@ def writeSiteTelemetry():
     open_row = findOpenRow(ENERGY_SPREADSHEET_ID, 'Telemetry','A:A')
     inputs.append({
       'range': 'Telemetry!A' + str(open_row),
-      'values': [[datetime.today().strftime('%B %d, %Y')]]
+      'values': [[(datetime.today() - timedelta(1)).strftime('%B %d, %Y')]]
     })
 
     inputs.append({
@@ -60,9 +60,9 @@ def writeSiteTelemetry():
             '%Y-%m-%d'
           )
 
-          if (d.year == datetime.today().year
-              and d.month == datetime.today().month
-              and d.day == datetime.today().day):
+          if (d.year == (datetime.today() - timedelta(1)).year
+              and d.month == (datetime.today() - timedelta(1)).month
+              and d.day == (datetime.today() - timedelta(1)).day):
             inputs.append({
               'range': 'Telemetry!F' + str(open_row),
               'values': [[d.strftime('%B %d, %Y')]]

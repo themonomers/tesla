@@ -34,7 +34,7 @@ def encrypt(read_fn, write_fn):
     format = serialization.PrivateFormat.PKCS8,
     encryption_algorithm = serialization.NoEncryption()
   )
-  with open('private_key.pem', 'wb') as f:
+  with open('/home/pi/tesla/python/private_key.pem', 'wb') as f:
     f.write(pem)
 
   # Encrypt with public key
@@ -66,7 +66,7 @@ def decrypt(encrypted_filename):
   f.close()
 
   # Read private key
-  with open("private_key.pem", "rb") as key_file:
+  with open("/home/pi/tesla/python/private_key.pem", "rb") as key_file:
     private_key = serialization.load_pem_private_key(
       key_file.read(),
       password = None,
