@@ -1,11 +1,17 @@
 import configparser
+import os
 import GoogleAPI
 
 from Crypto import decrypt
 from datetime import datetime
 from io import StringIO
 
-buffer = StringIO(decrypt('/home/pi/tesla/python/config.rsa').decode('utf-8'))
+buffer = StringIO(
+  decrypt(
+    os.path.dirname(os.path.abspath(__file__))
+    + '/config.rsa'
+  ).decode('utf-8')
+)
 config = configparser.ConfigParser()
 config.sections()
 config.readfp(buffer)

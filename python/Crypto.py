@@ -1,3 +1,5 @@
+import os
+
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -34,7 +36,11 @@ def encrypt(read_fn, write_fn):
     format = serialization.PrivateFormat.PKCS8,
     encryption_algorithm = serialization.NoEncryption()
   )
-  with open('/home/pi/tesla/python/private_key.pem', 'wb') as f:
+  with open(
+    os.path.dirname(os.path.abspath(__file__))
+    + '/private_key.pem', 
+    'wb'
+  ) as f:
     f.write(pem)
 
   # Encrypt with public key
@@ -66,7 +72,10 @@ def decrypt(encrypted_filename):
   f.close()
 
   # Read private key
-  with open("/home/pi/tesla/python/private_key.pem", "rb") as key_file:
+  with open(
+    os.path.dirname(os.path.abspath(__file__))
+    + '/private_key.pem', 'rb'
+  ) as key_file:
     private_key = serialization.load_pem_private_key(
       key_file.read(),
       password = None,
