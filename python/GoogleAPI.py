@@ -20,8 +20,10 @@ def getGoogleSheetService():
   try:
     scopes = ['https://www.googleapis.com/auth/spreadsheets']
     secret_file = (
-      os.path.dirname(os.path.abspath(__file__))
-      + '/gsheet_credentials.json'
+      os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), 
+        'gsheet_credentials.json'
+      )
     )
 
     credentials = service_account.Credentials.from_service_account_file(
@@ -73,12 +75,16 @@ def getGoogleMailService():
     # created automatically when the authorization flow completes for the first
     # time.
     if os.path.exists(
-      os.path.dirname(os.path.abspath(__file__))
-      + '/token.json'
+      os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), 
+        'token.json'
+      )
     ):
       creds = Credentials.from_authorized_user_file(
-        os.path.dirname(os.path.abspath(__file__))
-        + '/token.json', 
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)), 
+          'token.json'
+        ), 
         scopes
       )
 
@@ -88,8 +94,10 @@ def getGoogleMailService():
         creds.refresh(Request())
       else:
         flow = InstalledAppFlow.from_client_secrets_file(
-          os.path.dirname(os.path.abspath(__file__))
-          + '/client_secret.json', 
+          os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), 
+            'client_secret.json'
+          ), 
           scopes,
           redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
         )
@@ -103,8 +111,10 @@ def getGoogleMailService():
 
       # Save the credentials for the next run
       with open(
-        os.path.dirname(os.path.abspath(__file__))
-        + '/token.json', 
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)), 
+          'token.json'
+        ), 
         'w'
       ) as token:
         token.write(creds.to_json())

@@ -37,8 +37,10 @@ def encrypt(read_fn, write_fn):
     encryption_algorithm = serialization.NoEncryption()
   )
   with open(
-    os.path.dirname(os.path.abspath(__file__))
-    + '/private_key.pem', 
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)), 
+      'private_key.pem'
+    ), 
     'wb'
   ) as f:
     f.write(pem)
@@ -73,8 +75,11 @@ def decrypt(encrypted_filename):
 
   # Read private key
   with open(
-    os.path.dirname(os.path.abspath(__file__))
-    + '/private_key.pem', 'rb'
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)), 
+      'private_key.pem'
+    ), 
+    'rb'
   ) as key_file:
     private_key = serialization.load_pem_private_key(
       key_file.read(),

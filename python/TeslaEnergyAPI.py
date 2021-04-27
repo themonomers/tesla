@@ -10,8 +10,10 @@ from io import StringIO
 
 buffer = StringIO(
   decrypt(
-    os.path.dirname(os.path.abspath(__file__))
-    + '/config.rsa'
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'config.rsa'
+    )
   ).decode('utf-8')
 )
 config = configparser.ConfigParser()
