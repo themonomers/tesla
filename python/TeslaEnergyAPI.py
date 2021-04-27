@@ -31,6 +31,9 @@ def getSiteStatus():
 
     for key in response['response']:
       print(str(key) + ' = ' + str(response['response'][key]))
+
+
+    return response
   except Exception as e:
     logError('getSiteStatus(): ' + str(e))
 
@@ -50,6 +53,9 @@ def getSiteLiveStatus():
 
     for key in response['response']:
       print(str(key) + ' = ' + str(response['response'][key]))
+
+ 
+    return response
   except Exception as e:
     logError('getSiteLiveStatus(): ' + str(e))
 
@@ -111,6 +117,9 @@ def getSiteInfo():
               + str(value_2))
       else:
         print(key_1 + ' = ' + str(value_1))
+
+
+    return response
   except Exception as e:
     logError('getSiteInfo(): ' + str(e))
 
