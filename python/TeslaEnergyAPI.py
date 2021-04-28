@@ -21,6 +21,7 @@ config.sections()
 config.readfp(buffer)
 ACCESS_TOKEN = config['tesla']['access_token']
 SITE_ID = config['energy']['site_id']
+BATTERY_ID = config['energy']['battery_id']
 buffer.close()
 
 
@@ -37,9 +38,8 @@ def getSiteStatus():
       ).text
     )
 
-    for key in response['response']:
-      print(str(key) + ' = ' + str(response['response'][key]))
-
+#    for key in response['response']:
+#      print(str(key) + ' = ' + str(response['response'][key]))
 
     return response
   except Exception as e:
@@ -59,10 +59,9 @@ def getSiteLiveStatus():
       ).text
     )
 
-    for key in response['response']:
-      print(str(key) + ' = ' + str(response['response'][key]))
+#    for key in response['response']:
+#      print(str(key) + ' = ' + str(response['response'][key]))
 
- 
     return response
   except Exception as e:
     logError('getSiteLiveStatus(): ' + str(e))
@@ -81,51 +80,50 @@ def getSiteInfo():
       ).text
     )
 
-    for key_1, value_1 in response['response'].items():
-      if (isinstance(value_1, dict) == True):
-        print(key_1)
+#    for key_1, value_1 in response['response'].items():
+#      if (isinstance(value_1, dict) == True):
+#        print(key_1)
 
-        for key_2, value_2 in response['response'][key_1].items():
-          if (isinstance(value_2, dict) == True):
-            print('  ' + key_2 + ' = ' + str(value_2))
-          elif (isinstance(value_2, list) == True):
-            print('  ' + key_2)
+#        for key_2, value_2 in response['response'][key_1].items():
+#          if (isinstance(value_2, dict) == True):
+#            print('  ' + key_2 + ' = ' + str(value_2))
+#          elif (isinstance(value_2, list) == True):
+#            print('  ' + key_2)
 
-            for index, item in enumerate(
-              response['response'][key_1][key_2]
-            ): 
-              print(
-                '    ' 
-                + str(index + 1) 
-                + '. week_days' 
-                + ' = ' 
-                + str(item['week_days'])
-              )
-              print('       target = ' + item['target'])
-              print(
-                '       start_seconds = ' 
-                + str(
-                  timedelta(
-                    seconds=item['start_seconds']
-                  )
-                )
-              )
-              print(
-                '       end_seconds = ' 
-                + str(
-                  timedelta(
-                    seconds=item['end_seconds']
-                  )
-                )
-              )
-          else:
-            print('  ' 
-              + key_2 
-              + ' = ' 
-              + str(value_2))
-      else:
-        print(key_1 + ' = ' + str(value_1))
-
+#            for index, item in enumerate(
+#              response['response'][key_1][key_2]
+#            ): 
+#              print(
+#                '    ' 
+#                + str(index + 1) 
+#                + '. week_days' 
+#                + ' = ' 
+#                + str(item['week_days'])
+#              )
+#              print('       target = ' + item['target'])
+#              print(
+#                '       start_seconds = ' 
+#                + str(
+#                  timedelta(
+#                    seconds=item['start_seconds']
+#                  )
+#                )
+#              )
+#              print(
+#                '       end_seconds = ' 
+#                + str(
+#                  timedelta(
+#                    seconds=item['end_seconds']
+#                  )
+#                )
+#              )
+#          else:
+#            print('  ' 
+#              + key_2 
+#              + ' = ' 
+#              + str(value_2))
+#      else:
+#        print(key_1 + ' = ' + str(value_1))
 
     return response
   except Exception as e:
@@ -146,22 +144,90 @@ def getSiteHistory(period):
       ).text
     )
 
-    for key_1, value_1 in response['response'].items():
-      if (isinstance(value_1, list) == True):
-        print(key_1)
+#    for key_1, value_1 in response['response'].items():
+#      if (isinstance(value_1, list) == True):
+#        print(key_1)
 
-        for i in range(len(response['response'][key_1])):
-          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+#        for i in range(len(response['response'][key_1])):
+#          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
 
-          for key_2, value_2 in response['response'][key_1][i].items():
-            if (key_2 != 'timestamp'):
-              print('    ' + key_2 + ' = ' + str(value_2))
-      else:
-        print(key_1 + ' = ' + str(value_1))
+#          for key_2, value_2 in response['response'][key_1][i].items():
+#            if (key_2 != 'timestamp'):
+#              print('    ' + key_2 + ' = ' + str(value_2))
+#      else:
+#        print(key_1 + ' = ' + str(value_1))
 
     return response
   except Exception as e:
-    logError('getSiteStatus(): ' + str(e))
+    logError('getSiteHistory(' + period + '): ' + str(e))
+
+
+def getBatteryPowerHistory():
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/powerwalls/'
+           + BATTERY_ID
+           + '/powerhistory')
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+#    for key_1, value_1 in response['response'].items():
+#      if (isinstance(value_1, list) == True):
+#        print(key_1)
+
+#        for i in range(len(response['response'][key_1])):
+#          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+
+#          for key_2, value_2 in response['response'][key_1][i].items():
+#            if (key_2 != 'timestamp'):
+#              print('    ' + key_2 + ' = ' + str(value_2))
+#      else:
+#        print(key_1 + ' = ' + str(value_1))
+
+    return response
+  except Exception as e:
+    logError('getBatteryPowerHistory(): ' + str(e))
+
+
+##
+# This API seems to be deprecated.
+#
+##
+def getBatteryEnergyHistory():
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/powerwalls/'
+           + BATTERY_ID
+           + '/energyhistory')
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+    print(response)
+
+    #for key_1, value_1 in response['response'].items():
+    #  if (isinstance(value_1, list) == True):
+    #    print(key_1)
+
+    #    for i in range(len(response['response'][key_1])):
+    #      print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+
+    #      for key_2, value_2 in response['response'][key_1][i].items():
+    #        if (key_2 != 'timestamp'):
+    #          print('    ' + key_2 + ' = ' + str(value_2))
+    #  else:
+    #    print(key_1 + ' = ' + str(value_1))
+
+    #return response
+  except Exception as e:
+    logError('getBatteryEnergyHistory(): ' + str(e))
 
 
 def setBatteryModeBackup():
@@ -217,9 +283,11 @@ def main():
   print('[2] getSiteLiveStatus()')
   print('[3] getSiteInfo()')
   print('[4] getSiteHistory()')
-  print('[5] setBatteryModeBackup()')
-  print('[6] setBatteryModeSelfPowered()')
-  print('[7] setBatteryModeAdvanced() \n')
+  print('[5] getBatteryPowerHistory()')
+  print('[6] getBatteryEnergyHistory()')
+  print('[7] setBatteryModeBackup()')
+  print('[8] setBatteryModeSelfPowered()')
+  print('[9] setBatteryModeAdvanced() \n')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -234,12 +302,16 @@ def main():
   elif choice == 4:
     getSiteHistory('day')
   elif choice == 5:
-    setBatteryModeBackup()
+    getBatteryPowerHistory()
   elif choice == 6:
+    getBatteryEnergyHistory()
+  elif choice == 7:
+    setBatteryModeBackup()
+  elif choice == 8:
     percent = float(raw_input('% battery reserve: '))
     setBatteryModeSelfPowered()
     setBatteryBackupReserve(percent)
-  elif choice == 7:
+  elif choice == 9:
     percent = float(raw_input('% battery reserve: '))
     setBatteryModeAdvanced()
     setBatteryBackupReserve(percent)
