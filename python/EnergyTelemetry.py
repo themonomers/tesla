@@ -33,7 +33,7 @@ buffer.close()
 #
 # author: mjhwa@yahoo.com
 ##
-def writeSiteTelemetrySummary():
+def writeSiteTelemetrySummary(date):
   try:
     # get battery data
     data = getSiteStatus()  
@@ -69,9 +69,9 @@ def writeSiteTelemetrySummary():
             '%Y-%m-%d'
           )
 
-          if (d.year == (datetime.today() - timedelta(1)).year
-              and d.month == (datetime.today() - timedelta(1)).month
-              and d.day == (datetime.today() - timedelta(1)).day):
+          if (d.year == date.year
+              and d.month == date.month
+              and d.day == date.day):
             inputs.append({
               'range': 'Telemetry-Summary!F' + str(open_row),
               'values': [[d.strftime('%B %d, %Y')]]
@@ -246,12 +246,13 @@ def writeSiteTelemetryDetail(date):
 
 
 ##
-# 
+# Write the data for the previous day based on a cron job that runs just after
+# midnight to ensure we get a full day's worth of data.
 #
 # author: mjhwa@yahoo.com
 ##
 def main():
-  writeSiteTelemetrySummary()
+  writeSiteTelemetrySummary(datetime.today() - timedelta(1))
   writeSiteTelemetryDetail(datetime.today() - timedelta(1))
 
   # send email notification
