@@ -84,12 +84,12 @@ def writeSiteTelemetrySummary(date):
    
             inputs.append({
               'range': 'Telemetry-Summary!H' + str(open_row),
-              'values': [[data['response'][key_1][i]['battery_energy_imported_from_generator']]]
+              'values': [[data['response'][key_1][i]['consumer_energy_imported_from_battery']]]
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!I' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_energy_exported_from_battery']]]
+              'values': [[data['response'][key_1][i]['consumer_energy_imported_from_grid']]]
             })
 
             inputs.append({
@@ -99,12 +99,12 @@ def writeSiteTelemetrySummary(date):
 
             inputs.append({
               'range': 'Telemetry-Summary!K' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_energy_imported']]]
+              'values': [[data['response'][key_1][i]['solar_energy_exported']]]
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!L' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_energy_exported_from_solar']]]
+              'values': [[data['response'][key_1][i]['battery_energy_exported']]]
             })
 
             inputs.append({
@@ -114,47 +114,47 @@ def writeSiteTelemetrySummary(date):
 
             inputs.append({
               'range': 'Telemetry-Summary!N' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_services_energy_exported']]]
+              'values': [[data['response'][key_1][i]['battery_energy_imported_from_grid']]]
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!O' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_energy_exported_from_generator']]]
+              'values': [[data['response'][key_1][i]['battery_energy_imported_from_generator']]]
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!P' + str(open_row),
-              'values': [[data['response'][key_1][i]['battery_energy_exported']]]
+              'values': [[data['response'][key_1][i]['grid_energy_imported']]]
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!Q' + str(open_row),
-              'values': [[data['response'][key_1][i]['consumer_energy_imported_from_grid']]]
+              'values': [[data['response'][key_1][i]['grid_energy_exported_from_solar']]]
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!R' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_services_energy_imported']]]
+              'values': [[data['response'][key_1][i]['grid_energy_exported_from_battery']]]
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!S' + str(open_row),
-              'values': [[data['response'][key_1][i]['solar_energy_exported']]]
+              'values': [[data['response'][key_1][i]['grid_energy_exported_from_generator']]]
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!T' + str(open_row),
-              'values': [[data['response'][key_1][i]['generator_energy_exported']]]
+              'values': [[data['response'][key_1][i]['grid_services_energy_exported']]]
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!U' + str(open_row),
-              'values': [[data['response'][key_1][i]['consumer_energy_imported_from_battery']]]
+              'values': [[data['response'][key_1][i]['grid_services_energy_imported']]]
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!V' + str(open_row),
-              'values': [[data['response'][key_1][i]['battery_energy_imported_from_grid']]]
+              'values': [[data['response'][key_1][i]['generator_energy_exported']]]
             })
 
     # batch write data to sheet
