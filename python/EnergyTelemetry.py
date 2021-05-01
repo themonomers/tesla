@@ -22,6 +22,7 @@ config = configparser.ConfigParser()
 config.sections()
 config.readfp(buffer)
 ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
+SUMMARY_SHEET_ID = config['google']['summary_sheet_id']
 EMAIL_1 = config['notification']['email_1']
 buffer.close()
 
@@ -157,11 +158,37 @@ def writeSiteTelemetrySummary(date):
               'values': [[data['response'][key_1][i]['generator_energy_exported']]]
             })
 
+    # copy formulas down
+    requests = []
+    requests.append({
+      'copyPaste': {
+        'source': {
+          'sheetId': SUMMARY_SHEET_ID,
+          'startRowIndex': 4,
+          'endRowIndex': 5,
+          'startColumnIndex': 22,
+          'endColumnIndex': 28
+        },
+        'destination': {
+          'sheetId': SUMMARY_SHEET_ID,
+          'startRowIndex': open_row - 1,
+          'endRowIndex': open_row,
+          'startColumnIndex': 22,
+          'endColumnIndex': 28
+        },
+        'pasteType': 'PASTE_FORMULA'
+      }
+    })
+
     # batch write data to sheet
     service = getGoogleSheetService()
     service.spreadsheets().values().batchUpdate(
       spreadsheetId=ENERGY_SPREADSHEET_ID, 
       body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
+    ).execute()
+    service.spreadsheets().batchUpdate(
+      spreadsheetId=ENERGY_SPREADSHEET_ID,
+      body={'requests': requests}
     ).execute()
     service.close()
   except Exception as e:
@@ -253,13 +280,13 @@ def writeSiteTelemetryDetail(date):
 ##
 def main():
   writeSiteTelemetrySummary(datetime.today() - timedelta(1))
-  writeSiteTelemetryDetail(datetime.today() - timedelta(1))
+#  writeSiteTelemetryDetail(datetime.today() - timedelta(1))
 
   # send email notification
   message = ('Energy telemetry successfully logged on '
              + datetime.today().strftime('%B %d, %Y %H:%M:%S')
              + '.')
-  sendEmail(EMAIL_1, 'Energy Telemetry Logged', message, '')
+#  sendEmail(EMAIL_1, 'Energy Telemetry Logged', message, '')
 
 if __name__ == "__main__":
   main()
