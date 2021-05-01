@@ -238,8 +238,14 @@ def setBatteryModeSelfPowered():
   setBatteryMode('self_consumption')
 
 
-def setBatteryModeAdvanced():
+def setBatteryModeAdvancedBalanced():
   setBatteryMode('autonomous')
+  setEnergyTOUSettings('balanced')
+
+
+def setBatteryModeAdvancedCost():
+  setBatteryMode('autonomous')
+  setEnergyTOUSettings('economics')
 
 
 def setBatteryMode(mode):
@@ -278,16 +284,35 @@ def setBatteryBackupReserve(backup_percent):
     logError('setBatteryBackupReserve( ' + backup_percent + ' ): ' + str(e))
 
 
+def setEnergyTOUSettings(strategy):
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+           + SITE_ID
+           + '/time_of_use_settings')
+    payload = {
+      'tou_settings': {'optimization_strategy': strategy}
+    }
+
+    response = requests.post(
+                 url,
+                 json=payload,
+                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+               )
+  except Exception as e:
+    logError('setEnergyTOUSettings( ' + strategy + ' ): ' + str(e))
+
+
 def main():
-  print('[1] getSiteStatus()')
-  print('[2] getSiteLiveStatus()')
-  print('[3] getSiteInfo()')
-  print('[4] getSiteHistory()')
-  print('[5] getBatteryPowerHistory()')
-  print('[6] getBatteryEnergyHistory()')
-  print('[7] setBatteryModeBackup()')
-  print('[8] setBatteryModeSelfPowered()')
-  print('[9] setBatteryModeAdvanced() \n')
+  print('[1]  getSiteStatus()')
+  print('[2]  getSiteLiveStatus()')
+  print('[3]  getSiteInfo()')
+  print('[4]  getSiteHistory()')
+  print('[5]  getBatteryPowerHistory()')
+  print('[6]  getBatteryEnergyHistory()')
+  print('[7]  setBatteryModeBackup()')
+  print('[8]  setBatteryModeSelfPowered()')
+  print('[9]  setBatteryModeAdvancedBalanced()')
+  print('[10] setBatteryModeAdvancedCost() \n')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -313,7 +338,11 @@ def main():
     setBatteryBackupReserve(percent)
   elif choice == 9:
     percent = float(raw_input('% battery reserve: '))
-    setBatteryModeAdvanced()
+    setBatteryModeAdvancedBalanced()
+    setBatteryBackupReserve(percent)
+  elif choice == 10:
+    percent = float(raw_input('% battery reserve: '))
+    setBatteryModeAdvancedCost()
     setBatteryBackupReserve(percent)
 
 if __name__ == "__main__":
