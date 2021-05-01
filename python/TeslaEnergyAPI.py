@@ -263,7 +263,7 @@ def setBatteryMode(mode):
                  headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
                )
   except Exception as e:
-    logError('setBatteryMode( ' + mode + ' ): ' + str(e))
+    logError('setBatteryMode(' + mode + '): ' + str(e))
 
 
 def setBatteryBackupReserve(backup_percent):
@@ -281,7 +281,7 @@ def setBatteryBackupReserve(backup_percent):
                  headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
                )
   except Exception as e:
-    logError('setBatteryBackupReserve( ' + backup_percent + ' ): ' + str(e))
+    logError('setBatteryBackupReserve(' + backup_percent + '): ' + str(e))
 
 
 def setEnergyTOUSettings(strategy):
@@ -299,7 +299,7 @@ def setEnergyTOUSettings(strategy):
                  headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
                )
   except Exception as e:
-    logError('setEnergyTOUSettings( ' + strategy + ' ): ' + str(e))
+    logError('setEnergyTOUSettings(' + strategy + '): ' + str(e))
 
 
 def main():
