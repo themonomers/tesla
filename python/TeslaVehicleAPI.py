@@ -226,7 +226,7 @@ def printAllVehicleData(vin):
       else:
         print(key_1 + ' = ' + str(value_1))
   except Exception as e:
-    logError('printAllVehicleData( ' + vin + '): ' + str(e))
+    logError('printAllVehicleData(' + vin + '): ' + str(e))
     wakeVehicle(vin)
     printAllVehicleData(vin)
 
