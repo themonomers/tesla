@@ -25,6 +25,11 @@ BATTERY_ID = config['energy']['battery_id']
 buffer.close()
 
 
+##
+# Gets some quick and basic information.
+#
+# author: mjhwa@yahoo.com
+##
 def getSiteStatus():
   try:
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
@@ -46,6 +51,11 @@ def getSiteStatus():
     logError('getSiteStatus(): ' + str(e))
 
 
+##
+# Gets more information as well as live data such as solar production.
+#
+# author: mjhwa@yahoo.com
+##
 def getSiteLiveStatus():
   try:
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
@@ -67,6 +77,11 @@ def getSiteLiveStatus():
     logError('getSiteLiveStatus(): ' + str(e))
 
 
+##
+# Gets detailed information.
+#
+# author: mjhwa@yahoo.com
+##
 def getSiteInfo():
   try:
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
@@ -130,6 +145,12 @@ def getSiteInfo():
     logError('getSiteInfo(): ' + str(e))
 
 
+##
+# Gets summary level information about energy imports and exports down to the
+# day.
+#
+# author: mjhwa@yahoo.com
+##
 def getSiteHistory(period):
   try:
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
@@ -162,6 +183,12 @@ def getSiteHistory(period):
     logError('getSiteHistory(' + period + '): ' + str(e))
 
 
+##
+# Gets energy information in 5 minute increments.  Used to create the "ENERGY 
+# USAGE" charts in the mobile app.
+#
+# author: mjhwa@yahoo.com
+##
 def getBatteryPowerHistory():
   try:
     url = ('https://owner-api.teslamotors.com/api/1/powerwalls/'
@@ -230,24 +257,51 @@ def getBatteryEnergyHistory():
     logError('getBatteryEnergyHistory(): ' + str(e))
 
 
+##
+# Changes operating mode, "CUSTOMIZE", in the mobile app to "Backup-only".
+#
+# author: mjhwa@yahoo.com
+##
 def setBatteryModeBackup():
   setBatteryMode('backup')
 
 
+##
+# Changes operating mode, "CUSTOMIZE", in the mobile app to "Self-powered".
+#
+# author: mjhwa@yahoo.com
+##
 def setBatteryModeSelfPowered():
   setBatteryMode('self_consumption')
 
 
+##
+# Changes operating mode, "CUSTOMIZE", in the mobile app to "Advanced -
+# Time-based control" and a setting of "Balanced".
+#
+# author: mjhwa@yahoo.com
+##
 def setBatteryModeAdvancedBalanced():
   setBatteryMode('autonomous')
   setEnergyTOUSettings('balanced')
 
 
+##
+# Changes operating mode, "CUSTOMIZE", in the mobile app to "Advanced -
+# Time-based control" and a setting of "Cost Saving".
+#
+# author: mjhwa@yahoo.com
+##
 def setBatteryModeAdvancedCost():
   setBatteryMode('autonomous')
   setEnergyTOUSettings('economics')
 
 
+##
+# Changes operating mode, "CUSTOMIZE", in the mobile app. 
+#
+# author: mjhwa@yahoo.com
+##
 def setBatteryMode(mode):
   try:
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
@@ -266,6 +320,11 @@ def setBatteryMode(mode):
     logError('setBatteryMode(' + mode + '): ' + str(e))
 
 
+##
+# Sets battery reserve %, "Reserve for Power Outages", in the mobile app.
+#
+# author: mjhwa@yahoo.com
+##
 def setBatteryBackupReserve(backup_percent):
   try:
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
@@ -284,6 +343,14 @@ def setBatteryBackupReserve(backup_percent):
     logError('setBatteryBackupReserve(' + backup_percent + '): ' + str(e))
 
 
+##
+# Sets the Advanced operation optimization strategy.  You always have to send 
+# the TOU schedule because if it's omitted, it erases your TOU schedule saved 
+# in the mobile app.  It's hard coded because it's not meant to be configured 
+# outside the mobile app. 
+#
+# author: mjhwa@yahoo.com
+##
 def setEnergyTOUSettings(strategy):
   try:
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
