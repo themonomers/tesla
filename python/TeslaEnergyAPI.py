@@ -149,10 +149,10 @@ def getSiteHistory(period):
 #        print(key_1)
 
 #        for i in range(len(response['response'][key_1])):
-#          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+#          print('  time_ns = ' + response['response'][key_1][i]['timestamp'])
 
 #          for key_2, value_2 in response['response'][key_1][i].items():
-#            if (key_2 != 'timestamp'):
+#            if (key_2 != 'time_ns'):
 #              print('    ' + key_2 + ' = ' + str(value_2))
 #      else:
 #        print(key_1 + ' = ' + str(value_1))
@@ -180,10 +180,10 @@ def getBatteryPowerHistory():
 #        print(key_1)
 
 #        for i in range(len(response['response'][key_1])):
-#          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+#          print('  time_ns = ' + response['response'][key_1][i]['timestamp'])
 
 #          for key_2, value_2 in response['response'][key_1][i].items():
-#            if (key_2 != 'timestamp'):
+#            if (key_2 != 'time_ns'):
 #              print('    ' + key_2 + ' = ' + str(value_2))
 #      else:
 #        print(key_1 + ' = ' + str(value_1))
@@ -217,10 +217,10 @@ def getBatteryEnergyHistory():
     #    print(key_1)
 
     #    for i in range(len(response['response'][key_1])):
-    #      print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+    #      print('  time_ns = ' + response['response'][key_1][i]['timestamp'])
 
     #      for key_2, value_2 in response['response'][key_1][i].items():
-    #        if (key_2 != 'timestamp'):
+    #        if (key_2 != 'time_ns'):
     #          print('    ' + key_2 + ' = ' + str(value_2))
     #  else:
     #    print(key_1 + ' = ' + str(value_1))
@@ -290,7 +290,33 @@ def setEnergyTOUSettings(strategy):
            + SITE_ID
            + '/time_of_use_settings')
     payload = {
-      'tou_settings': {'optimization_strategy': strategy}
+      'tou_settings': {
+        'optimization_strategy': strategy,
+        'schedule': [{
+          'target': 'peak',
+          'week_days': [1,2,3,4,5],
+          'start_seconds': (16 * 60 * 60),
+          'end_seconds': (21 * 60 * 60)
+        },
+        {
+          'target': 'off_peak',
+          'week_days': [1,2,3,4,5],
+          'start_seconds': 0,
+          'end_seconds': (15 * 60 * 60)
+        },
+        {
+          'target': 'peak',
+          'week_days': [0,6],
+          'start_seconds': (16 * 60 * 60),
+          'end_seconds': (21 * 60 * 60)
+        },
+        {
+          'target': 'off_peak',
+          'week_days': [0,6],
+          'start_seconds': 0,
+          'end_seconds': (15 * 60 * 60)
+        }]
+      }
     }
 
     response = requests.post(
