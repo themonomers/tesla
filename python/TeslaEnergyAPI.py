@@ -149,10 +149,10 @@ def getSiteHistory(period):
 #        print(key_1)
 
 #        for i in range(len(response['response'][key_1])):
-#          print('  time_ns = ' + response['response'][key_1][i]['timestamp'])
+#          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
 
 #          for key_2, value_2 in response['response'][key_1][i].items():
-#            if (key_2 != 'time_ns'):
+#            if (key_2 != 'timestamp'):
 #              print('    ' + key_2 + ' = ' + str(value_2))
 #      else:
 #        print(key_1 + ' = ' + str(value_1))
@@ -180,10 +180,10 @@ def getBatteryPowerHistory():
 #        print(key_1)
 
 #        for i in range(len(response['response'][key_1])):
-#          print('  time_ns = ' + response['response'][key_1][i]['timestamp'])
+#          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
 
 #          for key_2, value_2 in response['response'][key_1][i].items():
-#            if (key_2 != 'time_ns'):
+#            if (key_2 != 'timestamp'):
 #              print('    ' + key_2 + ' = ' + str(value_2))
 #      else:
 #        print(key_1 + ' = ' + str(value_1))
@@ -217,10 +217,10 @@ def getBatteryEnergyHistory():
     #    print(key_1)
 
     #    for i in range(len(response['response'][key_1])):
-    #      print('  time_ns = ' + response['response'][key_1][i]['timestamp'])
+    #      print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
 
     #      for key_2, value_2 in response['response'][key_1][i].items():
-    #        if (key_2 != 'time_ns'):
+    #        if (key_2 != 'timestamp'):
     #          print('    ' + key_2 + ' = ' + str(value_2))
     #  else:
     #    print(key_1 + ' = ' + str(value_1))
