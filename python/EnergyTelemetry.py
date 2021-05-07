@@ -2,6 +2,7 @@ import time
 import configparser
 import os
 
+from Influxdb import getDBClient
 from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getBatteryPowerHistory
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from SendEmail import sendEmail
@@ -196,12 +197,9 @@ def writeSiteTelemetrySummary(date):
 
 
 ##
-# This writes solar and battery data in 5 minute increments for a given day
-# that recreates the "Energy Usage" graph in the mobile app.  
-#
-# This needs to be refactored into a Telagraf database, instead of Google
-# Sheet, for scalability and visualization, as well as other benefits with  
-# Grafana.
+# This writes solar and battery data in 5 minute increments in InfluxDB
+# for a given day that can be visualized in Grafana.  This recreates the 
+# "Energy Usage" graph from the mobile app.  
 #
 # author: mjhwa@yahoo.com
 ##
@@ -210,8 +208,7 @@ def writeSiteTelemetryDetail(date):
     # get time series data
     data = getBatteryPowerHistory()
 
-    inputs = []
-    open_row = findOpenRow(ENERGY_SPREADSHEET_ID, 'Telemetry-Detail','A:A')
+    json_body = []
     for x in data['response']['time_series']:
       d = datetime.strptime(
         x['timestamp'].split('T',1)[0],
@@ -223,51 +220,44 @@ def writeSiteTelemetryDetail(date):
         and d.month == date.month
         and d.day == date.day
       ):
-        d = datetime.strptime(
-          x['timestamp'].split('T',1)[0]
-          + ' '
-          + x['timestamp'].split('T',1)[1].split('-',1)[0], 
-          '%Y-%m-%d %H:%M:%S'
-        )
-
-        inputs.append({
-          'range': 'Telemetry-Detail!A' + str(open_row),
-          'values': [[str(d)]]
+        json_body.append({
+          'measurement': 'energy_detail',
+          'tags': {
+            'source': 'grid_power'
+          },
+          'time': x['timestamp'],
+          'fields': {
+            'value': float(x['grid_power'])
+          }
         })
 
-        inputs.append({
-          'range': 'Telemetry-Detail!B' + str(open_row),
-          'values': [[x['grid_power']]]
+        json_body.append({
+          'measurement': 'energy_detail',
+          'tags': {
+            'source': 'battery_power'
+          },
+          'time': x['timestamp'],
+          'fields': {
+            'value': float(x['battery_power'])
+          }
         })
 
-        inputs.append({
-          'range': 'Telemetry-Detail!C' + str(open_row),
-          'values': [[x['battery_power']]]
+        json_body.append({
+          'measurement': 'energy_detail',
+          'tags': {
+            'source': 'solar_power'
+          },
+          'time': x['timestamp'],
+          'fields': {
+            'value': float(x['solar_power'])
+          }
         })
 
-        inputs.append({
-          'range': 'Telemetry-Detail!D' + str(open_row),
-          'values': [[x['generator_power']]]
-        })
-
-        inputs.append({
-          'range': 'Telemetry-Detail!E' + str(open_row),
-          'values': [[x['solar_power']]]
-        })
-
-        inputs.append({
-          'range': 'Telemetry-Detail!F' + str(open_row),
-          'values': [[x['grid_services_power']]]
-        })
-        open_row += 1
-
-    # batch write data to sheet
-    service = getGoogleSheetService()
-    service.spreadsheets().values().batchUpdate(
-      spreadsheetId=ENERGY_SPREADSHEET_ID,
-      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
-    ).execute()
-    service.close()
+    # Write to Influxdb
+    client = getDBClient()
+    client.switch_database('energy')
+    client.write_points(json_body)
+    client.close()
   except Exception as e:
     logError('writeSiteTelemetryDetail(): ' + str(e))
 
