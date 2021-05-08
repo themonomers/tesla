@@ -253,6 +253,21 @@ def writeSiteTelemetryDetail(date):
           }
         })
 
+        json_body.append({
+          'measurement': 'energy_detail',
+          'tags': {
+            'source': 'load_power'
+          },
+          'time': x['timestamp'],
+          'fields': {
+            'value': float(
+              x['grid_power']
+              + x['battery_power']
+              + x['solar_power']
+            )
+          }
+        })
+
     # Write to Influxdb
     client = getDBClient()
     client.switch_database('energy')
