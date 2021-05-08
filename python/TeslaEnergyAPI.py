@@ -155,7 +155,9 @@ def getSiteHistory(period):
   try:
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
            + SITE_ID 
-           + '/history?kind=energy&period='
+           + '/history'
+           + '?kind=energy'
+           + '&period=' 
            + period)
 
     response = json.loads(
@@ -221,14 +223,15 @@ def getBatteryPowerHistory():
 
 
 ##
-# This API seems to be deprecated.
+# Get grid outage/battery backup events.
 #
+# author: mjhwa@yahoo.com
 ##
-def getBatteryEnergyHistory():
+def getBatteryBackupHistory():
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/powerwalls/'
-           + BATTERY_ID
-           + '/energyhistory')
+    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+           + SITE_ID 
+           + '/history?kind=backup')
 
     response = json.loads(
       requests.get(
@@ -237,24 +240,22 @@ def getBatteryEnergyHistory():
       ).text
     )
 
-    print(response)
+#    for key_1, value_1 in response['response'].items():
+#      if (isinstance(value_1, list) == True):
+#        print(key_1)
 
-    #for key_1, value_1 in response['response'].items():
-    #  if (isinstance(value_1, list) == True):
-    #    print(key_1)
+#        for i in range(len(response['response'][key_1])):
+#          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
 
-    #    for i in range(len(response['response'][key_1])):
-    #      print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+#          for key_2, value_2 in response['response'][key_1][i].items():
+#            if (key_2 != 'timestamp'):
+#              print('    ' + key_2 + ' = ' + str(value_2))
+#      else:
+#        print(key_1 + ' = ' + str(value_1))
 
-    #      for key_2, value_2 in response['response'][key_1][i].items():
-    #        if (key_2 != 'timestamp'):
-    #          print('    ' + key_2 + ' = ' + str(value_2))
-    #  else:
-    #    print(key_1 + ' = ' + str(value_1))
-
-    #return response
+    return response
   except Exception as e:
-    logError('getBatteryEnergyHistory(): ' + str(e))
+    logError('getBatteryBackupHistory(): ' + str(e))
 
 
 ##
@@ -401,7 +402,7 @@ def main():
   print('[3]  getSiteInfo()')
   print('[4]  getSiteHistory()')
   print('[5]  getBatteryPowerHistory()')
-  print('[6]  getBatteryEnergyHistory()')
+  print('[6]  getBatteryBackupHistory()')
   print('[7]  setBatteryModeBackup()')
   print('[8]  setBatteryModeSelfPowered()')
   print('[9]  setBatteryModeAdvancedBalanced()')
@@ -422,7 +423,7 @@ def main():
   elif choice == 5:
     getBatteryPowerHistory()
   elif choice == 6:
-    getBatteryEnergyHistory()
+    getBatteryBackupHistory()
   elif choice == 7:
     setBatteryModeBackup()
   elif choice == 8:
