@@ -1,10 +1,10 @@
 from Influxdb import getDBClient
 from TeslaEnergyAPI import getSiteLiveStatus
-from Crypto import decrypt
 from Logger import logError
 
 
 ##
+# Writes live energy data to InfluxDB.  
 #
 # author: mjhwa@yahoo.com
 ##
@@ -81,6 +81,7 @@ def writeLiveSiteTelemetry():
 
 
 ##
+# Set on a 5 minute interval in crontab.
 #
 # author: mjhwa@yahoo.com
 ##
