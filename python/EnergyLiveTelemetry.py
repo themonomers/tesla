@@ -73,7 +73,7 @@ def writeLiveSiteTelemetry():
 
     # Write to Influxdb
     client = getDBClient()
-    client.switch_database('energy')
+    client.switch_database('live')
     client.write_points(json_body)
     client.close()
   except Exception as e:
