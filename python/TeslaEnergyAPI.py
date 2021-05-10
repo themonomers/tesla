@@ -240,18 +240,7 @@ def getBatteryBackupHistory():
       ).text
     )
 
-#    for key_1, value_1 in response['response'].items():
-#      if (isinstance(value_1, list) == True):
-#        print(key_1)
-
-#        for i in range(len(response['response'][key_1])):
-#          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
-
-#          for key_2, value_2 in response['response'][key_1][i].items():
-#            if (key_2 != 'timestamp'):
-#              print('    ' + key_2 + ' = ' + str(value_2))
-#      else:
-#        print(key_1 + ' = ' + str(value_1))
+    print(response)
 
     return response
   except Exception as e:
@@ -441,4 +430,3 @@ def main():
 
 if __name__ == "__main__":
   main()
-
