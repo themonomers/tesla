@@ -30,8 +30,8 @@ buffer.close()
 
 ##
 # Contains functions to read/write the solar and powerwall data into a 
-# Google Sheet for tracking, analysis, and graphs.  The data is a summary
-# level down to the day.
+# Google Sheet and InfluxDB for tracking, analysis, and graphs.  The data 
+# is a summary level down to the day.
 #
 # author: mjhwa@yahoo.com
 ##
@@ -41,6 +41,7 @@ def writeSiteTelemetrySummary(date):
     data = getSiteStatus()  
     
     inputs = []
+    json_body = []
     # write total pack energy value
     open_row = findOpenRow(ENERGY_SPREADSHEET_ID, 'Telemetry-Summary','A:A')
     inputs.append({
@@ -52,10 +53,30 @@ def writeSiteTelemetrySummary(date):
       'range': 'Telemetry-Summary!B' + str(open_row),
       'values': [[data['response']['total_pack_energy']]]
     })
+    json_body.append({
+      'measurement': 'energy_summary',
+      'tags': {
+        'source': 'total_pack_energy'
+      },
+      'time': date.strftime('%Y-%m-%dT%H:%M:%S-7:00'),
+      'fields': {
+        'value': float(data['response']['total_pack_energy'])
+      }
+    })
 
     inputs.append({
       'range': 'Telemetry-Summary!C' + str(open_row),
       'values': [[data['response']['percentage_charged']]]
+    })
+    json_body.append({
+      'measurement': 'energy_summary',
+      'tags': {
+        'source': 'percentage_charged'
+      },
+      'time': date.strftime('%Y-%m-%dT%H:%M:%S-7:00'),
+      'fields': {
+        'value': float(data['response']['percentage_charged'])
+      }
     })
 
     # get solar data
@@ -83,65 +104,195 @@ def writeSiteTelemetrySummary(date):
               'range': 'Telemetry-Summary!G' + str(open_row),
               'values': [[data['response'][key_1][i]['consumer_energy_imported_from_solar']]]
             })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'consumer_energy_imported_from_solar'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['consumer_energy_imported_from_solar'])
+              }
+            })
    
             inputs.append({
               'range': 'Telemetry-Summary!H' + str(open_row),
               'values': [[data['response'][key_1][i]['consumer_energy_imported_from_battery']]]
+            })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'consumer_energy_imported_from_battery'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['consumer_energy_imported_from_battery'])
+              }
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!I' + str(open_row),
               'values': [[data['response'][key_1][i]['consumer_energy_imported_from_grid']]]
             })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'consumer_energy_imported_from_grid'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['consumer_energy_imported_from_grid'])
+              }
+            })
 
             inputs.append({
               'range': 'Telemetry-Summary!J' + str(open_row),
               'values': [[data['response'][key_1][i]['consumer_energy_imported_from_generator']]]
+            })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'consumer_energy_imported_from_generator'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['consumer_energy_imported_from_generator'])
+              }
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!K' + str(open_row),
               'values': [[data['response'][key_1][i]['solar_energy_exported']]]
             })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'solar_energy_exported'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['solar_energy_exported'])
+              }
+            })
 
             inputs.append({
               'range': 'Telemetry-Summary!L' + str(open_row),
               'values': [[data['response'][key_1][i]['battery_energy_exported']]]
+            })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'battery_energy_exported'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['battery_energy_exported'])
+              }
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!M' + str(open_row),
               'values': [[data['response'][key_1][i]['battery_energy_imported_from_solar']]]
             })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'battery_energy_imported_from_solar'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['battery_energy_imported_from_solar'])
+              }
+            })
 
             inputs.append({
               'range': 'Telemetry-Summary!N' + str(open_row),
               'values': [[data['response'][key_1][i]['battery_energy_imported_from_grid']]]
+            })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'battery_energy_imported_from_grid'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['battery_energy_imported_from_grid'])
+              }
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!O' + str(open_row),
               'values': [[data['response'][key_1][i]['battery_energy_imported_from_generator']]]
             })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'battery_energy_imported_from_generator'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['battery_energy_imported_from_generator'])
+              }
+            })
 
             inputs.append({
               'range': 'Telemetry-Summary!P' + str(open_row),
               'values': [[data['response'][key_1][i]['grid_energy_imported']]]
+            })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'grid_energy_imported'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['grid_energy_imported'])
+              }
             })
 
             inputs.append({
               'range': 'Telemetry-Summary!Q' + str(open_row),
               'values': [[data['response'][key_1][i]['grid_energy_exported_from_solar']]]
             })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'grid_energy_exported_from_solar'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['grid_energy_exported_from_solar'])
+              }
+            })
 
             inputs.append({
               'range': 'Telemetry-Summary!R' + str(open_row),
               'values': [[data['response'][key_1][i]['grid_energy_exported_from_battery']]]
             })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'grid_energy_exported_from_battery'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['grid_energy_exported_from_battery'])
+              }
+            })
 
             inputs.append({
               'range': 'Telemetry-Summary!S' + str(open_row),
               'values': [[data['response'][key_1][i]['grid_energy_exported_from_generator']]]
+            })
+            json_body.append({
+              'measurement': 'energy_summary',
+              'tags': {
+                'source': 'grid_energy_exported_from_generator'
+              },
+              'time': data['response'][key_1][i]['timestamp'],
+              'fields': {
+                'value': float(data['response'][key_1][i]['grid_energy_exported_from_generator'])
+              }
             })
 
             inputs.append({
@@ -192,6 +343,12 @@ def writeSiteTelemetrySummary(date):
       body={'requests': requests}
     ).execute()
     service.close()
+
+    # Write to Influxdb
+    client = getDBClient()
+    client.switch_database('energy')
+    client.write_points(json_body)
+    client.close()
   except Exception as e:
     logError('writeSiteTelemetrySummary(): ' + str(e))
 
