@@ -17,17 +17,6 @@ def writeLiveSiteTelemetry():
     json_body.append({
       'measurement': 'energy_live',
       'tags': {
-        'source': 'percentage_charged'
-      },
-      'time': data['response']['timestamp'],
-      'fields': {
-        'value': float(data['response']['percentage_charged'])
-      }
-    })
-
-    json_body.append({
-      'measurement': 'energy_live',
-      'tags': {
         'source': 'solar_power'
       },
       'time': data['response']['timestamp'],
@@ -69,11 +58,25 @@ def writeLiveSiteTelemetry():
       }
     })
 
-#    print(json_body)
-
     # Write to Influxdb
     client = getDBClient()
     client.switch_database('live')
+    client.write_points(json_body)
+
+    json_body = []
+    json_body.append({
+      'measurement': 'energy_detail',
+      'tags': {
+        'source': 'percentage_charged'
+      },
+      'time': data['response']['timestamp'],
+      'fields': {
+        'value': float(data['response']['percentage_charged'])
+      }
+    })
+
+    # Write to Influxdb
+    client.switch_database('energy')
     client.write_points(json_body)
     client.close()
   except Exception as e:
