@@ -289,7 +289,7 @@ def getSiteTOUHistory(period, date):
 
     return response
   except Exception as e:
-    logError('getTOUEnergy(): ' + str(e))
+    logError('getSiteTOUHistory(): ' + str(e))
 
 ##
 # Gets the Savings Value data to show estimated cost savings.  Can't get this 
