@@ -248,6 +248,101 @@ def getBatteryBackupHistory():
 
 
 ##
+# Gets summary level information about energy imports and exports down to the
+# day, separated by time of use.
+#
+# author: mjhwa@yahoo.com
+##
+def getSiteTOUHistory(period, date):
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+           + SITE_ID
+           + '/calendar_history'
+           + '?kind=time_of_use_energy'
+           + '&period=' + period
+           + '&end_date=' + datetime.strftime(date, '%Y-%m-%dT06:59:59Z')
+#           + '&start_date=2021-04-26T07:00:00Z'
+#           + '&end_date=2021-04-27T06:59:59Z'
+          )
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+#    for key_1, value_1 in response['response'].iteritems():
+#      if (isinstance(value_1, dict) == True):
+#        print(key_1)
+
+#        for key_2, value_2 in response['response'][key_1].iteritems():
+#          if (isinstance(value_1, dict) == True):
+#            print('  ' + key_2)
+
+#            for x in response['response'][key_1][key_2]:
+#              if (isinstance(x, dict) == True):
+#                for key_3, value_3 in x.iteritems():
+#                  print('    ' + key_3 + ' = ' + str(value_3))
+#      else:
+#        print(key_1 + ' = ' + str(value_1))
+
+    return response
+  except Exception as e:
+    logError('getTOUEnergy(): ' + str(e))
+
+##
+# Gets the Savings Value data to show estimated cost savings.  Can't get this 
+# to work yet. It's likely that it's missing one or more parameters because
+# when I tamper with the other attributes, the API checks those values and 
+# throws errors. 
+#
+# author: mjhwa@yahoo.com
+##
+def getSavingsForecast():
+  try:
+#    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+#           + SITE_ID
+#           + '/tariff_rates')
+    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+           + SITE_ID
+           + '/savings_forecast'
+           + '?tariff=PGE-EV2-A'
+           + '&period=day'
+           + '&start_date=2021-04-27T07:00:00Z'
+           + '&end_date=2021-04-28T06:59:59Z'
+#           + '&time_zone=' + urllib.quote('America/Los_Angeles')
+#           + '&start_date=' + urllib.quote('2021-04-27T00:00:00Z')
+#           + '&end_date=' + urllib.quote('2021-04-27T23:59:59Z')
+#           + '&start_date=2021-05-03T00:00:00Z'
+#           + '&end_date=2021-05-09T23:59:59Z'
+#           + '&unit=USD'
+#           + '&kind=solar_savings'
+#           + '&time_zone=UTC'
+#           + '&locale=en'
+#           + '&time_zone_offset=700'
+          )
+
+    print(url)
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+    print(response)
+#    for x in response['response']:
+#      for key, value in x.iteritems():
+#        print(key + ' = ' + str(value)) 
+
+    return response
+  except Exception as e:
+    logError('getSavingsForecast(): ' + str(e))
+
+
+##
 # Changes operating mode, "CUSTOMIZE", in the mobile app to "Backup-only".
 #
 # author: mjhwa@yahoo.com
@@ -395,7 +490,9 @@ def main():
   print('[7]  setBatteryModeBackup()')
   print('[8]  setBatteryModeSelfPowered()')
   print('[9]  setBatteryModeAdvancedBalanced()')
-  print('[10] setBatteryModeAdvancedCost() \n')
+  print('[10] setBatteryModeAdvancedCost()')
+  print('[11] getSavingsForecast()')
+  print('[12] getSiteTOUHistory() \n')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -427,6 +524,10 @@ def main():
     percent = float(raw_input('% battery reserve: '))
     setBatteryModeAdvancedCost()
     setBatteryBackupReserve(percent)
+  elif choice == 11:
+    getSavingsForecast()
+  elif choice == 12:
+    getSiteTOUHistory('day')
 
 if __name__ == "__main__":
   main()
