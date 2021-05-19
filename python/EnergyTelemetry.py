@@ -41,7 +41,7 @@ def writeSiteTelemetrySummary(date):
     data = getSiteStatus()  
     
     json_body = []
-    # write total pack energy value
+    # write battery data
     json_body.append({
       'measurement': 'energy_summary',
       'tags': {
@@ -68,7 +68,6 @@ def writeSiteTelemetrySummary(date):
     data = getSiteHistory('day')
 
     # write solar data
-    open_row = findOpenRow(ENERGY_SPREADSHEET_ID, 'Telemetry-Summary','F:F')
     for key_1, value_1 in data['response'].items():
       if (isinstance(value_1, list) == True):
         for i in range(len(data['response'][key_1])):
@@ -76,152 +75,26 @@ def writeSiteTelemetrySummary(date):
             data['response'][key_1][i]['timestamp'].split('T',1)[0], 
             '%Y-%m-%d'
           )
-
           if (d.year == date.year
               and d.month == date.month
               and d.day == date.day):
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'consumer_energy_imported_from_solar'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['consumer_energy_imported_from_solar'])
-              }
-            })
-   
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'consumer_energy_imported_from_battery'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['consumer_energy_imported_from_battery'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'consumer_energy_imported_from_grid'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['consumer_energy_imported_from_grid'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'consumer_energy_imported_from_generator'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['consumer_energy_imported_from_generator'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'solar_energy_exported'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['solar_energy_exported'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'battery_energy_exported'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['battery_energy_exported'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'battery_energy_imported_from_solar'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['battery_energy_imported_from_solar'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'battery_energy_imported_from_grid'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['battery_energy_imported_from_grid'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'battery_energy_imported_from_generator'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['battery_energy_imported_from_generator'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'grid_energy_imported'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['grid_energy_imported'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'grid_energy_exported_from_solar'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['grid_energy_exported_from_solar'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'grid_energy_exported_from_battery'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['grid_energy_exported_from_battery'])
-              }
-            })
-
-            json_body.append({
-              'measurement': 'energy_summary',
-              'tags': {
-                'source': 'grid_energy_exported_from_generator'
-              },
-              'time': data['response'][key_1][i]['timestamp'],
-              'fields': {
-                'value': float(data['response'][key_1][i]['grid_energy_exported_from_generator'])
-              }
-            })
+            for key_2, value_2 in data['response'][key_1][i].items():
+              if (
+                (key_2 != 'timestamp')
+                and (key_2 != 'grid_services_energy_exported')
+                and (key_2 != 'grid_services_energy_imported')
+                and (key_2 != 'generator_energy_exported')
+              ):
+                json_body.append({
+                  'measurement': 'energy_summary',
+                  'tags': {
+                    'source': key_2
+                  },
+                  'time': data['response'][key_1][i]['timestamp'],
+                  'fields': {
+                    'value': float(value_2)
+                  }
+                })
 
     # Write to Influxdb
     client = getDBClient()
@@ -801,39 +674,18 @@ def writeSiteTelemetryDetail(date):
         and d.month == date.month
         and d.day == date.day
       ):
-        json_body.append({
-          'measurement': 'energy_detail',
-          'tags': {
-            'source': 'grid_power'
-          },
-          'time': x['timestamp'],
-          'fields': {
-            'value': float(x['grid_power'])
-          }
-        })
-
-        json_body.append({
-          'measurement': 'energy_detail',
-          'tags': {
-            'source': 'battery_power'
-          },
-          'time': x['timestamp'],
-          'fields': {
-            'value': float(x['battery_power'])
-          }
-        })
-
-        json_body.append({
-          'measurement': 'energy_detail',
-          'tags': {
-            'source': 'solar_power'
-          },
-          'time': x['timestamp'],
-          'fields': {
-            'value': float(x['solar_power'])
-          }
-        })
-
+        for key, value in x.items():
+          if (key != 'timestamp'):
+            json_body.append({
+              'measurement': 'energy_detail',
+              'tags': {
+                'source': key
+              },
+              'time': x['timestamp'],
+              'fields': {
+                'value': float(value)
+              }
+            })
         json_body.append({
           'measurement': 'energy_detail',
           'tags': {
