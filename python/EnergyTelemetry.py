@@ -255,7 +255,7 @@ def writeSiteTelemetryTOUSummary(date):
           'startColumnIndex': 23,
           'endColumnIndex': 29
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
 
@@ -555,7 +555,7 @@ def writeSiteTelemetryTOUSummary(date):
           'startColumnIndex': 3,
           'endColumnIndex': 4
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
     requests.append({
@@ -574,7 +574,7 @@ def writeSiteTelemetryTOUSummary(date):
           'startColumnIndex': 46,
           'endColumnIndex': 52
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
     requests.append({
@@ -593,7 +593,7 @@ def writeSiteTelemetryTOUSummary(date):
           'startColumnIndex': 69,
           'endColumnIndex': 75
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
     requests.append({
@@ -612,7 +612,7 @@ def writeSiteTelemetryTOUSummary(date):
           'startColumnIndex': 92,
           'endColumnIndex': 98
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
     requests.append({
@@ -631,7 +631,7 @@ def writeSiteTelemetryTOUSummary(date):
           'startColumnIndex': 99,
           'endColumnIndex': 116
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
 
