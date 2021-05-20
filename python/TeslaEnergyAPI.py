@@ -43,8 +43,10 @@ def getSiteStatus():
       ).text
     )
 
-#    for key in response['response']:
-#      print(str(key) + ' = ' + str(response['response'][key]))
+    """
+    for key in response['response']:
+      print(str(key) + ' = ' + str(response['response'][key]))
+    """
 
     return response
   except Exception as e:
@@ -69,8 +71,10 @@ def getSiteLiveStatus():
       ).text
     )
 
-#    for key in response['response']:
-#      print(str(key) + ' = ' + str(response['response'][key]))
+    """
+    for key in response['response']:
+      print(str(key) + ' = ' + str(response['response'][key]))
+    """
 
     return response
   except Exception as e:
@@ -95,50 +99,52 @@ def getSiteInfo():
       ).text
     )
 
-#    for key_1, value_1 in response['response'].items():
-#      if (isinstance(value_1, dict) == True):
-#        print(key_1)
+    """
+    for key_1, value_1 in response['response'].items():
+      if (isinstance(value_1, dict) == True):
+        print(key_1)
 
-#        for key_2, value_2 in response['response'][key_1].items():
-#          if (isinstance(value_2, dict) == True):
-#            print('  ' + key_2 + ' = ' + str(value_2))
-#          elif (isinstance(value_2, list) == True):
-#            print('  ' + key_2)
+        for key_2, value_2 in response['response'][key_1].items():
+          if (isinstance(value_2, dict) == True):
+            print('  ' + key_2 + ' = ' + str(value_2))
+          elif (isinstance(value_2, list) == True):
+            print('  ' + key_2)
 
-#            for index, item in enumerate(
-#              response['response'][key_1][key_2]
-#            ): 
-#              print(
-#                '    ' 
-#                + str(index + 1) 
-#                + '. week_days' 
-#                + ' = ' 
-#                + str(item['week_days'])
-#              )
-#              print('       target = ' + item['target'])
-#              print(
-#                '       start_seconds = ' 
-#                + str(
-#                  timedelta(
-#                    seconds=item['start_seconds']
-#                  )
-#                )
-#              )
-#              print(
-#                '       end_seconds = ' 
-#                + str(
-#                  timedelta(
-#                    seconds=item['end_seconds']
-#                  )
-#                )
-#              )
-#          else:
-#            print('  ' 
-#              + key_2 
-#              + ' = ' 
-#              + str(value_2))
-#      else:
-#        print(key_1 + ' = ' + str(value_1))
+            for index, item in enumerate(
+              response['response'][key_1][key_2]
+            ): 
+              print(
+                '    ' 
+                + str(index + 1) 
+                + '. week_days' 
+                + ' = ' 
+                + str(item['week_days'])
+              )
+              print('       target = ' + item['target'])
+              print(
+                '       start_seconds = ' 
+                + str(
+                  timedelta(
+                    seconds=item['start_seconds']
+                  )
+                )
+              )
+              print(
+                '       end_seconds = ' 
+                + str(
+                  timedelta(
+                    seconds=item['end_seconds']
+                  )
+                )
+              )
+          else:
+            print('  ' 
+              + key_2 
+              + ' = ' 
+              + str(value_2))
+      else:
+        print(key_1 + ' = ' + str(value_1))
+    """
 
     return response
   except Exception as e:
@@ -167,18 +173,20 @@ def getSiteHistory(period):
       ).text
     )
 
-#    for key_1, value_1 in response['response'].items():
-#      if (isinstance(value_1, list) == True):
-#        print(key_1)
+    """
+    for key_1, value_1 in response['response'].items():
+      if (isinstance(value_1, list) == True):
+        print(key_1)
 
-#        for i in range(len(response['response'][key_1])):
-#          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+        for i in range(len(response['response'][key_1])):
+          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
 
-#          for key_2, value_2 in response['response'][key_1][i].items():
-#            if (key_2 != 'timestamp'):
-#              print('    ' + key_2 + ' = ' + str(value_2))
-#      else:
-#        print(key_1 + ' = ' + str(value_1))
+          for key_2, value_2 in response['response'][key_1][i].items():
+            if (key_2 != 'timestamp'):
+              print('    ' + key_2 + ' = ' + str(value_2))
+      else:
+        print(key_1 + ' = ' + str(value_1))
+    """
 
     return response
   except Exception as e:
@@ -204,18 +212,20 @@ def getBatteryPowerHistory():
       ).text
     )
 
-#    for key_1, value_1 in response['response'].items():
-#      if (isinstance(value_1, list) == True):
-#        print(key_1)
+    """
+    for key_1, value_1 in response['response'].items():
+      if (isinstance(value_1, list) == True):
+        print(key_1)
 
-#        for i in range(len(response['response'][key_1])):
-#          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+        for i in range(len(response['response'][key_1])):
+          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
 
-#          for key_2, value_2 in response['response'][key_1][i].items():
-#            if (key_2 != 'timestamp'):
-#              print('    ' + key_2 + ' = ' + str(value_2))
-#      else:
-#        print(key_1 + ' = ' + str(value_1))
+          for key_2, value_2 in response['response'][key_1][i].items():
+            if (key_2 != 'timestamp'):
+              print('    ' + key_2 + ' = ' + str(value_2))
+      else:
+        print(key_1 + ' = ' + str(value_1))
+    """
 
     return response
   except Exception as e:
@@ -261,10 +271,9 @@ def getSiteTOUHistory(period, date):
            + '?kind=time_of_use_energy'
            + '&period=' + period
            + '&end_date=' + datetime.strftime(date, '%Y-%m-%dT06:59:59Z')
-#           + '&start_date=2021-04-26T07:00:00Z'
-#           + '&end_date=2021-04-27T06:59:59Z'
+#           + '&end_date=' + datetime.strftime(date, '%Y-%m-%dT23:59:59Z')
           )
-
+ 
     response = json.loads(
       requests.get(
         url,
@@ -272,58 +281,43 @@ def getSiteTOUHistory(period, date):
       ).text
     )
 
-#    for key_1, value_1 in response['response'].iteritems():
-#      if (isinstance(value_1, dict) == True):
-#        print(key_1)
+    """
+    for key_1, value_1 in response['response'].iteritems():
+      if (isinstance(value_1, dict) == True):
+        print(key_1)
 
-#        for key_2, value_2 in response['response'][key_1].iteritems():
-#          if (isinstance(value_1, dict) == True):
-#            print('  ' + key_2)
+        for key_2, value_2 in response['response'][key_1].iteritems():
+          if (isinstance(value_1, dict) == True):
+            print('  ' + key_2)
 
-#            for x in response['response'][key_1][key_2]:
-#              if (isinstance(x, dict) == True):
-#                for key_3, value_3 in x.iteritems():
-#                  print('    ' + key_3 + ' = ' + str(value_3))
-#      else:
-#        print(key_1 + ' = ' + str(value_1))
+            for x in response['response'][key_1][key_2]:
+              if (isinstance(x, dict) == True):
+                for key_3, value_3 in x.iteritems():
+                  print('    ' + key_3 + ' = ' + str(value_3))
+      else:
+        print(key_1 + ' = ' + str(value_1))
+    """
 
     return response
   except Exception as e:
     logError('getSiteTOUHistory(): ' + str(e))
 
 ##
-# Gets the Savings Value data to show estimated cost savings.  Can't get this 
-# to work yet. It's likely that it's missing one or more parameters because
-# when I tamper with the other attributes, the API checks those values and 
-# throws errors. 
+# Gets the Savings Value data to show estimated cost savings.  
 #
 # author: mjhwa@yahoo.com
 ##
-def getSavingsForecast():
+def getSavingsForecast(period, date):
   try:
-#    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
-#           + SITE_ID
-#           + '/tariff_rates')
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
            + SITE_ID
-           + '/savings_forecast'
-           + '?tariff=PGE-EV2-A'
-           + '&period=day'
-           + '&start_date=2021-04-27T07:00:00Z'
-           + '&end_date=2021-04-28T06:59:59Z'
-#           + '&time_zone=' + urllib.quote('America/Los_Angeles')
-#           + '&start_date=' + urllib.quote('2021-04-27T00:00:00Z')
-#           + '&end_date=' + urllib.quote('2021-04-27T23:59:59Z')
-#           + '&start_date=2021-05-03T00:00:00Z'
-#           + '&end_date=2021-05-09T23:59:59Z'
-#           + '&unit=USD'
-#           + '&kind=solar_savings'
-#           + '&time_zone=UTC'
-#           + '&locale=en'
-#           + '&time_zone_offset=700'
+           + '/calendar_history'
+           + '?kind=savings'
+           + '&period=' + period
+           + '&start_date=' + datetime.strftime(date, '%Y-%m-%dT00:00:00Z')
+           + '&end_date=' + datetime.strftime(date, '%Y-%m-%dT23:59:59Z')
+           + '&tariff=PGE-EV2-A'
           )
-
-    print(url)
 
     response = json.loads(
       requests.get(
@@ -332,10 +326,11 @@ def getSavingsForecast():
       ).text
     )
 
-    print(response)
-#    for x in response['response']:
-#      for key, value in x.iteritems():
-#        print(key + ' = ' + str(value)) 
+    """
+    for x in response['response']:
+      for key, value in x.iteritems():
+        print(key + ' = ' + str(value)) 
+    """
 
     return response
   except Exception as e:
@@ -525,9 +520,13 @@ def main():
     setBatteryModeAdvancedCost()
     setBatteryBackupReserve(percent)
   elif choice == 11:
-    getSavingsForecast()
+    date = raw_input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    getSavingsForecast('day', date)
   elif choice == 12:
-    getSiteTOUHistory('day')
+    date = raw_input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y') + timedelta(1)
+    getSiteTOUHistory('day', date)
 
 if __name__ == "__main__":
   main()
