@@ -303,7 +303,8 @@ def getSiteTOUHistory(period, date):
     logError('getSiteTOUHistory(): ' + str(e))
 
 ##
-# Gets the Savings Value data to show estimated cost savings.  
+# Gets the data for Solar Value in the mobile app to show estimated 
+# cost savings.  
 #
 # author: mjhwa@yahoo.com
 ##
