@@ -3,7 +3,7 @@ import configparser
 import os
 
 from Influxdb import getDBClient
-from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getBatteryPowerHistory
+from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getBatteryPowerHistory, getSavingsForecast
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from SendEmail import sendEmail
 from Crypto import decrypt
@@ -95,6 +95,30 @@ def writeSiteTelemetrySummary(date):
                     'value': float(value_2)
                   }
                 })
+
+    # get solar value; need to adjust an additional -1 days because of the lag 
+    # in availability of this data
+    data = getSavingsForecast('day', date - timedelta(1))
+
+    for i in range(len(data['response'])):
+      d = datetime.strptime(
+        data['response'][i]['timestamp'].split('T',1)[0],
+        '%Y-%m-%d'
+      )
+      if (d.year == date.year
+          and d.month == date.month
+          and d.day == date.day):
+
+        json_body.append({
+          'measurement': 'energy_summary',
+          'tags': {
+            'source': 'savings_forecast'
+          },
+          'time': datetime.strftime(d, '%Y-%m-%dT%H:%M:%S-7:00'),
+          'fields': {
+            'value': float(data['response'][i]['value'])
+          }
+        })
 
     # Write to Influxdb
     client = getDBClient()
