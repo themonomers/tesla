@@ -98,7 +98,8 @@ def writeSiteTelemetrySummary(date):
 
     # get solar value; need to adjust an additional -1 days because of the lag 
     # in availability of this data
-    data = getSavingsForecast('day', date - timedelta(1))
+    date = date - timedelta(1)
+    data = getSavingsForecast('day', date)
 
     for i in range(len(data['response'])):
       d = datetime.strptime(
