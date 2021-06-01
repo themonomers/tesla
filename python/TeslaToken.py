@@ -31,7 +31,6 @@ buffer.close()
 
 email = raw_input('email: ')
 password = getpass.getpass('password: ')
-passcode = raw_input('passcode: ')
 
 # Step 1: Obtain the login page
 code_verifier = ''.join(choice(hexdigits) for i in range(86))
@@ -78,6 +77,14 @@ transaction_id = response.content[
                  ]
 cookie = response.headers.get('Set-Cookie')
 
+img = requests.get('https://auth.tesla.com/captcha')
+file = open("/mnt/gdrive/captcha.svg", "wb")
+file.write(img.content)
+file.close()
+
+captcha = raw_input('captcha: ')
+passcode = raw_input('passcode: ')
+
 #print('csrf: ' + csrf)
 #print('phase: ' + phase)
 #print('process: ' + process)
@@ -92,7 +99,8 @@ payload = {
   'transaction_id': transaction_id,
   'cancel': '',
   'identity': email,
-  'credential': password
+  'credential': password,
+  'captcha': captcha
 }
 
 response = requests.post(
