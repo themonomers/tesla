@@ -40,8 +40,6 @@ response = requests.post(
              json=payload
            )
 
-print(json.loads(response.text))
-
 # print outputs to screen
 print('# access_token=' + json.loads(response.text)['access_token'])
 print(
