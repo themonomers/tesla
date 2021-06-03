@@ -11,6 +11,7 @@ import GoogleAPI
 
 from random import choice
 from string import hexdigits
+from SendEmail import sendEmail
 from Crypto import decrypt
 from io import StringIO
 
@@ -26,6 +27,7 @@ config = configparser.ConfigParser()
 config.sections()
 config.readfp(buffer)
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
+EMAIL_1 = config['notification']['email_1']
 buffer.close()
 
 
@@ -77,12 +79,29 @@ transaction_id = response.content[
                  ]
 cookie = response.headers.get('Set-Cookie')
 
-img = requests.get('https://auth.tesla.com/captcha')
-file = open("/mnt/gdrive/captcha.svg", "wb")
-file.write(img.content)
-file.close()
+# check for CAPTCHA image, get for review, and prompt for translated text
+captcha = ''
+if (response.content.find('captcha') > 0):
+  img = requests.get('https://auth.tesla.com/captcha')
+  #file = open("/mnt/gdrive/captcha.svg", "wb")
+  file = open(
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'captcha.svg'
+    ), "wb"
+  )
+  file.write(img.content)
+  file.close()
 
-captcha = raw_input('captcha: ')
+  sendEmail(
+    EMAIL_1, 
+    'Tesla Access Token Expiring Soon - Verify CAPTCHA', 
+    '', 
+    '', 
+    'captcha.svg'
+  )
+  captcha = raw_input('captcha sent to ' + EMAIL_1 + ': ')
+
 passcode = raw_input('passcode: ')
 
 #print('csrf: ' + csrf)
