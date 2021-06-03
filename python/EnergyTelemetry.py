@@ -750,7 +750,7 @@ def main():
   message = ('Energy telemetry successfully logged on '
              + datetime.today().strftime('%B %d, %Y %H:%M:%S')
              + '.')
-  sendEmail(EMAIL_1, 'Energy Telemetry Logged', message, '')
+  sendEmail(EMAIL_1, 'Energy Telemetry Logged', message, '', '')
 
 if __name__ == "__main__":
   main()

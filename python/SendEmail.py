@@ -6,6 +6,7 @@ from Crypto import decrypt
 from Logger import logError
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from io import StringIO
 
 buffer = StringIO(
@@ -29,7 +30,7 @@ buffer.close()
 #
 # author: mjhwa@yahoo.com
 ##
-def sendEmail(to, subject, message, cc):
+def sendEmail(to, subject, message, cc, filename):
   try:
     sender = SENDER_EMAIL
     cc = [cc]
@@ -39,6 +40,21 @@ def sendEmail(to, subject, message, cc):
     msg['Subject'] = subject
     msg.attach(MIMEText(message, 'plain'))
 
+    if (filename != ''):
+      f = file(
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          filename
+        ), 'rb'
+      )
+      msg.attach(
+        MIMEImage(
+          f.read(),
+          name=os.path.basename(filename),
+          _subtype='svg+xml'
+        )
+      )
+
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.ehlo()
     server.starttls()
@@ -47,3 +63,5 @@ def sendEmail(to, subject, message, cc):
     server.close()
   except Exception as e:
     logError('sendEmail(): ' + str(e))
+
+
