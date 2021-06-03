@@ -276,7 +276,7 @@ def scheduleM3Charging(m3_data, mx_data):
       message = ('The Model 3 is set to charge on ' 
                  + str(estimated_charge_start_time) 
                  + '.')
-      sendEmail(EMAIL_1, 'Model 3 Set to Charge', message, '')
+      sendEmail(EMAIL_1, 'Model 3 Set to Charge', message, '', '')
     
       # create back up crontab for 15 minutes later
       estimated_backup_charge_start_time = (
@@ -403,7 +403,7 @@ def scheduleMXCharging(m3_data, mx_data):
       message = ('The Model X is set to charge on ' 
                  + str(estimated_charge_start_time) 
                  + '.')
-      sendEmail(EMAIL_1, 'Model X Set to Charge', message, '')
+      sendEmail(EMAIL_1, 'Model X Set to Charge', message, '', '')
     
       # create back up crontab for 15 minutes later
       estimated_backup_charge_start_time = (
@@ -466,7 +466,7 @@ def notifyIsTeslaPluggedIn():
                    + '%, ' 
                    + str(battery_range) 
                    + ' estimated miles.  \n\n-Your Model 3')
-        sendEmail(EMAIL_1, 'Please Plug In Your Model 3', message, '')
+        sendEmail(EMAIL_1, 'Please Plug In Your Model 3', message, '', '')
         #print('send email: ' + message)
 
     charge_port_door_open = mx_data['response']['charge_state']['charge_port_door_open']
@@ -491,7 +491,7 @@ def notifyIsTeslaPluggedIn():
                    + ' estimated miles.  \n\n-Your Model X')
         sendEmail(EMAIL_2, 
                   'Please Plug In Your Model X', 
-                  message, EMAIL_1)
+                  message, EMAIL_1, '')
         #print('send email: ' + message)
 
     # set crontab for charging 

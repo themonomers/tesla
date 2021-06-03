@@ -199,7 +199,7 @@ def writeM3Telemetry():
     message = ('Model 3 telemetry successfully logged on ' 
                + datetime.today().strftime('%B %d, %Y %H:%M:%S') 
                + '.')
-    sendEmail(EMAIL_1, 'Model 3 Telemetry Logged', message, '')
+    sendEmail(EMAIL_1, 'Model 3 Telemetry Logged', message, '', '')
   except Exception as e:
     logError('writeM3Telemetry(): ' + str(e))
     wakeVehicle(M3_VIN)
@@ -368,7 +368,7 @@ def writeMXTelemetry():
     message = ('Model X telemetry successfully logged on ' 
                + datetime.today().strftime('%B %d, %Y %H:%M:%S') 
                + '.')
-    sendEmail(EMAIL_1, 'Model X Telemetry Logged', message, '')
+    sendEmail(EMAIL_1, 'Model X Telemetry Logged', message, '', '')
   except Exception as e:
     logError('writeMXTelemetry(): ' + str(e))
     wakeVehicle(MX_VIN)
