@@ -9,7 +9,9 @@ function onOpen() {
       .addItem('Get Site Live Status', 'getSiteLiveStatus')
       .addItem('Get Site Info', 'getSiteInfo')
       .addItem('Get Site History', 'getSiteHistory')
-      .addItem('Get Site Time of Use History', 'getSiteTOUHistory'))
+      .addItem('Get Site Time of Use History', 'getSiteTOUHistory')
+      .addItem('Get Battery Status', 'getBatteryStatus')
+      .addItem('Get Battery Data', 'getBatteryData'))
     .addSeparator()
     .addSubMenu(ui.createMenu('Vehicle')
       .addItem('Get Vehicle Data', 'getVehicleData')
@@ -163,6 +165,46 @@ function getSiteTOUHistory() {
   }
 }
 
+function getBatteryStatus() {
+  var token = Browser.inputBox('Enter Access Token');
+  var battery_id = Browser.inputBox('Enter Battery ID (id)');
+
+  try {
+    var url = 'https://owner-api.teslamotors.com/api/1/powerwalls/'
+              + battery_id
+              + '/status';
+
+    var options = {
+      'headers': {
+        'authorization': 'Bearer ' + token
+      }
+    };
+    
+    printOut(JSON.parse(UrlFetchApp.fetch(url, options).getContentText()));
+  } catch (e) {
+    SpreadsheetApp.getCurrentCell().setValue('getSiteStatus(): ' + e);
+  }
+}
+
+function getBatteryData() {
+  var token = Browser.inputBox('Enter Access Token');
+  var battery_id = Browser.inputBox('Enter Battery ID (id)');
+
+  try {
+    var url = 'https://owner-api.teslamotors.com/api/1/powerwalls/' + battery_id;
+
+    var options = {
+      'headers': {
+        'authorization': 'Bearer ' + token
+      }
+    };
+    
+    printOut(JSON.parse(UrlFetchApp.fetch(url, options).getContentText()));
+  } catch (e) {
+    SpreadsheetApp.getCurrentCell().setValue('getSiteStatus(): ' + e);
+  }
+}
+
 function getVehicleData() {
   var token = Browser.inputBox('Enter Access Token');
   var vin = Browser.inputBox('Enter VIN');
@@ -311,4 +353,5 @@ function printOut(response) {
     }
   }
 }
+
 
