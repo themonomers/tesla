@@ -157,14 +157,16 @@ def getSiteInfo():
 #
 # author: mjhwa@yahoo.com
 ##
-def getSiteHistory(period):
+def getSiteHistory(period, date):
   try:
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
            + SITE_ID 
-           + '/history'
+           + '/calendar_history'
            + '?kind=energy'
-           + '&period=' 
-           + period)
+           + '&start_date=' + datetime.strftime(date, '%Y-%m-%dT07:00:00Z')
+           + '&end_date=' + datetime.strftime(date + timedelta(1), 
+                                              '%Y-%m-%dT06:59:59Z')
+           + '&period=' + period)
 
     response = json.loads(
       requests.get(
@@ -501,7 +503,9 @@ def main():
   elif choice == 3:
     getSiteInfo()
   elif choice == 4:
-    getSiteHistory('day')
+    date = raw_input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    getSiteHistory('day', date)
   elif choice == 5:
     getBatteryPowerHistory()
   elif choice == 6:

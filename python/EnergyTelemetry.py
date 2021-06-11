@@ -65,7 +65,7 @@ def writeSiteTelemetrySummary(date):
     })
 
     # get solar data
-    data = getSiteHistory('day')
+    data = getSiteHistory('day', date)
 
     # write solar data
     for key_1, value_1 in data['response'].items():
@@ -161,7 +161,7 @@ def writeSiteTelemetryTOUSummary(date):
     })
 
     # get solar data for all day
-    data = getSiteHistory('day')
+    data = getSiteHistory('day', date)
 
     # write solar data for all day
     open_row = findOpenRow(ENERGY_SPREADSHEET_ID, 'Telemetry-Summary','F:F')
