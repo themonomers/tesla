@@ -163,9 +163,8 @@ def getSiteHistory(period, date):
            + SITE_ID 
            + '/calendar_history'
            + '?kind=energy'
-           + '&start_date=' + datetime.strftime(date, '%Y-%m-%dT07:00:00Z')
-           + '&end_date=' + datetime.strftime(date + timedelta(1), 
-                                              '%Y-%m-%dT06:59:59Z')
+           + '&end_date=' 
+           + datetime.strftime(date + timedelta(1), '%Y-%m-%dT06:59:59Z')
            + '&period=' + period)
 
     response = json.loads(
