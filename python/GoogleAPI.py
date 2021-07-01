@@ -118,6 +118,7 @@ def getGoogleMailService():
         'w'
       ) as token:
         token.write(creds.to_json())
+        token.close()
 
     return build('gmail', 'v1', credentials=creds)
   except Exception as e:

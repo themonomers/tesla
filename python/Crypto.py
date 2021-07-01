@@ -44,6 +44,7 @@ def encrypt(read_fn, write_fn):
     'wb'
   ) as f:
     f.write(pem)
+    f.close()
 
   # Encrypt with public key
   encrypted = public_key.encrypt(
