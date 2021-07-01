@@ -87,6 +87,7 @@ def decrypt(encrypted_filename):
       password = None,
       backend = default_backend()
     )
+    key_file.close()
 
   # Decrypt with private key
   return private_key.decrypt(
