@@ -4,52 +4,73 @@
  */
 function writeM3Telemetry() { 
   try {
-    // get odometer info
-    var data = JSON.parse(getVehicleVehicleState(M3_VID).getContentText());
+    // get rollup of vehicle data
+    var data = JSON.parse(getVehicleData(M3_VIN).getContentText());  
     
     var inputs = [];
     // write odometer value
-    var open_row = findOpenRow(SPREADSHEET_ID, 'Telemetry','A:A');
-    inputs.push({range: 'Telemetry!A' + open_row, values: [[data.response.odometer]]});
+    var open_row = findOpenRow(EV_SPREADSHEET_ID, 'Telemetry','A:A');
+    inputs.push({range: 'Telemetry!A' + open_row, values: [[data.response.vehicle_state.odometer]]});
    
     // write date stamp
     inputs.push({range: 'Telemetry!B' + open_row, values: [[new Date().toLocaleDateString()]]});
 
     // copy mileage formulas down
-    SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!C3:G3').copyTo(SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!C' + (open_row - 1) + ':G' + (open_row - 1)));
+    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!C3:G3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!C' + (open_row - 1) + ':G' + (open_row - 1)));
+    
+    // write max battery capacity
+    inputs.push({
+      range: 'Telemetry!M' + (open_row - 1), 
+      values: [[data.response.charge_state.battery_range/(data.response.charge_state.battery_level/100)]]
+    });
+    
+    // copy down battery degradation % formula
+    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!N3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!N' + (open_row - 1)));    
 
+    // write target SoC %
+    inputs.push({range: 'Telemetry!O' + (open_row), values: [[data.response.charge_state.charge_limit_soc/100]]});
+    
     // write data for efficiency calculation
-    var starting_range = Number(Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!B18').values[0]);
-    var eod_range = Number(Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!B10').values[0]);
-    // if the starting range is less than eod range or the charging trigger doesn't exist (car isn't home), the starting range is equal to the eod range because it won't charge
-    if ((starting_range < eod_range) || !(doesTriggerExist('chargeM3'))) {
+    var starting_range = data.response.charge_state.battery_range/(data.response.charge_state.battery_level/100) * data.response.charge_state.charge_limit_soc/100;
+    var eod_range = data.response.charge_state.battery_range;
+    
+    // if the starting range is less than eod range or the car is not plugged in or charging state is complete, the starting range is equal to the 
+    // eod range because it won't charge
+    if (
+      (starting_range < eod_range) || 
+      (data.response.charge_state.charge_port_door_open == false) || 
+      (data.response.charge_state.charging_state == 'Complete')
+    ) {
       starting_range = eod_range;
     }
-   
+    
     // write the starting_range for the next day   
     inputs.push({range: 'Telemetry!H' + open_row, values: [[starting_range]]});
     inputs.push({range: 'Telemetry!I' + (open_row - 1), values: [[eod_range]]});
  
     // copy efficiency formulas down
-    SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!J3:L3').copyTo(SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!J' + (open_row - 1) + ':L' + (open_row - 1)));
+    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!J3:L3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!J' + (open_row - 1) + ':L' + (open_row - 1)));
     
     // write temperature data into telemetry sheet
-    var data = JSON.parse(getVehicleClimateState(M3_VID).getContentText());
-    var inside_temp = data.response.inside_temp * 9/5 + 32;  // convert to Fahrenheit
-    var outside_temp = data.response.outside_temp * 9/5 + 32;
+    var inside_temp = data.response.climate_state.inside_temp * 9/5 + 32;  // convert to Fahrenheit
+    var outside_temp = data.response.climate_state.outside_temp * 9/5 + 32;
 
-    inputs.push({range: 'Telemetry!O' + (open_row - 1), values: [[inside_temp]]});
-    inputs.push({range: 'Telemetry!P' + (open_row - 1), values: [[outside_temp]]});
+    inputs.push({range: 'Telemetry!P' + (open_row - 1), values: [[inside_temp]]});
+    inputs.push({range: 'Telemetry!Q' + (open_row - 1), values: [[outside_temp]]});
 
     // batch write data to sheet
-    Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'USER_ENTERED', data: inputs}, SPREADSHEET_ID);
+    Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'USER_ENTERED', data: inputs}, EV_SPREADSHEET_ID);
     
-    // send IFTTT notification
-    UrlFetchApp.fetch('https://maker.ifttt.com/trigger/write_tesla_telemetry_success/with/key/' + IFTTT_KEY + '?value1=Model 3', {});
+    /*// send IFTTT notification
+    UrlFetchApp.fetch('https://maker.ifttt.com/trigger/write_tesla_telemetry_success/with/key/' + IFTTT_KEY + '?value1=Model 3', {});*/
+    // send email notification
+    var timezone = Session.getScriptTimeZone();
+    var time = Utilities.formatDate(new Date(), timezone, "MMMM dd, yyyy h:mm:ss a");
+    var message = 'Model 3 telemetry successfully logged on ' + time + '.';
+    MailApp.sendEmail(email_address1, 'Model 3 Telemetry Logged', message);
   } catch (e) {
-    logError(e);
-
-    wakeVehicle(M3_VID);
+    logError('writeM3Telemetry(): ' + e);
+    wakeVehicle(M3_VIN);
     Utilities.sleep(WAIT_TIME);
     writeM3Telemetry();
   }
@@ -57,52 +78,73 @@ function writeM3Telemetry() {
 
 function writeMXTelemetry() { 
   try {
-    // get odometer info
-    var data = JSON.parse(getVehicleVehicleState(MX_VID).getContentText());
+    // get rollup of vehicle data
+    var data = JSON.parse(getVehicleData(MX_VIN).getContentText());  
     
     var inputs = [];
     // write odometer value
-    var open_row = findOpenRow(SPREADSHEET_ID, 'Telemetry','Q:Q');
-    inputs.push({range: 'Telemetry!Q' + open_row, values: [[data.response.odometer]]});
+    var open_row = findOpenRow(EV_SPREADSHEET_ID, 'Telemetry','R:R');
+    inputs.push({range: 'Telemetry!R' + open_row, values: [[data.response.vehicle_state.odometer]]});
     
     // write date stamp
-    inputs.push({range: 'Telemetry!R' + open_row, values: [[new Date().toLocaleDateString()]]});
+    inputs.push({range: 'Telemetry!S' + open_row, values: [[new Date().toLocaleDateString()]]});
     
     // copy mileage formulas down
-    SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!S3:W3').copyTo(SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!S' + (open_row - 1) + ':W' + (open_row - 1)));
+    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!T3:X3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!T' + (open_row - 1) + ':X' + (open_row - 1)));
     
+    // write max battery capacity
+    inputs.push({
+      range: 'Telemetry!AD' + (open_row - 1), 
+      values: [[data.response.charge_state.battery_range/(data.response.charge_state.battery_level/100)]]
+    });
+
+    // copy down battery degradation % formula
+    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AE3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AE' + (open_row - 1)));    
+
+    // write target SoC %
+    inputs.push({range: 'Telemetry!AF' + (open_row), values: [[data.response.charge_state.charge_limit_soc/100]]});
+
     // write data for efficiency calculation
-    var starting_range = Number(Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!B17').values[0]);
-    var eod_range = Number(Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!B9').values[0]);
-    // if the starting range is less than eod range or the charging trigger doesn't exist (car isn't home), the starting range is equal to the eod range because it won't charge
-    if ((starting_range < eod_range) || !(doesTriggerExist('chargeMX'))) {
+    var starting_range = data.response.charge_state.battery_range/(data.response.charge_state.battery_level/100) * data.response.charge_state.charge_limit_soc/100;
+    var eod_range = data.response.charge_state.battery_range;
+    
+    // if the starting range is less than eod range or the car is not plugged in or charging state is complete, the starting range is equal to the 
+    // eod range because it won't charge
+    if (
+      (starting_range < eod_range) || 
+      (data.response.charge_state.charge_port_door_open == false) || 
+      (data.response.charge_state.charging_state == 'Complete')
+    ) {
       starting_range = eod_range;
     }
 
     // write the starting_range for the next day
-    inputs.push({range: 'Telemetry!X' + open_row, values: [[starting_range]]});
-    inputs.push({range: 'Telemetry!Y' + (open_row - 1), values: [[eod_range]]});
+    inputs.push({range: 'Telemetry!Y' + open_row, values: [[starting_range]]});
+    inputs.push({range: 'Telemetry!Z' + (open_row - 1), values: [[eod_range]]});
   
     // copy efficiency formulas down
-    SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!Z3:AB3').copyTo(SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!Z' + (open_row - 1) + ':AB' + (open_row - 1)));
-    
-    // write temperature data into telemetry sheet
-    var data = JSON.parse(getVehicleClimateState(MX_VID).getContentText());
-    var inside_temp = data.response.inside_temp * 9/5 + 32;  // convert to Fahrenheit
-    var outside_temp = data.response.outside_temp * 9/5 + 32;
+    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AA3:AC3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AA' + (open_row - 1) + ':AC' + (open_row - 1)));
 
-    inputs.push({range: 'Telemetry!AE' + (open_row - 1), values: [[inside_temp]]});
-    inputs.push({range: 'Telemetry!AF' + (open_row - 1), values: [[outside_temp]]});
+    // write temperature data into telemetry sheet
+    var inside_temp = data.response.climate_state.inside_temp * 9/5 + 32;  // convert to Fahrenheit
+    var outside_temp = data.response.climate_state.outside_temp * 9/5 + 32;
+
+    inputs.push({range: 'Telemetry!AG' + (open_row - 1), values: [[inside_temp]]});
+    inputs.push({range: 'Telemetry!AH' + (open_row - 1), values: [[outside_temp]]});
     
     // batch write data to sheet
-    Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'USER_ENTERED', data: inputs}, SPREADSHEET_ID);
+    Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'USER_ENTERED', data: inputs}, EV_SPREADSHEET_ID);
     
-    // send IFTTT notification
-    UrlFetchApp.fetch('https://maker.ifttt.com/trigger/write_tesla_telemetry_success/with/key/' + IFTTT_KEY + '?value1=Model X', {});
+    /*// send IFTTT notification
+    UrlFetchApp.fetch('https://maker.ifttt.com/trigger/write_tesla_telemetry_success/with/key/' + IFTTT_KEY + '?value1=Model X', {});*/
+    // send email notification
+    var timezone = Session.getScriptTimeZone();
+    var time = Utilities.formatDate(new Date(), timezone, "MMMM dd, yyyy h:mm:ss a");
+    var message = 'Model X telemetry successfully logged on ' + time + '.';
+    MailApp.sendEmail(email_address1, 'Model X Telemetry Logged', message);
   } catch (e) {
-    logError(e);
-
-    wakeVehicle(MX_VID);
+    logError('writeMXTelemetry(): ' + e);
+    wakeVehicle(MX_VIN);
     Utilities.sleep(WAIT_TIME);
     writeMXTelemetry();
   }
@@ -195,40 +237,4 @@ function writeAllMXData() {
   
   // batch write data to sheet
   Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'RAW', data: inputs}, SPREADSHEET_ID);
-}
-
-function getVehicleVehicleState(vid) {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + vid + '/data_request/vehicle_state';
-  
-  var options = {
-    "headers": {
-      "authorization": "Bearer " + ACCESS_TOKEN
-    }
-  };
-  
-  return UrlFetchApp.fetch(url, options);
-}
-
-function getVehicleClimateState(vid) {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + vid + '/data_request/climate_state';
-  
-  var options = {
-    "headers": {
-      "authorization": "Bearer " + ACCESS_TOKEN
-    }
-  };
-
-  return UrlFetchApp.fetch(url, options);
-}
-
-function getVehicleData(vid) {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + vid + '/vehicle_data';
-  
-  var options = {
-    "headers": {
-      "authorization": "Bearer " + ACCESS_TOKEN
-    }
-  };
-
-  return UrlFetchApp.fetch(url, options);
 }
