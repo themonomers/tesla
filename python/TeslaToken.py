@@ -122,10 +122,12 @@ payload = {
   'captcha': captcha
 }
 
+agent = 'theftprevention/tesla-api 0.1.0'
+
 response = requests.post(
              url, 
              data=payload, 
-             headers={'Cookie': cookie}
+             headers={'Cookie': cookie, 'user-agent': agent}
            )
 
 # Step 3: Authenticate MFA
@@ -133,7 +135,10 @@ url =  ('https://auth.tesla.com/oauth2/v3/authorize/mfa/factors'
         + '?transaction_id=' 
         + transaction_id)
 
-response = requests.get(url, headers={'Cookie': cookie})
+response = requests.get(
+             url, 
+             headers={'Cookie': cookie, 'user-agent': agent}
+           )
 
 url = 'https://auth.tesla.com/oauth2/v3/authorize/mfa/verify'
 #print('factor_id: ' + json.loads(response.text)['data'][0]['id'])
@@ -146,7 +151,7 @@ payload = {
 response = requests.post(
              url, 
              json=payload, 
-             headers={'Cookie': cookie}
+             headers={'Cookie': cookie, 'user-agent': agent}
            )
 
 # Step 4: Obtain an authorization code
@@ -169,7 +174,7 @@ response = requests.post(
              url, 
              data=payload, 
              allow_redirects=False, 
-             headers={'Cookie': cookie}
+             headers={'Cookie': cookie, 'user-agent': agent}
            )
 
 code = response.content[
@@ -191,7 +196,7 @@ payload = {
 response = requests.post(
              url, 
              json=payload, 
-             headers={'Cookie': cookie}
+             headers={'Cookie': cookie, 'user-agent': agent}
            )
 
 # Step 6: Exchange bearer token for access token
