@@ -4,9 +4,11 @@ var WAIT_TIME = 30000;
 var R = 3958.8;  // Earth radius in miles
 var HOME_LAT = 20.123456789;  // you can get this from Google Maps
 var HOME_LNG = -100.12345689;  // you can get this from Google Maps
-var SPREADSHEET_ID = 'abcdef0123456789';  // this can be a database
+var EV_SPREADSHEET_ID = 'abcdef0123456789';  // this can be a database
 var ACCESS_TOKEN = ' abcdef0123456789';  // you get this from calling getToken() with your username and password – be careful with this!  
-var IFTTT_KEY = ' abcdef0123456789';
+
+var email_address1 = 'email@email.com';
+var email_address2 = 'email2@email.com';
 
 /**
  * Checks to see if the vehicle is plugged in, inferred from the charge port door status, and sends an email to notify 
