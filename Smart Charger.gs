@@ -14,69 +14,65 @@ var IFTTT_KEY = ' abcdef0123456789';
  *
  * Also sets trigger to manually start charging at the calculated date and time. Skips if it's not within 0.25 miles from home.
  */
-function notifyIsM3PluggedIn() {
+function notifyIsTeslaPluggedIn() {
   try {
-    // write data to calculate charging start time if it's been more than an hour since the last update
-    var update_period = new Date(new Date(Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!D10').values[0]).getTime() + 1000*60*60*1);
-    if (new Date() > update_period) {
-      writeStartTimes();
-    }
-    
-    // get car info
-    var data = JSON.parse(getVehicleChargeState(M3_VIN).getContentText());
-    var charge_port_door_open = data.response.charge_port_door_open;
-    var battery_level = data.response.battery_level;
-    var battery_range = data.response.battery_range;
-    
-    // send an email if the charge port door is not open, i.e. not plugged in
-    if (!charge_port_door_open) {
-      var message = 'Your car is not plugged in.  \n\nCurrent battery level is ' + battery_level + '%, ' + battery_range + ' estimated miles.  \n\n-Your Model 3';
-      MailApp.sendEmail('email@email.com', 'Please Plug In Your Model 3', message);
-    } 
-    
-    // set trigger for charging if the car is home and charging state isn't Complete
-    if (isM3Home() && (data.response.charging_state != 'Complete')) {
-      scheduleM3Charging();
-    }
-  } catch (e) {
-    logError(e);
+    // get all vehicle data to avoid repeat API calls
+    var m3_data = JSON.parse(getVehicleData(M3_VIN).getContentText());
+    var mx_data = JSON.parse(getVehicleData(MX_VIN).getContentText());
+  
+    // write data to calculate charging start times; both functions for this needs to be executed, because the calculation on the Google Sheet 
+    // is dependent on values from both vehicles
+    writeM3StartTimes(m3_data);
+    writeMXStartTimes(mx_data);
 
+    // get car info
+    var charge_port_door_open = m3_data.response.charge_state.charge_port_door_open;
+    var battery_level = m3_data.response.charge_state.battery_level;
+    var battery_range = m3_data.response.charge_state.battery_range;
+    
+    var email_notification = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!H10').values[0];
+    
+    // check if email notification is set to "on" first 
+    if (email_notification == 'on') {
+      // send an email if the charge port door is not open, i.e. not plugged in
+      if (!charge_port_door_open) {
+        var message =  'Your car is not plugged in.  \n\nCurrent battery level is ' 
+            message += battery_level + '%, ' 
+            message += battery_range + ' estimated miles.  \n\n-Your Model 3';
+        MailApp.sendEmail(email_address1, 'Please Plug In Your Model 3', message);
+      } 
+    }
+    
+    charge_port_door_open = mx_data.response.charge_state.charge_port_door_open;
+    battery_level = mx_data.response.charge_state.battery_level;
+    battery_range = mx_data.response.charge_state.battery_range;
+
+    email_notification = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!H9').values[0];
+    
+    // check if email notification is set to "on" first 
+    if (email_notification == 'on') {
+      // send an email if the charge port door is not open, i.e. not plugged in
+      if (!charge_port_door_open) {
+        message =  'Your car is not plugged in.  \n\nCurrent battery level is ' 
+        message += battery_level + '%, ' 
+        message += battery_range + ' estimated miles.  \n\n-Your Model X';
+        MailApp.sendEmail(email_address2, 'Please Plug In Your Model X', message, {cc: email_address1});
+      }
+    }
+    
+    // set trigger for charging 
+    scheduleM3Charging(m3_data, mx_data);
+    scheduleMXCharging(m3_data, mx_data);
+    
+    // set cabin preconditioning the next morning
+    setM3Precondition(m3_data);
+    setMXPrecondition(mx_data);
+  } catch (e) {
+    logError('notifyIsTeslaPluggedIn(): ' + e);
     wakeVehicle(M3_VIN);
-    Utilities.sleep(WAIT_TIME);
-    notifyIsM3PluggedIn();
-  }
-}
-
-function notifyIsMXPluggedIn() {
-  try {
-    // write data to calculate charging start time if it's been more than an hour since the last update
-    var update_period = new Date(new Date(Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!D9').values[0]).getTime() + 1000*60*60*1);
-    if (new Date() > update_period) {
-      writeStartTimes();
-    }
-    
-    // get car info
-    var data = JSON.parse(getVehicleChargeState(MX_VIN).getContentText());
-    var charge_port_door_open = data.response.charge_port_door_open;
-    var battery_level = data.response.battery_level;
-    var battery_range = data.response.battery_range;
-    
-    // send an email if the charge port door is not open, i.e. not plugged in
-    if (!charge_port_door_open) {
-      var message = 'Your car is not plugged in.  \n\nCurrent battery level is ' + battery_level + '%, ' + battery_range + ' estimated miles.  \n\n-Your Model X';
-      MailApp.sendEmail('email@email.com', 'Please Plug In Your Model X', message, {cc: 'email@email.com'});
-    }
-    
-    // set trigger for charging if the car is home and charging state isn't Complete
-    if (isMXHome() && (data.response.charging_state != 'Complete')) {
-      scheduleMXCharging();
-    }
-  } catch (e) {
-    logError(e);
-
     wakeVehicle(MX_VIN);
     Utilities.sleep(WAIT_TIME);
-    notifyIsMXPluggedIn();
+    notifyIsTeslaPluggedIn();
   }
 }
 
@@ -92,71 +88,103 @@ function notifyIsMXPluggedIn() {
  * When an API is available to set scheduled charge times, this function won't need to be run on
  * a trigger and can be set in the car.
  */
-function scheduleM3Charging() {
-  var target_soc = Number(Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!B18').values[0]);
-  var current_soc = Number(Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!B10').values[0]);
+function scheduleM3Charging(m3_data, mx_data) {
+  var target_soc = Number(Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!B18').values[0]);
+  var current_soc = Number(Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!B10').values[0]);
   
-  // if the target SoC is greater than the current SoC, create a trigger for charging
-  if (target_soc > current_soc) {  
-    // get calculated start time
-    var start_time = Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!E26').values[0];
-
-    // set the right date of the estimated charge time based on AM or PM
-    if (start_time.toString().indexOf('AM') >= 0) {
-      var tomorrowDate = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
-      var estimatedChargeStartTime = new Date (tomorrowDate + ' ' + start_time);
+  // if the target SoC is greater than the current SoC and charging state isn't Complete, create a trigger for charging
+  if ((target_soc > current_soc) && (m3_data.response.charge_state.charging_state != 'Complete')) {  
+    // get calculated start time depending on location of cars
+    if (isVehicleAtHome(m3_data) && isVehicleAtHome(mx_data)) {
+      var start_time = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!E26').values[0];
+    } else if (isVehicleAtHome(m3_data) && !isVehicleAtHome(mx_data)) {
+      var start_time = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!J25').values[0];
     } else {
-      var estimatedChargeStartTime = new Date (new Date().toLocaleDateString() + ' ' + start_time);
+      return;
     }
     
+    // set the right date of the estimated charge time based on AM or PM
+    if (start_time.toString().indexOf('AM') >= 0) {
+      var tomorrow_date = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
+      var estimated_charge_start_time = new Date (tomorrow_date + ' ' + start_time);
+    } else {
+      var estimated_charge_start_time = new Date (new Date().toLocaleDateString() + ' ' + start_time);
+    }
+
+    // if the estimated start time is after the car's onboard scheduled start time, exit
+    var car_charge_schedule = new Date(tomorrow_date + ' ' + Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!E27').values[0]);
+    if (estimated_charge_start_time > car_charge_schedule) { return; }  
+    
     // create trigger
-    ScriptApp.newTrigger('chargeM3').timeBased().at(estimatedChargeStartTime).create();
+    if (doesTriggerExist('chargeM3')) { deleteTrigger('chargeM3'); }
+    ScriptApp.newTrigger('chargeM3').timeBased().at(estimated_charge_start_time).create(); 
     
-    // create back up trigger for 15 minutes later
-    var estimatedBackupChargeStartTime = new Date (new Date (estimatedChargeStartTime).getTime() + 1000*60*15);
-    ScriptApp.newTrigger('chargeM3Backup').timeBased().at(estimatedBackupChargeStartTime).create();
-    
-    // send IFTTT notification
+    /*// send IFTTT notification
     var options = {
       'method' : 'post',
       'contentType': 'application/json',
-      'payload': JSON.stringify({'value1': 'Model 3', 'value2': estimatedChargeStartTime.toString()})
+      'payload': JSON.stringify({'value1': 'Model 3', 'value2': estimated_charge_start_time.toString()})
     };
-    UrlFetchApp.fetch('https://maker.ifttt.com/trigger/set_tesla_charge_success/with/key/' + IFTTT_KEY, options);
+    UrlFetchApp.fetch('https://maker.ifttt.com/trigger/set_tesla_charge_success/with/key/' + IFTTT_KEY, options);*/
+    
+    // send email notification
+    var message = 'The Model 3 is set to charge on ' + estimated_charge_start_time.toString() + '.';
+    MailApp.sendEmail(email_address1, 'Model 3 Set to Charge', message); 
+    
+    // create back up trigger for 15 minutes later
+    if (doesTriggerExist('chargeM3Backup')) { deleteTrigger('chargeM3Backup'); }
+    var estimated_backup_charge_start_time = new Date (new Date (estimated_charge_start_time).getTime() + 1000*60*15);
+    ScriptApp.newTrigger('chargeM3Backup').timeBased().at(estimated_backup_charge_start_time).create();
   }
 }
 
-function scheduleMXCharging() {
-  var target_soc = Number(Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!B17').values[0]);
-  var current_soc = Number(Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!B9').values[0]);
+function scheduleMXCharging(m3_data, mx_data) {
+  var target_soc = Number(Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!B17').values[0]);
+  var current_soc = Number(Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!B9').values[0]);
   
-  // if the target SoC is greater than the current SoC, create a trigger for charging
-  if (target_soc > current_soc) {  
-    // get calculated start time
-    var start_time = Sheets.Spreadsheets.Values.get(SPREADSHEET_ID, 'Smart Charger!F26').values[0];
+  // if the target SoC is greater than the current SoC and charging state isn't Complete, create a trigger for charging
+  if ((target_soc > current_soc) && (mx_data.response.charge_state.charging_state != 'Complete')) {  
+    // get calculated start time depending on location of cars
+    if (isVehicleAtHome(mx_data) && isVehicleAtHome(m3_data)) {
+      var start_time = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!F26').values[0];
+    } else if (isVehicleAtHome(mx_data) && !isVehicleAtHome(m3_data)) {
+      var start_time = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!K26').values[0];
+    } else {
+      return;
+    }
   
     // set the right date of the estimated charge time based on AM or PM
     if (start_time.toString().indexOf('AM') >= 0) {
-      var tomorrowDate = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
-      var estimatedChargeStartTime = new Date (tomorrowDate + ' ' + start_time);
+      var tomorrow_date = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
+      var estimated_charge_start_time = new Date (tomorrow_date + ' ' + start_time);
     } else {
-      var estimatedChargeStartTime = new Date (new Date().toLocaleDateString() + ' ' + start_time);
+      var estimated_charge_start_time = new Date (new Date().toLocaleDateString() + ' ' + start_time);
     }
+
+    // if the estimated start time is after the car's onboard scheduled start time, exit
+    var car_charge_schedule = new Date(tomorrow_date + ' ' + Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!F27').values[0]);
+    if (estimated_charge_start_time > car_charge_schedule) { return; }  
     
     // create trigger
-    ScriptApp.newTrigger('chargeMX').timeBased().at(estimatedChargeStartTime).create();
+    if (doesTriggerExist('chargeMX')) { deleteTrigger('chargeMX'); }
+    ScriptApp.newTrigger('chargeMX').timeBased().at(estimated_charge_start_time).create(); 
     
-    // create back up trigger for 15 minutes later
-    var estimatedBackupChargeStartTime = new Date (new Date (estimatedChargeStartTime).getTime() + 1000*60*15);
-    ScriptApp.newTrigger('chargeMXBackup').timeBased().at(estimatedBackupChargeStartTime).create();
-    
-    // send IFTTT notification
+    /*// send IFTTT notification
     var options = {
       'method' : 'post',
       'contentType': 'application/json',
-      'payload': JSON.stringify({'value1': 'Model X', 'value2': estimatedChargeStartTime.toString()})
+      'payload': JSON.stringify({'value1': 'Model X', 'value2': estimated_charge_start_time.toString()})
     };
-    UrlFetchApp.fetch('https://maker.ifttt.com/trigger/set_tesla_charge_success/with/key/' + IFTTT_KEY, options);
+    UrlFetchApp.fetch('https://maker.ifttt.com/trigger/set_tesla_charge_success/with/key/' + IFTTT_KEY, options);*/
+    
+    // send email notification
+    var message = 'The Model X is set to charge on ' + estimated_charge_start_time.toString() + '.';
+    MailApp.sendEmail(email_address1, 'Model X Set to Charge', message);
+    
+    // create back up trigger for 15 minutes later
+    if (doesTriggerExist('chargeMXBackup')) { deleteTrigger('chargeMXBackup'); }
+    var estimated_backup_charge_start_time = new Date (new Date (estimated_charge_start_time).getTime() + 1000*60*15);
+    ScriptApp.newTrigger('chargeMXBackup').timeBased().at(estimated_backup_charge_start_time).create();
   }
 }
 
@@ -168,77 +196,78 @@ function scheduleMXCharging() {
  * from both vehicles.  If these are called separately, they will complete asynchronously which may give inaccurate start 
  * times.
  */
-function writeStartTimes() {
+function writeM3StartTimes(data) {
   var inputs = [];
   
-  try {
-    // get vehicle charge data
-    var data = JSON.parse(getVehicleChargeState(M3_VIN).getContentText());
-    
-    // write m3 range to Google Sheet
-    inputs.push({range: 'Smart Charger!B10', values: [[data.response.battery_range]]});
-    
-    // write m3 time and date stamp to Google Sheet
-    inputs.push({range: 'Smart Charger!D10', values: [[new Date().toLocaleTimeString() + ", " + new Date().toLocaleDateString()]]});
-    
-    // write m3 scheduled charge time to Google Sheet
-    inputs.push({range: 'Smart Charger!E28', values: [[data.response.scheduled_charging_start_time]]});
-    
-    // write m3 charge limit to Google Sheet
-    inputs.push({range: 'Smart Charger!B16', values: [[data.response.charge_limit_soc/100]]});
-    
-    // write m3 max range
-    inputs.push({range: 'Smart Charger!B6', values: [[data.response.battery_range/(data.response.battery_level/100)]]});
-    
-    // write this into telemetry sheet to track battery degradation, since we already got this data
-    var open_row = findOpenRow(SPREADSHEET_ID, 'Telemetry','A:A');
-    inputs.push({range: 'Telemetry!M' + (open_row - 1), values: [[data.response.battery_range/(data.response.battery_level/100)]]});
-      
-    // copy degradation formula down
-    SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!N3').copyTo(SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!N' + (open_row - 1)));
-  } catch (e) {
-    logError(e);
-    
-    wakeVehicle(M3_VIN);
-    Utilities.sleep(WAIT_TIME);
-    writeStartTimes();
-  }
-    
-  try {    
-    // get vehicle charge data
-    data = JSON.parse(getVehicleChargeState(MX_VIN).getContentText());
-    
-    // write mx range to Google Sheet
-    inputs.push({range: 'Smart Charger!B9', values: [[data.response.battery_range]]});
-    
-    // write mx time and date stamp to Google Sheet
-    inputs.push({range: 'Smart Charger!D9', values: [[new Date().toLocaleTimeString() + ", " + new Date().toLocaleDateString()]]});
-    
-    // write mx scheduled charge time to Google Sheet
-    inputs.push({range: 'Smart Charger!F28', values: [[data.response.scheduled_charging_start_time]]});
-    
-    // write mx charge limit to Google Sheet
-    inputs.push({range: 'Smart Charger!B15', values: [[data.response.charge_limit_soc/100]]});
-    
-    // write mx max range
-    inputs.push({range: 'Smart Charger!B5', values: [[data.response.battery_range/(data.response.battery_level/100)]]});
-    
-    // write this into telemetry sheet to track battery degradation, since we already got this data
-    open_row = findOpenRow(SPREADSHEET_ID, 'Telemetry','Q:Q');
-    inputs.push({range: 'Telemetry!AC' + (open_row - 1), values: [[data.response.battery_range/(data.response.battery_level/100)]]});
-      
-    // copy degradation formula down
-    SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!AD3').copyTo(SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Telemetry!AD' + (open_row - 1)));
-  } catch (e) {
-    logError(e);
-    
-    wakeVehicle(MX_VIN);
-    Utilities.sleep(WAIT_TIME);
-    writeStartTimes();
-  }
+  // write m3 range to Google Sheet
+  inputs.push({
+    range: 'Smart Charger!B10', 
+    values: [[data.response.charge_state.battery_range]]
+  });
+  
+  // write m3 time and date stamp to Google Sheet
+  inputs.push({
+    range: 'Smart Charger!D10', 
+    values: [[new Date().toLocaleTimeString() + ", " + new Date().toLocaleDateString()]]
+  });
+  
+  // write m3 scheduled charge time to Google Sheet
+  inputs.push({
+    range: 'Smart Charger!E28', 
+    values: [[data.response.charge_state.scheduled_charging_start_time]]
+  });
+  
+  // write m3 charge limit to Google Sheet
+  inputs.push({
+    range: 'Smart Charger!B16', 
+    values: [[data.response.charge_state.charge_limit_soc/100]]
+  });
+  
+  // write m3 max range
+  inputs.push({
+    range: 'Smart Charger!B6', 
+    values: [[data.response.charge_state.battery_range/(data.response.charge_state.battery_level/100)]]
+  });
+  
+  // batch write data to sheet
+  Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'USER_ENTERED', data: inputs}, EV_SPREADSHEET_ID);
+}
+
+function writeMXStartTimes(data) {
+  var inputs = [];
+  
+  // write mx range to Google Sheet
+  inputs.push({
+    range: 'Smart Charger!B9', 
+    values: [[data.response.charge_state.battery_range]]
+  });
+  
+  // write mx time and date stamp to Google Sheet
+  inputs.push({
+    range: 'Smart Charger!D9', 
+    values: [[new Date().toLocaleTimeString() + ", " + new Date().toLocaleDateString()]]
+  });
+  
+  // write mx scheduled charge time to Google Sheet
+  inputs.push({
+    range: 'Smart Charger!F28', 
+    values: [[data.response.charge_state.scheduled_charging_start_time]]
+  });
+  
+  // write mx charge limit to Google Sheet
+  inputs.push({
+    range: 'Smart Charger!B15', 
+    values: [[data.response.charge_state.charge_limit_soc/100]]
+  });
+  
+  // write mx max range
+  inputs.push({
+    range: 'Smart Charger!B5', 
+    values: [[data.response.charge_state.battery_range/(data.response.charge_state.battery_level/100)]]
+  });
 
   // batch write data to sheet
-  Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'USER_ENTERED', data: inputs}, SPREADSHEET_ID);
+  Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'USER_ENTERED', data: inputs}, EV_SPREADSHEET_ID);
 }
 
 /**
@@ -247,12 +276,14 @@ function writeStartTimes() {
  * on the Earth. This is the method recommended for calculating short distances by Bob Chamberlain (rgc@jpl.nasa.gov) 
  * of Caltech and NASA's Jet Propulsion Laboratory as described on the U.S. Census Bureau Web site.
  */
-function isM3Home() { 
-  var data = JSON.parse(getVehicleDriveState(M3_VIN).getContentText());
-  //    var timestamp = data.response.gps_as_of;
-  var d = getDistanceFromHome(data.response.latitude, data.response.longitude);
+function isVehicleAtHome(data) {
+  return isVehicleAtLocation(data, HOME_LAT, HOME_LNG);
+}
+
+function isVehicleAtLocation(data, lat, lng) {
+  var d = getDistance(data.response.drive_state.latitude, data.response.drive_state.longitude, lat, lng);
   
-  // check if the car is more than a quarter of a mile away from home
+  // check if the car is more than a quarter of a mile away
   if (d < 0.25) {
     return true;
   } else {
@@ -260,74 +291,11 @@ function isM3Home() {
   }
 }
 
-function isMXHome() { 
-  var data = JSON.parse(getVehicleDriveState(MX_VIN).getContentText());
+function getDistance(car_lat, car_lng, x_lat, x_lng) {
+  var diff_lat = toRad(car_lat - x_lat);
+  var diff_lng = toRad(car_lng - x_lng);  
   
-  var d = getDistanceFromHome(data.response.latitude, data.response.longitude);
-  
-  // check if the car is more than a quarter of a mile away from home
-  if (d < 0.25) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-function chargeM3() {
-  try {
-    chargeVehicle(M3_VIN);
-  } catch (e) {
-    logError(e);
-    
-    wakeVehicle(M3_VIN)
-    Utilities.sleep(WAIT_TIME);
-    chargeM3();
-  }
-}
-
-function chargeM3Backup() {
-  try {
-    // add check to see if car is already charging or do nothing else since sending a charge command while it's charging doesn't do anything.
-    chargeVehicle(M3_VIN);
-  } catch (e) {
-    logError(e);
-    
-    wakeVehicle(M3_VIN)
-    Utilities.sleep(WAIT_TIME);
-    chargeM3();
-  }
-}
-
-function chargeMX() {
-  try {
-    chargeVehicle(MX_VIN);
-  } catch (e) {
-    logError(e);
-    
-    wakeVehicle(MX_VIN)
-    Utilities.sleep(WAIT_TIME);
-    chargeMX();
-  }
-}
-
-function chargeMXBackup() {
-  try {
-    // add check to see if car is already charging or do nothing else since sending a charge command while it's charging doesn't do anything.
-    chargeVehicle(MX_VIN);
-  } catch (e) {
-    logError(e);
-    
-    wakeVehicle(MX_VIN)
-    Utilities.sleep(WAIT_TIME);
-    chargeMX();
-  }
-}
-
-function getDistanceFromHome(car_lat, car_lng) {
-  var diff_lat = toRad(car_lat - HOME_LAT);
-  var diff_lng = toRad(car_lng - HOME_LNG);  
-  
-  var a = (Math.sin(diff_lat/2) * Math.sin(diff_lat/2)) + Math.cos(HOME_LAT) * Math.cos(car_lat) * (Math.sin(diff_lng/2) * Math.sin(diff_lng/2));
+  var a = (Math.sin(diff_lat/2) * Math.sin(diff_lat/2)) + Math.cos(x_lat) * Math.cos(car_lat) * (Math.sin(diff_lng/2) * Math.sin(diff_lng/2));
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   var d = R * c;
   
@@ -338,40 +306,41 @@ function toRad(x) {
   return x * Math.PI / 180;
 }
 
-function getVehicleDriveState(vin) {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + getVehicleId(vin) + '/data_request/drive_state';
-  
-  var options = {
-    "headers": {
-      "authorization": "Bearer " + ACCESS_TOKEN
-    }
-  };
-  
-  return UrlFetchApp.fetch(url, options);
+function chargeM3() {
+  chargeVehicle(M3_VIN);
 }
 
-function getVehicleChargeState(vin) {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + getVehicleId(vin) + '/data_request/charge_state';
-  
-  var options = {
-    "headers": {
-      "authorization": "Bearer " + ACCESS_TOKEN
-    }
-  };
+function chargeM3Backup() {
+  // add check to see if car is already charging or do nothing else since sending a charge command while it's charging doesn't do anything.
+  chargeVehicle(M3_VIN);
+}
 
-  return UrlFetchApp.fetch(url, options);
+function chargeMX() {
+  chargeVehicle(MX_VIN);
+}
+
+function chargeMXBackup() {
+  // add check to see if car is already charging or do nothing else since sending a charge command while it's charging doesn't do anything.
+  chargeVehicle(MX_VIN);
 }
 
 function chargeVehicle(vin) {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + getVehicleId(vin) + '/command/charge_start';
-  var options = {
-    "headers": {
-      "authorization": "Bearer " + ACCESS_TOKEN
-    },
-    "method": "post"
-  };
-  
-  return UrlFetchApp.fetch(url, options);
+  try {
+    var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + getVehicleId(vin) + '/command/charge_start';
+    var options = {
+      "headers": {
+        "authorization": "Bearer " + ACCESS_TOKEN
+      },
+      "method": "post"
+    };
+    var response = UrlFetchApp.fetch(url, options);
+    return response;
+  } catch (e) {
+    logError('chargeVehicle(' + vin + '): ' + e);
+    wakeVehicle(vin);
+    Utilities.sleep(WAIT_TIME);
+    chargeVehicle(vin);
+  }
 }
 
 function wakeVehicle(vin) {
@@ -386,41 +355,49 @@ function wakeVehicle(vin) {
     
     return UrlFetchApp.fetch(url, options);
   } catch (e) {
-    logError(e);
-
+    logError('wakeVehicle(' + vin + '): ' + e);
     Utilities.sleep(WAIT_TIME);    
     wakeVehicle(vin)
   }
 }
 
-function getVehicleId(vin) {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles';
-  
-  var options = {
-    "headers": {
-      "authorization": "Bearer " + ACCESS_TOKEN
-    }
-  };
-  var response = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
-  for (var x = 0; x < response.response.length; x++) {
-    if (response.response[x].vin == vin) {
-      return response.response[x].id_s;
-    }
+function getVehicleData(vin) {
+  try {
+    var url = 'https://owner-api.teslamotors.com/api/1/vehicles/' + getVehicleId(vin) + '/vehicle_data';
+    
+    var options = {
+      "headers": {
+        "authorization": "Bearer " + ACCESS_TOKEN
+      }
+    };
+    var response = UrlFetchApp.fetch(url, options);
+    return response;
+  } catch (e) {
+    logError('getVehicleData(' + vin + '): ' + e);
   }
 }
 
-function getVehicles() {
-  var url = 'https://owner-api.teslamotors.com/api/1/vehicles';
-  
-  var options = {
-    "headers": {
-      "authorization": "Bearer " + ACCESS_TOKEN
+function getVehicleId(vin) {
+  try {
+    var url = 'https://owner-api.teslamotors.com/api/1/vehicles';
+    
+    var options = {
+      "headers": {
+        "authorization": "Bearer " + ACCESS_TOKEN
+      }
+    };
+    var response = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
+    for (var x = 0; x < response.response.length; x++) {
+      if (response.response[x].vin == vin) {
+        return response.response[x].id_s;
+      }
     }
-  };
-
-  return UrlFetchApp.fetch(url, options);
+  } catch (e) {
+    logError('getVehicleId(' + vin + '): ' + e);
+  }
 }
 
+/* This is deprecated as Tesla seems to blocking these calls from Google Apps Script.  I have a Python version of this function that works from a non-Google hosted server.
 function getToken() {  // This expires periodically, I forget how long
   var email = '';  
   var password = '';  
@@ -564,5 +541,28 @@ function getToken() {  // This expires periodically, I forget how long
     Logger.log('access token: ' + response.access_token);
   } catch (e) {
     logError('getToken(): ' + e);
+  }
+}*/
+
+/**
+ * This checks to see if the access token expires in a week or less and will send an email reminder to get a new one.
+ */
+function checkTokenExpiration() {
+  try {
+    // get token expiration date
+    var exiration_date = new Date(Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Charger!H5').values[0]);
+
+    // get the date for the reminder (7 days prior)
+    var reminder_date = new Date(exiration_date - 1000*60*60*24*7);
+  //  Logger.log('reminder date: ' + reminder_date.toLocaleDateString());
+  //  Logger.log('now: ' + new Date().toLocaleDateString());
+
+    if (new Date().valueOf() >= reminder_date.valueOf()) {
+      var message =  'Your Tesla Access Token is expiring on ' + exiration_date.toLocaleDateString();
+          message += '.  Please generate a new token soon.';
+      MailApp.sendEmail(email_address1, 'Tesla Access Token Expiring Soon', message);
+    }
+  } catch (e) {
+    logError('checkTokenExpiration(): ' + e);
   }
 }
