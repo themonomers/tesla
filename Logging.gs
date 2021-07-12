@@ -6,12 +6,22 @@ var LOG_SPREADSHEET_ID = 'abcdef0123456789';
 function logError(msg) {
   // write this into an open row in logging Google Sheet
   var open_row = findOpenRow(LOG_SPREADSHEET_ID, 'error', 'A:A');
-  Sheets.Spreadsheets.Values.update({values: [[new Date().toLocaleTimeString() + ", " + new Date().toLocaleDateString()]]}, LOG_SPREADSHEET_ID, 'error!A' + open_row, {valueInputOption: "USER_ENTERED"});
-  Sheets.Spreadsheets.Values.update({values: [[msg]]}, LOG_SPREADSHEET_ID, 'error!B' + open_row, {valueInputOption: "USER_ENTERED"});
+  Sheets.Spreadsheets.Values.update(
+    {values: [[new Date().toLocaleTimeString() + ", " + new Date().toLocaleDateString()]]}, 
+    LOG_SPREADSHEET_ID, 'error!A' + open_row, 
+    {valueInputOption: "USER_ENTERED"}
+  );
+  Sheets.Spreadsheets.Values.update(
+    {values: [[msg]]}, 
+    LOG_SPREADSHEET_ID, 'error!B' + open_row, 
+    {valueInputOption: "USER_ENTERED"}
+  );
 }
 
 /**
  * Keeps the error log from getting too long/big; deletes any rows older than 30 days.  
+ *
+ * author: Michael Hwa
  */
 function truncateLog() {
   // get time stamps from each log entry
