@@ -8,6 +8,7 @@ These scripts are based on Google Apps Script (https://script.google.com/home), 
 2.  Telemetry.gs - logs data from your vehicle for analysis, e.g. miles, efficiency, battery capacity, etc.
 3.  Smart Climate.gs - customized scheduling of pre-heating/cooling of cabin and seat heating by day of the week.
 4.  Logging.gs - logs error messages in the try/catch blocks.
+5.  GoogleSheetScriptEditor.gs - add to a Google Sheet script editor as a more simple way to get API data.
 
 I need to find a way to either share the Google Sheets format or refactor these into a database.
 
