@@ -79,10 +79,15 @@ transaction_id = response.content[
                  ]
 cookie = response.headers.get('Set-Cookie')
 
+agent = 'theftprevention/tesla-api 0.1.0'
+
 # check for CAPTCHA image, get for review, and prompt for translated text
 captcha = ''
 if (response.content.find('captcha') > 0):
-  img = requests.get('https://auth.tesla.com/captcha')
+  img = requests.get(
+          'https://auth.tesla.com/captcha',
+          headers={'Cookie': cookie, 'user-agent': agent}
+        )
   #file = open("/mnt/gdrive/captcha.svg", "wb")
   file = open(
     os.path.join(
@@ -121,8 +126,6 @@ payload = {
   'credential': password,
   'captcha': captcha
 }
-
-agent = 'theftprevention/tesla-api 0.1.0'
 
 response = requests.post(
              url, 
