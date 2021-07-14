@@ -399,55 +399,116 @@ function getVehicleId(vin) {
   }
 }
 
-/* This is deprecated as Tesla seems to blocking these calls from Google Apps Script.  I have a Python version of this function that works from a non-Google hosted server.
-function getToken() {  // This expires periodically, I forget how long
-  var email = '';  
-  var password = '';  
-  var passcode = '';
+/**
+ * This function needs to be re-run every 45 days to get the access token to execute Tesla API calls.
+ * It needs the account credentials and assumes MFA is enabled, which requires the passcode as additional input.
+ * This needs to be called from a web page so that user input can be inserted for CAPTCHA.
+ * 
+ * author:  Michael Hwa
+ */
+function getToken(formObject) {
+  var email = formObject.identity;
+  var password = formObject.credential;
+  var captcha = formObject.captcha;
+  var passcode = formObject.passcode;
+  var code_verifier = formObject.code_verifier;
+  var code_challenge = formObject.code_challenge;
+  var csrf = formObject.csrf;
+  var phase = formObject.phase;
+  var process = formObject.process;
+  var transaction_id = formObject.transaction_id;
+  var cookie = formObject.cookie;
+
+  var resp = [];
+  var user_agent = 'theftprevention/tesla-api 0.1.0';
+  var captcha_filename = 'captcha.svg';
 
   try {
     // Step 1: Obtain the login page
-    var code_verifier = new Array(86).join().replace(
-      /(.|$)/g, 
-      function() {
-        return ((Math.random()*36)|0).toString(36)[Math.random()<.5?"toString":"toUpperCase"]();
+    if (csrf == '') {
+      code_verifier = new Array(86).join().replace(
+        /(.|$)/g, 
+        function() {
+          return ((Math.random()*36)|0).toString(36)[Math.random()<.5?"toString":"toUpperCase"]();
+        }
+      );
+      resp.push(code_verifier);
+
+      code_challenge = Utilities.base64EncodeWebSafe(
+        Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, code_verifier)
+      );
+      resp.push(code_challenge);
+
+      var url =  'https://auth.tesla.com/oauth2/v3/authorize';
+          url += '?client_id=ownerapi';
+          url += '&code_challenge=' + encodeURIComponent(code_challenge);
+          url += '&code_challenge_method=S256'; 
+          url += '&redirect_uri=' + encodeURIComponent('https://auth.tesla.com/void/callback');
+          url += '&response_type=code';
+          url += '&scope=' + encodeURIComponent('openid email offline_access');
+          url += '&state=state';
+
+      var response = UrlFetchApp.fetch(url); 
+
+      csrf = response.getContentText().substring(
+        response.getContentText().search('name="_csrf"') + 20, 
+        response.getContentText().search('name="_csrf"') + 56
+      );
+      resp.push(csrf);
+
+      phase = response.getContentText().substring(
+        response.getContentText().search('name="_phase"') + 21, 
+        response.getContentText().search('name="_phase"') + 33
+      );
+      resp.push(phase);
+
+      process = response.getContentText().substring(
+        response.getContentText().search('name="_process"') + 23, 
+        response.getContentText().search('name="_process"') + 24
+      );
+      resp.push(process);
+
+      transaction_id = response.getContentText().substring(
+        response.getContentText().search('name="transaction_id"') + 29, 
+        response.getContentText().search('name="transaction_id"') + 37
+      );
+      resp.push(transaction_id);
+
+      cookie = response.getAllHeaders()['Set-Cookie'][0];
+      resp.push(cookie);
+
+      // remove previous copies of captcha image
+      var fileIterator = DriveApp.getFilesByName(captcha_filename);
+      while (fileIterator.hasNext()) {
+        fileIterator.next().setTrashed(true);
       }
-    );
-    var code_challenge = Utilities.base64EncodeWebSafe(
-      Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, code_verifier)
-    );
-    var url = 'https://auth.tesla.com/oauth2/v3/authorize';
-        url += '?client_id=ownerapi';
-        url += '&code_challenge=' + code_challenge;
-        url += '&code_challenge_method=S256';
-        url += '&redirect_uri=' + encodeURI('https://auth.tesla.com/void/callback');
-        url += '&response_type=code';
-        url += '&scope=' + encodeURI('openid email offline_access');
-        url += '&state=state';
-    var options = {
-      'headers': {'User-Agent': 'GoogleAppsScript'},
-      'method': 'get'
-    };
-    var response = UrlFetchApp.fetch(url, options);
-    var csrf = response.getContentText().substring(
-      response.getContentText().search('name="_csrf"') + 20, 
-      response.getContentText().search('name="_csrf"') + 56
-    );
-    var phase = response.getContentText().substring(
-      response.getContentText().search('name="_phase"') + 21, 
-      response.getContentText().search('name="_phase"') + 33
-    );
-    var process = response.getContentText().substring(
-      response.getContentText().search('name="_process"') + 23, 
-      response.getContentText().search('name="_process"') + 24
-    );
-    var transaction_id = response.getContentText().substring(
-      response.getContentText().search('name="transaction_id"') + 29, 
-      response.getContentText().search('name="transaction_id"') + 37
-    );
-    var cookie = response.getAllHeaders()['Set-Cookie'];
+
+      // get captcha image, store on Google Drive, and send image in response
+      var options = {
+        'headers': {'Cookie': cookie}
+      }; 
+      var image = UrlFetchApp.fetch('https://auth.tesla.com/captcha', options);
+      resp.push(
+        Utilities.base64Encode(
+          DriveApp.createFile(
+            Utilities.newBlob(image.getContent(), 'image/svg+xml', captcha_filename)
+          ).getBlob().getBytes()
+        )
+      );
+
+      return JSON.stringify(resp);
+    }
 
     // Step 2: Authenticate user name and password
+    var url =  'https://auth.tesla.com/oauth2/v3/authorize';
+        url += '?client_id=ownerapi';
+        url += '&code_challenge=' + encodeURIComponent(code_challenge);
+        url += '&code_challenge_method=S256'; 
+        url += '&redirect_uri=' + encodeURIComponent('https://auth.tesla.com/void/callback');
+        url += '&response_type=code';
+        url += '&scope=' + encodeURIComponent('openid email offline_access');
+        url += '&state=state';
+
     var data = {
       '_csrf': csrf,
       '_phase': phase,
@@ -455,10 +516,11 @@ function getToken() {  // This expires periodically, I forget how long
       'transaction_id': transaction_id,
       'cancel': '',
       'identity': email,
-      'credential': password
+      'credential': password,
+      'captcha': captcha
     };
-    options = {
-      'headers': {'User-Agent': 'GoogleAppsScript', 'Cookie': cookie},
+    var options = {
+      'headers': {'Cookie': cookie},
       'method': 'post',
       'payload': data
     };
@@ -467,28 +529,29 @@ function getToken() {  // This expires periodically, I forget how long
     // Step 3: Authenticate MFA
     url = 'https://auth.tesla.com/oauth2/v3/authorize/mfa/factors';
     url += '?transaction_id=' + transaction_id;
-    options = {
-      'headers': {'User-Agent': 'GoogleAppsScript', 'Cookie': cookie},
-      'method': 'get'
+
+    var options = {
+      'headers': {'Cookie': cookie}
     };
     response = UrlFetchApp.fetch(url, options);
-    var factor_id = JSON.parse(response).data[0].id;
+
     url = 'https://auth.tesla.com/oauth2/v3/authorize/mfa/verify';
-    data = {
-      'factor_id': factor_id,
+
+    var data = {
+      'factor_id': JSON.parse(response).data[0].id,
       'transaction_id': transaction_id,
       'passcode': passcode
     };
-    options = {
-      'headers': {'User-Agent': 'GoogleAppsScript', 'Cookie': cookie},
+    var options = {
+      'headers': {'Cookie': cookie},
       'method': 'post',
       'contentType': 'application/json',
       'payload': JSON.stringify(data)
     };
     response = UrlFetchApp.fetch(url, options);
 
-    // Step 4: Obtain an authorization code and exchange authorization code for bearer token
-    url = 'https://auth.tesla.com/oauth2/v3/authorize';
+    // Step 4: Obtain an authorization code 
+    url =  'https://auth.tesla.com/oauth2/v3/authorize';
     url += '?client_id=ownerapi';
     url += '&code_challenge=' + code_challenge;
     url += '&code_challenge_method=S256';
@@ -496,38 +559,45 @@ function getToken() {  // This expires periodically, I forget how long
     url += '&response_type=code';
     url += '&scope=' + encodeURI('openid email offline_access');
     url += '&state=state';
-    data = {
+
+    var data = {
       'transaction_id': transaction_id
     };
-    options = {
-      'headers': {'User-Agent': 'GoogleAppsScript', 'Cookie': cookie},
+    var options = {
+      'headers': {'Cookie': cookie},
       'method': 'post',
       'followRedirects': false,
       'payload': data
     };
     response = UrlFetchApp.fetch(url, options);
+
     var code = response.getContentText().substring(
       response.getContentText().search('code') + 5, 
       response.getContentText().search('&')
     );
+
+    // Step 5: Exchange authorization code for bearer token
     url = 'https://auth.tesla.com/oauth2/v3/token';
-    data = {
+  
+    var data = {
       'grant_type': 'authorization_code',
       'client_id': 'ownerapi',
       'code': code,
       'code_verifier': code_verifier,
       'redirect_uri': 'https://auth.tesla.com/void/callback'
     };
-    options = {
-      'headers': {'User-Agent': 'GoogleAppsScript', 'Cookie': cookie},
+    var options = {
+      'headers': {'Cookie': cookie},
       'method': 'post',
       'contentType': 'application/json',
       'payload': JSON.stringify(data)
     };
+
     response = JSON.parse(UrlFetchApp.fetch(url, options));
 
-    // Step 5: Exchange bearer token for access token
+    // Step 6: Exchange bearer token for access token
     url = 'https://owner-api.teslamotors.com/oauth/token';
+
     var data = {
       'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
       'client_id': '81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384',
@@ -540,11 +610,25 @@ function getToken() {  // This expires periodically, I forget how long
       "payload": JSON.stringify(data)
     };
     response = JSON.parse(UrlFetchApp.fetch(url, options));
-    Logger.log('access token: ' + response.access_token);
+
+    var created = new Date(response.created_at * 1000);
+    var expires = new Date(created.getTime() + (response.expires_in * 1000));
+
+    Sheets.Spreadsheets.Values.update(  // write to Google Sheet for periodic checks if the token is about to expire.
+      {values: [[expires.toLocaleDateString()]]}, 
+      EV_SPREADSHEET_ID, 'Smart Charger!H5', 
+      {valueInputOption: "USER_ENTERED"}
+    );
+    var resp = [];
+    resp.push(response.access_token);
+    resp.push(expires);
+    resp.push(response.refresh_token);
+    resp.push(created);
+    return JSON.stringify(resp);
   } catch (e) {
     logError('getToken(): ' + e);
   }
-}*/
+}
 
 /**
  * This checks to see if the access token expires in a week or less and will send an email reminder to get a new one.
