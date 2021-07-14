@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script>
+      // Prevent forms from submitting.
+      function preventFormSubmit() {
+        var forms = document.querySelectorAll('form');
+        for (var i = 0; i < forms.length; i++) {
+          forms[i].addEventListener('submit', function(event) {event.preventDefault();});
+        }
+      }
+
+      window.addEventListener('load', preventFormSubmit);
+
+      window.onload = function() {
+        google.script.run.withSuccessHandler(showCaptcha).getToken(document.getElementById("auth-form"));
+      };
+
+      function handleFormSubmit(formObject) {
+        google.script.run.withSuccessHandler(showToken).getToken(formObject);
+      }
+
+      function showCaptcha(response) {
+        var resp = JSON.parse(response);
+
+        document.getElementById("code_verifier").value = resp[0];
+        document.getElementById("code_challenge").value = resp[1];
+        document.getElementById("csrf").value = resp[2];
+        document.getElementById("phase").value = resp[3];
+        document.getElementById("process").value = resp[4];
+        document.getElementById("transaction_id").value = resp[5];
+        document.getElementById("cookie").value = resp[6];
+        document.getElementById('captcha-image').src = "data:image/svg+xml;base64," + resp[7];
+      }
+
+      function showToken(response) {
+        var resp = JSON.parse(response);
+
+        var div1 = document.getElementById('access_token');
+        div1.innerHTML = 'Access Token:  ' + resp[0];
+
+        var div2 = document.getElementById('expires_at');
+        div2.innerHTML = 'Expires At:  ' + resp[1];
+
+        var div3 = document.getElementById('refresh_token');
+        div3.innerHTML = 'Refresh Token:  ' + resp[2];
+        
+        var div4 = document.getElementById('created_at');
+        div4.innerHTML = 'Created At:  ' + resp[3];
+      }
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  </head>
+  <body>
+  <font face="helvetica">
+    <center><font size=8>Tesla API Token</font></center>
+    <br/><br/>
+    This Web App will return the API Access Token<br/><br/>
+
+    <form method='post' id='auth-form' onsubmit="handleFormSubmit(this)">
+      Email:  <input type="text" id="identity" name="identity" value=""/><br/><br/>
+      Password:  <input type="password" id="credential" name="credential"/><br/><br/>
+      Passcode:  <input type="text" id="passcode" name="passcode"/><br/><br/>
+      CAPTCHA:  <input type="text" id="captcha" name="captcha"/><br/><br/>
+      <img id="captcha-image"><br/><br/>
+
+      <input type="hidden" id="code_verifier" name="code_verifier" value="">
+      <input type="hidden" id="code_challenge" name="code_challenge" value="">
+      <input type="hidden" id="csrf" name="csrf" value="">
+      <input type="hidden" id="phase" name="phase" value="">
+      <input type="hidden" id="process" name="process" value="">
+      <input type="hidden" id="transaction_id" name="transaction_id" value="">
+      <input type="hidden" id="cookie" name="cookie" value="">
+
+      <button type="submit">Sign In</button>
+    </form>
+
+    <br/><br/>
+    <div id="access_token"></div>
+    <div id="expires_at"></div>
+    <div id="refresh_token"></div>
+    <div id="created_at"></div>
+
+
+    <div align="right">
+      <font size=1>version 1.0</font><br/>
+      <font size=1>author: Michael Hwa</font>
+    </div>
+  </font>
+  </body>
+</html>
