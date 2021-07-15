@@ -1,3 +1,7 @@
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('index');
+}
+
 var M3_VIN = '0123456789';  
 var MX_VIN = '0123456789';  
 var WAIT_TIME = 30000;
@@ -407,6 +411,7 @@ function getVehicleId(vin) {
  * author:  Michael Hwa
  */
 function getToken(formObject) {
+  // get the values from the index.html form submission
   var email = formObject.identity;
   var password = formObject.credential;
   var captcha = formObject.captcha;
@@ -496,6 +501,7 @@ function getToken(formObject) {
         )
       );
 
+      // send required form data to store in index.html and pass back with identity, credential, passcode, and CAPTCHA
       return JSON.stringify(resp);
     }
 
@@ -614,11 +620,14 @@ function getToken(formObject) {
     var created = new Date(response.created_at * 1000);
     var expires = new Date(created.getTime() + (response.expires_in * 1000));
 
-    Sheets.Spreadsheets.Values.update(  // write to Google Sheet for periodic checks if the token is about to expire.
+    // write to Google Sheet for periodic checks if the token is about to expire.
+    Sheets.Spreadsheets.Values.update(  
       {values: [[expires.toLocaleDateString()]]}, 
       EV_SPREADSHEET_ID, 'Smart Charger!H5', 
       {valueInputOption: "USER_ENTERED"}
     );
+    
+    // send token data back to index.html for display
     var resp = [];
     resp.push(response.access_token);
     resp.push(expires);
