@@ -1,13 +1,12 @@
-Update (Apr 2021):  Ported Google Apps Scripts to python for more control over functionality and as a backup.  The method to retrieve the Tesla authentication token changed and along with it, security blocking of the Google 
-servers such that the REST calls stopped working.  They work when running from python on my own machine/IP address.
+Update (Apr 2021):  Ported Google Apps Scripts to python for more control over functionality and as a backup. 
 
+These scripts are based on Google Apps Script (https://script.google.com/home), which is free!  There are 5 components to this project:
 
-These scripts are based on Google Apps Script (https://script.google.com/home), which is free!  There are 4 components to this project:
-
-1.  Smart Charger.gs - sends an email if you forget to plug in your vehicle and calculates then sets the optimal charge start time.
-2.  Telemetry.gs - logs data from your vehicle for analysis, e.g. miles, efficiency, battery capacity, etc.
-3.  Smart Climate.gs - customized scheduling of pre-heating/cooling of cabin and seat heating by day of the week.
-4.  Logging.gs - logs error messages in the try/catch blocks.
+1.  SmartCharger.gs - sends an email if you forget to plug in your vehicle and calculates then sets the optimal charge start time.
+2.  index.html - part of a Google Apps Script deployed webapp that runs client side JavaScript to work with the getToken() in SmartCharger.gs.
+3.  Telemetry.gs - logs data from your vehicle for analysis, e.g. miles, efficiency, battery capacity, etc.
+4.  SmartClimate.gs - customized scheduling of pre-heating/cooling of cabin and seat heating by day of the week.
+5.  Logging.gs - logs error messages in the try/catch blocks.
 
 I need to find a way to either share the Google Sheets format or refactor these into a database.
 
