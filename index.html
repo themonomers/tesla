@@ -59,11 +59,15 @@
     This Web App will return the API Access Token<br/><br/>
 
     <form method='post' id='auth-form' onsubmit="handleFormSubmit(this)">
-      Email:  <input type="text" id="identity" name="identity" value=""/><br/><br/>
-      Password:  <input type="password" id="credential" name="credential"/><br/><br/>
-      Passcode:  <input type="text" id="passcode" name="passcode"/><br/><br/>
-      CAPTCHA:  <input type="text" id="captcha" name="captcha"/><br/><br/>
+      Email Address  <br/>
+      <input type="text" id="identity" name="identity" value=""/><br/><br/>
+      Password  <br/>
+      <input type="password" id="credential" name="credential"/><br/><br/>
       <img id="captcha-image"><br/><br/>
+      Enter the characters in the picture  <br/>
+      <input type="text" id="captcha" name="captcha"/><br/><br/>
+      Passcode  <br/>
+      <input type="text" id="passcode" name="passcode"/><br/><br/>
 
       <input type="hidden" id="code_verifier" name="code_verifier" value="">
       <input type="hidden" id="code_challenge" name="code_challenge" value="">
@@ -73,7 +77,7 @@
       <input type="hidden" id="transaction_id" name="transaction_id" value="">
       <input type="hidden" id="cookie" name="cookie" value="">
 
-      <button type="submit">Sign In</button>
+      <button type="submit">SIGN IN</button>
     </form>
 
     <br/><br/>
