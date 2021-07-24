@@ -67,23 +67,23 @@ def findOpenRow(sheet_id, sheet_name, range):
 ##
 def getGoogleMailService():
   try:
-    # If modifying these scopes, delete the file token.json.
+    # If modifying these scopes, delete the file gmail_token.json.
     scopes = ['https://www.googleapis.com/auth/gmail.modify']
 
     creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
+    # The file gmail_token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
     if os.path.exists(
       os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 
-        'token.json'
+        'gmail_token.json'
       )
     ):
       creds = Credentials.from_authorized_user_file(
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)), 
-          'token.json'
+          'gmail_token.json'
         ), 
         scopes
       )
@@ -96,7 +96,7 @@ def getGoogleMailService():
         flow = InstalledAppFlow.from_client_secrets_file(
           os.path.join(
             os.path.dirname(os.path.abspath(__file__)), 
-            'client_secret.json'
+            'gmail_client_secret.json'
           ), 
           scopes,
           redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
@@ -113,7 +113,7 @@ def getGoogleMailService():
       with open(
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)), 
-          'token.json'
+          'gmail_token.json'
         ), 
         'w'
       ) as token:
