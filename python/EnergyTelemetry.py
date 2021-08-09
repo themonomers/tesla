@@ -160,6 +160,28 @@ def writeSiteTelemetryTOUSummary(date):
       'values': [[data['response']['percentage_charged']]]
     })
 
+    # copy formula down: column C
+    requests = []
+    requests.append({
+      'copyPaste': {
+        'source': {
+          'sheetId': SUMMARY_SHEET_ID,
+          'startRowIndex': 4,
+          'endRowIndex': 5,
+          'startColumnIndex': 3,
+          'endColumnIndex': 4
+        },
+        'destination': {
+          'sheetId': SUMMARY_SHEET_ID,
+          'startRowIndex': open_row - 1,
+          'endRowIndex': open_row,
+          'startColumnIndex': 3,
+          'endColumnIndex': 4
+        },
+        'pasteType': 'PASTE_NORMAL'
+      }
+    })
+
     # get solar data for all day
     data = getSiteHistory('day', date)
 
@@ -262,8 +284,7 @@ def writeSiteTelemetryTOUSummary(date):
               'values': [[data['response'][key_1][i]['generator_energy_exported']]]
             })
 
-    # copy formulas down
-    requests = []
+    # copy formulas down: column X to AC
     requests.append({
       'copyPaste': {
         'source': {
@@ -381,6 +402,27 @@ def writeSiteTelemetryTOUSummary(date):
               'values': [[data['response'][key_1]['time_series'][i]['generator_energy_exported']]]
             })
 
+            # copy formulas down: column AU to AZ
+            requests.append({
+              'copyPaste': {
+                'source': {
+                  'sheetId': SUMMARY_SHEET_ID,
+                  'startRowIndex': 4,
+                  'endRowIndex': 5,
+                  'startColumnIndex': 46,
+                  'endColumnIndex': 52
+                },
+                'destination': {
+                  'sheetId': SUMMARY_SHEET_ID,
+                  'startRowIndex': open_row - 1,
+                  'endRowIndex': open_row,
+                  'startColumnIndex': 46,
+                  'endColumnIndex': 52
+                },
+                'pasteType': 'PASTE_NORMAL'
+              }
+            })
+
       elif (key_1 == 'partial_peak'):
         for i in range(len(data['response'][key_1]['time_series'])):
           d = datetime.strptime(
@@ -470,6 +512,27 @@ def writeSiteTelemetryTOUSummary(date):
             inputs.append({
               'range': 'Telemetry-Summary!BQ' + str(open_row),
               'values': [[data['response'][key_1]['time_series'][i]['generator_energy_exported']]]
+            })
+
+            # copy formulas down: column BR to BW
+            requests.append({
+              'copyPaste': {
+                'source': {
+                  'sheetId': SUMMARY_SHEET_ID,
+                  'startRowIndex': 4,
+                  'endRowIndex': 5,
+                  'startColumnIndex': 69,
+                  'endColumnIndex': 75
+                },
+                'destination': {
+                  'sheetId': SUMMARY_SHEET_ID,
+                  'startRowIndex': open_row - 1,
+                  'endRowIndex': open_row,
+                  'startColumnIndex': 69,
+                  'endColumnIndex': 75
+                },
+                'pasteType': 'PASTE_NORMAL'
+              }
             })
 
       elif (key_1 == 'peak'):
@@ -563,83 +626,28 @@ def writeSiteTelemetryTOUSummary(date):
               'values': [[data['response'][key_1]['time_series'][i]['generator_energy_exported']]]
             })
 
-    # copy formulas down
-    requests.append({
-      'copyPaste': {
-        'source': {
-          'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': 4,
-          'endRowIndex': 5,
-          'startColumnIndex': 3,
-          'endColumnIndex': 4
-        },
-        'destination': {
-          'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': open_row - 1,
-          'endRowIndex': open_row,
-          'startColumnIndex': 3,
-          'endColumnIndex': 4
-        },
-        'pasteType': 'PASTE_NORMAL'
-      }
-    })
-    requests.append({
-      'copyPaste': {
-        'source': {
-          'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': 4,
-          'endRowIndex': 5,
-          'startColumnIndex': 46,
-          'endColumnIndex': 52
-        },
-        'destination': {
-          'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': open_row - 1,
-          'endRowIndex': open_row,
-          'startColumnIndex': 46,
-          'endColumnIndex': 52
-        },
-        'pasteType': 'PASTE_NORMAL'
-      }
-    })
-    requests.append({
-      'copyPaste': {
-        'source': {
-          'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': 4,
-          'endRowIndex': 5,
-          'startColumnIndex': 69,
-          'endColumnIndex': 75
-        },
-        'destination': {
-          'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': open_row - 1,
-          'endRowIndex': open_row,
-          'startColumnIndex': 69,
-          'endColumnIndex': 75
-        },
-        'pasteType': 'PASTE_NORMAL'
-      }
-    })
-    requests.append({
-      'copyPaste': {
-        'source': {
-          'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': 4,
-          'endRowIndex': 5,
-          'startColumnIndex': 92,
-          'endColumnIndex': 98
-        },
-        'destination': {
-          'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': open_row - 1,
-          'endRowIndex': open_row,
-          'startColumnIndex': 92,
-          'endColumnIndex': 98
-        },
-        'pasteType': 'PASTE_NORMAL'
-      }
-    })
+            # copy formulas down: column CO to CT
+            requests.append({
+              'copyPaste': {
+                'source': {
+                  'sheetId': SUMMARY_SHEET_ID,
+                  'startRowIndex': 4,
+                  'endRowIndex': 5,
+                  'startColumnIndex': 92,
+                  'endColumnIndex': 98
+                },
+                'destination': {
+                  'sheetId': SUMMARY_SHEET_ID,
+                  'startRowIndex': open_row - 1,
+                  'endRowIndex': open_row,
+                  'startColumnIndex': 92,
+                  'endColumnIndex': 98
+                },
+                'pasteType': 'PASTE_NORMAL'
+              }
+            })
+
+    # copy formulas down: column CV to DK
     requests.append({
       'copyPaste': {
         'source': {
@@ -647,14 +655,35 @@ def writeSiteTelemetryTOUSummary(date):
           'startRowIndex': 4,
           'endRowIndex': 5,
           'startColumnIndex': 99,
-          'endColumnIndex': 116
+          'endColumnIndex': 115
         },
         'destination': {
           'sheetId': SUMMARY_SHEET_ID,
           'startRowIndex': open_row - 1,
           'endRowIndex': open_row,
           'startColumnIndex': 99,
-          'endColumnIndex': 116
+          'endColumnIndex': 115
+        },
+        'pasteType': 'PASTE_NORMAL'
+      }
+    })
+
+    # copy formulas down: column DM to DP
+    requests.append({
+      'copyPaste': {
+        'source': {
+          'sheetId': SUMMARY_SHEET_ID,
+          'startRowIndex': 4,
+          'endRowIndex': 5,
+          'startColumnIndex': 116,
+          'endColumnIndex': 121
+        },
+        'destination': {
+          'sheetId': SUMMARY_SHEET_ID,
+          'startRowIndex': open_row - 1,
+          'endRowIndex': open_row,
+          'startColumnIndex': 116,
+          'endColumnIndex': 121
         },
         'pasteType': 'PASTE_NORMAL'
       }
@@ -666,6 +695,8 @@ def writeSiteTelemetryTOUSummary(date):
       spreadsheetId=ENERGY_SPREADSHEET_ID,
       body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
     ).execute()
+
+    # batch write formula copies
     service.spreadsheets().batchUpdate(
       spreadsheetId=ENERGY_SPREADSHEET_ID,
       body={'requests': requests}
