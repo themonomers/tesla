@@ -160,7 +160,7 @@ def writeSiteTelemetryTOUSummary(date):
       'values': [[data['response']['percentage_charged']]]
     })
 
-    # copy formula down: column C
+    # copy formula down: column D
     requests = []
     requests.append({
       'copyPaste': {
