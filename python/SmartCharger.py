@@ -3,7 +3,7 @@ import time
 import configparser
 import os
 
-from TeslaVehicleAPI import getVehicleData, wakeVehicle
+from TeslaVehicleAPI import getVehicleData, wakeVehicle, setScheduledCharging
 from GoogleAPI import getGoogleSheetService
 from SendEmail import sendEmail
 from SmartClimate import setM3Precondition, setMXPrecondition
@@ -311,7 +311,7 @@ def scheduleMXCharging(m3_data, mx_data):
     ).execute().get('values', [])[0][0]
 
     # if the target SoC is greater than the current SoC and charging state isn't 
-    # Complete, create a crontab for charging
+    # Complete, schedule vehicle for charging
     if (
       (target_soc > current_soc) 
       and (mx_data['response']['charge_state']['charging_state'] != 'Complete')
@@ -341,82 +341,17 @@ def scheduleMXCharging(m3_data, mx_data):
       else:
         return
 
-      # set the right date of the estimated charge time based on AM or PM
-      if (str(start_time).find('AM') >= 0):
-        tomorrow_date = datetime.today() + timedelta(1)
-        start_time = datetime.strptime(start_time, '%I:%M %p').time()
-        estimated_charge_start_time = datetime(
-          tomorrow_date.year, 
-          tomorrow_date.month, 
-          tomorrow_date.day, 
-          start_time.hour, 
-          start_time.minute
-        )
-        #print('estimated charge start time: ' + str(estimated_charge_start_time))
-      else:
-        start_time = datetime.strptime(start_time, '%I:%M %p').time()
-        estimated_charge_start_time = datetime(
-          datetime.today().year, 
-          datetime.today().month, 
-          datetime.today().day, 
-          start_time.hour, 
-          start_time.minute
-        )
-        #print('estimated charge start time: ' + str(estimated_charge_start_time))
+      minutes = start_time.split(':')
+      total_minutes = (int(minutes[0]) * 60) + int(minutes[1])
 
-      # if the estimated start time is after the car's onboard scheduled start 
-      # time, exit
-      # TODO:  Check if it's AM or PM
-      car_charge_schedule = service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Smart Charger!F27'
-      ).execute().get('values', [])[0][0]
-      tomorrow_date = datetime.today() + timedelta(1)
-      car_charge_schedule = datetime.strptime(
-        car_charge_schedule, 
-        '%I:%M %p'
-      ).time()
-      car_charge_schedule = datetime(
-        tomorrow_date.year, 
-        tomorrow_date.month, 
-        tomorrow_date.day, 
-        car_charge_schedule.hour, 
-        car_charge_schedule.minute
-      )
-      #print('estimated charge start time: ' + str(estimated_charge_start_time))
-      #print('car charge schedule: ' + str(car_charge_schedule))
-      service.close()
-      
-      if (estimated_charge_start_time > car_charge_schedule):
-        return
-    
-      # create crontab
-      createCronTab(
-        'python /home/pi/tesla/python/ChargeMX.py', 
-        estimated_charge_start_time.month, 
-        estimated_charge_start_time.day, 
-        estimated_charge_start_time.hour, 
-        estimated_charge_start_time.minute
-      )
+      setScheduledCharging(MX_VIN, total_minutes)
 
       # send email notification
-      message = ('The Model X is set to charge on ' 
-                 + str(estimated_charge_start_time) 
+      message = ('The Model X is set to charge at ' 
+                 + start_time 
                  + '.')
       sendEmail(EMAIL_1, 'Model X Set to Charge', message, '', '')
-    
-      # create back up crontab for 15 minutes later
-      estimated_backup_charge_start_time = (
-        estimated_charge_start_time 
-        + timedelta(minutes=15)
-      )
-      createCronTab(
-        'python /home/pi/tesla/python/ChargeMXBackup.py', 
-        estimated_backup_charge_start_time.month, 
-        estimated_backup_charge_start_time.day, 
-        estimated_backup_charge_start_time.hour, 
-        estimated_backup_charge_start_time.minute
-      )
+    service.close()
   except Exception as e:
     logError('scheduleMXCharging(): ' + str(e))
 

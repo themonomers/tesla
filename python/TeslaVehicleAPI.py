@@ -109,6 +109,92 @@ def chargeVehicle(vin):
   except Exception as e:
     logError('chargeVehicle(' + vin + '): ' + str(e))
 
+##
+# Sends command and parameter to set a specific vehicle to charge
+# at a scheduled time.
+#
+# author: mjhwa@yahoo.com
+##
+def setScheduledCharging(vin, time):
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+           + getVehicleId(vin) 
+           + '/command/set_scheduled_charging')
+
+    payload = {
+      'enable': 'True',
+      'time': time
+    }
+
+    requests.post(
+      url, 
+      data=payload, 
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+    )
+  except Exception as e:
+    logError('setScheduledCharging(' + vin + '): ' + str(e))
+
+
+##
+# Not working yet.
+#
+# author: mjhwa@yahoo.com
+##
+def setScheduledDeparture(vin, time):
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
+           + getVehicleId(vin)
+           + '/command/set_scheduled_departure')
+
+    payload = {
+#      'user_charge_enable_request': 'False',
+#      'scheduled_charging_mode': 'StartAt',
+#      'scheduled_charging_mode': 'DepartBy',
+#      'scheduled_charging_pending': 'True',
+#      'off_peak_charging_enabled': 'True',
+      'preconditioning_enabled': 'False',
+      'off_peak_charging_enabled': 'True',
+      'off_peak_charging_times': 'all_week',
+      'off_peak_hours_end_time': time,
+#      'charge_enable_request': 'False',
+#      'scheduled_charging_start_time': 'time'
+#      'scheduled_departure_time': time
+#      'enable': 'True',
+      'departure_time': time
+    }
+
+    requests.post(
+      url,
+      data=payload,
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+    )
+  except Exception as e:
+    logError('setScheduledDeparture(' + vin + '): ' + str(e))
+
+
+##
+# Sends command to set the charging amps for a specified vehicle.
+#
+# author: mjhwa@yahoo.com
+##
+def setChargingAmps(vin, amps):
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
+           + getVehicleId(vin)
+           + '/command/set_charging_amps')
+
+    payload = {
+      'charging_amps': amps
+    }
+
+    requests.post(
+      url,
+      data=payload,
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+    )
+  except Exception as e:
+    logError('setChargingAmps(' + vin + '): ' + str(e))
+
 
 ##
 # Function to set vehicle temperature.
@@ -232,8 +318,14 @@ def printAllVehicleData(vin):
 
 
 def main():
+  
+#  setChargingAmps('***REMOVED***', 40)
+#  setScheduledCharging('***REMOVED***', 217)
+  setScheduledDeparture('***REMOVED***', 217)
+  
   vin = raw_input('printAllVehicleData VIN: ')
   printAllVehicleData(vin)
+
 
 if __name__ == "__main__":
   main()
