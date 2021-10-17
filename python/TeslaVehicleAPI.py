@@ -20,6 +20,7 @@ config = configparser.ConfigParser()
 config.sections()
 config.readfp(buffer)
 ACCESS_TOKEN = config['tesla']['access_token']
+MX_VIN = config['vehicle']['mx_vin']
 buffer.close()
 
 WAIT_TIME = 30 
@@ -109,6 +110,26 @@ def chargeVehicle(vin):
   except Exception as e:
     logError('chargeVehicle(' + vin + '): ' + str(e))
 
+
+##
+# Function to send API call to stop charging a vehicle.
+#
+# author: mjhwa@yahoo.com
+##
+def stopChargeVehicle(vin):
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
+           + getVehicleId(vin)
+           + '/command/charge_stop')
+
+    requests.post(
+      url,
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+    )
+  except Exception as e:
+    logError('stopChargeVehicle(' + vin + '): ' + str(e))
+
+
 ##
 # Sends command and parameter to set a specific vehicle to charge
 # at a scheduled time.
@@ -147,25 +168,34 @@ def setScheduledDeparture(vin, time):
            + '/command/set_scheduled_departure')
 
     payload = {
-#      'user_charge_enable_request': 'False',
-#      'scheduled_charging_mode': 'StartAt',
-#      'scheduled_charging_mode': 'DepartBy',
-#      'scheduled_charging_pending': 'True',
-#      'off_peak_charging_enabled': 'True',
-      'preconditioning_enabled': 'False',
+      'enable': 'True',
+      'departure_time': time,
+      'preconditioning_enabled': 'True',
+      'preconditioning_settings': {
+        'times': [1,2,3,4,5],
+      },
+#      'preconditioning_times': 'weekdays',
+#      'off_peak_settings': {
+#        'off_peak_charging_enabled': 'True',
+#        'off_peak_charging_times': 'weekdays',
+#        'off_peak_hours_end_time': (15 * 60)
+#      }
       'off_peak_charging_enabled': 'True',
-      'off_peak_charging_times': 'all_week',
-      'off_peak_hours_end_time': time,
-#      'charge_enable_request': 'False',
+      'off_peak_charge_settings': {
+        'off_peak_charging_times': 'weekdays',
+        'off_peak_hours_end_time': (15 * 60)
+      }
+#      'off_peak_charging_times': 'weekdays',
+#      'off_peak_hours_end_time': (15 * 60)
 #      'scheduled_charging_start_time': 'time'
 #      'scheduled_departure_time': time
-#      'enable': 'True',
-      'departure_time': time
     }
+
+    print(vin)
 
     requests.post(
       url,
-      data=payload,
+      json=payload,
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
@@ -318,8 +348,8 @@ def printAllVehicleData(vin):
 
 
 def main():
-  
-  setScheduledDeparture('', 217)
+#  setScheduledCharging(MX_VIN, ((7 * 60) + 30))
+  setScheduledDeparture(MX_VIN, ((7 * 60) + 30))
   
   vin = raw_input('printAllVehicleData VIN: ')
   printAllVehicleData(vin)
