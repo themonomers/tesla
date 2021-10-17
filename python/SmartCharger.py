@@ -296,9 +296,6 @@ def scheduleM3Charging(m3_data, mx_data):
 
 def scheduleMXCharging(m3_data, mx_data): 
   try:
-    deleteCronTab('python /home/pi/tesla/python/ChargeMX.py')
-    deleteCronTab('python /home/pi/tesla/python/ChargeMXBackup.py')
-
     service = getGoogleSheetService()
 
     target_soc = service.spreadsheets().values().get(
