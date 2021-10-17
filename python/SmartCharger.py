@@ -3,7 +3,7 @@ import time
 import configparser
 import os
 
-from TeslaVehicleAPI import getVehicleData, wakeVehicle, setScheduledCharging
+from TeslaVehicleAPI import getVehicleData, wakeVehicle, setScheduledCharging, stopChargeVehicle
 from GoogleAPI import getGoogleSheetService
 from SendEmail import sendEmail
 from SmartClimate import setM3Precondition, setMXPrecondition
@@ -342,6 +342,7 @@ def scheduleMXCharging(m3_data, mx_data):
       total_minutes = (int(minutes[0]) * 60) + int(minutes[1])
 
       setScheduledCharging(MX_VIN, total_minutes)
+      stopChargeVehicle(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
       # send email notification
       message = ('The Model X is set to charge at ' 
