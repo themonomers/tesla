@@ -20,7 +20,6 @@ config = configparser.ConfigParser()
 config.sections()
 config.readfp(buffer)
 ACCESS_TOKEN = config['tesla']['access_token']
-MX_VIN = config['vehicle']['mx_vin']
 buffer.close()
 
 WAIT_TIME = 30 
