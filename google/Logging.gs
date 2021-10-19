@@ -1,4 +1,4 @@
-var LOG_SPREADSHEET_ID = 'abcdef0123456789';
+var LOG_SPREADSHEET_ID = crypto('abcdef0123456789');
 
 /**
  * Logs errors from try/catch blocks into a Google Sheet (I couldn't get the Stackdriver Logging/Error to work).

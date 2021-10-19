@@ -1,4 +1,4 @@
-var OPENWEATHERMAP_KEY = 'abcdef0123456789';
+var OPENWEATHERMAP_KEY = crypto('abcdef0123456789');
 
 /**
  * Runs every night to see if it should create a trigger for the following morning, currently just based on if the car is at home.
