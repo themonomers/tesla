@@ -340,6 +340,34 @@ def getSavingsForecast(period, date):
 
 
 ##
+# Gets the historic battery charge level data in 15 minute increments that's
+# shown on the mobile app. 
+#
+# author: mjhwa@yahoo.com
+##
+def getBatteryChargeHistory():
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+           + SITE_ID 
+           + '/calendar_history'
+           + '?kind=soe'
+          )
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+    print(response)
+
+    return response
+  except Exception as e:
+    logError('getBatteryChargeHistory(): ' + str(e))
+
+
+##
 # Changes operating mode, "CUSTOMIZE", in the mobile app to "Backup-only".
 #
 # author: mjhwa@yahoo.com
@@ -489,7 +517,8 @@ def main():
   print('[9]  setBatteryModeAdvancedBalanced()')
   print('[10] setBatteryModeAdvancedCost()')
   print('[11] getSavingsForecast()')
-  print('[12] getSiteTOUHistory() \n')
+  print('[12] getSiteTOUHistory()')
+  print('[13] getBatteryChargeHistory() \n')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -531,6 +560,8 @@ def main():
     date = raw_input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y') + timedelta(1)
     getSiteTOUHistory('day', date)
+  elif choice == 13:
+    getBatteryChargeHistory()
 
 if __name__ == "__main__":
   main()
