@@ -62,7 +62,7 @@ function preconditionM3Start() {
     if (eco_mode == 'on') { return; }
     
     // get local weather
-    var wdata = JSON.parse(getWeather('90210').getContentText());
+    var wdata = JSON.parse(getCurrentWeather('90210').getContentText());
     
     // get data
     var cold_temp_threshold = Number(Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!B22').values[0]);
@@ -296,7 +296,7 @@ function preconditionMXStart() {
     if (eco_mode == 'on') { return; }
     
     // get local weather
-    var wdata = JSON.parse(getWeather('90210').getContentText());
+    var wdata = JSON.parse(getCurrentWeather('90210').getContentText());
     
     // get data
     var cold_temp_threshold = Number(Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!I22').values[0]);
@@ -548,7 +548,7 @@ function preconditionCarStop(vin) {
   return response;
 }
 
-function getWeather(zipcode) {
+function getCurrentWeather(zipcode) {
   var url = 'https://api.openweathermap.org/data/2.5/weather?zip=' + zipcode + '&APPID=' + OPENWEATHERMAP_KEY + '&units=metric';
   var response = UrlFetchApp.fetch(url);
   return response;

@@ -118,11 +118,11 @@ def toRad(x):
 
 ##
 # Uses a free weather service with API to look up data by zipcode or other 
-# attributes.
+# attributes.  Gets current conditions.
 #
 # author: mjhwa@yahoo.com
 ##
-def getWeather(zipcode):
+def getCurrentWeather(zipcode):
   try:
     url = ('https://api.openweathermap.org/data/2.5/weather'
            + '?zip=' + zipcode
@@ -133,12 +133,12 @@ def getWeather(zipcode):
 
     return json.loads(response.text)
   except Exception as e:
-    logError('getWeather(): ' + str(e))
+    logError('getCurrentWeather(): ' + str(e))
 
 
 def main():
   print('[1] getDistance')
-  print('[2] getWeather')
+  print('[2] getCurrentWeather')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -160,7 +160,7 @@ def main():
     )
   elif (choice == 2):
     zip = raw_input('zip code: ')
-    data = getWeather(zip)
+    data = getCurrentWeather(zip)
     
     for key_1, value_1 in data.iteritems():
       if (isinstance(value_1, dict) == True):

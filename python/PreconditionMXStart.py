@@ -4,7 +4,7 @@ import os
 
 from TeslaVehicleAPI import wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
 from GoogleAPI import getGoogleSheetService
-from Utilities import deleteCronTab, createCronTab, isVehicleAtHome, getWeather
+from Utilities import deleteCronTab, createCronTab, isVehicleAtHome, getCurrentWeather
 from SmartClimate import getMXSeatSetting
 from Crypto import decrypt
 from Logger import logError
@@ -43,7 +43,7 @@ def preconditionMXStart():
     if (eco_mode == 'on'): return
     
     # get local weather
-    wdata = getWeather(ZIPCODE)
+    wdata = getCurrentWeather(ZIPCODE)
     #print('temp: ' + str(wdata['main']['temp']))    
 
     # get data
