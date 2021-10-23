@@ -118,7 +118,7 @@ def toRad(x):
 
 ##
 # Uses a free weather service with API to look up data by zipcode or other 
-# attributes.  Gets current conditions.
+# attributes.  Gets current weather conditions.
 #
 # author: mjhwa@yahoo.com
 ##
@@ -136,9 +136,66 @@ def getCurrentWeather(zipcode):
     logError('getCurrentWeather(): ' + str(e))
 
 
+##
+# Uses a free weather service with API to look up data by latitude and
+# longitude or other attributes.  Gets daily weather conditions for 
+# today + 7 days, and hourly weather conditions for 48 hours.
+#
+# author: mjhwa@yahoo.com
+##
+def getDailyWeather(lat, lng):
+  try:
+    url = ('https://api.openweathermap.org/data/2.5/onecall'
+           + '?lat=' + str(lat)
+           + '&lon=' + str(lng)
+           + '&APPID=' + OPENWEATHERMAP_KEY
+           + '&exclude=current,minutely,alerts'
+           + '&units=metric')
+
+    response = requests.get(url)
+
+    return json.loads(response.text)
+  except Exception as e:
+    logError('getDailyWeather(): ' + str(e))
+
+
+##
+# Formats a key/value pair with indentions for formatting and printing out
+# with a temperature conversion from Celcius to Fahrenheit.
+#
+# author: mjhwa@yahoo.com
+##
+def outputFahrenheit(key, value, indent):
+  return output(key, str((value * 9 / 5) + 32) + ' (F)', indent)
+
+
+##
+# Formats a key/value pair with indentions for formatting and printing out
+# to a date and time format.
+#
+# author: mjhwa@yahoo.com
+##
+def outputDate(key, value, indent):
+  return output(key, datetime.datetime.fromtimestamp(value), indent)
+
+
+##
+# Formats a key/value pair with indentions for formatting and printing out.
+#
+# author: mjhwa@yahoo.com
+##
+def output(key, value, indent):
+  space = ''
+  for i in range(0, indent):
+    space += ' '
+  return(space + key + ' = ' + str(value))
+
+
 def main():
   print('[1] getDistance')
   print('[2] getCurrentWeather')
+  print('[3] getDailyWeather')
+
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -168,39 +225,70 @@ def main():
 
         for key_2, value_2 in data[key_1].iteritems():
           if ((key_2 == 'sunrise') or (key_2 == 'sunset')):
-            print(
-              '  ' 
-              + key_2 
-              + ' = ' 
-              + str(
-                datetime.datetime.fromtimestamp(value_2)
-              )
-            )
+            print(outputDate(key_2, value_2, 2))
           elif (
             (key_2 == 'temp')
             or (key_2 == 'temp_max')
             or (key_2 == 'temp_min')
             or (key_2 == 'feels_like')
           ):
-            print('  ' + key_2 + '(F) = ' + str((value_2 * 9 / 5) + 32))
+            print(outputFahrenheit(key_2, value_2, 2))
           else:
-            print('  ' + key_2 + ' = ' + str(value_2))
+            print(output(key_2, value_2, 2))
       elif (isinstance(value_1, list) == True):
         print(key_1)
 
         for index in range(len(data[key_1])):
           for key_2, value_2 in data[key_1][index].iteritems():
-            print('  ' + key_2 + ' = ' + str(value_2))
+            print(output(key_2, value_2, 2))
       elif (key_1 == 'dt'):
-        print(
-          key_1
-          + ' = '
-          + str(
-            datetime.datetime.fromtimestamp(value_1)
-          )
-        )
+        print(outputDate(key_1, value_1, 0))
       else:
-        print(key_1 + ' = ' + str(value_1))
+        print(output(key_1, value_1, 0))
+  elif (choice == 3):
+    data = getDailyWeather(HOME_LAT, HOME_LNG)
+
+    for key_1, value_1 in data.iteritems():
+      if (isinstance(value_1, dict) == True):
+        print(key_1)
+      elif (isinstance(value_1, list) == True):
+        print(key_1)
+
+        for index in range(len(data[key_1])):
+          print(str(index) + '.')
+
+          for key_2, value_2 in data[key_1][index].iteritems():
+            if (isinstance(value_2, list) == True):
+              print(output(key_2, '', 2))
+
+              for index_2 in range(len(data[key_1][index][key_2])):
+
+                for key_3, value_3 in data[key_1][index][key_2][index_2].iteritems():
+                  print(output(key_3, value_3, 4))
+            elif (isinstance(value_2, dict) == True):
+              print(output(key_2, '', 2))
+
+              for key_3, value_3 in data[key_1][index][key_2].iteritems():
+                if ((key_3 == 'min') 
+                    or (key_3 == 'max')
+                    or (key_3 == 'eve')
+                    or (key_3 == 'morn')
+                    or (key_3 == 'night')
+                    or (key_3 == 'day')):
+                  print(outputFahrenheit(key_3, value_3, 4))
+                else:
+                  print(output(key_3, value_3, 4))
+            elif ((key_2 == 'sunrise') 
+                  or (key_2 == 'sunset')
+                  or (key_2 == 'moonrise')
+                  or (key_2 == 'moonset')
+                  or (key_2 == 'dt')):
+              print(outputDate(key_2, value_2, 2))
+            else:
+              print(output(key_2, value_2, 2))
+      else:
+        print(output(key_1, value_1, 0))
+
 
 if __name__ == "__main__":
   main()
