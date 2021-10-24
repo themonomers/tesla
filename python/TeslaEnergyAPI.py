@@ -454,6 +454,30 @@ def setBatteryBackupReserve(backup_percent):
 
 
 ##
+# Sets off grid vehicle charging reserve % to save for home use.
+# It seems the maximum is 95% so 5% is the minimum to share with vehicle.
+#
+# author: mjhwa@yahoo.com
+##
+def setOffGridVehicleChargingReserve(percent):
+  try:
+    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+           + SITE_ID 
+           + '/off_grid_vehicle_charging_reserve')
+    payload = {
+      'off_grid_vehicle_charging_reserve_percent': percent
+    }
+
+    response = requests.post(
+                 url,
+                 json=payload,
+                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+               )
+  except Exception as e:
+    logError('setOffGridVehicleChargingReserve(' + percent + '): ' + str(e))
+
+
+##
 # Sets the Advanced operation optimization strategy.  You always have to send 
 # the TOU schedule because if it's omitted, it erases your TOU schedule saved 
 # in the mobile app.  It's hard coded because it's not meant to be configured 
@@ -512,13 +536,14 @@ def main():
   print('[4]  getSiteHistory()')
   print('[5]  getBatteryPowerHistory()')
   print('[6]  getBatteryBackupHistory()')
-  print('[7]  setBatteryModeBackup()')
-  print('[8]  setBatteryModeSelfPowered()')
-  print('[9]  setBatteryModeAdvancedBalanced()')
-  print('[10] setBatteryModeAdvancedCost()')
-  print('[11] getSavingsForecast()')
-  print('[12] getSiteTOUHistory()')
-  print('[13] getBatteryChargeHistory() \n')
+  print('[7]  getSavingsForecast()')
+  print('[8]  getSiteTOUHistory()')
+  print('[9]  getBatteryChargeHistory()')
+  print('[10] setBatteryModeBackup()')
+  print('[11] setBatteryModeSelfPowered()')
+  print('[12] setBatteryModeAdvancedBalanced()')
+  print('[13] setBatteryModeAdvancedCost()')
+  print('[14] setOffGridVehicleChargingReserve() \n')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -539,29 +564,33 @@ def main():
   elif choice == 6:
     getBatteryBackupHistory()
   elif choice == 7:
-    setBatteryModeBackup()
-  elif choice == 8:
-    percent = float(raw_input('% battery reserve: '))
-    setBatteryModeSelfPowered()
-    setBatteryBackupReserve(percent)
-  elif choice == 9:
-    percent = float(raw_input('% battery reserve: '))
-    setBatteryModeAdvancedBalanced()
-    setBatteryBackupReserve(percent)
-  elif choice == 10:
-    percent = float(raw_input('% battery reserve: '))
-    setBatteryModeAdvancedCost()
-    setBatteryBackupReserve(percent)
-  elif choice == 11:
     date = raw_input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     getSavingsForecast('day', date)
-  elif choice == 12:
+  elif choice == 8:
     date = raw_input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y') + timedelta(1)
     getSiteTOUHistory('day', date)
-  elif choice == 13:
+  elif choice == 9:
     getBatteryChargeHistory()
+  elif choice == 10:
+    setBatteryModeBackup()
+  elif choice == 11:
+    percent = float(raw_input('% battery reserve: '))
+    setBatteryModeSelfPowered()
+    setBatteryBackupReserve(percent)
+  elif choice == 12:
+    percent = float(raw_input('% battery reserve: '))
+    setBatteryModeAdvancedBalanced()
+    setBatteryBackupReserve(percent)
+  elif choice == 13:
+    percent = float(raw_input('% battery reserve: '))
+    setBatteryModeAdvancedCost()
+    setBatteryBackupReserve(percent)
+  elif choice == 14:
+    percent = float(raw_input('% save for home use: '))
+    setOffGridVehicleChargingReserve(percent)
+
 
 if __name__ == "__main__":
   main()
