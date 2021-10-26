@@ -251,7 +251,18 @@ def getBatteryBackupHistory():
       ).text
     )
 
-    print(response)
+    for i in range(len(response['response']['events'])):
+      print(str(i))
+
+      for key, value in response['response']['events'][i].items():
+        if (key == 'duration'):
+          value = str(float(value) / 1000 / 60 / 60) + ' hours'
+
+        if (key == 'timestamp'):
+          value = value[0:len(value) - 6:1]
+          value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
+
+        print('  ' + key + ' = ' + str(value))
 
     return response
   except Exception as e:
