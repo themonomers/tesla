@@ -4,6 +4,7 @@ import os
 from datetime import datetime, date, timedelta
 from Utilities import getDailyWeather
 from TeslaEnergyAPI import setBatteryModeBackup, setBatteryModeSelfPowered, setBatteryBackupReserve
+from SendEmail import sendEmail
 from Crypto import decrypt
 from Logger import logError
 from io import StringIO
@@ -21,6 +22,7 @@ config.sections()
 config.readfp(buffer)
 HOME_LAT = float(config['vehicle']['home_lat'])
 HOME_LNG = float(config['vehicle']['home_lng'])
+EMAIL_1 = config['notification']['email_1']
 buffer.close()
 
 PCT_THRESHOLD = 0.5
@@ -42,25 +44,21 @@ def setEnergyModeBasedOnWeather():
     # get weather forecast
     wdata = getDailyWeather(HOME_LAT, HOME_LNG)
     tomorrow = date.today() + timedelta(1)
-#    print(tomorrow)
     rain = 0
     total = 0
+    forecast = '';
+    msg = '';
 
     # get sunrise and sunset times for tomorrow
     for i, value in enumerate(wdata['daily']):
       dt = datetime.fromtimestamp(value['dt'])
       weather = value['weather'][0]['main']
 
-#      print(str(dt) + ': ' + weather)
-
       if ((dt.year == tomorrow.year)
           and (dt.month == tomorrow.month)
           and (dt.day == tomorrow.day)):
         sunrise = datetime.fromtimestamp(value['sunrise'])
         sunset = datetime.fromtimestamp(value['sunset'])
-
-#        print('sunrise: ' + str(sunrise))
-#        print('sunset: ' + str(sunset))
 
     # loop through the hourly weather matching year, month, day, and 
     # between the hour values of sunrise and sunset
@@ -73,7 +71,7 @@ def setEnergyModeBasedOnWeather():
           and (dt.hour >= sunrise.hour)
           and (dt.hour <= sunset.hour)):
 
-        print(str(dt) + ': ' + value['weather'][0]['main'])
+        forecast += str(dt) + ': ' + value['weather'][0]['main'] + '\n'
 
         # count how many 'Rain' hours there are
         if (value['weather'][0]['main'] == 'Rain'):
@@ -82,21 +80,20 @@ def setEnergyModeBasedOnWeather():
         # count how many total hours there are between sunrise and sunset
         total += 1
 
-#    print(rain)
-#    print(total)
-#    print(float(rain) / float(total))
-
     # if the ratio of rain to non-rain hours is greater than a specified
     # percentage, set backup only mode, otherwise set self-powered mode
     if ((float(rain) / float(total)) > PCT_THRESHOLD): 
-      print('Greater than ' 
-            + str(int(PCT_THRESHOLD * 100))
-            + '% rain forecasted, setting backup only mode')
       setBatteryModeBackup()
+ 
+      msg += 'Greater than ' + str(int(PCT_THRESHOLD * 100))
+      msg += '% rain forecasted, setting backup only mode\n'
+      msg += 'Percent rain: ' + str(float(rain) / float(total) * 100) + '%\n'
+      sendEmail(EMAIL_1, 
+                'Energy:  Switching to Backup Only Mode', 
+                msg + forecast, 
+                '', 
+                '')
     else:
-      print('Less than ' 
-            + str(int(PCT_THRESHOLD * 100))
-            + '% rain forecasted, setting self-powered mode')
       setBatteryModeSelfPowered()
       setBatteryBackupReserve(35)
   except Exception as e:
