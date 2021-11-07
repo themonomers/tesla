@@ -30,12 +30,12 @@ PCT_THRESHOLD = 0.5
 
 ##
 # Set to run on an early morning cron job (before sunrise) that will 
-# check tommorrow's weather and if more than a certain percentage of rain 
-# is forecasted between sunrise and sunset, set the system to backup mode 
-# so it will reserve the battery stored energy and prioritize charging the 
-# battery in case there is an outage.  There tends not to be enough solar 
-# generation during rainy days for self-powered mode and recharge the 
-# battery to 100%.  
+# check today and tommorrow's weather and if more than a certain percentage 
+# of rain is forecasted between sunrise and sunset, set the system to 
+# backup mode so it will reserve the battery stored energy and prioritize 
+# charging the battery in case there is an outage.  There tends not to be 
+# enough solar generation during rainy days for self-powered mode and 
+# recharge the battery to 100%.  
 #
 # author: mjhwa@yahoo.com
 ##
@@ -43,59 +43,67 @@ def setEnergyModeBasedOnWeather():
   try:
     # get weather forecast
     wdata = getDailyWeather(HOME_LAT, HOME_LNG)
-    tomorrow = date.today() + timedelta(1)
-    rain = 0
-    total = 0
-    forecast = '';
-    msg = '';
+    check_dates = [date.today(), (date.today() + timedelta(1))]
+    msg = ''
 
-    # get sunrise and sunset times for tomorrow
-    for i, value in enumerate(wdata['daily']):
-      dt = datetime.fromtimestamp(value['dt'])
-      weather = value['weather'][0]['main']
+    for i, value in enumerate(check_dates):
+      forecast = ''
+      rain = 0
+      total = 0
 
-      if ((dt.year == tomorrow.year)
-          and (dt.month == tomorrow.month)
-          and (dt.day == tomorrow.day)):
-        sunrise = datetime.fromtimestamp(value['sunrise'])
-        sunset = datetime.fromtimestamp(value['sunset'])
+      # get sunrise and sunset times 
+      for j, value in enumerate(wdata['daily']):
+        dt = datetime.fromtimestamp(value['dt'])
+        weather = value['weather'][0]['main']
 
-    # loop through the hourly weather matching year, month, day, and 
-    # between the hour values of sunrise and sunset
-    for i, value in enumerate(wdata['hourly']):
-      dt = datetime.fromtimestamp(value['dt'])
+        if ((dt.year == check_dates[i].year)
+            and (dt.month == check_dates[i].month)
+            and (dt.day == check_dates[i].day)):
+          sunrise = datetime.fromtimestamp(value['sunrise'])
+          sunset = datetime.fromtimestamp(value['sunset'])
 
-      if ((dt.year == tomorrow.year)
-          and (dt.month == tomorrow.month)
-          and (dt.day == tomorrow.day)
-          and (dt.hour >= sunrise.hour)
-          and (dt.hour <= sunset.hour)):
+      # loop through the hourly weather matching year, month, day, and 
+      # between the hour values of sunrise and sunset
+      for j, value in enumerate(wdata['hourly']):
+        dt = datetime.fromtimestamp(value['dt'])
 
-        forecast += str(dt) + ': ' + value['weather'][0]['main'] + '\n'
+        if ((dt.year == check_dates[i].year)
+            and (dt.month == check_dates[i].month)
+            and (dt.day == check_dates[i].day)
+            and (dt.hour >= sunrise.hour)
+            and (dt.hour <= sunset.hour)):
 
-        # count how many 'Rain' hours there are
-        if (value['weather'][0]['main'] == 'Rain'):
-          rain += 1
+          forecast += str(dt) + ': ' + value['weather'][0]['main'] + '\n'
 
-        # count how many total hours there are between sunrise and sunset
-        total += 1
+          # count how many 'Rain' hours there are
+          if (value['weather'][0]['main'] == 'Rain'):
+            rain += 1
 
-    # if the ratio of rain to non-rain hours is greater than a specified
-    # percentage, set backup only mode, otherwise set self-powered mode
-    if ((float(rain) / float(total)) > PCT_THRESHOLD): 
-      setBatteryModeBackup()
- 
-      msg += 'Greater than ' + str(int(PCT_THRESHOLD * 100))
-      msg += '% rain forecasted, setting backup only mode\n'
-      msg += 'Percent rain: ' + str(float(rain) / float(total) * 100) + '%\n'
+          # count how many total hours there are between sunrise and sunset
+          total += 1
+
+      # if the ratio of rain to non-rain hours is greater than a specified
+      # percentage, set backup only mode, otherwise set self-powered mode
+      if ((float(rain) / float(total)) > PCT_THRESHOLD): 
+        setBatteryModeBackup()
+
+        msg += 'Greater than ' + str(int(PCT_THRESHOLD * 100))
+        msg += '% rain forecasted, setting backup only mode\n'
+        msg += 'Percent rain: ' 
+        msg += str(float(rain) / float(total) * 100) + '%\n'
+        msg += forecast + '\n'
+      else:
+        # if none of the days is above the threshold
+        if (msg == ''):
+          setBatteryModeSelfPowered()
+          setBatteryBackupReserve(35)
+
+    if (msg != ''):
       sendEmail(EMAIL_1, 
                 'Energy:  Switching to Backup Only Mode', 
-                msg + forecast, 
+                msg, 
                 '', 
                 '')
-    else:
-      setBatteryModeSelfPowered()
-      setBatteryBackupReserve(35)
   except Exception as e:
     logError('setEnergyModeBasedOnWeather(): ' + str(e))
 
