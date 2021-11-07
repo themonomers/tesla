@@ -360,12 +360,14 @@ def getSavingsForecast(period, date):
 #
 # author: mjhwa@yahoo.com
 ##
-def getBatteryChargeHistory():
+def getBatteryChargeHistory(period, date):
   try:
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
            + SITE_ID 
            + '/calendar_history'
            + '?kind=soe'
+           + '&period=' + period
+           + '&end_date=' + datetime.strftime(date, '%Y-%m-%dT06:59:59Z')
           )
 
     response = json.loads(
@@ -375,7 +377,9 @@ def getBatteryChargeHistory():
       ).text
     )
 
-    print(response)
+    for x in response['response']['time_series']:
+      for key, value in x.iteritems():
+        print(key + ' = ' + str(value)) 
 
     return response
   except Exception as e:
@@ -587,7 +591,9 @@ def main():
     date = datetime.strptime(date, '%m/%d/%Y') + timedelta(1)
     getSiteTOUHistory('day', date)
   elif choice == 9:
-    getBatteryChargeHistory()
+    date = raw_input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    getBatteryChargeHistory('day', date)
   elif choice == 10:
     setBatteryModeBackup()
   elif choice == 11:
