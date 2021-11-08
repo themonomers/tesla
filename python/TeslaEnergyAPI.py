@@ -377,9 +377,11 @@ def getBatteryChargeHistory(period, date):
       ).text
     )
 
+    """
     for x in response['response']['time_series']:
       for key, value in x.iteritems():
         print(key + ' = ' + str(value)) 
+    """
 
     return response
   except Exception as e:

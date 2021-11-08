@@ -2,6 +2,7 @@ import time
 import configparser
 import os
 
+from TeslaEnergyAPI import getBatteryChargeHistory
 from Influxdb import getDBClient
 from GoogleAPI import getGoogleSheetService
 from Crypto import decrypt
@@ -142,9 +143,58 @@ def importSiteTelemetrySummary():
     logError('importSiteTelemetrySummary(): ' + str(e))
 
 
+##
+# Import Tesla battery charge state history into an InfluxDB for 
+# Grafana visualization.
+#
+# author: mjhwa@yahoo.com
+##
+def importBatteryChargeHistory(date):
+  try:
+    # get battery charge history data
+    data = getBatteryChargeHistory('day', date)
+
+    json_body = []
+    dt = ''
+    soe = ''
+    insert = ''
+    for x in data['response']['time_series']:
+      for key, value in x.iteritems():
+        print(key + ' = ' + str(value))
+      
+        if key == 'timestamp':
+          dt = value
+        elif key == 'soe':
+          soe = value
+
+          insert = raw_input('import (y/n): ')
+          if insert != 'y':
+            break
+
+          json_body.append({
+            'measurement': 'energy_detail',
+            'tags': {
+              'source': 'percentage_charged'
+            },
+            'time': dt,
+            'fields': {
+              'value': float(soe)
+            }
+          })
+
+    # Write to Influxdb
+    client = getDBClient()
+    client.switch_database('energy')
+    client.write_points(json_body)
+    client.close()
+  except Exception as e:
+    logError('importBatteryChargeHistory(): ' + str(e))
+
+
 def main():
   print('[1] importSiteTelemetryDetail()')
-  print('[2] importSiteTelemetrySummary() \n')
+  print('[2] importSiteTelemetrySummary()')
+  print('[3] importBatteryChargeHistory() \n')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -154,6 +204,10 @@ def main():
     importSiteTelemetryDetail()
   elif choice == 2:
     importSiteTelemetrySummary()
+  elif choice == 3:
+    date = raw_input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    importBatteryChargeHistory(date)
 
 if __name__ == "__main__":
   main()
