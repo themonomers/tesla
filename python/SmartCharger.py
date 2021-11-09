@@ -7,7 +7,7 @@ from TeslaVehicleAPI import getVehicleData, wakeVehicle, setScheduledCharging, s
 from GoogleAPI import getGoogleSheetService
 from SendEmail import sendEmail
 from SmartClimate import setM3Precondition, setMXPrecondition
-from Utilities import deleteCronTab, createCronTab, isVehicleAtHome, isVehicleAtNapa
+from Utilities import isVehicleAtHome, isVehicleAtNapa
 from Crypto import decrypt
 from Logger import logError
 from datetime import timedelta, datetime
@@ -169,9 +169,6 @@ def writeMXStartTimes(data):
 ##
 def scheduleM3Charging(m3_data, mx_data): 
   try:
-    deleteCronTab('python /home/pi/tesla/python/ChargeM3.py')
-    deleteCronTab('python /home/pi/tesla/python/ChargeM3Backup.py')
-
     service = getGoogleSheetService()
 
     target_soc = service.spreadsheets().values().get(
@@ -214,82 +211,18 @@ def scheduleM3Charging(m3_data, mx_data):
       else:
         return
 
-      # set the right date of the estimated charge time based on AM or PM
-      if (str(start_time).find('AM') >= 0):
-        tomorrow_date = datetime.today() + timedelta(1)
-        start_time = datetime.strptime(start_time, '%I:%M %p').time()
-        estimated_charge_start_time = datetime(
-          tomorrow_date.year, 
-          tomorrow_date.month, 
-          tomorrow_date.day, 
-          start_time.hour, 
-          start_time.minute
-        )
-        #print('estimated charge start time: ' + str(estimated_charge_start_time))
-      else:
-        start_time = datetime.strptime(start_time, '%I:%M %p').time()
-        estimated_charge_start_time = datetime(
-          datetime.today().year, 
-          datetime.today().month, 
-          datetime.today().day, 
-          start_time.hour, 
-          start_time.minute
-        )
-        #print('estimated charge start time: ' + str(estimated_charge_start_time))
+      minutes = start_time.split(':')
+      total_minutes = (int(minutes[0]) * 60) + int(minutes[1])
 
-      # if the estimated start time is after the car's onboard scheduled start 
-      # time, exit
-      # TODO:  Check if it's AM or PM
-      car_charge_schedule = service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Smart Charger!E27'
-      ).execute().get('values', [])[0][0]
-      tomorrow_date = datetime.today() + timedelta(1)
-      car_charge_schedule = datetime.strptime(
-        car_charge_schedule, 
-        '%I:%M %p'
-      ).time()
-      car_charge_schedule = datetime(
-        tomorrow_date.year, 
-        tomorrow_date.month, 
-        tomorrow_date.day, 
-        car_charge_schedule.hour, 
-        car_charge_schedule.minute
-      )
-      #print('estimated charge start time: ' + str(estimated_charge_start_time))
-      #print('car charge schedule: ' + str(car_charge_schedule))
-      service.close()
-      
-      if (estimated_charge_start_time > car_charge_schedule):
-        return
-    
-      # create crontab
-      createCronTab(
-        'python /home/pi/tesla/python/ChargeM3.py', 
-        estimated_charge_start_time.month, 
-        estimated_charge_start_time.day, 
-        estimated_charge_start_time.hour, 
-        estimated_charge_start_time.minute
-      )
+      setScheduledCharging(M3_VIN, total_minutes)
+      stopChargeVehicle(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
       # send email notification
-      message = ('The Model 3 is set to charge on ' 
-                 + str(estimated_charge_start_time) 
+      message = ('The Model 3 is set to charge at ' 
+                 + start_time 
                  + '.')
       sendEmail(EMAIL_1, 'Model 3 Set to Charge', message, '', '')
-    
-      # create back up crontab for 15 minutes later
-      estimated_backup_charge_start_time = (
-        estimated_charge_start_time 
-        + timedelta(minutes=15)
-      )
-      createCronTab(
-        'python /home/pi/tesla/python/ChargeM3Backup.py', 
-        estimated_backup_charge_start_time.month, 
-        estimated_backup_charge_start_time.day, 
-        estimated_backup_charge_start_time.hour, 
-        estimated_backup_charge_start_time.minute
-      )
+    service.close()
   except Exception as e:
     logError('scheduleM3Charging(): ' + str(e))
 
