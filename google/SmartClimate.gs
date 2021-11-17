@@ -1,27 +1,30 @@
 var OPENWEATHERMAP_KEY = crypto('abcdef0123456789');
 
 /**
- * Runs every night to see if it should create a trigger for the following morning, currently just based on if the car is at home.
- *
+ * Creates a trigger to precondition the cabin for the following 
+ * morning, based on if the car is at home and if "Eco Mode" is off 
+ * similar to how Nest thermostats work for vacation scenarios.  With 
+ * the new endpoints released, you can achieve the same functionality 
+ * by setting scheduled departure for preconditioning.  I decided to 
+ * keep this code running as I don't drive long distances so the added 
+ * feature of preconditioning the battery, in addition to the cabin, 
+ * is a waste of energy (entropy) for me.
  */
 function setM3Precondition(data) {
   var tomorrow_date = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
   var eco_mode = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!B24').values[0];
     
-  // check if eco mode is off first so we don't have to even call the Tesla API if we don't have to
-  if (eco_mode == 'off') {
-    // check if the car is with 0.25 miles of home
-    if (isVehicleAtHome(data)) {  
-      // get start time preferences
-      var start_time = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!B20').values[0];
+  // check if eco mode is off and the car is with 0.25 miles of home
+  if ((eco_mode == 'off') && (isVehicleAtHome(data))) {      
+    // get start time preferences
+    var start_time = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!B20').values[0];
       
-      // specific date/time to create a trigger for tomorrow morning at the preferred start time
-      var estimated_start_time = new Date (tomorrow_date + ' ' + start_time);
+    // specific date/time to create a trigger for tomorrow morning at the preferred start time
+    var estimated_start_time = new Date (tomorrow_date + ' ' + start_time);
       
-      // create precondition start trigger
-      if (doesTriggerExist('preconditionM3Start')) { deleteTrigger('preconditionM3Start'); }
-      ScriptApp.newTrigger('preconditionM3Start').timeBased().at(estimated_start_time).create();
-    }
+    // create precondition start trigger
+    if (doesTriggerExist('preconditionM3Start')) { deleteTrigger('preconditionM3Start'); }
+    ScriptApp.newTrigger('preconditionM3Start').timeBased().at(estimated_start_time).create();
   }
 }
 
@@ -29,30 +32,32 @@ function setMXPrecondition(data) {
   var tomorrow_date = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
   var eco_mode = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!I24').values[0];
   
-  // check if eco mode is off first so we don't have to even call the Tesla API if we don't have to
-  if (eco_mode == 'off') {
-    // check if the car is with 0.25 miles of home
-    if (isVehicleAtHome(data)) {        
-      // get start time preferences
-      var start_time = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!I20').values[0];
+  // check if eco mode is off and the car is with 0.25 miles of home
+  if ((eco_mode == 'off') && (isVehicleAtHome(data))) { 
+    // get start time preferences
+    var start_time = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!I20').values[0];
       
-      // specific date/time to create a trigger for tomorrow morning at the preferred start time
-      var estimated_start_time = new Date (tomorrow_date + ' ' + start_time);
+    // specific date/time to create a trigger for tomorrow morning at the preferred start time
+    var estimated_start_time = new Date (tomorrow_date + ' ' + start_time);
       
-      // create precondition start trigger
-      if (doesTriggerExist('preconditionMXStart')) { deleteTrigger('preconditionMXStart'); }
-      ScriptApp.newTrigger('preconditionMXStart').timeBased().at(estimated_start_time).create();
-    }
+    // create precondition start trigger
+    if (doesTriggerExist('preconditionMXStart')) { deleteTrigger('preconditionMXStart'); }
+    ScriptApp.newTrigger('preconditionMXStart').timeBased().at(estimated_start_time).create();
   }
 }
 
 /**
- * Checks a Google Sheet for heating and cooling preferences and sends a command to precondition the car.  Includes seat heating preferences.
- * Originally this just used the inside car temp but to also account for the outside temperature, it might be more comfortable for the occupants 
- * to look at the average of the two to determine when to pre-heat/cool.
+ * Checks a Google Sheet for heating and cooling preferences and sends a 
+ * command to precondition the car.  Includes seat heating preferences.
+ * Originally this just used the inside car temp but to also account for 
+ * the outside temperature, it might be more comfortable for the 
+ * occupants to look at the average of the two to determine when to 
+ * pre-heat/cool.
  *
- * Trying to use a weather API instead of the inside or outside temp data from the cars.  The temp data from the cars don't seem to be accurate enough 
- * and not representative of passenger comfort of when to pre-heat/cool.
+ * Currently using a weather API instead of the inside or outside temp 
+ * data from the cars.  The temp data from the cars don't seem to be 
+ * accurate enough and not representative of passenger comfort of when 
+ * to pre-heat/cool.
  *
  */
 function preconditionM3Start() {

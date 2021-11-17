@@ -35,8 +35,8 @@ WAIT_TIME = 30
 
 
 ##
-# Writes to a Google Sheet that calculates optimum charging start times for
-# 2 vehicles to reach the target SoC by a time specified in the sheet.
+# Writes to a Google Sheet that calculates optimum charging start times 
+# for 2 vehicles to reach the target SoC by a time specified in the sheet.
 #
 # author: mjhwa@yahoo.com
 ##
@@ -153,17 +153,9 @@ def writeMXStartTimes(data):
 
 
 ##
-# Read vehicle range and estimated charge start time from a the Google Sheet, 
-# then create a crontab to execute at a specific date and time.  The crontab 
-# will call a function to wake up the vehicle and send a command to start 
-# charging. 
-#
-# Since there's isn't an API yet to set the vehicle's scheduled charge time, 
-# this workaround is to set the time as "late" (5a) as possible in the vehicle 
-# console, then have this function set up a crontab to manually start charging 
-# the car at the optimal time.  When an API is available to set scheduled charge 
-# times, this function won't need to be run on a crontab and can be set in the 
-# car.
+# Called by a crontab to read vehicle range and estimated charge 
+# start time from a Google Sheet, then call the API to set a time 
+# for scheduled charging in the vehicle.
 #
 # author: mjhwa@yahoo.com
 ##
@@ -288,14 +280,14 @@ def scheduleMXCharging(m3_data, mx_data):
 
 
 ##
-# Checks to see if the vehicles are plugged in, inferred from the charge port 
-# door status, and sends an email to notify if it's not.  Also sets crontab
-# to manually start charging at the calculated date and time. Skips if it's 
-# not within 0.25 miles from home.
+# Checks to see if the vehicles are plugged in, inferred from the charge 
+# port door status, and sends an email to notify if it's not.  Also sets 
+# crontab to manually start charging at the calculated date and time. 
+# Skips if it's not within 0.25 miles from home.
 #
-# If one of the other cars is in Napa, set time charge start time based on the 
-# alternate charge rate and set the charge start time for the one at home to 
-# charge at full charge rate. 
+# If one of the other cars is in Napa, set time charge start time based 
+# on the alternate charge rate and set the charge start time for the one 
+# at home to charge at full charge rate. 
 #
 # author: mjhwa@yahoo.com
 ##
@@ -360,7 +352,7 @@ def notifyIsTeslaPluggedIn():
                   message, EMAIL_1, '')
         #print('send email: ' + message)
 
-    # set crontab for charging 
+    # set set for scheduled charging
     scheduleM3Charging(m3_data, mx_data)
     scheduleMXCharging(m3_data, mx_data)
 

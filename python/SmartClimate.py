@@ -24,9 +24,14 @@ buffer.close()
 
 
 ##
-# Creates a crontab to precondition the cabin for the following morning, based 
-# on if the car is at home or if "Eco Mode" is off similar to how Nest 
-# thermostats work for vacation scenarios.
+# Creates a trigger to precondition the cabin for the following morning, 
+# based on if the car is at home and if "Eco Mode" is off similar to how 
+# Nest thermostats work for vacation scenarios.  With the new endpoints 
+# released, you can achieve the same functionality by setting scheduled 
+# departure for preconditioning.  I decided to keep this code running 
+# as I don't drive long distances so the added feature of preconditioning 
+# the battery, in addition to the cabin, is a waste of energy (entropy) 
+# for me.
 #
 # author: mjhwa@yahoo.com
 ## 
