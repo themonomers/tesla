@@ -14,5 +14,4 @@ I created several in-depth videos walking through the functionality and code:  h
 Separate project:  GoogleSheetScriptEditor.gs - add to a Google Sheet script editor as a more simple way to get API data.
 
 /python
-Ported Tesla Google Apps Scripts to python for more control over functionality and as a backup. Additional scripts for Tesla Energy products that run on 
-local machines as they are writing to InfluxDB and I don't want to open that to the internet. 
+Ported Tesla Google Apps Scripts to python for more control over functionality and as a backup. Additional scripts for Tesla Energy products that run on local machines as they are writing to InfluxDB and I don't want to open that to the internet. 
