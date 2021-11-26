@@ -3,7 +3,7 @@ import os
 
 from datetime import datetime, date, timedelta
 from Utilities import getDailyWeather
-from TeslaEnergyAPI import setBatteryModeBackup, setBatteryModeSelfPowered, setBatteryBackupReserve
+from TeslaEnergyAPI import setBatteryModeBackup, setBatteryModeAdvancedCost, setBatteryBackupReserve
 from SendEmail import sendEmail
 from Crypto import decrypt
 from Logger import logError
@@ -34,8 +34,8 @@ PCT_THRESHOLD = 0.5
 # of rain is forecasted between sunrise and sunset, set the system to 
 # backup mode so it will reserve the battery stored energy and prioritize 
 # charging the battery in case there is an outage.  There tends not to be 
-# enough solar generation during rainy days for self-powered mode and 
-# recharge the battery to 100%.  
+# enough solar generation during rainy days for self-powered or time-based
+# control modes while also recharging the battery to 100%.  
 #
 # author: mjhwa@yahoo.com
 ##
@@ -95,7 +95,7 @@ def setEnergyModeBasedOnWeather():
       else:
         # if none of the days is above the threshold
         if (msg == ''):
-          setBatteryModeSelfPowered()
+          setBatteryModeAdvancedCost()
           setBatteryBackupReserve(35)
 
     if (msg != ''):
