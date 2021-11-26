@@ -425,7 +425,6 @@ def setBatteryModeAdvancedBalanced():
 ##
 def setBatteryModeAdvancedCost():
   setBatteryMode('autonomous')
-  setEnergyTOUSettings('economics')
 
 
 ##
