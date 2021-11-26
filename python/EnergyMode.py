@@ -30,7 +30,7 @@ PCT_THRESHOLD = 0.5
 
 ##
 # Set to run on an early morning cron job (before sunrise) that will 
-# check today and tommorrow's weather and if more than a certain percentage 
+# check today and tomorrow's weather and if more than a certain percentage 
 # of rain is forecasted between sunrise and sunset, set the system to 
 # backup mode so it will reserve the battery stored energy and prioritize 
 # charging the battery in case there is an outage.  There tends not to be 
@@ -83,7 +83,7 @@ def setEnergyModeBasedOnWeather():
           total += 1
 
       # if the ratio of rain to non-rain hours is greater than a specified
-      # percentage, set backup only mode, otherwise set self-powered mode
+      # percentage, set backup only mode, otherwise set time-based control mode
       if ((float(rain) / float(total)) > PCT_THRESHOLD): 
         setBatteryModeBackup()
 
