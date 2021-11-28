@@ -286,8 +286,8 @@ def getSiteTOUHistory(period, date):
            + '/calendar_history'
            + '?kind=time_of_use_energy'
            + '&period=' + period
+           + '&start_date=' + datetime.strftime(date - timedelta(1), '%Y-%m-%dT07:00:00Z')
            + '&end_date=' + datetime.strftime(date, '%Y-%m-%dT06:59:59Z')
-#           + '&end_date=' + datetime.strftime(date, '%Y-%m-%dT23:59:59Z')
           )
  
     response = json.loads(
