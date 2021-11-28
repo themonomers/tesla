@@ -711,13 +711,14 @@ def writeSiteTelemetryTOUSummary(date):
       }
     })
 
-    # copy formulas down: column DM to DP
+    # copy formulas down: column DM to DP, copy from previous row to allow for
+    # changes in formula due to electricity rate changes
     requests.append({
       'copyPaste': {
         'source': {
           'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': 4,
-          'endRowIndex': 5,
+          'startRowIndex': open_row - 2,
+          'endRowIndex': open_row - 1,
           'startColumnIndex': 116,
           'endColumnIndex': 121
         },
