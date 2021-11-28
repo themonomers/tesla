@@ -186,7 +186,6 @@ def writeSiteTelemetryTOUSummary(date):
     data = getSiteHistory('day', date)
 
     # write solar data for all day
-    open_row = findOpenRow(ENERGY_SPREADSHEET_ID, 'Telemetry-Summary','F:F')
     for key_1, value_1 in data['response'].items():
       if (isinstance(value_1, list) == True):
         for i in range(len(data['response'][key_1])):
@@ -312,7 +311,6 @@ def writeSiteTelemetryTOUSummary(date):
     if (data['response'] != ''):
 
       # write solar data for off peak
-      open_row = findOpenRow(ENERGY_SPREADSHEET_ID, 'Telemetry-Summary','AE:AE')
       for key_1, value_1 in data['response'].iteritems():
         if (key_1 == 'off_peak'):
           for i in range(len(data['response'][key_1]['time_series'])):
@@ -691,7 +689,7 @@ def writeSiteTelemetryTOUSummary(date):
           'pasteType': 'PASTE_NORMAL'
         }
       })
-
+    
     # copy formulas down: column CY to DB
     requests.append({
       'copyPaste': {
@@ -713,7 +711,6 @@ def writeSiteTelemetryTOUSummary(date):
       }
     })
 
-    """
     # copy formulas down: column DM to DP
     requests.append({
       'copyPaste': {
@@ -734,7 +731,6 @@ def writeSiteTelemetryTOUSummary(date):
         'pasteType': 'PASTE_NORMAL'
       }
     })
-    """
 
     # batch write data to sheet
     service = getGoogleSheetService()
