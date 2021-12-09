@@ -1,6 +1,7 @@
 import time
 import configparser
 import os
+import tzlocal
 
 from Influxdb import getDBClient
 from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getBatteryPowerHistory, getSavingsForecast
@@ -47,7 +48,15 @@ def writeSiteTelemetrySummary(date):
       'tags': {
         'source': 'total_pack_energy'
       },
-      'time': date.strftime('%Y-%m-%dT%H:%M:%S-7:00'),
+      'time': tzlocal.get_localzone().localize(datetime(
+        date.year, 
+        date.month, 
+        date.day, 
+        date.hour, 
+        date.minute, 
+        date.second, 
+        date.microsecond
+      )),
       'fields': {
         'value': float(data['response']['total_pack_energy'])
       }
@@ -58,7 +67,15 @@ def writeSiteTelemetrySummary(date):
       'tags': {
         'source': 'percentage_charged'
       },
-      'time': date.strftime('%Y-%m-%dT%H:%M:%S-7:00'),
+      'time': tzlocal.get_localzone().localize(datetime(
+        date.year, 
+        date.month, 
+        date.day, 
+        date.hour, 
+        date.minute, 
+        date.second, 
+        date.microsecond
+      )),
       'fields': {
         'value': float(data['response']['percentage_charged'])
       }
@@ -115,7 +132,15 @@ def writeSiteTelemetrySummary(date):
           'tags': {
             'source': 'savings_forecast'
           },
-          'time': datetime.strftime(d, '%Y-%m-%dT%H:%M:%S-7:00'),
+          'time': tzlocal.get_localzone().localize(datetime(
+            d.year, 
+            d.month, 
+            d.day, 
+            d.hour, 
+            d.minute, 
+            d.second, 
+            d.microsecond
+          )),
           'fields': {
             'value': float(data['response'][i]['value'])
           }
@@ -304,8 +329,8 @@ def writeSiteTelemetryTOUSummary(date):
       }
     })
 
-    # get solar data for TOU; time needs adjustment for UTC
-    data = getSiteTOUHistory('day', (date + timedelta(1)))
+    # get solar data for TOU
+    data = getSiteTOUHistory('day', date)
 
     # skip if system set to self-powered
     if (data['response'] != ''):
@@ -749,6 +774,170 @@ def writeSiteTelemetryTOUSummary(date):
   except Exception as e:
     logError('writeSiteTelemetryTOUSummary(): ' + str(e))
 
+##
+# Contains functions to read/write the solar and powerwall data, separated 
+# by peak/partial peak/off peak, into InfluxDB for tracking, analysis, 
+# and graphs.  The data is a summary level down to the day.
+#
+# author: mjhwa@yahoo.com
+##
+def writeSiteTelemetryTOUSummaryDB(date):
+  try:
+    json_body = []
+
+    # get solar data for all day
+    data = getSiteHistory('day', date)
+
+    # write solar data for all day
+    for key_1, value_1 in data['response'].items():
+      if (isinstance(value_1, list) == True):
+        for i in range(len(data['response'][key_1])):
+          d = datetime.strptime(
+            data['response'][key_1][i]['timestamp'].split('T',1)[0],
+            '%Y-%m-%d'
+          )
+
+          if (d.year == date.year
+              and d.month == date.month
+              and d.day == date.day):
+
+            """
+            print(tzlocal.get_localzone().localize(datetime(
+              date.year, 
+              date.month, 
+              date.day, 
+              0, 
+              0, 
+              0, 
+              0
+            )))
+            """
+
+            for key_2, value_2 in data['response'][key_1][i].items():
+              if (key_2 != 'timestamp'):
+                json_body.append({
+                  'measurement': 'all_day',
+                  'tags': {
+                    'source': key_2
+                  },
+                  'time': tzlocal.get_localzone().localize(datetime(
+                    date.year, 
+                    date.month, 
+                    date.day, 
+                    0, 
+                    0, 
+                    0, 
+                    0
+                  )),
+                  'fields': {
+                    'value': float(value_2)
+                  }
+                })
+
+    # get solar data for TOU
+    data = getSiteTOUHistory('day', date)
+
+    # write solar data for off peak
+    for key_1, value_1 in data['response'].iteritems():
+      if (key_1 == 'off_peak'):
+        for i in range(len(data['response'][key_1]['time_series'])):
+          d = datetime.strptime(
+            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
+            '%Y-%m-%d'
+          )
+
+          if (d.year == date.year
+              and d.month == date.month
+              and d.day == date.day):
+            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
+              if (key_2 != 'timestamp'):
+                json_body.append({
+                  'measurement': 'off_peak',
+                  'tags': {
+                    'source': key_2
+                  },
+                  'time': tzlocal.get_localzone().localize(datetime(
+                    date.year, 
+                    date.month, 
+                    date.day, 
+                    0, 
+                    0, 
+                    0, 
+                    0
+                  )),
+                  'fields': {
+                    'value': float(value_2)
+                  }
+                })
+      elif (key_1 == 'partial_peak'):
+        for i in range(len(data['response'][key_1]['time_series'])):
+          d = datetime.strptime(
+            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
+            '%Y-%m-%d'
+          )
+
+          if (d.year == date.year
+              and d.month == date.month
+              and d.day == date.day):
+            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
+              if (key_2 != 'timestamp'):
+                json_body.append({
+                  'measurement': 'partial_peak',
+                  'tags': {
+                    'source': key_2
+                  },
+                  'time': tzlocal.get_localzone().localize(datetime(
+                    date.year, 
+                    date.month, 
+                    date.day, 
+                    0, 
+                    0, 
+                    0, 
+                    0
+                  )),
+                  'fields': {
+                    'value': float(value_2)
+                  }
+                })
+      elif (key_1 == 'peak'):
+        for i in range(len(data['response'][key_1]['time_series'])):
+          d = datetime.strptime(
+            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
+            '%Y-%m-%d'
+          )
+
+          if (d.year == date.year
+              and d.month == date.month
+              and d.day == date.day):
+            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
+              if (key_2 != 'timestamp'):
+                json_body.append({
+                  'measurement': 'peak',
+                  'tags': {
+                    'source': key_2
+                  },
+                  'time': tzlocal.get_localzone().localize(datetime(
+                    date.year, 
+                    date.month, 
+                    date.day, 
+                    0, 
+                    0, 
+                    0, 
+                    0
+                  )),
+                  'fields': {
+                    'value': float(value_2)
+                  }
+                })
+
+    # Write to Influxdb
+    client = getDBClient()
+    client.switch_database('summary')
+    client.write_points(json_body)
+    client.close()
+  except Exception as e:
+    logError('writeSiteTelemetryTOUSummaryDB(): ' + str(e))
+
 
 ##
 # This writes solar and battery data in 5 minute increments in InfluxDB
@@ -819,6 +1008,9 @@ def writeSiteTelemetryDetail(date):
 def main():
   writeSiteTelemetrySummary(datetime.today() - timedelta(1))
   writeSiteTelemetryTOUSummary(datetime.today() - timedelta(1))
+  writeSiteTelemetryTOUSummaryDB(datetime.today() - timedelta(1))
+#  for i in range(1, 176): 
+#    writeSiteTelemetryTOUSummaryDB(datetime.today() - timedelta(i))
   writeSiteTelemetryDetail(datetime.today() - timedelta(1))
 
   # send email notification
