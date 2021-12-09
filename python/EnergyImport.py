@@ -1,6 +1,7 @@
 import time
 import configparser
 import os
+import tzlocal
 
 from TeslaEnergyAPI import getBatteryChargeHistory
 from Influxdb import getDBClient
@@ -120,15 +121,26 @@ def importSiteTelemetrySummary():
         for y in range(len(data[x])):
           if ((y != 0) and (y != 3) and (y != 4) and (y !=5) and (y < 19)):
 
+            date = datetime.strptime(data[x][0],'%B %d, %Y')
+
             json_body.append({
               'measurement': 'energy_summary',
               'tags': {
                 'source': data[1][y]
               },
-              'time': datetime.strptime(
-                data[x][0], 
-                '%B %d, %Y'
-              ).strftime('%Y-%m-%dT%H:%M:%S-7:00'),
+#              'time': datetime.strptime(
+#                data[x][0], 
+#                '%B %d, %Y'
+#              ).strftime('%Y-%m-%dT%H:%M:%S-7:00'),
+              'time': tzlocal.get_localzone().localize(datetime(
+                date.year,
+                date.month,
+                date.day,
+                date.hour,
+                date.minute,
+                date.second,
+                date.microsecond
+              )),
               'fields': {
                 'value': float(data[x][y].replace(',',''))
               }

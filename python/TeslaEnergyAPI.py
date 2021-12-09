@@ -2,6 +2,7 @@ import requests
 import json
 import configparser
 import os
+import pytz
 
 from Crypto import decrypt
 from Logger import logError
@@ -23,6 +24,8 @@ ACCESS_TOKEN = config['tesla']['access_token']
 SITE_ID = config['energy']['site_id']
 BATTERY_ID = config['energy']['battery_id']
 buffer.close()
+
+TIME_ZONE = 'America/Los_Angeles'
 
 
 ##
@@ -159,12 +162,23 @@ def getSiteInfo():
 ##
 def getSiteHistory(period, date):
   try:
+    local = pytz.timezone(TIME_ZONE)
+    date = local.localize(datetime(
+      date.year, 
+      date.month, 
+      date.day, 
+      23, 
+      59, 
+      59, 
+      0
+    ), is_dst=None)
+
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
            + SITE_ID 
            + '/calendar_history'
            + '?kind=energy'
            + '&end_date=' 
-           + datetime.strftime(date + timedelta(1), '%Y-%m-%dT06:59:59Z')
+           + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
            + '&period=' + period)
 
     response = json.loads(
@@ -281,13 +295,40 @@ def getBatteryBackupHistory():
 ##
 def getSiteTOUHistory(period, date):
   try:
+    local = pytz.timezone(TIME_ZONE)
+    s_date = local.localize(datetime(
+      date.year,
+      date.month,
+      date.day,
+      0,
+      0,
+      0,
+      0
+    ), is_dst=None)
+
+    e_date = local.localize(datetime(
+      date.year,
+      date.month,
+      date.day,
+      23,
+      59,
+      59,
+      0
+    ), is_dst=None)
+
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
            + SITE_ID
            + '/calendar_history'
            + '?kind=time_of_use_energy'
            + '&period=' + period
-           + '&start_date=' + datetime.strftime(date - timedelta(1), '%Y-%m-%dT07:00:00Z')
-           + '&end_date=' + datetime.strftime(date, '%Y-%m-%dT06:59:59Z')
+           + '&start_date=' 
+           + datetime.strftime(
+               s_date.astimezone(pytz.utc), 
+               '%Y-%m-%dT%H:%M:%SZ')
+           + '&end_date=' 
+           + datetime.strftime(
+               e_date.astimezone(pytz.utc), 
+               '%Y-%m-%dT%H:%M:%SZ')
           )
  
     response = json.loads(
@@ -362,12 +403,24 @@ def getSavingsForecast(period, date):
 ##
 def getBatteryChargeHistory(period, date):
   try:
+    local = pytz.timezone(TIME_ZONE)
+    date = local.localize(datetime(
+      date.year,
+      date.month,
+      date.day,
+      23,
+      59,
+      59,
+      0
+    ), is_dst=None)
+
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
            + SITE_ID 
            + '/calendar_history'
            + '?kind=soe'
            + '&period=' + period
-           + '&end_date=' + datetime.strftime(date, '%Y-%m-%dT06:59:59Z')
+           + '&end_date='
+           + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
           )
 
     response = json.loads(
@@ -589,7 +642,7 @@ def main():
     getSavingsForecast('day', date)
   elif choice == 8:
     date = raw_input('date(m/d/yyyy): ')
-    date = datetime.strptime(date, '%m/%d/%Y') + timedelta(1)
+    date = datetime.strptime(date, '%m/%d/%Y')
     getSiteTOUHistory('day', date)
   elif choice == 9:
     date = raw_input('date(m/d/yyyy): ')
