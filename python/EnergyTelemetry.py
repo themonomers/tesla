@@ -2,6 +2,7 @@ import time
 import configparser
 import os
 import tzlocal
+import pytz
 
 from Influxdb import getDBClient
 from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getBatteryPowerHistory, getSavingsForecast
@@ -28,6 +29,8 @@ SUMMARY_SHEET_ID = config['google']['summary_sheet_id']
 EMAIL_1 = config['notification']['email_1']
 buffer.close()
 
+TIME_ZONE = 'America/Los_Angeles'
+
 
 ##
 # Contains functions to read/write the solar and powerwall data into a 
@@ -48,7 +51,7 @@ def writeSiteTelemetrySummary(date):
       'tags': {
         'source': 'total_pack_energy'
       },
-      'time': tzlocal.get_localzone().localize(datetime(
+      'time': str(tzlocal.get_localzone().localize(datetime(
         date.year, 
         date.month, 
         date.day, 
@@ -56,7 +59,7 @@ def writeSiteTelemetrySummary(date):
         date.minute, 
         date.second, 
         date.microsecond
-      )),
+      ))),
       'fields': {
         'value': float(data['response']['total_pack_energy'])
       }
@@ -67,7 +70,7 @@ def writeSiteTelemetrySummary(date):
       'tags': {
         'source': 'percentage_charged'
       },
-      'time': tzlocal.get_localzone().localize(datetime(
+      'time': str(tzlocal.get_localzone().localize(datetime(
         date.year, 
         date.month, 
         date.day, 
@@ -75,7 +78,7 @@ def writeSiteTelemetrySummary(date):
         date.minute, 
         date.second, 
         date.microsecond
-      )),
+      ))),
       'fields': {
         'value': float(data['response']['percentage_charged'])
       }
@@ -113,34 +116,32 @@ def writeSiteTelemetrySummary(date):
                   }
                 })
 
-    # get solar value; need to adjust an additional -1 days because of the lag 
-    # in availability of this data
-    date = date - timedelta(1)
+    # get solar value 
     data = getSavingsForecast('day', date)
 
     for i in range(len(data['response'])):
       d = datetime.strptime(
-        data['response'][i]['timestamp'].split('T',1)[0],
-        '%Y-%m-%d'
+        data['response'][i]['timestamp'].split('+',1)[0],
+        '%Y-%m-%dT%H:%M:%S'
       )
-      if (d.year == date.year
-          and d.month == date.month
-          and d.day == date.day):
+      local = pytz.timezone('UTC')
+      d = local.localize(d, is_dst=None)
+
+      # timestamp in data is in UTC, convert to local time
+      d_local = d.astimezone(pytz.timezone(TIME_ZONE))
+
+      # need to adjust an additional -1 days because of the lag in 
+      # availability of this data
+      if (d_local.year == date.year
+          and d_local.month == date.month
+          and d_local.day == (date - timedelta(1)).day):
 
         json_body.append({
           'measurement': 'energy_summary',
           'tags': {
             'source': 'savings_forecast'
           },
-          'time': tzlocal.get_localzone().localize(datetime(
-            d.year, 
-            d.month, 
-            d.day, 
-            d.hour, 
-            d.minute, 
-            d.second, 
-            d.microsecond
-          )),
+          'time': data['response'][i]['timestamp'],
           'fields': {
             'value': float(data['response'][i]['value'])
           }
@@ -820,7 +821,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                   'tags': {
                     'source': key_2
                   },
-                  'time': tzlocal.get_localzone().localize(datetime(
+                  'time': str(tzlocal.get_localzone().localize(datetime(
                     date.year, 
                     date.month, 
                     date.day, 
@@ -828,7 +829,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                     0, 
                     0, 
                     0
-                  )),
+                  ))),
                   'fields': {
                     'value': float(value_2)
                   }
@@ -856,7 +857,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                   'tags': {
                     'source': key_2
                   },
-                  'time': tzlocal.get_localzone().localize(datetime(
+                  'time': str(tzlocal.get_localzone().localize(datetime(
                     date.year, 
                     date.month, 
                     date.day, 
@@ -864,7 +865,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                     0, 
                     0, 
                     0
-                  )),
+                  ))),
                   'fields': {
                     'value': float(value_2)
                   }
@@ -886,7 +887,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                   'tags': {
                     'source': key_2
                   },
-                  'time': tzlocal.get_localzone().localize(datetime(
+                  'time': str(tzlocal.get_localzone().localize(datetime(
                     date.year, 
                     date.month, 
                     date.day, 
@@ -894,7 +895,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                     0, 
                     0, 
                     0
-                  )),
+                  ))),
                   'fields': {
                     'value': float(value_2)
                   }
@@ -916,7 +917,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                   'tags': {
                     'source': key_2
                   },
-                  'time': tzlocal.get_localzone().localize(datetime(
+                  'time': str(tzlocal.get_localzone().localize(datetime(
                     date.year, 
                     date.month, 
                     date.day, 
@@ -924,7 +925,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                     0, 
                     0, 
                     0
-                  )),
+                  ))),
                   'fields': {
                     'value': float(value_2)
                   }
@@ -1009,7 +1010,7 @@ def main():
   writeSiteTelemetrySummary(datetime.today() - timedelta(1))
   writeSiteTelemetryTOUSummary(datetime.today() - timedelta(1))
   writeSiteTelemetryTOUSummaryDB(datetime.today() - timedelta(1))
-#  for i in range(1, 176): 
+#  for i in range(1, 177): 
 #    writeSiteTelemetryTOUSummaryDB(datetime.today() - timedelta(i))
   writeSiteTelemetryDetail(datetime.today() - timedelta(1))
 

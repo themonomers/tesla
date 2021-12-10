@@ -367,13 +367,40 @@ def getSiteTOUHistory(period, date):
 ##
 def getSavingsForecast(period, date):
   try:
+    local = pytz.timezone(TIME_ZONE)
+    s_date = local.localize(datetime(
+      date.year,
+      date.month,
+      date.day,
+      0,
+      0,
+      0,
+      0
+    ), is_dst=None)
+
+    e_date = local.localize(datetime(
+      date.year,
+      date.month,
+      date.day,
+      23,
+      59,
+      59,
+      0
+    ), is_dst=None)
+
     url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
            + SITE_ID
            + '/calendar_history'
            + '?kind=savings'
            + '&period=' + period
-           + '&start_date=' + datetime.strftime(date, '%Y-%m-%dT00:00:00Z')
-           + '&end_date=' + datetime.strftime(date, '%Y-%m-%dT23:59:59Z')
+           + '&start_date=' 
+           + datetime.strftime(
+               s_date.astimezone(pytz.utc),
+               '%Y-%m-%dT%H:%M:%SZ')
+           + '&end_date=' 
+           + datetime.strftime(
+               e_date.astimezone(pytz.utc),
+               '%Y-%m-%dT%H:%M:%SZ')
            + '&tariff=PGE-EV2-A'
           )
 
