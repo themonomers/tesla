@@ -2,13 +2,14 @@ import time
 import configparser
 import os
 import tzlocal
+import pytz
 
-from TeslaEnergyAPI import getBatteryChargeHistory
+from TeslaEnergyAPI import getBatteryChargeHistory, getBatteryBackupHistory
 from Influxdb import getDBClient
 from GoogleAPI import getGoogleSheetService
 from Crypto import decrypt
 from Logger import logError
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import StringIO
 
 buffer = StringIO(
@@ -24,6 +25,8 @@ config.sections()
 config.readfp(buffer)
 ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
 buffer.close()
+
+TIME_ZONE = 'America/Los_Angeles'
 
 
 ##
@@ -203,10 +206,82 @@ def importBatteryChargeHistory(date):
     logError('importBatteryChargeHistory(): ' + str(e))
 
 
+##
+# Import Tesla battery backup history/grid outages into an InfluxDB for
+# Grafana visualization.
+#
+# author: mjhwa@yahoo.com
+##
+def importBatteryBackupHistory():
+  try:
+    # get battery charge history data
+    data = getBatteryBackupHistory()
+
+    json_body = []
+    insert = ''
+
+    for i in range(len(data['response']['events'])):
+      print(str(i))
+
+      for key, value in data['response']['events'][i].items():
+        if (key == 'duration'):
+          duration = float(value) / 1000 / 60 / 60
+          print('  ' + key + ' = ' + str(duration) + ' hours')
+
+        if (key == 'timestamp'):
+          local = pytz.timezone(TIME_ZONE)
+
+          start = value[0:len(value) - 6:1]
+          start = local.localize(
+                    datetime.strptime(start, '%Y-%m-%dT%H:%M:%S')
+                  , is_dst=None)
+          print('  ' + key + ' = '
+                + datetime.strftime(start, '%Y-%m-%d %I:%M:%S %p'))
+
+          end = start + timedelta(hours=duration)
+          print('  end = '
+                + datetime.strftime(end, '%Y-%m-%d %I:%M:%S %p'))
+
+          insert = raw_input('import (y/n): ')
+          if insert != 'y':
+            break
+
+          json_body.append({
+            'measurement': 'backup',
+            'tags': {
+              'source': 'event'
+            },
+            'time': str(start.astimezone(pytz.utc)),
+            'fields': {
+              'value': duration
+            }
+          })
+
+          json_body.append({
+            'measurement': 'backup',
+            'tags': {
+              'source': 'event'
+            },
+            'time': str(end.astimezone(pytz.utc)),
+            'fields': {
+              'value': duration
+            }
+          })
+
+    # Write to Influxdb
+    client = getDBClient()
+    client.switch_database('outage')
+    client.write_points(json_body)
+    client.close()
+  except Exception as e:
+    logError('importBatteryBackupHistory(): ' + str(e))
+
+
 def main():
   print('[1] importSiteTelemetryDetail()')
   print('[2] importSiteTelemetrySummary()')
-  print('[3] importBatteryChargeHistory() \n')
+  print('[3] importBatteryChargeHistory()')
+  print('[4] importBatteryBackupHistory() \n')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -220,6 +295,8 @@ def main():
     date = raw_input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     importBatteryChargeHistory(date)
+  elif choice == 4:
+    importBatteryBackupHistory()
 
 if __name__ == "__main__":
   main()

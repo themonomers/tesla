@@ -265,6 +265,7 @@ def getBatteryBackupHistory():
       ).text
     )
 
+    """
     for i in range(len(response['response']['events'])):
       print(str(i))
 
@@ -281,6 +282,7 @@ def getBatteryBackupHistory():
           print('  end = ' 
                 + datetime.strftime((start 
                 + timedelta(hours=duration)), '%Y-%m-%d %I:%M:%S %p'))
+    """
 
     return response
   except Exception as e:
