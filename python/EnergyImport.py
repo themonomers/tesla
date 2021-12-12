@@ -5,6 +5,7 @@ import tzlocal
 import pytz
 
 from TeslaEnergyAPI import getBatteryChargeHistory, getBatteryBackupHistory
+from EnergyTelemetry import writeSiteTelemetrySummary, writeSiteTelemetryTOUSummary, writeSiteTelemetryTOUSummaryDB
 from Influxdb import getDBClient
 from GoogleAPI import getGoogleSheetService
 from Crypto import decrypt
@@ -277,11 +278,67 @@ def importBatteryBackupHistory():
     logError('importBatteryBackupHistory(): ' + str(e))
 
 
+##
+# Import missing dates for Tesla site telemetry summary.
+#
+# author: mjhwa@yahoo.com
+##
+def importSiteTelemetrySummary(date):
+  try:
+    print(date)
+
+    insert = raw_input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeSiteTelemetrySummary(date)
+  except Exception as e:
+    logError('importSiteTelemetrySummary(): ' + str(e))
+
+
+##
+# Import missing dates for Tesla site telemetry TOU summary.
+#
+# author: mjhwa@yahoo.com
+##
+def importSiteTelemetryTOUSummary(date):
+  try:
+    print(date)
+
+    insert = raw_input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeSiteTelemetryTOUSummary(date)
+  except Exception as e:
+    logError('importSiteTelemetryTOUSummary(): ' + str(e))
+
+
+# Import missing dates for Tesla site telemetry TOU summary for InfluxDB.
+#
+# author: mjhwa@yahoo.com
+##
+def importSiteTelemetryTOUSummaryDB(date):
+  try:
+    print(date)
+
+    insert = raw_input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeSiteTelemetryTOUSummaryDB(date)
+  except Exception as e:
+    logError('importSiteTelemetryTOUSummaryDB(): ' + str(e))
+
+
 def main():
   print('[1] importSiteTelemetryDetail()')
   print('[2] importSiteTelemetrySummary()')
   print('[3] importBatteryChargeHistory()')
-  print('[4] importBatteryBackupHistory() \n')
+  print('[4] importBatteryBackupHistory()')
+  print('[5] importSiteTelemetrySummary()')
+  print('[6] importSiteTelemetryTOUSummary()')
+  print('[7] importSiteTelemetryTOUSummaryDB() \n')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -297,6 +354,18 @@ def main():
     importBatteryChargeHistory(date)
   elif choice == 4:
     importBatteryBackupHistory()
+  elif choice == 5:
+    date = raw_input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    importSiteTelemetrySummary(date)
+  elif choice == 6:
+    date = raw_input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    importSiteTelemetryTOUSummary(date)
+  elif choice == 7:
+    date = raw_input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    importSiteTelemetryTOUSummaryDB(date)
 
 if __name__ == "__main__":
   main()
