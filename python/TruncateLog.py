@@ -68,6 +68,19 @@ def truncateLog():
             }
           }
         })
+
+        # add same number of rows deleted so it doesn't run out of rows
+        requests.append({
+          'insertDimension': {
+            'range': {
+              'sheetId': ERROR_SHEET_ID,
+              'dimension': 'ROWS',
+              'startIndex': (len(values) + 1),
+              'endIndex': (len(values) + 1 + index + 1)
+            }
+          }
+        })
+
         service.spreadsheets().batchUpdate(
           spreadsheetId=LOG_SPREADSHEET_ID,
           body={'requests': requests}
