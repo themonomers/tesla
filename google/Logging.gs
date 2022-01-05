@@ -41,10 +41,7 @@ function truncateLog() {
       SpreadsheetApp.openById(LOG_SPREADSHEET_ID).getRange('error!A1:B' + (x + 1)).deleteCells(SpreadsheetApp.Dimension.ROWS);
 
       // add same number of rows deleted to the bottom of the spreadsheet so it doesn't run out of rows
-      for (var i = 0; i < (x + 1); i++) {
-        var last_row = SpreadsheetApp.openById(LOG_SPREADSHEET_ID).getRange('error!A1:B').getLastRow();
-        SpreadsheetApp.openById(LOG_SPREADSHEET_ID).getRange('error!A' + last_row + ':B' + last_row).insertCells(SpreadsheetApp.Dimension.ROWS);
-      }
+      SpreadsheetApp.openById(LOG_SPREADSHEET_ID).getRange('error!A' + (values.length + 1) + ':B' + (values.length + x + 1)).insertCells(SpreadsheetApp.Dimension.ROWS);
 
       return;
     }
