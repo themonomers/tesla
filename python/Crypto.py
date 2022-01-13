@@ -117,7 +117,12 @@ def simpleEncrypt(read_fn, write_fn):
   f.close()
 
   # Read key
-  key_file = open('token_key', 'rb')
+  key_file = open(
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'token_key'
+    ), 'rb'
+  )
   key = key_file.read()
   key_file.close()
 
@@ -142,7 +147,12 @@ def simpleDecrypt(read_fn):
   f.close()
 
   # Read key
-  key_file = open('token_key', 'rb')
+  key_file = open(
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'token_key'
+    ), 'rb'
+  )
   key = key_file.read()
   key_file.close()
 
