@@ -343,7 +343,7 @@ def getSiteTOUHistory(period, date):
                e_date.astimezone(pytz.utc), 
                '%Y-%m-%dT%H:%M:%SZ')
           )
- 
+
     response = json.loads(
       requests.get(
         url,
