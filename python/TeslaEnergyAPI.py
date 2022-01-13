@@ -32,8 +32,6 @@ buffer = StringIO(
     )
   ).decode('utf-8')
 )
-config = configparser.ConfigParser()
-config.sections()
 config.readfp(buffer)
 ACCESS_TOKEN = config['tesla']['access_token']
 buffer.close()
