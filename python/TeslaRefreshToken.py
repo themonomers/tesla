@@ -70,3 +70,30 @@ f = open(
 )
 f.write(encrypted)
 f.close()
+
+# Write key for Google Apps Script
+f = open('/mnt/gdrive/google-apps-script/token.ini', 'wb')
+f.write((response)['access_token'])
+f.close()
+
+"""
+key_file = open(
+  os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'key_gas'
+  ), 'rb'
+)
+key = int(key_file.read())
+key_file.close()
+
+encoded = ''
+token = (response)['access_token']
+for i in range(0, len(token)):
+  a = ord(token[i])
+  b = (a ^ key)
+  encoded = encoded + chr(b)
+
+f = open('/mnt/gdrive/google-apps-script/token.ini', 'wb')
+f.write(encoded)
+f.close()
+"""
