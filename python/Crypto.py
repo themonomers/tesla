@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.backends import default_backend
+from itertools import cycle, izip
 
 ##
 # Opens a file and encrypts its contents to write to another file.  Also writes
@@ -25,7 +26,7 @@ def encrypt(read_fn, write_fn):
   # Generate private and public keys
   private_key = rsa.generate_private_key(
     public_exponent = 65537,
-    key_size = 10000,
+    key_size = 8192,
     backend = default_backend()
   )
   public_key = private_key.public_key()
@@ -100,9 +101,60 @@ def decrypt(encrypted_filename):
   )
 
 
+##
+# Simple encryption based on a key.
+#
+# author: mjhwa@yahoo.com
+##
+def simpleEncrypt(read_fn, write_fn):
+  # Check to see that the filenames are different
+  if (read_fn == write_fn):
+    raise Exception('Read and write filenames cannot be the same')
+
+  # Open unencrypted file
+  f = open(read_fn, 'rb')
+  message = f.read()
+  f.close()
+
+  # Read key
+  key_file = open('token_key', 'rb')
+  key = key_file.read()
+  key_file.close()
+
+  # Encrypt with key
+  encrypted = ''.join(chr(ord(c)^ord(k)) for c,k in izip(message, cycle(key)))
+
+  # Write encrypted file
+  f = open(write_fn, 'wb')
+  f.write(encrypted)
+  f.close()
+
+
+##
+# Simple decryption based on a key.
+#
+# author: mjhwa@yahoo.com
+##
+def simpleDecrypt(read_fn):
+  # Open encrypted file
+  f = open(read_fn, 'rb')
+  message = f.read()
+  f.close()
+
+  # Read key
+  key_file = open('token_key', 'rb')
+  key = key_file.read()
+  key_file.close()
+
+  # Decrypt with key
+  return ''.join(chr(ord(c)^ord(k)) for c,k in izip(message, cycle(key)))
+
+
 def main():
   print('[1] encrypt')
   print('[2] decrypt')
+  print('[3] simple encrypt')
+  print('[4] simple decrypt')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -119,6 +171,17 @@ def main():
 
     # Decrypt with private key
     print(decrypt(filename))
+  elif choice == 3:
+    read_fn = raw_input('read filename to encrypt: ')
+    write_fn = raw_input('write encrypted filename: ')
+ 
+    # Encrypt with simple key
+    simpleEncrypt(read_fn, write_fn)
+  elif choice == 4:
+    filename = raw_input('decrypt filename: ')
+
+    # Decrypt with simple key
+    print(simpleDecrypt(filename))
 
 if __name__ == "__main__":
   main()

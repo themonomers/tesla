@@ -4,7 +4,7 @@ import configparser
 import os
 import pytz
 
-from Crypto import decrypt
+from Crypto import decrypt, simpleDecrypt
 from Logger import logError
 from datetime import timedelta, datetime
 from io import StringIO
@@ -20,9 +20,22 @@ buffer = StringIO(
 config = configparser.ConfigParser()
 config.sections()
 config.readfp(buffer)
-ACCESS_TOKEN = config['tesla']['access_token']
 SITE_ID = config['energy']['site_id']
 BATTERY_ID = config['energy']['battery_id']
+buffer.close()
+
+buffer = StringIO(
+  simpleDecrypt(
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'token.xor'
+    )
+  ).decode('utf-8')
+)
+config = configparser.ConfigParser()
+config.sections()
+config.readfp(buffer)
+ACCESS_TOKEN = config['tesla']['access_token']
 buffer.close()
 
 TIME_ZONE = 'America/Los_Angeles'

@@ -4,15 +4,15 @@ import time
 import configparser
 import os
 
-from Crypto import decrypt
+from Crypto import simpleDecrypt
 from Logger import logError
 from io import StringIO  
 
 buffer = StringIO(
-  decrypt(
+  simpleDecrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'config.rsa'
+      'token.xor'
     )
   ).decode('utf-8')
 )
