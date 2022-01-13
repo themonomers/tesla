@@ -1,7 +1,6 @@
 import configparser
 import os
 import Logger
-import TeslaRefreshToken
 
 from Crypto import simpleDecrypt
 from datetime import timedelta, datetime
@@ -39,7 +38,7 @@ def checkTokenExpiration():
     #print('now: ' + str(datetime.today()))
 
     if (datetime.today() >= refresh_date):
-      TeslaRefreshToken
+      import TeslaRefreshToken
   except Exception as e:
     Logger.logError('checkTokenExpiration(): ' + str(e))
 
