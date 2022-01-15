@@ -237,7 +237,7 @@ def getBatteryPowerHistory():
         headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
       ).text
     )
-
+ 
     """
     for key_1, value_1 in response['response'].items():
       if (isinstance(value_1, list) == True):
@@ -482,6 +482,76 @@ def getBatteryChargeHistory(period, date):
 
 
 ##
+# Gets energy information in 5 minute increments, with ability to query by 
+# date.  Used to create the "ENERGY USAGE" charts in the mobile app.
+#
+# author: mjhwa@yahoo.com
+##
+def getPowerHistory(period, date):
+  try:
+    local = pytz.timezone(TIME_ZONE)
+    s_date = local.localize(datetime(
+      date.year,
+      date.month,
+      date.day,
+      0,
+      0,
+      0,
+      0
+    ), is_dst=None)
+
+    e_date = local.localize(datetime(
+      date.year,
+      date.month,
+      date.day,
+      23,
+      59,
+      59,
+      0
+    ), is_dst=None)
+
+    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+           + SITE_ID
+           + '/calendar_history'
+           + '?kind=power'
+           + '&start_date='
+           + datetime.strftime(
+               s_date.astimezone(pytz.utc), 
+               '%Y-%m-%dT%H:%M:%SZ')
+           + '&end_date='
+           + datetime.strftime(
+               e_date.astimezone(pytz.utc), 
+               '%Y-%m-%dT%H:%M:%SZ')
+           + '&period=' + period)
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+    """
+    for key_1, value_1 in response['response'].items():
+      if (isinstance(value_1, list) == True):
+        print(key_1)
+
+        for i in range(len(response['response'][key_1])):
+          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
+
+          for key_2, value_2 in response['response'][key_1][i].items():
+            if (key_2 != 'timestamp'):
+              print('    ' + key_2 + ' = ' + str(value_2))
+      else:
+        print(key_1 + ' = ' + str(value_1))
+    """
+
+    return response
+  except Exception as e:
+    logError('getPowerHistory(): ' + str(e))
+
+
+##
 # Changes operating mode, "CUSTOMIZE", in the mobile app to "Backup-only".
 #
 # author: mjhwa@yahoo.com
@@ -652,11 +722,12 @@ def main():
   print('[7]  getSavingsForecast()')
   print('[8]  getSiteTOUHistory()')
   print('[9]  getBatteryChargeHistory()')
-  print('[10] setBatteryModeBackup()')
-  print('[11] setBatteryModeSelfPowered()')
-  print('[12] setBatteryModeAdvancedBalanced()')
-  print('[13] setBatteryModeAdvancedCost()')
-  print('[14] setOffGridVehicleChargingReserve() \n')
+  print('[10] getPowerHistory()')
+  print('[11] setBatteryModeBackup()')
+  print('[12] setBatteryModeSelfPowered()')
+  print('[13] setBatteryModeAdvancedBalanced()')
+  print('[14] setBatteryModeAdvancedCost()')
+  print('[15] setOffGridVehicleChargingReserve() \n')
   try:
     choice = int(raw_input('selection: '))
   except ValueError:
@@ -689,20 +760,24 @@ def main():
     date = datetime.strptime(date, '%m/%d/%Y')
     getBatteryChargeHistory('day', date)
   elif choice == 10:
-    setBatteryModeBackup()
+    date = raw_input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    getPowerHistory('day', date)
   elif choice == 11:
+    setBatteryModeBackup()
+  elif choice == 12:
     percent = float(raw_input('% battery reserve: '))
     setBatteryModeSelfPowered()
     setBatteryBackupReserve(percent)
-  elif choice == 12:
+  elif choice == 13:
     percent = float(raw_input('% battery reserve: '))
     setBatteryModeAdvancedBalanced()
     setBatteryBackupReserve(percent)
-  elif choice == 13:
+  elif choice == 14:
     percent = float(raw_input('% battery reserve: '))
     setBatteryModeAdvancedCost()
     setBatteryBackupReserve(percent)
-  elif choice == 14:
+  elif choice == 15:
     percent = float(raw_input('% save for home use: '))
     setOffGridVehicleChargingReserve(percent)
 
