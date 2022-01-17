@@ -32,8 +32,9 @@ def checkTokenExpiration():
     # get token expiration date
     expiration_date = datetime.strptime(EXPIRES_AT, '%Y-%m-%d %H:%M:%S')
 
-    # get the refresh date (2 hours prior)
-    refresh_date = expiration_date - timedelta(hours=2)
+    # get the refresh date 1 hours and 5 minutes prior
+    # the additional 5 minutes is because of crontab timing
+    refresh_date = expiration_date - timedelta(hours=1, minutes=5)
     #print('refresh date: ' + str(refresh_date))
     #print('now: ' + str(datetime.today()))
 
