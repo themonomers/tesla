@@ -191,53 +191,30 @@ function writeAllM3Data() {
   var row = 0;
 
   for (var [key1, val1] of Object.entries(data.response)) {
-    if ((typeof val1 != 'object') || (val1 == null)) {
 //      Logger.log(key1 + ': ' + val1);
       row++;
       inputs.push({
         range: 'Data-M3!A' + row + ':D' + row, 
         values: [[key1,'','',Utilities.formatString('%s',val1)]]
       });
-    } else {
-//      Logger.log(key1 + ': ');
-      row++;
-      inputs.push({
-        range: 'Data-M3!A' + row + ':D' + row, 
-        values: [[key1,'','','']]
-      });
 
+    if ((typeof val1 == 'object') && (val1 != null)) {
       for (var [key2, val2] of Object.entries(data.response[key1])) {
-        if ((typeof val2 != 'object') || (val2 == null)) {
-//          Logger.log('  ' + key2 + ': ' + val2);
-          row++;
-          inputs.push({
-            range: 'Data-M3!B' + row + ':D' + row, 
-            values: [[key2,'',Utilities.formatString('%s',val2)]]
-          });
-        } else {
-//          Logger.log('  ' + key2 + ': ');
-          row++;
-          inputs.push({
-            range: 'Data-M3!B' + row + ':D' + row, 
-            values: [[key2,'','']]
-          });
+//        Logger.log('  ' + key2 + ': ' + val2);
+        row++;
+        inputs.push({
+          range: 'Data-M3!B' + row + ':D' + row, 
+          values: [[key2,'',Utilities.formatString('%s',val2)]]
+        });
 
+        if ((typeof val2 == 'object') && (val2 != null)) {
           for (var [key3, val3] of Object.entries(data.response[key1][key2])) {
-            if ((typeof val3 != 'object') || (val3 == null)) {
-//              Logger.log('    ' + key3 + ': ' + val3);
-              row++;
-              inputs.push({
-                range: 'Data-M3!C' + row + ':D' + row, 
-                values: [[key3,val3]]
-              });
-            } else {
-//              Logger.log('    ' + key3 + ': ');
-              row++;
-              inputs.push({
-                range: 'Data-M3!C' + row + ':D' + row, 
-                values: [[key3,'']]
-              });
-            }
+//            Logger.log('    ' + key3 + ': ' + val3);
+            row++;
+            inputs.push({
+              range: 'Data-M3!C' + row + ':D' + row, 
+              values: [[key3,val3]]
+            });
           }
         }
       }
@@ -262,53 +239,30 @@ function writeAllMXData() {
   var row = 0;
 
   for (var [key1, val1] of Object.entries(data.response)) {
-    if ((typeof val1 != 'object') || (val1 == null)) {
 //      Logger.log(key1 + ': ' + val1);
       row++;
       inputs.push({
         range: 'Data-MX!A' + row + ':D' + row, 
         values: [[key1,'','',Utilities.formatString('%s',val1)]]
       });
-    } else {
-//      Logger.log(key1 + ': ');
-      row++;
-      inputs.push({
-        range: 'Data-MX!A' + row + ':D' + row, 
-        values: [[key1,'','','']]
-      });
 
+    if ((typeof val1 == 'object') && (val1 != null)) {
       for (var [key2, val2] of Object.entries(data.response[key1])) {
-        if ((typeof val2 != 'object') || (val2 == null)) {
-//          Logger.log('  ' + key2 + ': ' + val2);
-          row++;
-          inputs.push({
-            range: 'Data-MX!B' + row + ':D' + row, 
-            values: [[key2,'',Utilities.formatString('%s',val2)]]
-          });
-        } else {
-//          Logger.log('  ' + key2 + ': ');
-          row++;
-          inputs.push({
-            range: 'Data-MX!B' + row + ':D' + row, 
-            values: [[key2,'','']]
-          });
+//        Logger.log('  ' + key2 + ': ' + val2);
+        row++;
+        inputs.push({
+          range: 'Data-MX!B' + row + ':D' + row, 
+          values: [[key2,'',Utilities.formatString('%s',val2)]]
+        });
 
+        if ((typeof val2 == 'object') && (val2 != null)) {
           for (var [key3, val3] of Object.entries(data.response[key1][key2])) {
-            if ((typeof val3 != 'object') || (val3 == null)) {
-//              Logger.log('    ' + key3 + ': ' + val3);
-              row++;
-              inputs.push({
-                range: 'Data-MX!C' + row + ':D' + row, 
-                values: [[key3,val3]]
-              });
-            } else {
-//              Logger.log('    ' + key3 + ': ');
-              row++;
-              inputs.push({
-                range: 'Data-MX!C' + row + ':D' + row, 
-                values: [[key3,'']]
-              });
-            }
+//            Logger.log('    ' + key3 + ': ' + val3);
+            row++;
+            inputs.push({
+              range: 'Data-MX!C' + row + ':D' + row, 
+              values: [[key3,val3]]
+            });
           }
         }
       }
