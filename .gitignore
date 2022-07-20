@@ -1,0 +1,10 @@
+*.pyc
+*.pem
+*.svg
+*.rsa
+*.json
+*.xor
+*Test*
+*Local*
+cron_log
+token_key
