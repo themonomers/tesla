@@ -21,7 +21,6 @@ config.readfp(buffer)
 QUERY_1 = config['notification']['query_1']
 QUERY_2 = config['notification']['query_2']
 QUERY_3 = config['notification']['query_3']
-QUERY_4 = config['notification']['query_4']
 buffer.close()
 
 DELETE_THRESHOLD = 30
@@ -78,7 +77,7 @@ def main():
   truncateEmail(QUERY_1)
   truncateEmail(QUERY_2)
   truncateEmail(QUERY_3)
-  truncateEmail(QUERY_4)
+
 
 if __name__ == "__main__":
   main()
