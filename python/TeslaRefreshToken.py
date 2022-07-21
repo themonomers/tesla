@@ -7,8 +7,7 @@ import os
 import tzlocal
 import base64
 
-from Crypto import simpleDecrypt
-from itertools import cycle, izip
+from Crypto import simpleDecrypt, simpleEncrypt
 from datetime import datetime, timedelta
 from io import StringIO
 
@@ -42,35 +41,43 @@ response = json.loads(requests.post(
 
 dt = datetime.now()
 
-# write output to config file
+# format output
 message =  '[tesla]\n'
 message += 'access_token=' + (response)['access_token'] + '\n'
 message += 'refresh_token=' + (response)['refresh_token'] + '\n'
 message += 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
 message += 'expires_at=' + datetime.strftime(tzlocal.get_localzone().localize(dt + timedelta(seconds=(response)['expires_in'])), '%Y-%m-%d %H:%M:%S') + '\n'
 
-# Read key
-key_file = open(
-  os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    'token_key'
-  ), 'rb'
-)
-key = key_file.read()
-key_file.close()
-
-# Encrypt with key
-encrypted = ''.join(chr(ord(c)^ord(k)) for c,k in izip(message, cycle(key)))
-
-# Write encrypted file
+# write output to temp config file
 f = open(
   os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    'token.xor'
+    'token_temp.ini'
   ), 'wb'
 )
-f.write(encrypted)
-f.close()
+f.write(message)
+f.flush()
+f.close
+
+# encrypt config file
+simpleEncrypt(
+  os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'token_temp.ini'
+  ),
+  os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'token.xor'
+  )
+)
+
+# remove temp config file
+os.remove(
+  os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'token_temp.ini'
+  )
+)
 
 # Write encoded key for Google Apps Script
 s_bytes = (response)['access_token'].encode('ascii')
