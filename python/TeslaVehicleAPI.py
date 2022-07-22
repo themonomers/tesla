@@ -23,6 +23,7 @@ ACCESS_TOKEN = config['tesla']['access_token']
 buffer.close()
 
 WAIT_TIME = 30 
+URL = 'https://owner-api.teslamotors.com/api/1/vehicles'
 
 
 ##
@@ -33,11 +34,9 @@ WAIT_TIME = 30
 ##
 def getVehicleId(vin):
   try:
-    url = 'https://owner-api.teslamotors.com/api/1/vehicles'
-    
     response = json.loads(
       requests.get(
-        url, 
+        URL, 
         headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
       ).text
     )
@@ -56,7 +55,8 @@ def getVehicleId(vin):
 ##
 def getVehicleData(vin):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
+    url = (URL
+           + '/'
            + getVehicleId(vin) 
            + '/vehicle_data')
 
@@ -77,7 +77,8 @@ def getVehicleData(vin):
 ##
 def wakeVehicle(vin):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+    url = (URL
+           + '/'
            + getVehicleId(vin) 
            + '/wake_up')
 
@@ -98,7 +99,8 @@ def wakeVehicle(vin):
 ##
 def chargeVehicle(vin):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+    url = (URL
+           + '/'
            + getVehicleId(vin) 
            + '/command/charge_start')
 
@@ -117,7 +119,8 @@ def chargeVehicle(vin):
 ##
 def stopChargeVehicle(vin):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
+    url = (URL
+           + '/'
            + getVehicleId(vin)
            + '/command/charge_stop')
 
@@ -138,7 +141,8 @@ def stopChargeVehicle(vin):
 ##
 def setScheduledCharging(vin, time):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+    url = (URL
+           + '/'
            + getVehicleId(vin) 
            + '/command/set_scheduled_charging')
 
@@ -173,7 +177,8 @@ def setScheduledDeparture(
   off_peak_end_time
 ):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
+    url = (URL
+           + '/'
            + getVehicleId(vin)
            + '/command/set_scheduled_departure')
 
@@ -203,7 +208,8 @@ def setScheduledDeparture(
 ##
 def setChargingAmps(vin, amps):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
+    url = (URL
+           + '/'
            + getVehicleId(vin)
            + '/command/set_charging_amps')
 
@@ -227,7 +233,8 @@ def setChargingAmps(vin, amps):
 ##
 def setCarTemp(vin, d_temp, p_temp):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+    url = (URL
+           + '/'
            + getVehicleId(vin) 
            + '/command/set_temps')
 
@@ -252,7 +259,8 @@ def setCarTemp(vin, d_temp, p_temp):
 ##
 def setCarSeatHeating(vin, seat, setting):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+    url = (URL
+           + '/'
            + getVehicleId(vin) 
            + '/command/remote_seat_heater_request')
 
@@ -282,7 +290,8 @@ def setCarSeatHeating(vin, seat, setting):
 ##
 def preconditionCarStart(vin):
   try:  
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/' 
+    url = (URL
+           + '/'
            + getVehicleId(vin) 
            + '/command/auto_conditioning_start')
 
@@ -301,7 +310,8 @@ def preconditionCarStart(vin):
 ##
 def preconditionCarStop(vin):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/vehicles/'
+    url = (URL
+           + '/'
            + getVehicleId(vin)
            + '/command/auto_conditioning_stop')
 
