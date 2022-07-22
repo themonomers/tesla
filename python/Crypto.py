@@ -102,11 +102,11 @@ def decrypt(encrypted_filename):
 
 
 ##
-# Simple encryption based on a key.
+# Simple encryption of a file, based on a key.
 #
 # author: mjhwa@yahoo.com
 ##
-def simpleEncrypt(read_fn, write_fn):
+def simpleEncryptFile(read_fn, write_fn):
   # Check to see that the filenames are different
   if (read_fn == write_fn):
     raise Exception('Read and write filenames cannot be the same')
@@ -116,6 +116,16 @@ def simpleEncrypt(read_fn, write_fn):
   message = f.read()
   f.close()
 
+  # Encrypt file
+  simpleEncrypt(message, write_fn)
+
+
+##
+# Simple encryption based on a key.
+#
+# author: mjhwa@yahoo.com
+##
+def simpleEncrypt(message, write_fn):
   # Read key
   key_file = open(
     os.path.join(
@@ -186,7 +196,7 @@ def main():
     write_fn = raw_input('write encrypted filename: ')
  
     # Encrypt with simple key
-    simpleEncrypt(read_fn, write_fn)
+    simpleEncryptFile(read_fn, write_fn)
   elif choice == 4:
     filename = raw_input('decrypt filename: ')
 

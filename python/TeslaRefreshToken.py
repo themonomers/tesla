@@ -25,7 +25,7 @@ config.readfp(buffer)
 REFRESH_TOKEN = config['tesla']['refresh_token']
 buffer.close()
 
-# Exchange bearer token for access token
+# Get new access and refresh tokens
 url = 'https://auth.tesla.com/oauth2/v3/token'
 payload = {
   'grant_type': 'refresh_token',
@@ -41,41 +41,19 @@ response = json.loads(requests.post(
 
 dt = datetime.now()
 
-# format output
+# Format output
 message =  '[tesla]\n'
 message += 'access_token=' + (response)['access_token'] + '\n'
 message += 'refresh_token=' + (response)['refresh_token'] + '\n'
 message += 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
 message += 'expires_at=' + datetime.strftime(tzlocal.get_localzone().localize(dt + timedelta(seconds=(response)['expires_in'])), '%Y-%m-%d %H:%M:%S') + '\n'
 
-# write output to temp config file
-f = open(
-  os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    'token_temp.ini'
-  ), 'wb'
-)
-f.write(message)
-f.flush()
-f.close
-
-# encrypt config file
+# Encrypt config file
 simpleEncrypt(
-  os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    'token_temp.ini'
-  ),
+  message,
   os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     'token.xor'
-  )
-)
-
-# remove temp config file
-os.remove(
-  os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    'token_temp.ini'
   )
 )
 
