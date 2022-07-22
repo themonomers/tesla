@@ -37,6 +37,7 @@ ACCESS_TOKEN = config['tesla']['access_token']
 buffer.close()
 
 TIME_ZONE = 'America/Los_Angeles'
+BASE_URL = 'https://owner-api.teslamotors.com/api/1'
 
 
 ##
@@ -46,7 +47,8 @@ TIME_ZONE = 'America/Los_Angeles'
 ##
 def getSiteStatus():
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID 
            + '/site_status')
 
@@ -74,7 +76,8 @@ def getSiteStatus():
 ##
 def getSiteLiveStatus():
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID
            + '/live_status')
 
@@ -102,7 +105,8 @@ def getSiteLiveStatus():
 ##
 def getSiteInfo():
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID
            + '/site_info')
 
@@ -184,7 +188,8 @@ def getSiteHistory(period, date):
       0
     ), is_dst=None)
 
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID 
            + '/calendar_history'
            + '?kind=energy'
@@ -227,7 +232,8 @@ def getSiteHistory(period, date):
 ##
 def getBatteryPowerHistory():
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/powerwalls/'
+    url = (BASE_URL
+           +'/powerwalls/' 
            + BATTERY_ID
            + '/powerhistory')
 
@@ -265,7 +271,8 @@ def getBatteryPowerHistory():
 ##
 def getBatteryBackupHistory():
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID 
            + '/history?kind=backup')
 
@@ -329,7 +336,8 @@ def getSiteTOUHistory(period, date):
       0
     ), is_dst=None)
 
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID
            + '/calendar_history'
            + '?kind=time_of_use_energy'
@@ -401,7 +409,8 @@ def getSavingsForecast(period, date):
       0
     ), is_dst=None)
 
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID
            + '/calendar_history'
            + '?kind=savings'
@@ -454,7 +463,8 @@ def getBatteryChargeHistory(period, date):
       0
     ), is_dst=None)
 
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID 
            + '/calendar_history'
            + '?kind=soe'
@@ -510,7 +520,8 @@ def getPowerHistory(period, date):
       0
     ), is_dst=None)
 
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID
            + '/calendar_history'
            + '?kind=power'
@@ -597,7 +608,8 @@ def setBatteryModeAdvancedCost():
 ##
 def setBatteryMode(mode):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID 
            + '/operation')
     payload = {
@@ -620,7 +632,8 @@ def setBatteryMode(mode):
 ##
 def setBatteryBackupReserve(backup_percent):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID 
            + '/backup')
     payload = {
@@ -644,7 +657,8 @@ def setBatteryBackupReserve(backup_percent):
 ##
 def setOffGridVehicleChargingReserve(percent):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/' 
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID 
            + '/off_grid_vehicle_charging_reserve')
     payload = {
@@ -670,7 +684,8 @@ def setOffGridVehicleChargingReserve(percent):
 ##
 def setEnergyTOUSettings(strategy):
   try:
-    url = ('https://owner-api.teslamotors.com/api/1/energy_sites/'
+    url = (BASE_URL
+           +'/energy_sites/' 
            + SITE_ID
            + '/time_of_use_settings')
     payload = {
