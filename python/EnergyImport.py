@@ -314,6 +314,7 @@ def importSiteTelemetryTOUSummary(date):
     logError('importSiteTelemetryTOUSummary(): ' + str(e))
 
 
+##
 # Import missing dates for Tesla site telemetry TOU summary for InfluxDB.
 #
 # author: mjhwa@yahoo.com
@@ -331,6 +332,13 @@ def importSiteTelemetryTOUSummaryDB(date):
     logError('importSiteTelemetryTOUSummaryDB(): ' + str(e))
 
 
+##
+# Collection of data import functions run from CLI python 
+# to manually run automated data collection routines that 
+# failed.
+#
+# author: mjhwa@yahoo.com
+##
 def main():
   print('[1] importSiteTelemetryDetail()')
   print('[2] importSiteTelemetrySummary()')
