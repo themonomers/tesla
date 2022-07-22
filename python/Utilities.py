@@ -29,6 +29,7 @@ OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
 buffer.close()
 
 R = 3958.8  #Earth radius in miles
+BASE_WEATHER_URL = 'https://api.openweathermap.org/data/2.5'
 
 
 ##
@@ -124,7 +125,8 @@ def toRad(x):
 ##
 def getCurrentWeather(zipcode):
   try:
-    url = ('https://api.openweathermap.org/data/2.5/weather'
+    url = (BASE_WEATHER_URL
+           + '/weather'
            + '?zip=' + zipcode
            + '&APPID=' + OPENWEATHERMAP_KEY
            + '&units=metric')
@@ -145,7 +147,8 @@ def getCurrentWeather(zipcode):
 ##
 def getDailyWeather(lat, lng):
   try:
-    url = ('https://api.openweathermap.org/data/2.5/onecall'
+    url = (BASE_WEATHER_URL
+           + '/onecall'
            + '?lat=' + str(lat)
            + '&lon=' + str(lng)
            + '&APPID=' + OPENWEATHERMAP_KEY
