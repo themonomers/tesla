@@ -282,7 +282,7 @@ def scheduleMXCharging(m3_data, mx_data):
 ##
 # Checks to see if the vehicles are plugged in, inferred from the charge 
 # port door status, and sends an email to notify if it's not.  Also sets 
-# crontab to manually start charging at the calculated date and time. 
+# scheduled charging time to start charging at the calculated date and time. 
 # Skips if it's not within 0.25 miles from home.
 #
 # If one of the other cars is in Napa, set time charge start time based 
