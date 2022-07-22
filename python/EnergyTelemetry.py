@@ -1010,8 +1010,6 @@ def main():
   writeSiteTelemetrySummary(datetime.today() - timedelta(1))
   writeSiteTelemetryTOUSummary(datetime.today() - timedelta(1))
   writeSiteTelemetryTOUSummaryDB(datetime.today() - timedelta(1))
-#  for i in range(1, 177): 
-#    writeSiteTelemetryTOUSummaryDB(datetime.today() - timedelta(i))
   writeSiteTelemetryDetail(datetime.today() - timedelta(1))
 
   # send email notification
