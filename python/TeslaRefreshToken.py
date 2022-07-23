@@ -1,6 +1,5 @@
 import requests
 import json
-import urllib
 import datetime
 import configparser
 import os

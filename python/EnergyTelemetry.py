@@ -1,4 +1,3 @@
-import time
 import configparser
 import os
 import tzlocal
