@@ -2,6 +2,7 @@ from Influxdb import getDBClient
 from TeslaEnergyAPI import getSiteLiveStatus
 from Logger import logError
 
+# test vscode
 ##
 # Writes live energy data to InfluxDB.  
 #
