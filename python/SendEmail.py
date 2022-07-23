@@ -41,7 +41,7 @@ def sendEmail(to, subject, message, cc, filename):
     msg.attach(MIMEText(message, 'plain'))
 
     if (filename != ''):
-      f = file(
+      f = file( # type: ignore
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
           filename
