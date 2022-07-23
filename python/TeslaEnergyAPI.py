@@ -744,7 +744,7 @@ def main():
   print('[14] setBatteryModeAdvancedCost()')
   print('[15] setOffGridVehicleChargingReserve() \n')
   try:
-    choice = int(raw_input('selection: '))
+    choice = int(raw_input('selection: ')) # type: ignore
   except ValueError:
     return
 
@@ -755,7 +755,7 @@ def main():
   elif choice == 3:
     getSiteInfo()
   elif choice == 4:
-    date = raw_input('date(m/d/yyyy): ')
+    date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     getSiteHistory('day', date)
   elif choice == 5:
@@ -763,37 +763,37 @@ def main():
   elif choice == 6:
     getBatteryBackupHistory()
   elif choice == 7:
-    date = raw_input('date(m/d/yyyy): ')
+    date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     getSavingsForecast('day', date)
   elif choice == 8:
-    date = raw_input('date(m/d/yyyy): ')
+    date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     getSiteTOUHistory('day', date)
   elif choice == 9:
-    date = raw_input('date(m/d/yyyy): ')
+    date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     getBatteryChargeHistory('day', date)
   elif choice == 10:
-    date = raw_input('date(m/d/yyyy): ')
+    date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     getPowerHistory('day', date)
   elif choice == 11:
     setBatteryModeBackup()
   elif choice == 12:
-    percent = float(raw_input('% battery reserve: '))
+    percent = float(raw_input('% battery reserve: ')) # type: ignore
     setBatteryModeSelfPowered()
     setBatteryBackupReserve(percent)
   elif choice == 13:
-    percent = float(raw_input('% battery reserve: '))
+    percent = float(raw_input('% battery reserve: ')) # type: ignore
     setBatteryModeAdvancedBalanced()
     setBatteryBackupReserve(percent)
   elif choice == 14:
-    percent = float(raw_input('% battery reserve: '))
+    percent = float(raw_input('% battery reserve: ')) # type: ignore
     setBatteryModeAdvancedCost()
     setBatteryBackupReserve(percent)
   elif choice == 15:
-    percent = float(raw_input('% save for home use: '))
+    percent = float(raw_input('% save for home use: ')) # type: ignore
     setOffGridVehicleChargingReserve(percent)
 
 

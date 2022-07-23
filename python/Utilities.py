@@ -200,13 +200,13 @@ def main():
   print('[3] getDailyWeather')
 
   try:
-    choice = int(raw_input('selection: '))
+    choice = int(raw_input('selection: ')) # type: ignore
   except ValueError:
     return
 
   if (choice == 1):
-    lat = float(raw_input('latitude: '))
-    lng = float(raw_input('longitude: '))
+    lat = float(raw_input('latitude: ')) # type: ignore
+    lng = float(raw_input('longitude: ')) # type: ignore
     print(
       'distance from home: ' 
       + str(
@@ -219,7 +219,7 @@ def main():
       )
     )
   elif (choice == 2):
-    zip = raw_input('zip code: ')
+    zip = raw_input('zip code: ') # type: ignore
     data = getCurrentWeather(zip)
     
     for key_1, value_1 in data.iteritems():

@@ -183,7 +183,7 @@ def importBatteryChargeHistory(date):
         elif key == 'soe':
           soe = value
 
-          insert = raw_input('import (y/n): ')
+          insert = raw_input('import (y/n): ') # type: ignore
           if insert != 'y':
             break
 
@@ -243,7 +243,7 @@ def importBatteryBackupHistory():
           print('  end = '
                 + datetime.strftime(end, '%Y-%m-%d %I:%M:%S %p'))
 
-          insert = raw_input('import (y/n): ')
+          insert = raw_input('import (y/n): ') # type: ignore
           if insert != 'y':
             break
 
@@ -287,7 +287,7 @@ def importSiteTelemetrySummary(date):
   try:
     print(date)
 
-    insert = raw_input('import (y/n): ')
+    insert = raw_input('import (y/n): ') # type: ignore
     if insert != 'y':
       return
 
@@ -305,7 +305,7 @@ def importSiteTelemetryTOUSummary(date):
   try:
     print(date)
 
-    insert = raw_input('import (y/n): ')
+    insert = raw_input('import (y/n): ') # type: ignore
     if insert != 'y':
       return
 
@@ -323,7 +323,7 @@ def importSiteTelemetryTOUSummaryDB(date):
   try:
     print(date)
 
-    insert = raw_input('import (y/n): ')
+    insert = raw_input('import (y/n): ') # type: ignore
     if insert != 'y':
       return
 
@@ -348,7 +348,7 @@ def main():
   print('[6] importSiteTelemetryTOUSummary()')
   print('[7] importSiteTelemetryTOUSummaryDB() \n')
   try:
-    choice = int(raw_input('selection: '))
+    choice = int(raw_input('selection: ')) # type: ignore
   except ValueError:
     return
 
@@ -357,21 +357,21 @@ def main():
   elif choice == 2:
     importSiteTelemetrySummary()
   elif choice == 3:
-    date = raw_input('date(m/d/yyyy): ')
+    date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     importBatteryChargeHistory(date)
   elif choice == 4:
     importBatteryBackupHistory()
   elif choice == 5:
-    date = raw_input('date(m/d/yyyy): ')
+    date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     importSiteTelemetrySummary(date)
   elif choice == 6:
-    date = raw_input('date(m/d/yyyy): ')
+    date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     importSiteTelemetryTOUSummary(date)
   elif choice == 7:
-    date = raw_input('date(m/d/yyyy): ')
+    date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     importSiteTelemetryTOUSummaryDB(date)
 

@@ -176,29 +176,29 @@ def main():
   print('[3] simple encrypt')
   print('[4] simple decrypt')
   try:
-    choice = int(raw_input('selection: '))
+    choice = int(raw_input('selection: ')) # type: ignore
   except ValueError:
     return
 
   if choice == 1:
-    read_fn = raw_input('read filename to encrypt: ')
-    write_fn = raw_input('write encrypted filename: ')
+    read_fn = raw_input('read filename to encrypt: ') # type: ignore
+    write_fn = raw_input('write encrypted filename: ') # type: ignore
 
     # Encrypt with public key
     encrypt(read_fn, write_fn)
   elif choice == 2:
-    filename = raw_input('decrypt filename: ')
+    filename = raw_input('decrypt filename: ') # type: ignore
 
     # Decrypt with private key
     print(decrypt(filename))
   elif choice == 3:
-    read_fn = raw_input('read filename to encrypt: ')
-    write_fn = raw_input('write encrypted filename: ')
+    read_fn = raw_input('read filename to encrypt: ') # type: ignore
+    write_fn = raw_input('write encrypted filename: ') # type: ignore
  
     # Encrypt with simple key
     simpleEncryptFile(read_fn, write_fn)
   elif choice == 4:
-    filename = raw_input('decrypt filename: ')
+    filename = raw_input('decrypt filename: ') # type: ignore
 
     # Decrypt with simple key
     print(simpleDecrypt(filename))
