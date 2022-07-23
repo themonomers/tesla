@@ -2,7 +2,7 @@ import time
 import configparser
 import os
 
-from TeslaVehicleAPI import wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
+from TeslaVehicleAPI import getVehicleData, wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
 from GoogleAPI import getGoogleSheetService
 from Utilities import deleteCronTab, createCronTab, isVehicleAtHome, getCurrentWeather
 from SmartClimate import getM3SeatSetting
