@@ -352,7 +352,7 @@ def printAllVehicleData(vin):
 
 
 def main():
-  vin = raw_input('printAllVehicleData VIN: ')
+  vin = raw_input('printAllVehicleData VIN: ') # type: ignore
   printAllVehicleData(vin)
 
 
