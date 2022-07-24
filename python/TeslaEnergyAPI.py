@@ -60,8 +60,6 @@ def getSiteStatus():
       ).text
     )
 
-#    printJson(response, 0)
-
     return response
   except Exception as e:
     logError('getSiteStatus(): ' + str(e))
@@ -86,8 +84,6 @@ def getSiteLiveStatus():
       ).text
     )
 
-#    printJson(response, 0)
-
     return response
   except Exception as e:
     logError('getSiteLiveStatus(): ' + str(e))
@@ -111,8 +107,6 @@ def getSiteInfo():
         headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
       ).text
     )
-
-#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -154,8 +148,6 @@ def getSiteHistory(period, date):
       ).text
     )
 
-#    printJson(response, 0)
-
     return response
   except Exception as e:
     logError('getSiteHistory(' + period + '): ' + str(e))
@@ -180,8 +172,6 @@ def getBatteryPowerHistory():
         headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
       ).text
     )
- 
-#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -206,8 +196,6 @@ def getBatteryBackupHistory():
         headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
       ).text
     )
-
-#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -274,6 +262,103 @@ def getSiteTOUHistory(period, date):
 
 
 ##
+# Gets the historic battery charge level data in 15 minute increments that's
+# shown on the mobile app. 
+#
+# author: mjhwa@yahoo.com
+##
+def getBatteryChargeHistory(period, date):
+  try:
+    local = pytz.timezone(TIME_ZONE)
+    date = local.localize(datetime(
+      date.year,
+      date.month,
+      date.day,
+      23,
+      59,
+      59,
+      0
+    ), is_dst=None)
+
+    url = (BASE_URL
+           + '/energy_sites/' 
+           + SITE_ID 
+           + '/calendar_history'
+           + '?kind=soe'
+           + '&period=' + period
+           + '&end_date='
+           + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
+          )
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+    return response
+  except Exception as e:
+    logError('getBatteryChargeHistory(): ' + str(e))
+
+
+##
+# Gets energy information in 5 minute increments, with ability to query by 
+# date.  Used to create the "ENERGY USAGE" charts in the mobile app.
+#
+# author: mjhwa@yahoo.com
+##
+def getPowerHistory(period, date):
+  try:
+    local = pytz.timezone(TIME_ZONE)
+    s_date = local.localize(datetime(
+      date.year,
+      date.month,
+      date.day,
+      0,
+      0,
+      0,
+      0
+    ), is_dst=None)
+
+    e_date = local.localize(datetime(
+      date.year,
+      date.month,
+      date.day,
+      23,
+      59,
+      59,
+      0
+    ), is_dst=None)
+
+    url = (BASE_URL
+           + '/energy_sites/' 
+           + SITE_ID
+           + '/calendar_history'
+           + '?kind=power'
+           + '&start_date='
+           + datetime.strftime(
+               s_date.astimezone(pytz.utc), 
+               '%Y-%m-%dT%H:%M:%SZ')
+           + '&end_date='
+           + datetime.strftime(
+               e_date.astimezone(pytz.utc), 
+               '%Y-%m-%dT%H:%M:%SZ')
+           + '&period=' + period)
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+    return response
+  except Exception as e:
+    logError('getPowerHistory(): ' + str(e))
+
+
+##
 # Lists all rate tariffs available in the mobile app.
 #
 # author: mjhwa@yahoo.com
@@ -290,8 +375,6 @@ def getRateTariffs():
         headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
       ).text
     )
-
-    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -317,8 +400,6 @@ def getSiteTariff():
         headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
       ).text
     )
-
-    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -378,112 +459,9 @@ def getSavingsForecast(period, date):
       ).text
     )
 
-#    printJson(response, 0)
-
     return response
   except Exception as e:
     logError('getSavingsForecast(): ' + str(e))
-
-
-##
-# Gets the historic battery charge level data in 15 minute increments that's
-# shown on the mobile app. 
-#
-# author: mjhwa@yahoo.com
-##
-def getBatteryChargeHistory(period, date):
-  try:
-    local = pytz.timezone(TIME_ZONE)
-    date = local.localize(datetime(
-      date.year,
-      date.month,
-      date.day,
-      23,
-      59,
-      59,
-      0
-    ), is_dst=None)
-
-    url = (BASE_URL
-           + '/energy_sites/' 
-           + SITE_ID 
-           + '/calendar_history'
-           + '?kind=soe'
-           + '&period=' + period
-           + '&end_date='
-           + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
-          )
-
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
-    )
-
-#    printJson(response, 0)
-
-    return response
-  except Exception as e:
-    logError('getBatteryChargeHistory(): ' + str(e))
-
-
-##
-# Gets energy information in 5 minute increments, with ability to query by 
-# date.  Used to create the "ENERGY USAGE" charts in the mobile app.
-#
-# author: mjhwa@yahoo.com
-##
-def getPowerHistory(period, date):
-  try:
-    local = pytz.timezone(TIME_ZONE)
-    s_date = local.localize(datetime(
-      date.year,
-      date.month,
-      date.day,
-      0,
-      0,
-      0,
-      0
-    ), is_dst=None)
-
-    e_date = local.localize(datetime(
-      date.year,
-      date.month,
-      date.day,
-      23,
-      59,
-      59,
-      0
-    ), is_dst=None)
-
-    url = (BASE_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/calendar_history'
-           + '?kind=power'
-           + '&start_date='
-           + datetime.strftime(
-               s_date.astimezone(pytz.utc), 
-               '%Y-%m-%dT%H:%M:%SZ')
-           + '&end_date='
-           + datetime.strftime(
-               e_date.astimezone(pytz.utc), 
-               '%Y-%m-%dT%H:%M:%SZ')
-           + '&period=' + period)
-
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
-    )
-
-#    printJson(response, 0)
-
-    return response
-  except Exception as e:
-    logError('getPowerHistory(): ' + str(e))
 
 
 ##
@@ -658,17 +636,17 @@ def main():
   print('[4]  getSiteHistory()')
   print('[5]  getBatteryPowerHistory()')
   print('[6]  getBatteryBackupHistory()')
-  print('[7]  getSavingsForecast()')
-  print('[8]  getSiteTOUHistory()')
-  print('[9]  getBatteryChargeHistory()')
-  print('[10] getPowerHistory()')
-  print('[11] setBatteryModeBackup()')
-  print('[12] setBatteryModeSelfPowered()')
-  print('[13] setBatteryModeAdvancedBalanced()')
-  print('[14] setBatteryModeAdvancedCost()')
-  print('[15] setOffGridVehicleChargingReserve()')
-  print('[16] getRateTariffs()')
-  print('[17] getSiteTariff()')
+  print('[7]  getSiteTOUHistory()')
+  print('[8]  getBatteryChargeHistory()')
+  print('[9]  getPowerHistory()')
+  print('[10] getRateTariffs()')
+  print('[11] getSiteTariff()')
+  print('[12] getSavingsForecast()')
+  print('[13] setBatteryModeBackup()')
+  print('[14] setBatteryModeSelfPowered()')
+  print('[15] setBatteryModeAdvancedBalanced()')
+  print('[16] setBatteryModeAdvancedCost()')
+  print('[17] setOffGridVehicleChargingReserve()')
 
   try:
     choice = int(raw_input('selection: ')) # type: ignore
@@ -676,56 +654,69 @@ def main():
     return
 
   if choice == 1:
-    getSiteStatus()
+    data = getSiteStatus()
+    printJson(data, 0)
   elif choice == 2:
-    getSiteLiveStatus()
+    data = getSiteLiveStatus()
+    printJson(data, 0)
   elif choice == 3:
-    getSiteInfo()
+    data = getSiteInfo()
+    printJson(data, 0)
   elif choice == 4:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
-    getSiteHistory('day', date)
+    data = getSiteHistory('day', date)
+    printJson(data, 0)
   elif choice == 5:
-    getBatteryPowerHistory()
+    data = getBatteryPowerHistory()
+    printJson(data, 0)
   elif choice == 6:
-    getBatteryBackupHistory()
+    data = getBatteryBackupHistory()
+    printJson(data, 0)
   elif choice == 7:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
-    getSavingsForecast('day', date)
+    data = getSiteTOUHistory('day', date)
+    printJson(data, 0)
   elif choice == 8:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
-    getSiteTOUHistory('day', date)
+    data = getBatteryChargeHistory('day', date)
+    printJson(data, 0)
   elif choice == 9:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
-    getBatteryChargeHistory('day', date)
+    data = getPowerHistory('day', date)
+    printJson(data, 0)
   elif choice == 10:
+    data = getRateTariffs()
+    printJson(data, 0)
+  elif choice == 11:
+    data = getSiteTariff()
+    printJson(data, 0)
+  elif choice == 12:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
-    getPowerHistory('day', date)
-  elif choice == 11:
+    data = getSavingsForecast('day', date)
+    printJson(data, 0)
+  elif choice == 13:
     setBatteryModeBackup()
-  elif choice == 12:
+  elif choice == 14:
     percent = float(raw_input('% battery reserve: ')) # type: ignore
     setBatteryModeSelfPowered()
     setBatteryBackupReserve(percent)
-  elif choice == 13:
+  elif choice == 15:
     percent = float(raw_input('% battery reserve: ')) # type: ignore
     setBatteryModeAdvancedBalanced()
     setBatteryBackupReserve(percent)
-  elif choice == 14:
+  elif choice == 16:
     percent = float(raw_input('% battery reserve: ')) # type: ignore
     setBatteryModeAdvancedCost()
     setBatteryBackupReserve(percent)
-  elif choice == 15:
+  elif choice == 17:
     percent = float(raw_input('% save for home use: ')) # type: ignore
     setOffGridVehicleChargingReserve(percent)
-  elif choice == 16:
-    getRateTariffs()
-  elif choice == 17:
-    getSiteTariff()
+
 
 if __name__ == "__main__":
   main()

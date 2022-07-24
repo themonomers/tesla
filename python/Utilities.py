@@ -253,76 +253,12 @@ def main():
   elif (choice == 2):
     zip = raw_input('zip code: ') # type: ignore
     data = getCurrentWeather(zip)
-    
-    for key_1, value_1 in data.iteritems():
-      if (isinstance(value_1, dict) == True):
-        print(key_1)
 
-        for key_2, value_2 in data[key_1].iteritems():
-          if ((key_2 == 'sunrise') or (key_2 == 'sunset')):
-            print(outputDate(key_2, value_2, 2))
-          elif (
-            (key_2 == 'temp')
-            or (key_2 == 'temp_max')
-            or (key_2 == 'temp_min')
-            or (key_2 == 'feels_like')
-          ):
-            print(outputFahrenheit(key_2, value_2, 2))
-          else:
-            print(output(key_2, value_2, 2))
-      elif (isinstance(value_1, list) == True):
-        print(key_1)
-
-        for index in range(len(data[key_1])):
-          for key_2, value_2 in data[key_1][index].iteritems():
-            print(output(key_2, value_2, 2))
-      elif (key_1 == 'dt'):
-        print(outputDate(key_1, value_1, 0))
-      else:
-        print(output(key_1, value_1, 0))
+    printJson(data, 0)
   elif (choice == 3):
     data = getDailyWeather(HOME_LAT, HOME_LNG)
 
-    for key_1, value_1 in data.iteritems():
-      if (isinstance(value_1, dict) == True):
-        print(key_1)
-      elif (isinstance(value_1, list) == True):
-        print(key_1)
-
-        for index in range(len(data[key_1])):
-          print(str(index) + '.')
-
-          for key_2, value_2 in data[key_1][index].iteritems():
-            if (isinstance(value_2, list) == True):
-              print(output(key_2, '', 2))
-
-              for index_2 in range(len(data[key_1][index][key_2])):
-
-                for key_3, value_3 in data[key_1][index][key_2][index_2].iteritems():
-                  print(output(key_3, value_3, 4))
-            elif (isinstance(value_2, dict) == True):
-              print(output(key_2, '', 2))
-
-              for key_3, value_3 in data[key_1][index][key_2].iteritems():
-                if ((key_3 == 'min') 
-                    or (key_3 == 'max')
-                    or (key_3 == 'eve')
-                    or (key_3 == 'morn')
-                    or (key_3 == 'night')
-                    or (key_3 == 'day')):
-                  print(outputFahrenheit(key_3, value_3, 4))
-                else:
-                  print(output(key_3, value_3, 4))
-            elif ((key_2 == 'sunrise') 
-                  or (key_2 == 'sunset')
-                  or (key_2 == 'moonrise')
-                  or (key_2 == 'moonset')
-                  or (key_2 == 'dt')):
-              print(outputDate(key_2, value_2, 2))
-            else:
-              print(output(key_2, value_2, 2))
-      else:
-        print(output(key_1, value_1, 0))
+    printJson(data, 0)
 
 
 if __name__ == "__main__":
