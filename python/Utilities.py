@@ -206,28 +206,22 @@ def printJson(json_obj, level):
 
   if (isinstance(json_obj, dict) == True):
     for key in json_obj:
+
       value = json_obj[key]
-      if (isinstance(value, dict) == True):
+      if ((isinstance(value, dict) == True) or (isinstance(value, list) == True)):
         print(offset + key)
         printJson(value, level + 1)
-      elif (isinstance(value, list) == True):
-        for x in value:
-          if (isinstance(x, list) == True):
-            for k, v in x.iteritems():
-              print(offset + k)
-              printJson(v, level + 1)
-          elif (isinstance(x, dict) == True): 
-            printJson(x, level + 1)
       else:
         print (offset + key + ' = ' + str(value))
   elif (isinstance(json_obj, list) == True):
     for x in json_obj:
+
       if (isinstance(x, list) == True):
-        for k, v in x.iteritems():
-          print(offset + k)
-          printJson(v, level + 1)
-      elif (isinstance(x, dict) == True): 
-        printJson(x, level + 1)
+        for key, value in x.iteritems():
+          print(offset + key)
+          printJson(value, level + 1)
+      else:
+        printJson(x, level)
   else:
     print (offset + str(json_obj))
 
