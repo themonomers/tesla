@@ -6,6 +6,7 @@ import pytz
 
 from Crypto import decrypt, simpleDecrypt
 from Logger import logError
+from Utilities import printJson
 from datetime import timedelta, datetime
 from io import StringIO
 
@@ -48,7 +49,7 @@ BASE_URL = 'https://owner-api.teslamotors.com/api/1'
 def getSiteStatus():
   try:
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID 
            + '/site_status')
 
@@ -77,7 +78,7 @@ def getSiteStatus():
 def getSiteLiveStatus():
   try:
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID
            + '/live_status')
 
@@ -106,7 +107,7 @@ def getSiteLiveStatus():
 def getSiteInfo():
   try:
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID
            + '/site_info')
 
@@ -189,7 +190,7 @@ def getSiteHistory(period, date):
     ), is_dst=None)
 
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID 
            + '/calendar_history'
            + '?kind=energy'
@@ -233,7 +234,7 @@ def getSiteHistory(period, date):
 def getBatteryPowerHistory():
   try:
     url = (BASE_URL
-           +'/powerwalls/' 
+           + '/powerwalls/' 
            + BATTERY_ID
            + '/powerhistory')
 
@@ -272,7 +273,7 @@ def getBatteryPowerHistory():
 def getBatteryBackupHistory():
   try:
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID 
            + '/history?kind=backup')
 
@@ -337,7 +338,7 @@ def getSiteTOUHistory(period, date):
     ), is_dst=None)
 
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID
            + '/calendar_history'
            + '?kind=time_of_use_energy'
@@ -380,6 +381,73 @@ def getSiteTOUHistory(period, date):
   except Exception as e:
     logError('getSiteTOUHistory(): ' + str(e))
 
+
+##
+# Lists all rate tariffs available in the mobile app.
+#
+# author: mjhwa@yahoo.com
+##
+def getRateTariffs():
+  try:
+    url = (BASE_URL
+           + '/energy_sites/' 
+           + 'rate_tariffs')
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+    printJson(response, 0)
+    """
+    i = 1
+    for x in response['response']:
+      for key, value in x.iteritems():
+        if (key == 'tariffID'):
+          prefix = str(i) + '. '
+          print(prefix + key + ' = ' + str(value))
+          i += 1
+        else: 
+          offset = ''
+          offset += ' ' * len(prefix)
+          print(offset + key + ' = ' + str(value)) 
+    """
+
+    return response
+  except Exception as e:
+    logError('getRateTariffs(): ' + str(e))
+
+
+##
+# Lists the tariff selected for your site in the mobile
+# app along with published rates, TOU schedules, etc.
+#
+# author: mjhwa@yahoo.com
+##
+def getSiteTariff():
+  try:
+    url = (BASE_URL
+           + '/energy_sites/' 
+           + SITE_ID
+           + '/tariff_rate')
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+    printJson(response, 0)
+
+    return response
+  except Exception as e:
+    logError('getSiteTariff(): ' + str(e))
+
+
+
 ##
 # Gets the data for Solar Value in the mobile app to show estimated 
 # cost savings.  
@@ -410,7 +478,7 @@ def getSavingsForecast(period, date):
     ), is_dst=None)
 
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID
            + '/calendar_history'
            + '?kind=savings'
@@ -464,7 +532,7 @@ def getBatteryChargeHistory(period, date):
     ), is_dst=None)
 
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID 
            + '/calendar_history'
            + '?kind=soe'
@@ -521,7 +589,7 @@ def getPowerHistory(period, date):
     ), is_dst=None)
 
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID
            + '/calendar_history'
            + '?kind=power'
@@ -609,7 +677,7 @@ def setBatteryModeAdvancedCost():
 def setBatteryMode(mode):
   try:
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID 
            + '/operation')
     payload = {
@@ -633,7 +701,7 @@ def setBatteryMode(mode):
 def setBatteryBackupReserve(backup_percent):
   try:
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID 
            + '/backup')
     payload = {
@@ -658,7 +726,7 @@ def setBatteryBackupReserve(backup_percent):
 def setOffGridVehicleChargingReserve(percent):
   try:
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID 
            + '/off_grid_vehicle_charging_reserve')
     payload = {
@@ -685,7 +753,7 @@ def setOffGridVehicleChargingReserve(percent):
 def setEnergyTOUSettings(strategy):
   try:
     url = (BASE_URL
-           +'/energy_sites/' 
+           + '/energy_sites/' 
            + SITE_ID
            + '/time_of_use_settings')
     payload = {
@@ -742,7 +810,10 @@ def main():
   print('[12] setBatteryModeSelfPowered()')
   print('[13] setBatteryModeAdvancedBalanced()')
   print('[14] setBatteryModeAdvancedCost()')
-  print('[15] setOffGridVehicleChargingReserve() \n')
+  print('[15] setOffGridVehicleChargingReserve()')
+  print('[16] getRateTariffs()')
+  print('[17] getSiteTariff()')
+
   try:
     choice = int(raw_input('selection: ')) # type: ignore
   except ValueError:
@@ -795,7 +866,10 @@ def main():
   elif choice == 15:
     percent = float(raw_input('% save for home use: ')) # type: ignore
     setOffGridVehicleChargingReserve(percent)
-
+  elif choice == 16:
+    getRateTariffs()
+  elif choice == 17:
+    getSiteTariff()
 
 if __name__ == "__main__":
   main()
