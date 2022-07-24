@@ -253,8 +253,6 @@ def getSiteTOUHistory(period, date):
         headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
       ).text
     )
-
-#    printJson(response, 0)
  
     return response
   except Exception as e:
@@ -479,7 +477,7 @@ def setBatteryModeBackup():
 # author: mjhwa@yahoo.com
 ##
 def setBatteryModeSelfPowered():
-  setBatteryMode('self_consumption')
+  return setBatteryMode('self_consumption')
 
 
 ##
@@ -490,7 +488,7 @@ def setBatteryModeSelfPowered():
 ##
 def setBatteryModeAdvancedBalanced():
   setBatteryMode('autonomous')
-  setEnergyTOUSettings('balanced')
+  return setEnergyTOUSettings('balanced')
 
 
 ##
@@ -500,7 +498,7 @@ def setBatteryModeAdvancedBalanced():
 # author: mjhwa@yahoo.com
 ##
 def setBatteryModeAdvancedCost():
-  setBatteryMode('autonomous')
+  return setBatteryMode('autonomous')
 
 
 ##
@@ -523,6 +521,8 @@ def setBatteryMode(mode):
                  json=payload,
                  headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
                )
+
+    return response
   except Exception as e:
     logError('setBatteryMode(' + mode + '): ' + str(e))
 
@@ -547,6 +547,8 @@ def setBatteryBackupReserve(backup_percent):
                  json=payload,
                  headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
                )
+
+    return response
   except Exception as e:
     logError('setBatteryBackupReserve(' + backup_percent + '): ' + str(e))
 
@@ -572,6 +574,8 @@ def setOffGridVehicleChargingReserve(percent):
                  json=payload,
                  headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
                )
+
+    return response
   except Exception as e:
     logError('setOffGridVehicleChargingReserve(' + percent + '): ' + str(e))
 
@@ -625,6 +629,8 @@ def setEnergyTOUSettings(strategy):
                  json=payload,
                  headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
                )
+
+    return response
   except Exception as e:
     logError('setEnergyTOUSettings(' + strategy + '): ' + str(e))
 
@@ -655,67 +661,57 @@ def main():
 
   if choice == 1:
     data = getSiteStatus()
-    printJson(data, 0)
   elif choice == 2:
     data = getSiteLiveStatus()
-    printJson(data, 0)
   elif choice == 3:
     data = getSiteInfo()
-    printJson(data, 0)
   elif choice == 4:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getSiteHistory('day', date)
-    printJson(data, 0)
   elif choice == 5:
     data = getBatteryPowerHistory()
-    printJson(data, 0)
   elif choice == 6:
     data = getBatteryBackupHistory()
-    printJson(data, 0)
   elif choice == 7:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getSiteTOUHistory('day', date)
-    printJson(data, 0)
   elif choice == 8:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getBatteryChargeHistory('day', date)
-    printJson(data, 0)
   elif choice == 9:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getPowerHistory('day', date)
-    printJson(data, 0)
   elif choice == 10:
     data = getRateTariffs()
-    printJson(data, 0)
   elif choice == 11:
     data = getSiteTariff()
-    printJson(data, 0)
   elif choice == 12:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getSavingsForecast('day', date)
-    printJson(data, 0)
   elif choice == 13:
-    setBatteryModeBackup()
+    data = setBatteryModeBackup()
   elif choice == 14:
     percent = float(raw_input('% battery reserve: ')) # type: ignore
-    setBatteryModeSelfPowered()
+    data = setBatteryModeSelfPowered()
     setBatteryBackupReserve(percent)
   elif choice == 15:
     percent = float(raw_input('% battery reserve: ')) # type: ignore
-    setBatteryModeAdvancedBalanced()
+    data = setBatteryModeAdvancedBalanced()
     setBatteryBackupReserve(percent)
   elif choice == 16:
     percent = float(raw_input('% battery reserve: ')) # type: ignore
-    setBatteryModeAdvancedCost()
+    data = setBatteryModeAdvancedCost()
     setBatteryBackupReserve(percent)
   elif choice == 17:
     percent = float(raw_input('% save for home use: ')) # type: ignore
-    setOffGridVehicleChargingReserve(percent)
+    data = setOffGridVehicleChargingReserve(percent)
+  
+  printJson(data, 0)
 
 
 if __name__ == "__main__":
