@@ -35,7 +35,7 @@ TIME_ZONE = 'America/Los_Angeles'
 #
 # author: mjhwa@yahoo.com
 ##
-def importSiteTelemetryDetail():
+def importSiteTelemetryDetailFromGsheet():
   try:
     # get time series data
     service = getGoogleSheetService()
@@ -107,7 +107,7 @@ def importSiteTelemetryDetail():
 #
 # author: mjhwa@yahoo.com
 ##
-def importSiteTelemetrySummary():
+def importSiteTelemetrySummaryFromGsheet():
   try:
     # get time series data
     service = getGoogleSheetService()
@@ -339,8 +339,8 @@ def importSiteTelemetryTOUSummaryDB(date):
 # author: mjhwa@yahoo.com
 ##
 def main():
-  print('[1] importSiteTelemetryDetail()')
-  print('[2] importSiteTelemetrySummary()')
+  print('[1] importSiteTelemetryDetailFromGsheet()')
+  print('[2] importSiteTelemetrySummaryFromGsheet()')
   print('[3] importBatteryChargeHistory()')
   print('[4] importBatteryBackupHistory()')
   print('[5] importSiteTelemetrySummary()')
@@ -352,9 +352,9 @@ def main():
     return
 
   if choice == 1:
-    importSiteTelemetryDetail()
+    importSiteTelemetryDetailFromGsheet()
   elif choice == 2:
-    importSiteTelemetrySummary()
+    importSiteTelemetrySummaryFromGsheet()
   elif choice == 3:
     date = raw_input('date(m/d/yyyy): ') # type: ignore
     date = datetime.strptime(date, '%m/%d/%Y')
