@@ -194,6 +194,44 @@ def output(key, value, indent):
   return(space + key + ' = ' + str(value))
 
 
+##
+# Takes a JSON object and recursively prints out it's name/value pairs with
+# indentation for each level.
+#
+# author: mjhwa@yahoo.com
+##
+def printJson(json_obj, level):
+  offset = ''
+  offset += '  ' * level
+
+  if (isinstance(json_obj, dict) == True):
+    for key in json_obj:
+      value = json_obj[key]
+      if (isinstance(value, dict) == True):
+        print(offset + key)
+        printJson(value, level + 1)
+      elif (isinstance(value, list) == True):
+        for x in value:
+          if (isinstance(x, list) == True):
+            for k, v in x.iteritems():
+              print(offset + k)
+              printJson(v, level + 1)
+          elif (isinstance(x, dict) == True): 
+            printJson(x, level + 1)
+      else:
+        print (offset + key + ' = ' + str(value))
+  elif (isinstance(json_obj, list) == True):
+    for x in json_obj:
+      if (isinstance(x, list) == True):
+        for k, v in x.iteritems():
+          print(offset + k)
+          printJson(v, level + 1)
+      elif (isinstance(x, dict) == True): 
+        printJson(x, level + 1)
+  else:
+    print (offset + str(json_obj))
+
+
 def main():
   print('[1] getDistance')
   print('[2] getCurrentWeather')
