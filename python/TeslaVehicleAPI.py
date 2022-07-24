@@ -6,7 +6,8 @@ import os
 
 from Crypto import simpleDecrypt
 from Logger import logError
-from io import StringIO  
+from Utilities import printJson  
+from io import StringIO
 
 buffer = StringIO(
   simpleDecrypt(
@@ -331,20 +332,7 @@ def printAllVehicleData(vin):
   try:
     data = getVehicleData(vin)
 
-    for key_1, value_1 in data['response'].iteritems():
-      if (isinstance(value_1, dict) == True):
-        print(key_1)
-   
-        for key_2, value_2 in data['response'][key_1].iteritems():
-          if (isinstance(value_2, dict) == True):
-            print('  ' + key_2)
-   
-            for key_3, value_3 in data['response'][key_1][key_2].iteritems():
-              print('    ' + key_3 + ' = ' + str(value_3))
-          else:
-            print('  ' + key_2 + ' = ' + str(value_2))
-      else:
-        print(key_1 + ' = ' + str(value_1))
+    printJson(data, 0)
   except Exception as e:
     logError('printAllVehicleData(' + vin + '): ' + str(e))
     wakeVehicle(vin)

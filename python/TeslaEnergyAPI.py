@@ -7,7 +7,7 @@ import pytz
 from Crypto import decrypt, simpleDecrypt
 from Logger import logError
 from Utilities import printJson
-from datetime import timedelta, datetime
+from datetime import datetime
 from io import StringIO
 
 buffer = StringIO(
@@ -60,10 +60,7 @@ def getSiteStatus():
       ).text
     )
 
-    """
-    for key in response['response']:
-      print(str(key) + ' = ' + str(response['response'][key]))
-    """
+#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -89,10 +86,7 @@ def getSiteLiveStatus():
       ).text
     )
 
-    """
-    for key in response['response']:
-      print(str(key) + ' = ' + str(response['response'][key]))
-    """
+#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -118,52 +112,7 @@ def getSiteInfo():
       ).text
     )
 
-    """
-    for key_1, value_1 in response['response'].items():
-      if (isinstance(value_1, dict) == True):
-        print(key_1)
-
-        for key_2, value_2 in response['response'][key_1].items():
-          if (isinstance(value_2, dict) == True):
-            print('  ' + key_2 + ' = ' + str(value_2))
-          elif (isinstance(value_2, list) == True):
-            print('  ' + key_2)
-
-            for index, item in enumerate(
-              response['response'][key_1][key_2]
-            ): 
-              print(
-                '    ' 
-                + str(index + 1) 
-                + '. week_days' 
-                + ' = ' 
-                + str(item['week_days'])
-              )
-              print('       target = ' + item['target'])
-              print(
-                '       start_seconds = ' 
-                + str(
-                  timedelta(
-                    seconds=item['start_seconds']
-                  )
-                )
-              )
-              print(
-                '       end_seconds = ' 
-                + str(
-                  timedelta(
-                    seconds=item['end_seconds']
-                  )
-                )
-              )
-          else:
-            print('  ' 
-              + key_2 
-              + ' = ' 
-              + str(value_2))
-      else:
-        print(key_1 + ' = ' + str(value_1))
-    """
+#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -205,20 +154,7 @@ def getSiteHistory(period, date):
       ).text
     )
 
-    """
-    for key_1, value_1 in response['response'].items():
-      if (isinstance(value_1, list) == True):
-        print(key_1)
-
-        for i in range(len(response['response'][key_1])):
-          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
-
-          for key_2, value_2 in response['response'][key_1][i].items():
-            if (key_2 != 'timestamp'):
-              print('    ' + key_2 + ' = ' + str(value_2))
-      else:
-        print(key_1 + ' = ' + str(value_1))
-    """
+#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -245,20 +181,7 @@ def getBatteryPowerHistory():
       ).text
     )
  
-    """
-    for key_1, value_1 in response['response'].items():
-      if (isinstance(value_1, list) == True):
-        print(key_1)
-
-        for i in range(len(response['response'][key_1])):
-          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
-
-          for key_2, value_2 in response['response'][key_1][i].items():
-            if (key_2 != 'timestamp'):
-              print('    ' + key_2 + ' = ' + str(value_2))
-      else:
-        print(key_1 + ' = ' + str(value_1))
-    """
+#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -284,24 +207,7 @@ def getBatteryBackupHistory():
       ).text
     )
 
-    """
-    for i in range(len(response['response']['events'])):
-      print(str(i))
-
-      for key, value in response['response']['events'][i].items():
-        if (key == 'duration'):
-          duration = float(value) / 1000 / 60 / 60
-          print('  ' + key + ' = ' + str(duration) + ' hours')
-
-        if (key == 'timestamp'):
-          start = value[0:len(value) - 6:1]
-          start = datetime.strptime(start, '%Y-%m-%dT%H:%M:%S')
-          print('  ' + key + ' = ' 
-                + datetime.strftime(start, '%Y-%m-%d %I:%M:%S %p'))
-          print('  end = ' 
-                + datetime.strftime((start 
-                + timedelta(hours=duration)), '%Y-%m-%d %I:%M:%S %p'))
-    """
+#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -360,23 +266,8 @@ def getSiteTOUHistory(period, date):
       ).text
     )
 
-    """
-    for key_1, value_1 in response['response'].iteritems():
-      if (isinstance(value_1, dict) == True):
-        print(key_1)
-
-        for key_2, value_2 in response['response'][key_1].iteritems():
-          if (isinstance(value_1, dict) == True):
-            print('  ' + key_2)
-
-            for x in response['response'][key_1][key_2]:
-              if (isinstance(x, dict) == True):
-                for key_3, value_3 in x.iteritems():
-                  print('    ' + key_3 + ' = ' + str(value_3))
-      else:
-        print(key_1 + ' = ' + str(value_1))
-    """
-
+#    printJson(response, 0)
+ 
     return response
   except Exception as e:
     logError('getSiteTOUHistory(): ' + str(e))
@@ -401,19 +292,6 @@ def getRateTariffs():
     )
 
     printJson(response, 0)
-    """
-    i = 1
-    for x in response['response']:
-      for key, value in x.iteritems():
-        if (key == 'tariffID'):
-          prefix = str(i) + '. '
-          print(prefix + key + ' = ' + str(value))
-          i += 1
-        else: 
-          offset = ''
-          offset += ' ' * len(prefix)
-          print(offset + key + ' = ' + str(value)) 
-    """
 
     return response
   except Exception as e:
@@ -445,7 +323,6 @@ def getSiteTariff():
     return response
   except Exception as e:
     logError('getSiteTariff(): ' + str(e))
-
 
 
 ##
@@ -501,11 +378,7 @@ def getSavingsForecast(period, date):
       ).text
     )
 
-    """
-    for x in response['response']:
-      for key, value in x.iteritems():
-        print(key + ' = ' + str(value)) 
-    """
+#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -548,11 +421,7 @@ def getBatteryChargeHistory(period, date):
       ).text
     )
 
-    """
-    for x in response['response']['time_series']:
-      for key, value in x.iteritems():
-        print(key + ' = ' + str(value)) 
-    """
+#    printJson(response, 0)
 
     return response
   except Exception as e:
@@ -610,20 +479,7 @@ def getPowerHistory(period, date):
       ).text
     )
 
-    """
-    for key_1, value_1 in response['response'].items():
-      if (isinstance(value_1, list) == True):
-        print(key_1)
-
-        for i in range(len(response['response'][key_1])):
-          print('  timestamp = ' + response['response'][key_1][i]['timestamp'])
-
-          for key_2, value_2 in response['response'][key_1][i].items():
-            if (key_2 != 'timestamp'):
-              print('    ' + key_2 + ' = ' + str(value_2))
-      else:
-        print(key_1 + ' = ' + str(value_1))
-    """
+#    printJson(response, 0)
 
     return response
   except Exception as e:
