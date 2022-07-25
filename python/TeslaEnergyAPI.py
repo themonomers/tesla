@@ -468,7 +468,7 @@ def getSavingsForecast(period, date):
 # author: mjhwa@yahoo.com
 ##
 def setBatteryModeBackup():
-  setBatteryMode('backup')
+  return setBatteryMode('backup')
 
 
 ##
