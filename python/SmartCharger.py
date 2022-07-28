@@ -7,22 +7,26 @@ from GoogleAPI import getGoogleSheetService
 from SendEmail import sendEmail
 from SmartClimate import setM3Precondition, setMXPrecondition
 from Utilities import isVehicleAtHome, isVehicleAtNapa
-from Crypto import decrypt
+from Crypto import simpleDecrypt
 from Logger import logError
-from datetime import timedelta, datetime
+from datetime import datetime
 from io import StringIO
 
 buffer = StringIO(
-  decrypt(
+  simpleDecrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'config.rsa'
+      'config.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'config_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']

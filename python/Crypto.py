@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.backends import default_backend
-from itertools import cycle, izip
+from itertools import cycle
 
 ##
 # Opens a file and encrypts its contents to write to another file.  Also writes
@@ -106,7 +106,7 @@ def decrypt(encrypted_filename):
 #
 # author: mjhwa@yahoo.com
 ##
-def simpleEncryptFile(read_fn, write_fn):
+def simpleEncryptFile(read_fn, write_fn, token_fn):
   # Check to see that the filenames are different
   if (read_fn == write_fn):
     raise Exception('Read and write filenames cannot be the same')
@@ -117,7 +117,7 @@ def simpleEncryptFile(read_fn, write_fn):
   f.close()
 
   # Encrypt file
-  simpleEncrypt(message, write_fn)
+  simpleEncrypt(message, write_fn, token_fn)
 
 
 ##
@@ -125,23 +125,27 @@ def simpleEncryptFile(read_fn, write_fn):
 #
 # author: mjhwa@yahoo.com
 ##
-def simpleEncrypt(message, write_fn):
+def simpleEncrypt(message, write_fn, token_fn):
   # Read key
   key_file = open(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'token_key'
+      token_fn
     ), 'rb'
   )
   key = key_file.read()
   key_file.close()
 
+  # Check type to convert to bytes
+  if (isinstance(message, bytes) == False):
+    message = message.encode('utf-8')
+
   # Encrypt with key
-  encrypted = ''.join(chr(ord(c)^ord(k)) for c,k in izip(message, cycle(key)))
+  encrypted = ''.join(chr(ord(chr(c))^ord(chr(k))) for c,k in zip(message, cycle(key)))
 
   # Write encrypted file
   f = open(write_fn, 'wb')
-  f.write(encrypted)
+  f.write(str.encode(encrypted))
   f.close()
 
 
@@ -150,7 +154,7 @@ def simpleEncrypt(message, write_fn):
 #
 # author: mjhwa@yahoo.com
 ##
-def simpleDecrypt(read_fn):
+def simpleDecrypt(read_fn, token_fn):
   # Open encrypted file
   f = open(read_fn, 'rb')
   message = f.read()
@@ -160,14 +164,14 @@ def simpleDecrypt(read_fn):
   key_file = open(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'token_key'
+      token_fn
     ), 'rb'
   )
   key = key_file.read()
   key_file.close()
 
   # Decrypt with key
-  return ''.join(chr(ord(c)^ord(k)) for c,k in izip(message, cycle(key)))
+  return ''.join(chr(ord(chr(c))^ord(chr(k))) for c,k in zip(message, cycle(key)))
 
 
 def main():
@@ -176,32 +180,34 @@ def main():
   print('[3] simple encrypt')
   print('[4] simple decrypt')
   try:
-    choice = int(raw_input('selection: ')) # type: ignore
+    choice = int(input('selection: ')) # type: ignore
   except ValueError:
     return
 
   if choice == 1:
-    read_fn = raw_input('read filename to encrypt: ') # type: ignore
-    write_fn = raw_input('write encrypted filename: ') # type: ignore
+    read_fn = input('read filename to encrypt: ') 
+    write_fn = input('write encrypted filename: ')
 
     # Encrypt with public key
     encrypt(read_fn, write_fn)
   elif choice == 2:
-    filename = raw_input('decrypt filename: ') # type: ignore
+    filename = input('decrypt filename: ')
 
     # Decrypt with private key
     print(decrypt(filename))
   elif choice == 3:
-    read_fn = raw_input('read filename to encrypt: ') # type: ignore
-    write_fn = raw_input('write encrypted filename: ') # type: ignore
+    read_fn = input('read filename to encrypt: ')
+    write_fn = input('write encrypted filename: ')
+    token_fn = input('token filename: ')
  
     # Encrypt with simple key
-    simpleEncryptFile(read_fn, write_fn)
+    simpleEncryptFile(read_fn, write_fn, token_fn)
   elif choice == 4:
-    filename = raw_input('decrypt filename: ') # type: ignore
+    filename = input('decrypt filename: ')
+    token_fn = input('token filename: ')
 
     # Decrypt with simple key
-    print(simpleDecrypt(filename))
+    print(simpleDecrypt(filename, token_fn))
 
 if __name__ == "__main__":
   main()

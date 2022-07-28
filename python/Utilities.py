@@ -5,22 +5,26 @@ import datetime
 import configparser
 import os
 
-from Crypto import decrypt
+from Crypto import simpleDecrypt
 from Logger import logError
 from crontab import CronTab
 from io import StringIO
 
 buffer = StringIO(
-  decrypt(
+  simpleDecrypt(
     os.path.join(
-      os.path.dirname(os.path.abspath(__file__)), 
-      'config.rsa'
+      os.path.dirname(os.path.abspath(__file__)),
+      'config.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'config_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 HOME_LAT = float(config['vehicle']['home_lat'])
 HOME_LNG = float(config['vehicle']['home_lng'])
 NAPA_LAT = float(config['vehicle']['napa_lat'])
@@ -217,7 +221,7 @@ def printJson(json_obj, level):
     for x in json_obj:
 
       if (isinstance(x, list) == True):
-        for key, value in x.iteritems():
+        for key, value in x.items():
           print(offset + key)
           printJson(value, level + 1)
       else:
@@ -232,13 +236,13 @@ def main():
   print('[3] getDailyWeather')
 
   try:
-    choice = int(raw_input('selection: ')) # type: ignore
+    choice = int(input('selection: '))
   except ValueError:
     return
 
   if (choice == 1):
-    lat = float(raw_input('latitude: ')) # type: ignore
-    lng = float(raw_input('longitude: ')) # type: ignore
+    lat = float(input('latitude: '))
+    lng = float(input('longitude: '))
     print(
       'distance from home: ' 
       + str(
@@ -251,7 +255,7 @@ def main():
       )
     )
   elif (choice == 2):
-    zip = raw_input('zip code: ') # type: ignore
+    zip = input('zip code: ')
     data = getCurrentWeather(zip)
 
     printJson(data, 0)

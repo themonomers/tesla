@@ -6,5 +6,5 @@
 *.xor
 *Test*
 *Local*
+*_key
 cron_log
-token_key

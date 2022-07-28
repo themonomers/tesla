@@ -11,12 +11,16 @@ buffer = StringIO(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'token.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'token_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 EXPIRES_AT = config['tesla']['expires_at']
 buffer.close()
 

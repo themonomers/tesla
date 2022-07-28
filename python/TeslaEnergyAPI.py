@@ -4,23 +4,27 @@ import configparser
 import os
 import pytz
 
-from Crypto import decrypt, simpleDecrypt
+from Crypto import simpleDecrypt
 from Logger import logError
 from Utilities import printJson
 from datetime import datetime
 from io import StringIO
 
 buffer = StringIO(
-  decrypt(
+  simpleDecrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'config.rsa'
+      'config.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'config_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 SITE_ID = config['energy']['site_id']
 BATTERY_ID = config['energy']['battery_id']
 buffer.close()
@@ -30,10 +34,14 @@ buffer = StringIO(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'token.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'token_key'
     )
-  ).decode('utf-8')
+  )
 )
-config.readfp(buffer)
+config.read_file(buffer)
 ACCESS_TOKEN = config['tesla']['access_token']
 buffer.close()
 
@@ -680,7 +688,7 @@ def main():
   print('[18] setOffGridVehicleChargingReserve()')
 
   try:
-    choice = int(raw_input('selection: ')) # type: ignore
+    choice = int(input('selection: '))
   except ValueError:
     return
 
@@ -691,7 +699,7 @@ def main():
   elif choice == 3:
     data = getSiteInfo()
   elif choice == 4:
-    date = raw_input('date(m/d/yyyy): ') # type: ignore
+    date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getSiteHistory('day', date)
   elif choice == 5:
@@ -699,15 +707,15 @@ def main():
   elif choice == 6:
     data = getBatteryBackupHistory()
   elif choice == 7:
-    date = raw_input('date(m/d/yyyy): ') # type: ignore
+    date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getSiteTOUHistory('day', date)
   elif choice == 8:
-    date = raw_input('date(m/d/yyyy): ') # type: ignore
+    date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getBatteryChargeHistory('day', date)
   elif choice == 9:
-    date = raw_input('date(m/d/yyyy): ') # type: ignore
+    date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getPowerHistory('day', date)
   elif choice == 10:
@@ -717,25 +725,25 @@ def main():
   elif choice == 12:
     data = getBackupTimeRemaining()
   elif choice == 13:
-    date = raw_input('date(m/d/yyyy): ') # type: ignore
+    date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getSavingsForecast('day', date)
   elif choice == 14:
     data = setBatteryModeBackup()
   elif choice == 15:
-    percent = float(raw_input('% battery reserve: ')) # type: ignore
+    percent = float(input('% battery reserve: '))
     data = setBatteryModeSelfPowered()
     setBatteryBackupReserve(percent)
   elif choice == 16:
-    percent = float(raw_input('% battery reserve: ')) # type: ignore
+    percent = float(input('% battery reserve: '))
     data = setBatteryModeAdvancedBalanced()
     setBatteryBackupReserve(percent)
   elif choice == 17:
-    percent = float(raw_input('% battery reserve: ')) # type: ignore
+    percent = float(input('% battery reserve: '))
     data = setBatteryModeAdvancedCost()
     setBatteryBackupReserve(percent)
   elif choice == 18:
-    percent = float(raw_input('% save for home use: ')) # type: ignore
+    percent = float(input('% save for home use: '))
     data = setOffGridVehicleChargingReserve(percent)
   
   printJson(data, 0)

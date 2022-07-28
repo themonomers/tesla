@@ -15,12 +15,16 @@ buffer = StringIO(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'token.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'token_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 REFRESH_TOKEN = config['tesla']['refresh_token']
 buffer.close()
 
@@ -53,6 +57,10 @@ simpleEncrypt(
   os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     'token.xor'
+  ),
+  os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'token_key'
   )
 )
 
@@ -62,5 +70,5 @@ base64_bytes = base64.b64encode(s_bytes)
 base64_string = base64_bytes.decode('ascii')
 
 f = open('/mnt/gdrive/google-apps-script/token.ini', 'wb')
-f.write(base64_string)
+f.write(str.encode(base64_string))
 f.close()

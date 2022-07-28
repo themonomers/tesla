@@ -14,12 +14,16 @@ buffer = StringIO(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'token.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'token_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 ACCESS_TOKEN = config['tesla']['access_token']
 buffer.close()
 
@@ -340,7 +344,7 @@ def printAllVehicleData(vin):
 
 
 def main():
-  vin = raw_input('printAllVehicleData VIN: ') # type: ignore
+  vin = input('printAllVehicleData VIN: ')
   printAllVehicleData(vin)
 
 

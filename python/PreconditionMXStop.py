@@ -4,21 +4,25 @@ import os
 
 from TeslaVehicleAPI import wakeVehicle, getVehicleData, preconditionCarStop
 from Utilities import isVehicleAtHome
-from Crypto import decrypt
+from Crypto import simpleDecrypt
 from Logger import logError
 from io import StringIO
 
 buffer = StringIO(
-  decrypt(
+  simpleDecrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'config.rsa'
+      'config.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'config_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 MX_VIN = config['vehicle']['mx_vin']
 buffer.close()
 

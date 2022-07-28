@@ -5,21 +5,25 @@ from datetime import datetime, date, timedelta
 from Utilities import getDailyWeather
 from TeslaEnergyAPI import setBatteryModeBackup, setBatteryModeAdvancedCost, setBatteryBackupReserve
 from SendEmail import sendEmail
-from Crypto import decrypt
+from Crypto import simpleDecrypt
 from Logger import logError
 from io import StringIO
 
 buffer = StringIO(
-  decrypt(
+  simpleDecrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'config.rsa'
+      'config.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'config_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 HOME_LAT = float(config['vehicle']['home_lat'])
 HOME_LNG = float(config['vehicle']['home_lng'])
 EMAIL_1 = config['notification']['email_1']

@@ -7,22 +7,26 @@ from Influxdb import getDBClient
 from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getBatteryPowerHistory, getSavingsForecast
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from SendEmail import sendEmail
-from Crypto import decrypt
+from Crypto import simpleDecrypt
 from Logger import logError
 from datetime import datetime, timedelta
 from io import StringIO
 
 buffer = StringIO(
-  decrypt(
+  simpleDecrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'config.rsa'
+      'config.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'config_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
 SUMMARY_SHEET_ID = config['google']['summary_sheet_id']
 EMAIL_1 = config['notification']['email_1']
@@ -336,7 +340,7 @@ def writeSiteTelemetryTOUSummary(date):
     if (data['response'] != ''):
 
       # write solar data for off peak
-      for key_1, value_1 in data['response'].iteritems():
+      for key_1, value_1 in data['response'].items():
         if (key_1 == 'off_peak'):
           for i in range(len(data['response'][key_1]['time_series'])):
             d = datetime.strptime(
@@ -838,7 +842,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
     data = getSiteTOUHistory('day', date)
 
     # write solar data for off peak
-    for key_1, value_1 in data['response'].iteritems():
+    for key_1, value_1 in data['response'].items():
       if (key_1 == 'off_peak'):
         for i in range(len(data['response'][key_1]['time_series'])):
           d = datetime.strptime(

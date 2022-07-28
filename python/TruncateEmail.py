@@ -3,21 +3,25 @@ import os
 import Logger
 
 from GoogleAPI import getGoogleMailService
-from Crypto import decrypt
+from Crypto import simpleDecrypt
 from datetime import datetime, timedelta
 from io import StringIO
 
 buffer = StringIO(
-  decrypt(
+  simpleDecrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'config.rsa'
+      'config.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'config_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 QUERY_1 = config['notification']['query_1']
 QUERY_2 = config['notification']['query_2']
 QUERY_3 = config['notification']['query_3']

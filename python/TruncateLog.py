@@ -3,21 +3,25 @@ import os
 import Logger
 
 from GoogleAPI import getGoogleSheetService
-from Crypto import decrypt
+from Crypto import simpleDecrypt
 from datetime import datetime, timedelta
 from io import StringIO
 
 buffer = StringIO(
-  decrypt(
+  simpleDecrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'config.rsa'
+      'config.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'config_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 LOG_SPREADSHEET_ID = config['google']['log_spreadsheet_id']
 ERROR_SHEET_ID = config['google']['error_sheet_id']
 buffer.close()

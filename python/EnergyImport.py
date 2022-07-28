@@ -7,22 +7,26 @@ from TeslaEnergyAPI import getBatteryChargeHistory, getBatteryBackupHistory
 from EnergyTelemetry import writeSiteTelemetrySummary, writeSiteTelemetryTOUSummary, writeSiteTelemetryTOUSummaryDB
 from Influxdb import getDBClient
 from GoogleAPI import getGoogleSheetService
-from Crypto import decrypt
+from Crypto import simpleDecrypt
 from Logger import logError
 from datetime import datetime, timedelta
 from io import StringIO
 
 buffer = StringIO(
-  decrypt(
+  simpleDecrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
-      'config.rsa'
+      'config.xor'
+    ),
+    os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      'config_key'
     )
-  ).decode('utf-8')
+  )
 )
 config = configparser.ConfigParser()
 config.sections()
-config.readfp(buffer)
+config.read_file(buffer)
 ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
 buffer.close()
 
@@ -174,7 +178,7 @@ def importBatteryChargeHistory(date):
     soe = ''
     insert = ''
     for x in data['response']['time_series']:
-      for key, value in x.iteritems():
+      for key, value in x.items():
         print(key + ' = ' + str(value))
       
         if key == 'timestamp':
@@ -182,7 +186,7 @@ def importBatteryChargeHistory(date):
         elif key == 'soe':
           soe = value
 
-          insert = raw_input('import (y/n): ') # type: ignore
+          insert = input('import (y/n): ')
           if insert != 'y':
             break
 
@@ -242,7 +246,7 @@ def importBatteryBackupHistory():
           print('  end = '
                 + datetime.strftime(end, '%Y-%m-%d %I:%M:%S %p'))
 
-          insert = raw_input('import (y/n): ') # type: ignore
+          insert = input('import (y/n): ')
           if insert != 'y':
             break
 
@@ -286,7 +290,7 @@ def importSiteTelemetrySummary(date):
   try:
     print(date)
 
-    insert = raw_input('import (y/n): ') # type: ignore
+    insert = input('import (y/n): ')
     if insert != 'y':
       return
 
@@ -304,7 +308,7 @@ def importSiteTelemetryTOUSummary(date):
   try:
     print(date)
 
-    insert = raw_input('import (y/n): ') # type: ignore
+    insert = input('import (y/n): ')
     if insert != 'y':
       return
 
@@ -322,7 +326,7 @@ def importSiteTelemetryTOUSummaryDB(date):
   try:
     print(date)
 
-    insert = raw_input('import (y/n): ') # type: ignore
+    insert = input('import (y/n): ')
     if insert != 'y':
       return
 
@@ -347,7 +351,7 @@ def main():
   print('[6] importSiteTelemetryTOUSummary()')
   print('[7] importSiteTelemetryTOUSummaryDB() \n')
   try:
-    choice = int(raw_input('selection: ')) # type: ignore
+    choice = int(input('selection: '))
   except ValueError:
     return
 
@@ -356,21 +360,21 @@ def main():
   elif choice == 2:
     importSiteTelemetrySummaryFromGsheet()
   elif choice == 3:
-    date = raw_input('date(m/d/yyyy): ') # type: ignore
+    date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     importBatteryChargeHistory(date)
   elif choice == 4:
     importBatteryBackupHistory()
   elif choice == 5:
-    date = raw_input('date(m/d/yyyy): ') # type: ignore
+    date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     importSiteTelemetrySummary(date)
   elif choice == 6:
-    date = raw_input('date(m/d/yyyy): ') # type: ignore
+    date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     importSiteTelemetryTOUSummary(date)
   elif choice == 7:
-    date = raw_input('date(m/d/yyyy): ') # type: ignore
+    date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     importSiteTelemetryTOUSummaryDB(date)
 
