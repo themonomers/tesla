@@ -336,6 +336,9 @@ def printAllVehicleData(vin):
   try:
     data = getVehicleData(vin)
 
+    if ('error' in data):
+      raise Exception (data['error'])
+
     printJson(data, 0)
   except Exception as e:
     logError('printAllVehicleData(' + vin + '): ' + str(e))
