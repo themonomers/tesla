@@ -227,6 +227,8 @@ def importBatteryBackupHistory():
 
     for i in range(len(data['response']['events'])):
       print(str(i))
+      duration = -1
+      start = ''
 
       for key, value in data['response']['events'][i].items():
         if (key == 'duration'):
@@ -243,6 +245,7 @@ def importBatteryBackupHistory():
           print('  ' + key + ' = '
                 + datetime.strftime(start, '%Y-%m-%d %I:%M:%S %p'))
 
+        if ((duration != -1) and (start != '')):
           end = start + timedelta(hours=duration)
           print('  end = '
                 + datetime.strftime(end, '%Y-%m-%d %I:%M:%S %p'))
