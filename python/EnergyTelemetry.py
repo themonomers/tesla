@@ -43,7 +43,7 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 #
 # author: mjhwa@yahoo.com
 ##
-def writeSiteTelemetrySummary(date):
+def writeEnergySummaryToDB(date):
   try:
     # get battery data
     data = getSiteStatus()  
@@ -157,7 +157,7 @@ def writeSiteTelemetrySummary(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeSiteTelemetrySummary(): ' + str(e))
+    logError('writeEnergySummaryToDB(): ' + str(e))
 
 
 ##
@@ -167,7 +167,7 @@ def writeSiteTelemetrySummary(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def writeSiteTelemetryTOUSummary(date):
+def writeEnergyTOUSummaryToGsheet(date):
   try:
     # get battery data
     data = getSiteStatus()
@@ -777,7 +777,7 @@ def writeSiteTelemetryTOUSummary(date):
     ).execute()
     service.close()
   except Exception as e:
-    logError('writeSiteTelemetryTOUSummary(): ' + str(e))
+    logError('writeEnergyTOUSummaryToGsheet(): ' + str(e))
 
 ##
 # Contains functions to read/write the solar and powerwall data, separated 
@@ -786,7 +786,7 @@ def writeSiteTelemetryTOUSummary(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def writeSiteTelemetryTOUSummaryDB(date):
+def writeEnergyTOUSummaryToDB(date):
   try:
     json_body = []
 
@@ -941,7 +941,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeSiteTelemetryTOUSummaryDB(): ' + str(e))
+    logError('writeEnergyTOUSummaryToDB(): ' + str(e))
 
 
 ##
@@ -951,7 +951,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def writeSiteTelemetryDetail(date):
+def writeEnergyDetailToDB(date):
   try:
     # get time series data
     data = getBatteryPowerHistory()
@@ -1001,7 +1001,7 @@ def writeSiteTelemetryDetail(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeSiteTelemetryDetail(): ' + str(e))
+    logError('writeEnergyDetailToDB(): ' + str(e))
 
 
 ##
@@ -1011,10 +1011,10 @@ def writeSiteTelemetryDetail(date):
 # author: mjhwa@yahoo.com
 ##
 def main():
-  writeSiteTelemetrySummary(datetime.today() - timedelta(1))
-  writeSiteTelemetryTOUSummary(datetime.today() - timedelta(1))
-  writeSiteTelemetryTOUSummaryDB(datetime.today() - timedelta(1))
-  writeSiteTelemetryDetail(datetime.today() - timedelta(1))
+  writeEnergySummaryToDB(datetime.today() - timedelta(1))
+  writeEnergyTOUSummaryToGsheet(datetime.today() - timedelta(1))
+  writeEnergyTOUSummaryToDB(datetime.today() - timedelta(1))
+  writeEnergyDetailToDB(datetime.today() - timedelta(1))
 
   # send email notification
   message = ('Energy telemetry successfully logged on '

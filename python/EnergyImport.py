@@ -4,7 +4,7 @@ import pytz
 import zoneinfo
 
 from TeslaEnergyAPI import getBatteryChargeHistory, getBatteryBackupHistory, getPowerHistory
-from EnergyTelemetry import writeSiteTelemetrySummary, writeSiteTelemetryTOUSummary, writeSiteTelemetryTOUSummaryDB
+from EnergyTelemetry import writeEnergySummaryToDB, writeEnergyTOUSummaryToGsheet, writeEnergyTOUSummaryToDB
 from Influxdb import getDBClient
 from GoogleAPI import getGoogleSheetService
 from Crypto import decrypt
@@ -40,7 +40,7 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 #
 # author: mjhwa@yahoo.com
 ##
-def importSiteTelemetryDetailFromGsheet():
+def importEnergyDetailFromGsheetToDB():
   try:
     # get time series data
     service = getGoogleSheetService()
@@ -103,7 +103,7 @@ def importSiteTelemetryDetailFromGsheet():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importSiteTelemetryDetail(): ' + str(e))
+    logError('importEnergyDetailFromGsheetToDB(): ' + str(e))
 
 
 ##
@@ -112,7 +112,7 @@ def importSiteTelemetryDetailFromGsheet():
 #
 # author: mjhwa@yahoo.com
 ##
-def importSiteTelemetrySummaryFromGsheet():
+def importEnergySummaryFromGsheetToDB():
   try:
     # get time series data
     service = getGoogleSheetService()
@@ -136,10 +136,6 @@ def importSiteTelemetrySummaryFromGsheet():
               'tags': {
                 'source': data[1][y]
               },
-#              'time': datetime.strptime(
-#                data[x][0], 
-#                '%B %d, %Y'
-#              ).strftime('%Y-%m-%dT%H:%M:%S-7:00'),
               'time': datetime(
                 date.year,
                 date.month,
@@ -160,16 +156,16 @@ def importSiteTelemetrySummaryFromGsheet():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importSiteTelemetrySummary(): ' + str(e))
+    logError('importEnergySummaryFromGsheetToDB(): ' + str(e))
 
 
 ##
 # Import Tesla battery charge state history into an InfluxDB for 
-# Grafana visualization.
+# Grafana visualization.  These are in 15 minute increments.
 #
 # author: mjhwa@yahoo.com
 ##
-def importBatteryChargeHistory(date):
+def importBatteryChargeToDB(date):
   try:
     # get battery charge history data
     data = getBatteryChargeHistory('day', date)
@@ -208,16 +204,16 @@ def importBatteryChargeHistory(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importBatteryChargeHistory(): ' + str(e))
+    logError('importBatteryChargeToDB(): ' + str(e))
 
 
 ##
-# Import Tesla battery backup history/grid outages into an InfluxDB for
+# Import Tesla system backup history/grid outages into an InfluxDB for
 # Grafana visualization.
 #
 # author: mjhwa@yahoo.com
 ##
-def importBatteryBackupHistory():
+def importOutageToDB():
   try:
     # get battery charge history data
     data = getBatteryBackupHistory()
@@ -282,69 +278,17 @@ def importBatteryBackupHistory():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importBatteryBackupHistory(): ' + str(e))
+    logError('importOutageToDB(): ' + str(e))
 
 
 ##
-# Import missing dates for Tesla site telemetry summary.
+# Import missing dates for Tesla Energy data for InfluxDB.  This
+# has 5 minute increments of Home, Solar, Powerall, and Grid to/from
+# data.
 #
 # author: mjhwa@yahoo.com
 ##
-def importSiteTelemetrySummary(date):
-  try:
-    print(date)
-
-    insert = input('import (y/n): ')
-    if insert != 'y':
-      return
-
-    writeSiteTelemetrySummary(date)
-  except Exception as e:
-    logError('importSiteTelemetrySummary(): ' + str(e))
-
-
-##
-# Import missing dates for Tesla site telemetry TOU summary.
-#
-# author: mjhwa@yahoo.com
-##
-def importSiteTelemetryTOUSummary(date):
-  try:
-    print(date)
-
-    insert = input('import (y/n): ')
-    if insert != 'y':
-      return
-
-    writeSiteTelemetryTOUSummary(date)
-  except Exception as e:
-    logError('importSiteTelemetryTOUSummary(): ' + str(e))
-
-
-##
-# Import missing dates for Tesla site telemetry TOU summary for InfluxDB.
-#
-# author: mjhwa@yahoo.com
-##
-def importSiteTelemetryTOUSummaryDB(date):
-  try:
-    print(date)
-
-    insert = input('import (y/n): ')
-    if insert != 'y':
-      return
-
-    writeSiteTelemetryTOUSummaryDB(date)
-  except Exception as e:
-    logError('importSiteTelemetryTOUSummaryDB(): ' + str(e))
-
-
-##
-# Import missing dates for Tesla site telemetry detail for InfluxDB.
-#
-# author: mjhwa@yahoo.com
-##
-def importSiteTelemetryDetail(date):
+def importEnergyDetailToDB(date):
   try:
     print(date)
 
@@ -400,7 +344,67 @@ def importSiteTelemetryDetail(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importSiteTelemetryDetail(): ' + str(e))
+    logError('importEnergyDetailToDB(): ' + str(e))
+
+
+##
+# Import missing dates for Tesla Energy data for InfluxDB.  This
+# has daily totals of Home, Solar, Powerall, and Grid to/from
+# data.
+#
+# author: mjhwa@yahoo.com
+##
+def importEnergySummaryToDB(date):
+  try:
+    print(date)
+
+    insert = input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeEnergySummaryToDB(date)
+  except Exception as e:
+    logError('importEnergySummaryToDB(): ' + str(e))
+
+
+##
+# Import missing dates for Tesla Energy Impact data for Google Sheet.
+# This includes TOU (off peak, partial peak, and peak) breakdowns
+# of Solar, Powerall, Grid, etc., Energy Value, and Solar Offset.
+#
+# author: mjhwa@yahoo.com
+##
+def importEnergyTOUSummaryToGsheet(date):
+  try:
+    print(date)
+
+    insert = input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeEnergyTOUSummaryToGsheet(date)
+  except Exception as e:
+    logError('importEnergyTOUSummaryToGsheet(): ' + str(e))
+
+
+##
+# Import missing dates for Tesla Energy Impact data for InfluxDB.
+# This includes TOU (off peak, partial peak, and peak) breakdowns
+# of Solar, Powerall, Grid, etc., Energy Value, and Solar Offset.
+#
+# author: mjhwa@yahoo.com
+##
+def importEnergyTOUSummaryToDB(date):
+  try:
+    print(date)
+
+    insert = input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeEnergyTOUSummaryToDB(date)
+  except Exception as e:
+    logError('importEnergyTOUSummaryToDB(): ' + str(e))
 
 
 ##
@@ -411,45 +415,46 @@ def importSiteTelemetryDetail(date):
 # author: mjhwa@yahoo.com
 ##
 def main():
-  print('[1] importSiteTelemetryDetailFromGsheet()')
-  print('[2] importSiteTelemetrySummaryFromGsheet()')
-  print('[3] importBatteryChargeHistory()')
-  print('[4] importBatteryBackupHistory()')
-  print('[5] importSiteTelemetrySummary()')
-  print('[6] importSiteTelemetryTOUSummary()')
-  print('[7] importSiteTelemetryTOUSummaryDB()')
-  print('[8] importSiteTelemetryDetail()')
+  print('[1] importEnergyDetailFromGsheetToDB()')
+  print('[2] importEnergySummaryFromGsheetToDB()')
+  print('[3] importBatteryChargeToDB()')
+  print('[4] importOutageToDB()')
+  print('[5] importEnergyDetailToDB()')
+  print('[6] importEnergySummaryToDB()')
+  print('[7] importEnergyTOUSummaryToGsheet()')
+  print('[8] importEnergyTOUSummaryToDB()')
   try:
     choice = int(input('selection: '))
   except ValueError:
     return
 
   if choice == 1:
-    importSiteTelemetryDetailFromGsheet()
+    importEnergyDetailFromGsheetToDB()
   elif choice == 2:
-    importSiteTelemetrySummaryFromGsheet()
+    importEnergySummaryFromGsheetToDB()
   elif choice == 3:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    importBatteryChargeHistory(date)
+    importBatteryChargeToDB(date)
   elif choice == 4:
-    importBatteryBackupHistory()
+    importOutageToDB()
   elif choice == 5:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    importSiteTelemetrySummary(date)
+    importEnergyDetailToDB(date)
   elif choice == 6:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    importSiteTelemetryTOUSummary(date)
+    importEnergySummaryToDB(date)
   elif choice == 7:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    importSiteTelemetryTOUSummaryDB(date)
+    importEnergyTOUSummaryToGsheet(date)
   elif choice == 8:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    importSiteTelemetryDetail(date)
+    importEnergyTOUSummaryToDB(date)
+
 
 if __name__ == "__main__":
   main()
