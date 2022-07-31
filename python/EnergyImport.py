@@ -3,7 +3,7 @@ import os
 import pytz
 import zoneinfo
 
-from TeslaEnergyAPI import getBatteryChargeHistory, getBatteryBackupHistory
+from TeslaEnergyAPI import getBatteryChargeHistory, getBatteryBackupHistory, getPowerHistory
 from EnergyTelemetry import writeSiteTelemetrySummary, writeSiteTelemetryTOUSummary, writeSiteTelemetryTOUSummaryDB
 from Influxdb import getDBClient
 from GoogleAPI import getGoogleSheetService
@@ -337,6 +337,70 @@ def importSiteTelemetryTOUSummaryDB(date):
 
 
 ##
+# Import missing dates for Tesla site telemetry detail for InfluxDB.
+#
+# author: mjhwa@yahoo.com
+##
+def importSiteTelemetryDetail(date):
+  try:
+    print(date)
+
+    insert = input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    # get time series data
+    data = getPowerHistory('day', date)
+
+    json_body = []
+    for x in data['response']['time_series']:
+      d = datetime.strptime(
+        x['timestamp'].split('T',1)[0],
+        '%Y-%m-%d'
+      )
+
+      if (
+        d.year == date.year
+        and d.month == date.month
+        and d.day == date.day
+      ):
+        for key, value in x.items():
+          if (key != 'timestamp'):
+            json_body.append({
+              'measurement': 'energy_detail',
+              'tags': {
+                'source': key
+              },
+              'time': x['timestamp'],
+              'fields': {
+                'value': float(value)
+              }
+            })
+        json_body.append({
+          'measurement': 'energy_detail',
+          'tags': {
+            'source': 'load_power'
+          },
+          'time': x['timestamp'],
+          'fields': {
+            'value': float(
+              x['grid_power']
+              + x['battery_power']
+              + x['solar_power']
+            )
+          }
+        })
+
+    # Write to Influxdb
+    client = getDBClient()
+    client.switch_database('energy')
+    client.write_points(json_body)
+    client.close()
+  except Exception as e:
+    logError('importSiteTelemetryDetail(): ' + str(e))
+
+
+##
 # Collection of data import functions run from CLI python 
 # to manually run automated data collection routines that 
 # failed.
@@ -351,6 +415,7 @@ def main():
   print('[5] importSiteTelemetrySummary()')
   print('[6] importSiteTelemetryTOUSummary()')
   print('[7] importSiteTelemetryTOUSummaryDB()')
+  print('[8] importSiteTelemetryDetail()')
   try:
     choice = int(input('selection: '))
   except ValueError:
@@ -378,6 +443,10 @@ def main():
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     importSiteTelemetryTOUSummaryDB(date)
+  elif choice == 8:
+    date = input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    importSiteTelemetryDetail(date)
 
 if __name__ == "__main__":
   main()
