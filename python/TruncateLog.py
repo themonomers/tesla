@@ -3,12 +3,12 @@ import os
 import Logger
 
 from GoogleAPI import getGoogleSheetService
-from Crypto import simpleDecrypt
+from Crypto import decrypt
 from datetime import datetime, timedelta
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'config.xor'

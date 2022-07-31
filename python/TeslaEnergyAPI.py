@@ -4,14 +4,14 @@ import configparser
 import os
 import pytz
 
-from Crypto import simpleDecrypt
+from Crypto import decrypt
 from Logger import logError
 from Utilities import printJson
 from datetime import datetime
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'config.xor'
@@ -30,7 +30,7 @@ BATTERY_ID = config['energy']['battery_id']
 buffer.close()
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'token.xor'

@@ -5,13 +5,13 @@ import os
 from TeslaVehicleAPI import getVehicleData, wakeVehicle
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from SendEmail import sendEmail
-from Crypto import simpleDecrypt
+from Crypto import decrypt
 from Logger import logError
 from datetime import datetime
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'config.xor'

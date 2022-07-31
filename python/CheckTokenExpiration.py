@@ -2,12 +2,12 @@ import configparser
 import os
 import Logger
 
-from Crypto import simpleDecrypt
+from Crypto import decrypt
 from datetime import timedelta, datetime
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'token.xor'

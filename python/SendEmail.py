@@ -2,7 +2,7 @@ import smtplib
 import configparser
 import os
 
-from Crypto import simpleDecrypt
+from Crypto import decrypt
 from Logger import logError
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -10,7 +10,7 @@ from email.mime.image import MIMEImage
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'config.xor'

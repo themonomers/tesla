@@ -2,12 +2,12 @@ import configparser
 import os
 import GoogleAPI
 
-from Crypto import simpleDecrypt
+from Crypto import decrypt
 from datetime import datetime
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'config.xor'

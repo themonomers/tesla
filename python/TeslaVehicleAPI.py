@@ -4,13 +4,13 @@ import time
 import configparser
 import os
 
-from Crypto import simpleDecrypt
+from Crypto import decrypt
 from Logger import logError
 from Utilities import printJson  
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'token.xor'

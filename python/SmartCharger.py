@@ -7,13 +7,13 @@ from GoogleAPI import getGoogleSheetService
 from SendEmail import sendEmail
 from SmartClimate import setM3Precondition, setMXPrecondition
 from Utilities import isVehicleAtHome, isVehicleAtNapa
-from Crypto import simpleDecrypt
+from Crypto import decrypt
 from Logger import logError
 from datetime import datetime
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'config.xor'

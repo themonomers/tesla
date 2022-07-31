@@ -1,7 +1,4 @@
 *.pyc
-*.pem
-*.svg
-*.rsa
 *.json
 *.xor
 *Test*

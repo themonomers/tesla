@@ -6,12 +6,12 @@ import os
 import tzlocal
 import base64
 
-from Crypto import simpleDecrypt, simpleEncrypt
+from Crypto import decrypt, encrypt
 from datetime import datetime, timedelta
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'token.xor'
@@ -52,7 +52,7 @@ message += 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
 message += 'expires_at=' + datetime.strftime(tzlocal.get_localzone().localize(dt + timedelta(seconds=(response)['expires_in'])), '%Y-%m-%d %H:%M:%S') + '\n'
 
 # Encrypt config file
-simpleEncrypt(
+encrypt(
   message,
   os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
