@@ -1,19 +1,19 @@
 import configparser
 import os
-import tzlocal
 import pytz
+import zoneinfo
 
 from Influxdb import getDBClient
 from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getBatteryPowerHistory, getSavingsForecast
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from SendEmail import sendEmail
-from Crypto import simpleDecrypt
+from Crypto import decrypt
 from Logger import logError
 from datetime import datetime, timedelta
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'config.xor'
@@ -33,6 +33,7 @@ EMAIL_1 = config['notification']['email_1']
 buffer.close()
 
 TIME_ZONE = 'America/Los_Angeles'
+PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 
 ##
@@ -54,15 +55,15 @@ def writeSiteTelemetrySummary(date):
       'tags': {
         'source': 'total_pack_energy'
       },
-      'time': str(tzlocal.get_localzone().localize(datetime(
+      'time': str(datetime(
         date.year, 
         date.month, 
         date.day, 
         date.hour, 
         date.minute, 
-        date.second, 
+        date.second,
         date.microsecond
-      ))),
+      ).replace(tzinfo=PAC)),
       'fields': {
         'value': float(data['response']['total_pack_energy'])
       }
@@ -73,15 +74,15 @@ def writeSiteTelemetrySummary(date):
       'tags': {
         'source': 'percentage_charged'
       },
-      'time': str(tzlocal.get_localzone().localize(datetime(
+      'time': str(datetime(
         date.year, 
         date.month, 
         date.day, 
         date.hour, 
         date.minute, 
-        date.second, 
+        date.second,
         date.microsecond
-      ))),
+      ).replace(tzinfo=PAC)),
       'fields': {
         'value': float(data['response']['percentage_charged'])
       }
@@ -806,7 +807,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
               and d.day == date.day):
 
             """
-            print(tzlocal.get_localzone().localize(datetime(
+            print(datetime(
               date.year, 
               date.month, 
               date.day, 
@@ -814,7 +815,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
               0, 
               0, 
               0
-            )))
+            ).replace(tzinfo=PAC))
             """
 
             for key_2, value_2 in data['response'][key_1][i].items():
@@ -824,7 +825,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                   'tags': {
                     'source': key_2
                   },
-                  'time': str(tzlocal.get_localzone().localize(datetime(
+                  'time': str(datetime(
                     date.year, 
                     date.month, 
                     date.day, 
@@ -832,7 +833,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                     0, 
                     0, 
                     0
-                  ))),
+                  ).replace(tzinfo=PAC)),
                   'fields': {
                     'value': float(value_2)
                   }
@@ -860,7 +861,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                   'tags': {
                     'source': key_2
                   },
-                  'time': str(tzlocal.get_localzone().localize(datetime(
+                  'time': str(datetime(
                     date.year, 
                     date.month, 
                     date.day, 
@@ -868,7 +869,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                     0, 
                     0, 
                     0
-                  ))),
+                  ).replace(tzinfo=PAC)),
                   'fields': {
                     'value': float(value_2)
                   }
@@ -890,7 +891,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                   'tags': {
                     'source': key_2
                   },
-                  'time': str(tzlocal.get_localzone().localize(datetime(
+                  'time': str(datetime(
                     date.year, 
                     date.month, 
                     date.day, 
@@ -898,7 +899,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                     0, 
                     0, 
                     0
-                  ))),
+                  ).replace(tzinfo=PAC)),
                   'fields': {
                     'value': float(value_2)
                   }
@@ -920,7 +921,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                   'tags': {
                     'source': key_2
                   },
-                  'time': str(tzlocal.get_localzone().localize(datetime(
+                  'time': str(datetime(
                     date.year, 
                     date.month, 
                     date.day, 
@@ -928,7 +929,7 @@ def writeSiteTelemetryTOUSummaryDB(date):
                     0, 
                     0, 
                     0
-                  ))),
+                  ).replace(tzinfo=PAC)),
                   'fields': {
                     'value': float(value_2)
                   }

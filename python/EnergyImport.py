@@ -1,19 +1,19 @@
 import configparser
 import os
-import tzlocal
 import pytz
+import zoneinfo
 
 from TeslaEnergyAPI import getBatteryChargeHistory, getBatteryBackupHistory
 from EnergyTelemetry import writeSiteTelemetrySummary, writeSiteTelemetryTOUSummary, writeSiteTelemetryTOUSummaryDB
 from Influxdb import getDBClient
 from GoogleAPI import getGoogleSheetService
-from Crypto import simpleDecrypt
+from Crypto import decrypt
 from Logger import logError
 from datetime import datetime, timedelta
 from io import StringIO
 
 buffer = StringIO(
-  simpleDecrypt(
+  decrypt(
     os.path.join(
       os.path.dirname(os.path.abspath(__file__)),
       'config.xor'
@@ -30,7 +30,8 @@ config.read_file(buffer)
 ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
 buffer.close()
 
-TIME_ZONE = 'America/Los_Angeles'
+TIME_ZONE = ('America/Los_Angeles')
+PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 
 ##
@@ -139,7 +140,7 @@ def importSiteTelemetrySummaryFromGsheet():
 #                data[x][0], 
 #                '%B %d, %Y'
 #              ).strftime('%Y-%m-%dT%H:%M:%S-7:00'),
-              'time': tzlocal.get_localzone().localize(datetime(
+              'time': datetime(
                 date.year,
                 date.month,
                 date.day,
@@ -147,7 +148,7 @@ def importSiteTelemetrySummaryFromGsheet():
                 date.minute,
                 date.second,
                 date.microsecond
-              )),
+              ).replace(tzinfo=PAC),
               'fields': {
                 'value': float(data[x][y].replace(',',''))
               }
@@ -349,7 +350,7 @@ def main():
   print('[4] importBatteryBackupHistory()')
   print('[5] importSiteTelemetrySummary()')
   print('[6] importSiteTelemetryTOUSummary()')
-  print('[7] importSiteTelemetryTOUSummaryDB() \n')
+  print('[7] importSiteTelemetryTOUSummaryDB()')
   try:
     choice = int(input('selection: '))
   except ValueError:
