@@ -3,7 +3,7 @@ import json
 import datetime
 import configparser
 import os
-import tzlocal
+import zoneinfo
 import base64
 
 from Crypto import decrypt, encrypt
@@ -28,6 +28,8 @@ config.read_file(buffer)
 REFRESH_TOKEN = config['tesla']['refresh_token']
 buffer.close()
 
+PAC = zoneinfo.ZoneInfo('America/Los_Angeles')
+
 # Get new access and refresh tokens
 url = 'https://auth.tesla.com/oauth2/v3/token'
 payload = {
@@ -42,14 +44,14 @@ response = json.loads(requests.post(
              json=payload
            ).text)
 
-dt = datetime.now()
+dt = datetime.now().replace(tzinfo=PAC)
 
 # Format output
 message =  '[tesla]\n'
 message += 'access_token=' + (response)['access_token'] + '\n'
 message += 'refresh_token=' + (response)['refresh_token'] + '\n'
 message += 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
-message += 'expires_at=' + datetime.strftime(tzlocal.get_localzone().localize(dt + timedelta(seconds=(response)['expires_in'])), '%Y-%m-%d %H:%M:%S') + '\n'
+message += 'expires_at=' + datetime.strftime(dt + timedelta(seconds=(response)['expires_in']), '%Y-%m-%d %H:%M:%S') + '\n'
 
 # Encrypt config file
 encrypt(
