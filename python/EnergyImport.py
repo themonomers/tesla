@@ -30,7 +30,7 @@ config.read_file(buffer)
 ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
 buffer.close()
 
-TIME_ZONE = ('America/Los_Angeles')
+TIME_ZONE = 'America/Los_Angeles'
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 
