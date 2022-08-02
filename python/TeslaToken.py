@@ -24,20 +24,3 @@ print('access_token=' + response['access_token'])
 print('refresh_token=' + response['refresh_token'])
 print('created_at=' + datetime.strftime(expires_at - timedelta(seconds = response['expires_in']), '%Y-%m-%d %H:%M:%S'))
 print('expires_at=' + datetime.strftime(expires_at, '%Y-%m-%d %H:%M:%S'))
-
-"""
-# write timestamp into Google Sheet for crontab expiration checks
-inputs = [{
-  'range': 'Smart Charger!H5',
-  'values': [[datetime.datetime.fromtimestamp(
-    json.loads(response.text)['created_at']
-    + json.loads(response.text)['expires_in']
-  ).strftime('%m/%d/%Y')]]
-}]
-service = GoogleAPI.getGoogleSheetService()
-service.spreadsheets().values().batchUpdate(
-  spreadsheetId=EV_SPREADSHEET_ID,
-  body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
-).execute()
-service.close()
-"""
