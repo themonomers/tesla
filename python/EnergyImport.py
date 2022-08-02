@@ -3,8 +3,8 @@ import os
 import pytz
 import zoneinfo
 
-from TeslaEnergyAPI import getBatteryChargeHistory, getBatteryBackupHistory, getPowerHistory
-from EnergyTelemetry import writeEnergySummaryToDB, writeEnergyTOUSummaryToGsheet, writeEnergyTOUSummaryToDB
+from TeslaEnergyAPI import getBatteryChargeHistory, getBatteryBackupHistory
+from EnergyTelemetry import writeEnergySummaryToDB, writeEnergyTOUSummaryToGsheet, writeEnergyTOUSummaryToDB, writeEnergyDetailToDB
 from Influxdb import getDBClient
 from GoogleAPI import getGoogleSheetService
 from Crypto import decrypt
@@ -296,53 +296,7 @@ def importEnergyDetailToDB(date):
     if insert != 'y':
       return
 
-    # get time series data
-    data = getPowerHistory('day', date)
-
-    json_body = []
-    for x in data['response']['time_series']:
-      d = datetime.strptime(
-        x['timestamp'].split('T',1)[0],
-        '%Y-%m-%d'
-      )
-
-      if (
-        d.year == date.year
-        and d.month == date.month
-        and d.day == date.day
-      ):
-        for key, value in x.items():
-          if (key != 'timestamp'):
-            json_body.append({
-              'measurement': 'energy_detail',
-              'tags': {
-                'source': key
-              },
-              'time': x['timestamp'],
-              'fields': {
-                'value': float(value)
-              }
-            })
-        json_body.append({
-          'measurement': 'energy_detail',
-          'tags': {
-            'source': 'load_power'
-          },
-          'time': x['timestamp'],
-          'fields': {
-            'value': float(
-              x['grid_power']
-              + x['battery_power']
-              + x['solar_power']
-            )
-          }
-        })
-
-    # Write to Influxdb
-    client = getDBClient()
-    client.switch_database('energy')
-    client.write_points(json_body)
-    client.close()
+    writeEnergyDetailToDB(date)
   except Exception as e:
     logError('importEnergyDetailToDB(): ' + str(e))
 

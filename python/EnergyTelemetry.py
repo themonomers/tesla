@@ -4,7 +4,7 @@ import pytz
 import zoneinfo
 
 from Influxdb import getDBClient
-from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getBatteryPowerHistory, getSavingsForecast
+from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from SendEmail import sendEmail
 from Crypto import decrypt
@@ -954,7 +954,7 @@ def writeEnergyTOUSummaryToDB(date):
 def writeEnergyDetailToDB(date):
   try:
     # get time series data
-    data = getBatteryPowerHistory()
+    data = getPowerHistory('day', date)
 
     json_body = []
     for x in data['response']['time_series']:
