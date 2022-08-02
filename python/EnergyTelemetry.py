@@ -136,8 +136,8 @@ def writeEnergySummaryToDB(date):
 
       # need to adjust an additional -1 days because of the lag in 
       # availability of this data
-      if (d_local.year == date.year
-          and d_local.month == date.month
+      if (d_local.year == (date - timedelta(1)).year
+          and d_local.month == (date - timedelta(1)).month
           and d_local.day == (date - timedelta(1)).day):
 
         json_body.append({
