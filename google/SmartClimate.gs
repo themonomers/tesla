@@ -535,7 +535,8 @@ function preconditionCarStart(vin) {
     "headers": {
       "authorization": "Bearer " + ACCESS_TOKEN
     },
-    "method": "post"
+    "method": "post",
+    'contentType': 'application/json'
   };
   var response = UrlFetchApp.fetch(url, options);
   return response;
@@ -547,7 +548,8 @@ function preconditionCarStop(vin) {
     "headers": {
       "authorization": "Bearer " + ACCESS_TOKEN
     },
-    "method": "post"
+    "method": "post",
+    'contentType': 'application/json'
   };
   var response = UrlFetchApp.fetch(url, options);
   return response;
