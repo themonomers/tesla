@@ -1,7 +1,6 @@
-import Logger
-
 from GoogleAPI import getGoogleSheetService
 from Utilities import getConfig
+from Logger import logError
 from datetime import datetime, timedelta
 
 config = getConfig()
@@ -74,7 +73,7 @@ def truncateLog():
 
         return
   except Exception as e:
-    Logger.logError('truncateLog(): ' + str(e))
+    logError('truncateLog(): ' + str(e))
   finally:
     service.close()
 

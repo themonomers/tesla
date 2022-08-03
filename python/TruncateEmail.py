@@ -1,7 +1,6 @@
-import Logger
-
 from GoogleAPI import getGoogleMailService
 from Utilities import getConfig
+from Logger import logError
 from datetime import datetime, timedelta
 
 config = getConfig()
@@ -54,7 +53,7 @@ def truncateEmail(query):
                     id=item['id']
                   ).execute() 
   except Exception as e:
-    Logger.logError('truncateEmail(): ' + str(e))
+    logError('truncateEmail(): ' + str(e))
   finally:
     service.close()
 

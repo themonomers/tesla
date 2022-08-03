@@ -1,6 +1,5 @@
-import Logger
-
 from Utilities import getConfig
+from Logger import logError
 from influxdb import InfluxDBClient
 
 config = getConfig()
@@ -24,6 +23,6 @@ def getDBClient():
       password=INFLUX_PASSWORD
     )
   except Exception as e:
-    Logger.logError('getDBClient(): ' + str(e))
+    logError('getDBClient(): ' + str(e))
 
 
