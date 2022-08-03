@@ -4,7 +4,6 @@ import json
 import datetime
 import configparser
 import os
-import Logger
 
 from Crypto import decrypt
 from crontab import CronTab
@@ -20,24 +19,27 @@ BASE_WEATHER_URL = 'https://api.openweathermap.org/data/2.5'
 # author: mjhwa@yahoo.com
 ##
 def getConfig():
-  buffer = StringIO(
-    decrypt(
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'config.xor'
-      ),
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'config_key'
+  try:
+    buffer = StringIO(
+      decrypt(
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          'config.xor'
+        ),
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          'config_key'
+        )
       )
     )
-  )
-  config = configparser.ConfigParser()
-  config.sections()
-  config.read_file(buffer)
-  values = {s:dict(config.items(s)) for s in config.sections()}
-  buffer.close()
-  return values
+    config = configparser.ConfigParser()
+    config.sections()
+    config.read_file(buffer)
+    values = {s:dict(config.items(s)) for s in config.sections()}
+    buffer.close()
+    return values
+  except Exception as e:
+    print('getConfig(): ' + str(e))
 
 config = getConfig()
 HOME_LAT = float(config['vehicle']['home_lat'])
@@ -53,24 +55,27 @@ OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
 # author: mjhwa@yahoo.com
 ##
 def getToken():
-  buffer = StringIO(
-    decrypt(
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'token.xor'
-      ),
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'token_key'
+  try:
+    buffer = StringIO(
+      decrypt(
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          'token.xor'
+        ),
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          'token_key'
+        )
       )
     )
-  )
-  config = configparser.ConfigParser()
-  config.sections()
-  config.read_file(buffer)
-  values = {s:dict(config.items(s)) for s in config.sections()}
-  buffer.close()
-  return values
+    config = configparser.ConfigParser()
+    config.sections()
+    config.read_file(buffer)
+    values = {s:dict(config.items(s)) for s in config.sections()}
+    buffer.close()
+    return values
+  except Exception as e:
+    print('getToken(): ' + str(e))
 
 
 ##
@@ -85,7 +90,7 @@ def deleteCronTab(command):
     cron.remove(job)
     cron.write()
   except Exception as e:
-    Logger.logError('deleteCronTab(' + command + '): ' + str(e))
+    print('deleteCronTab(' + command + '): ' + str(e))
 
 
 ##
@@ -103,7 +108,7 @@ def createCronTab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    Logger.logError('createCronTab(' + command + '): ' + str(e))
+    print('createCronTab(' + command + '): ' + str(e))
 
 
 ##
@@ -137,7 +142,7 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    Logger.logError('isVehicleAtLocation(): ' + str(e))
+    print('isVehicleAtLocation(): ' + str(e))
 
 
 def getDistance(car_lat, car_lng, x_lat, x_lng):
@@ -176,7 +181,7 @@ def getCurrentWeather(zipcode):
 
     return json.loads(response.text)
   except Exception as e:
-    Logger.logError('getCurrentWeather(): ' + str(e))
+    print('getCurrentWeather(): ' + str(e))
 
 
 ##
@@ -200,7 +205,7 @@ def getDailyWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    Logger.logError('getDailyWeather(): ' + str(e))
+    print('getDailyWeather(): ' + str(e))
 
 
 ##
