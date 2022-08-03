@@ -1,31 +1,13 @@
-import configparser
-import os
+import Logger
 
+from Utilities import getConfig
 from influxdb import InfluxDBClient
-from Crypto import decrypt
-from Logger import logError
-from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getConfig()
 INFLUX_HOST = config['influxdb']['host']
 INFLUX_PORT = config['influxdb']['port']
 INFLUX_USER = config['influxdb']['user']
 INFLUX_PASSWORD = config['influxdb']['password']
-buffer.close()
 
 
 ##
@@ -42,6 +24,6 @@ def getDBClient():
       password=INFLUX_PASSWORD
     )
   except Exception as e:
-    logError('getDBClient(): ' + str(e))
+    Logger.logError('getDBClient(): ' + str(e))
 
 

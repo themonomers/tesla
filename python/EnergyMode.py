@@ -1,33 +1,13 @@
-import configparser
-import os
-
-from datetime import datetime, date, timedelta
-from Utilities import getDailyWeather
 from TeslaEnergyAPI import setBatteryModeBackup, setBatteryModeAdvancedCost, setBatteryBackupReserve
 from SendEmail import sendEmail
-from Crypto import decrypt
+from Utilities import getDailyWeather, getConfig
 from Logger import logError
-from io import StringIO
+from datetime import datetime, date, timedelta
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getConfig()
 HOME_LAT = float(config['vehicle']['home_lat'])
 HOME_LNG = float(config['vehicle']['home_lng'])
 EMAIL_1 = config['notification']['email_1']
-buffer.close()
 
 PCT_THRESHOLD = 0.5
 

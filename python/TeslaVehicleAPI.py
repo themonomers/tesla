@@ -1,31 +1,12 @@
 import requests
 import json
 import time
-import configparser
-import os
 
-from Crypto import decrypt
 from Logger import logError
-from Utilities import printJson  
-from io import StringIO
+from Utilities import printJson, getToken
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'token.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'token_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getToken()
 ACCESS_TOKEN = config['tesla']['access_token']
-buffer.close()
 
 WAIT_TIME = 30 
 URL = 'https://owner-api.teslamotors.com/api/1/vehicles'

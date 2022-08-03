@@ -4,36 +4,73 @@ import json
 import datetime
 import configparser
 import os
+import Logger
 
 from Crypto import decrypt
-from Logger import logError
 from crontab import CronTab
 from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config_key'
+R = 3958.8  #Earth radius in miles
+BASE_WEATHER_URL = 'https://api.openweathermap.org/data/2.5'
+
+
+##
+# Retrieves dictionary of configuration values.
+#
+# author: mjhwa@yahoo.com
+##
+def getConfig():
+  buffer = StringIO(
+    decrypt(
+      os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'config.xor'
+      ),
+      os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'config_key'
+      )
     )
   )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+  config = configparser.ConfigParser()
+  config.sections()
+  config.read_file(buffer)
+  values = {s:dict(config.items(s)) for s in config.sections()}
+  buffer.close()
+  return values
+
+config = getConfig()
 HOME_LAT = float(config['vehicle']['home_lat'])
 HOME_LNG = float(config['vehicle']['home_lng'])
 NAPA_LAT = float(config['vehicle']['napa_lat'])
 NAPA_LNG = float(config['vehicle']['napa_lng'])
 OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
-buffer.close()
 
-R = 3958.8  #Earth radius in miles
-BASE_WEATHER_URL = 'https://api.openweathermap.org/data/2.5'
+
+##
+# Retrievies dictionary of access token values.
+#
+# author: mjhwa@yahoo.com
+##
+def getToken():
+  buffer = StringIO(
+    decrypt(
+      os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'token.xor'
+      ),
+      os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'token_key'
+      )
+    )
+  )
+  config = configparser.ConfigParser()
+  config.sections()
+  config.read_file(buffer)
+  values = {s:dict(config.items(s)) for s in config.sections()}
+  buffer.close()
+  return values
 
 
 ##
@@ -48,7 +85,7 @@ def deleteCronTab(command):
     cron.remove(job)
     cron.write()
   except Exception as e:
-    logError('deleteCronTab(' + command + '): ' + str(e))
+    Logger.logError('deleteCronTab(' + command + '): ' + str(e))
 
 
 ##
@@ -66,7 +103,7 @@ def createCronTab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    logError('createCronTab(' + command + '): ' + str(e))
+    Logger.logError('createCronTab(' + command + '): ' + str(e))
 
 
 ##
@@ -100,7 +137,7 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    logError('isVehicleAtLocation(): ' + str(e))
+    Logger.logError('isVehicleAtLocation(): ' + str(e))
 
 
 def getDistance(car_lat, car_lng, x_lat, x_lng):
@@ -139,7 +176,7 @@ def getCurrentWeather(zipcode):
 
     return json.loads(response.text)
   except Exception as e:
-    logError('getCurrentWeather(): ' + str(e))
+    Logger.logError('getCurrentWeather(): ' + str(e))
 
 
 ##
@@ -163,7 +200,7 @@ def getDailyWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    logError('getDailyWeather(): ' + str(e))
+    Logger.logError('getDailyWeather(): ' + str(e))
 
 
 ##

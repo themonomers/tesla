@@ -1,28 +1,10 @@
-import configparser
-import os
 import Logger
 
-from Crypto import decrypt
+from Utilities import getToken
 from datetime import timedelta, datetime
-from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'token.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'token_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getToken()
 EXPIRES_AT = config['tesla']['expires_at']
-buffer.close()
 
 
 ##

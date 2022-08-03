@@ -1,5 +1,3 @@
-import configparser
-import os
 import pytz
 import zoneinfo
 
@@ -7,30 +5,14 @@ from Influxdb import getDBClient
 from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from SendEmail import sendEmail
-from Crypto import decrypt
+from Utilities import getConfig
 from Logger import logError
 from datetime import datetime, timedelta
-from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getConfig()
 ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
 SUMMARY_SHEET_ID = config['google']['summary_sheet_id']
 EMAIL_1 = config['notification']['email_1']
-buffer.close()
 
 TIME_ZONE = 'America/Los_Angeles'
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)

@@ -1,49 +1,17 @@
 import requests
 import json
-import configparser
-import os
 import pytz
 
-from Crypto import decrypt
 from Logger import logError
-from Utilities import printJson
+from Utilities import printJson, getConfig, getToken
 from datetime import datetime
-from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getConfig()
 SITE_ID = config['energy']['site_id']
 BATTERY_ID = config['energy']['battery_id']
-buffer.close()
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'token.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'token_key'
-    )
-  )
-)
-config.read_file(buffer)
+config = getToken()
 ACCESS_TOKEN = config['tesla']['access_token']
-buffer.close()
 
 TIME_ZONE = 'America/Los_Angeles'
 BASE_URL = 'https://owner-api.teslamotors.com/api/1'

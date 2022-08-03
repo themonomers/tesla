@@ -1,28 +1,10 @@
-import configparser
-import os
 import GoogleAPI
 
-from Crypto import decrypt
+from Utilities import getConfig
 from datetime import datetime
-from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getConfig()
 LOG_SPREADSHEET_ID = config['google']['log_spreadsheet_id']
-buffer.close()
 
 
 ##

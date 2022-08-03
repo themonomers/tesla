@@ -1,31 +1,13 @@
-import configparser
-import os
 import Logger
 
 from GoogleAPI import getGoogleMailService
-from Crypto import decrypt
+from Utilities import getConfig
 from datetime import datetime, timedelta
-from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getConfig()
 QUERY_1 = config['notification']['query_1']
 QUERY_2 = config['notification']['query_2']
 QUERY_3 = config['notification']['query_3']
-buffer.close()
 
 DELETE_THRESHOLD = 30
 

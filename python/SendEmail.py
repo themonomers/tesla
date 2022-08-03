@@ -1,32 +1,15 @@
 import smtplib
-import configparser
 import os
 
-from Crypto import decrypt
+from Utilities import getConfig
 from Logger import logError
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
-from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getConfig()
 SENDER_EMAIL = config['notification']['sender_email']
 SENDER_PASSWORD = config['notification']['sender_password']
-buffer.close()
 
 
 ##

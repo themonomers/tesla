@@ -1,36 +1,18 @@
 import time
-import configparser
-import os
 
 from TeslaVehicleAPI import getVehicleData, wakeVehicle
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from SendEmail import sendEmail
-from Crypto import decrypt
+from Utilities import getConfig
 from Logger import logError
 from datetime import datetime
-from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getConfig()
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
 TELEMETRY_SHEET_ID = config['google']['telemetry_sheet_id']
 EMAIL_1 = config['notification']['email_1']
-buffer.close()
 
 WAIT_TIME = 30 
 

@@ -1,32 +1,16 @@
 import requests
 import json
 import datetime
-import configparser
 import os
 import zoneinfo
 import base64
 
-from Crypto import decrypt, encrypt
+from Crypto import encrypt
+from Utilities import getToken
 from datetime import datetime, timedelta
-from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'token.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'token_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getToken()
 REFRESH_TOKEN = config['tesla']['refresh_token']
-buffer.close()
 
 PAC = zoneinfo.ZoneInfo('America/Los_Angeles')
 

@@ -1,35 +1,16 @@
 import time
-import configparser
-import os
 
 from TeslaVehicleAPI import getVehicleData, wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
 from GoogleAPI import getGoogleSheetService
-from Utilities import deleteCronTab, createCronTab, isVehicleAtHome, getCurrentWeather
+from Utilities import deleteCronTab, createCronTab, isVehicleAtHome, getCurrentWeather, getConfig
 from SmartClimate import getM3SeatSetting
-from Crypto import decrypt
 from Logger import logError
 from datetime import datetime
-from io import StringIO
 
-buffer = StringIO(
-  decrypt(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config.xor'
-    ),
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      'config_key'
-    )
-  )
-)
-config = configparser.ConfigParser()
-config.sections()
-config.read_file(buffer)
+config = getConfig()
 M3_VIN = config['vehicle']['m3_vin']
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id'] 
 ZIPCODE = config['weather']['zipcode']
-buffer.close()
 
 WAIT_TIME = 30 
 
