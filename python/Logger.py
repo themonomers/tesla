@@ -3,8 +3,7 @@ import GoogleAPI
 from Utilities import getConfig
 from datetime import datetime
 
-config = getConfig()
-LOG_SPREADSHEET_ID = config['google']['log_spreadsheet_id']
+LOG_SPREADSHEET_ID = getConfig()['google']['log_spreadsheet_id']
 
 
 ##

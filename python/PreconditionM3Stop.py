@@ -4,8 +4,7 @@ from TeslaVehicleAPI import wakeVehicle, getVehicleData, preconditionCarStop
 from Utilities import isVehicleAtHome, getConfig
 from Logger import logError
 
-config = getConfig()
-M3_VIN = config['vehicle']['m3_vin']
+M3_VIN = getConfig()['vehicle']['m3_vin']
 
 WAIT_TIME = 30 
 

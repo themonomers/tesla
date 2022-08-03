@@ -9,8 +9,7 @@ from Crypto import encrypt
 from Utilities import getToken
 from datetime import datetime, timedelta
 
-config = getToken()
-REFRESH_TOKEN = config['tesla']['refresh_token']
+REFRESH_TOKEN = getToken()['tesla']['refresh_token']
 
 PAC = zoneinfo.ZoneInfo('America/Los_Angeles')
 

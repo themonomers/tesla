@@ -5,8 +5,7 @@ import time
 from Logger import logError
 from Utilities import printJson, getToken
 
-config = getToken()
-ACCESS_TOKEN = config['tesla']['access_token']
+ACCESS_TOKEN = getToken()['tesla']['access_token']
 
 WAIT_TIME = 30 
 URL = 'https://owner-api.teslamotors.com/api/1/vehicles'

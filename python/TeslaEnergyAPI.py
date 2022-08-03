@@ -10,8 +10,7 @@ config = getConfig()
 SITE_ID = config['energy']['site_id']
 BATTERY_ID = config['energy']['battery_id']
 
-config = getToken()
-ACCESS_TOKEN = config['tesla']['access_token']
+ACCESS_TOKEN = getToken()['tesla']['access_token']
 
 TIME_ZONE = 'America/Los_Angeles'
 BASE_URL = 'https://owner-api.teslamotors.com/api/1'

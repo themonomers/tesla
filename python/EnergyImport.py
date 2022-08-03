@@ -9,8 +9,7 @@ from Utilities import getConfig
 from Logger import logError
 from datetime import datetime, timedelta
 
-config = getConfig()
-ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
+ENERGY_SPREADSHEET_ID = getConfig()['google']['energy_spreadsheet_id']
 
 TIME_ZONE = 'America/Los_Angeles'
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)

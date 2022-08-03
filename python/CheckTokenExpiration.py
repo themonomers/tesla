@@ -2,8 +2,7 @@ from Logger import logError
 from Utilities import getToken
 from datetime import timedelta, datetime
 
-config = getToken()
-EXPIRES_AT = config['tesla']['expires_at']
+EXPIRES_AT = getToken()['tesla']['expires_at']
 
 
 ##

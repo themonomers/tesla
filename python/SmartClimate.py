@@ -3,8 +3,7 @@ from Utilities import isVehicleAtHome, deleteCronTab, createCronTab, getConfig
 from Logger import logError
 from datetime import timedelta, datetime
 
-config = getConfig()
-EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
+EV_SPREADSHEET_ID = getConfig()['google']['ev_spreadsheet_id']
 
 
 ##
