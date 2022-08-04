@@ -273,9 +273,9 @@ def printJson(json_obj, level):
 
 
 def main():
-  print('[1] getDistance')
-  print('[2] getCurrentWeather')
-  print('[3] getDailyWeather')
+  print('[1] getDistance()')
+  print('[2] getCurrentWeather()')
+  print('[3] getDailyWeather()')
 
   try:
     choice = int(input('selection: '))
@@ -303,7 +303,6 @@ def main():
     printJson(data, 0)
   elif (choice == 3):
     data = getDailyWeather(HOME_LAT, HOME_LNG)
-
     printJson(data, 0)
 
 
