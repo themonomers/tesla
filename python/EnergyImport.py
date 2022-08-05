@@ -196,7 +196,7 @@ def importBatteryChargeToDB(date):
 ##
 def importOutageToDB():
   try:
-    # get battery charge history data
+    # get battery backup history data
     data = getBatteryBackupHistory()
 
     json_body = []
