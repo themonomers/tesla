@@ -15,3 +15,36 @@ Separate project:  GoogleSheetScriptEditor.gs - add to a Google Sheet script edi
 
 /python
 Ported Tesla Google Apps Scripts to python for more control over functionality and as a backup. Additional scripts for Tesla Energy products that run on local machines as they are writing to InfluxDB and I don't want to open that to the internet. 
+
+1.  Core functions:
+      TeslaEnergyAPI.py - API calls for Tesla Energy products
+      TeslaVehicleAPI.py - API calls for Tesla Vehicles
+      TeslaToken.py - API call for the Tesla authentication flow to retrieve new access and refresh tokens
+      TeslaRefreshToken.py - API call to refresh new access and refresh tokens
+      GoogleAPI.py - API calls for Google products and services
+      Influxdb.py - Access to InfluxDB
+
+2.  Utility functions:
+      Utilities.py - Commonly used and helpful tools
+      SendEmail.py - Service to send emails
+      Logger.py - Central logging service 
+      Crypto.py - Encryption and decryption functions for sensitve files
+      CheckTokenExpiration.py - Retrieves new Tesla tokens based on expiration date/time
+      RemoveTeslaCron.py - Cleans up crontabs that are meant to exist for each specific day
+      TruncateEmail.py - Helper function to keep email sent folder from growing
+      TruncateLog.py - Helper function to keep central logging from growing
+
+3.  Energy functions:
+      EnergyImport.py - Imports data manually when automated processes fail
+      EnergyTelemetry.py - Writes all energy data from previous day for Grafana
+      EnergyLiveTelemetry.py - Writes real time energy data for Grafana
+      EnergyMode.py - Customizes energy site behavior based on weather
+
+4.  Vehicles functions:
+      PreconditionM3Start.py - Triggers car HVAC based on preferences stored in a Google Sheet
+      PreconditionM3Stop.py - Halts car HVAC
+      PreconditionMXStart.py
+      PreconditionMXStop.py
+      VehicleTelemetry.py - Write all vehicle data from previous day in Google Sheet
+      SmartCharger.py - Calculates and sets charging times to complete at a departure time for 2 EV's
+      SmartClimate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
