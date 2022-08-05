@@ -1,5 +1,3 @@
-import os
-
 from itertools import cycle
 
 
@@ -29,12 +27,7 @@ def encryptFile(read_fn, write_fn, token_fn):
 ##
 def encrypt(message, write_fn, token_fn):
   # Read key
-  key_file = open(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      token_fn
-    ), 'rb'
-  )
+  key_file = open(token_fn, 'rb')
   key = key_file.read()
   key_file.close()
 
@@ -63,12 +56,7 @@ def decrypt(read_fn, token_fn):
   f.close()
 
   # Read key
-  key_file = open(
-    os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      token_fn
-    ), 'rb'
-  )
+  key_file = open(token_fn, 'rb')
   key = key_file.read()
   key_file.close()
 
