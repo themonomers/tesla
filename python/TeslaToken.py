@@ -12,6 +12,8 @@ PAC = zoneinfo.ZoneInfo('America/Los_Angeles')
 #
 # Acquired tokens are stored in current working directory in 
 # cache.json file for persistence by default.
+#
+# @todo rolling index crypto keys: http://bitly.com/2WXBRNp
 ##
 with teslapy.Tesla('elon@tesla.com') as tesla:
     response = tesla.fetch_token()
