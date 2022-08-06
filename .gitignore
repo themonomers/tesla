@@ -2,6 +2,5 @@
 *.json
 *.xor
 *Test*
-*Local*
 *_key
 *_log
