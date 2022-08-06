@@ -3,6 +3,7 @@ import json
 import configparser
 import os
 import zoneinfo
+import urllib3
 
 from Crypto import encrypt, decrypt
 from Influxdb import getDBClient
@@ -152,6 +153,8 @@ def getLocalSiteLiveStatus():
     url = (BASE_URL
             + 'meters/aggregates')
 
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
     response = json.loads(
       requests.get(
         url,
@@ -181,6 +184,8 @@ def getLocalSOE():
   try:
     url = (BASE_URL
             + 'system_status/soe')
+
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     response = json.loads(
       requests.get(
@@ -218,6 +223,8 @@ def authLocalToken():
       'password': PASSWORD,
       'force_sm_off': False
     }
+
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     response = json.loads(
       requests.post(
