@@ -37,8 +37,8 @@ Ported Tesla Google Apps Scripts to python for more control over functionality a
 3.  Energy functions:
       EnergyImport.py - Imports data manually when automated processes fail
       EnergyTelemetry.py - Writes all energy data from previous day for Grafana
-      EnergyLiveTelemetry.py - Writes real time energy data for Grafana
-      EnergyLocalLiveTelemetry.py - Alternative to write real time energy data using direct API access to the Tesla Gateway
+      EnergyLiveTelemetry.py - Option to write real time energy data for Grafana using Tesla API
+      EnergyLocalLiveTelemetry.py - Option to write real time energy data using Tesla Gateway API
       EnergyMode.py - Customizes energy site behavior based on weather
 
 4.  Vehicles functions:
@@ -49,3 +49,12 @@ Ported Tesla Google Apps Scripts to python for more control over functionality a
       VehicleTelemetry.py - Write all vehicle data from previous day in Google Sheet
       SmartCharger.py - Calculates and sets charging times to complete at a departure time for 2 EV's
       SmartClimate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
+
+Here are the packages needed:
+  python3-pip
+  teslapy
+  google-api-python-client
+  google-auth-oauthlib
+  python-crontab
+  pytz
+  influxdb
