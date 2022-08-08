@@ -1,8 +1,8 @@
 import pytz
 import zoneinfo
 
-from TeslaEnergyAPI import getBatteryChargeHistory, getBatteryBackupHistory
-from EnergyTelemetry import writeEnergySummaryToDB, writeEnergyTOUSummaryToGsheet, writeEnergyTOUSummaryToDB, writeEnergyDetailToDB
+from TeslaEnergyAPI import getBatteryBackupHistory
+from EnergyTelemetry import writeEnergySummaryToDB, writeEnergyTOUSummaryToGsheet, writeEnergyTOUSummaryToDB, writeEnergyDetailToDB, writeBatteryChargeToDB
 from Influxdb import getDBClient
 from GoogleAPI import getGoogleSheetService
 from Utilities import getConfig
@@ -148,42 +148,13 @@ def importEnergySummaryFromGsheetToDB():
 ##
 def importBatteryChargeToDB(date):
   try:
-    # get battery charge history data
-    data = getBatteryChargeHistory('day', date)
+    print(date)
 
-    json_body = []
-    dt = ''
-    soe = ''
-    insert = ''
-    for x in data['response']['time_series']:
-      for key, value in x.items():
-        print(key + ' = ' + str(value))
-      
-        if key == 'timestamp':
-          dt = value
-        elif key == 'soe':
-          soe = value
+    insert = input('import (y/n): ')
+    if insert != 'y':
+      return
 
-          insert = input('import (y/n): ')
-          if insert != 'y':
-            break
-
-          json_body.append({
-            'measurement': 'energy_detail',
-            'tags': {
-              'source': 'percentage_charged'
-            },
-            'time': dt,
-            'fields': {
-              'value': float(soe)
-            }
-          })
-
-    # Write to Influxdb
-    client = getDBClient()
-    client.switch_database('energy')
-    client.write_points(json_body)
-    client.close()
+    writeBatteryChargeToDB(date)
   except Exception as e:
     logError('importBatteryChargeToDB(): ' + str(e))
 

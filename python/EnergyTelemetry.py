@@ -2,7 +2,7 @@ import pytz
 import zoneinfo
 
 from Influxdb import getDBClient
-from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast
+from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast, getBatteryChargeHistory
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from SendEmail import sendEmail
 from Utilities import getConfig
@@ -16,6 +16,66 @@ EMAIL_1 = config['notification']['email_1']
 
 TIME_ZONE = 'America/Los_Angeles'
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
+
+
+##
+# This writes solar and battery data in 5 minute increments in InfluxDB
+# for a given day that can be visualized in Grafana.  This recreates the 
+# "Energy Usage" graph from the mobile app.  
+#
+# author: mjhwa@yahoo.com
+##
+def writeEnergyDetailToDB(date):
+  try:
+    # get time series data
+    data = getPowerHistory('day', date)
+
+    json_body = []
+    for x in data['response']['time_series']:
+      d = datetime.strptime(
+        x['timestamp'].split('T',1)[0],
+        '%Y-%m-%d'
+      )
+
+      if (
+        d.year == date.year
+        and d.month == date.month
+        and d.day == date.day
+      ):
+        for key, value in x.items():
+          if (key != 'timestamp'):
+            json_body.append({
+              'measurement': 'energy_detail',
+              'tags': {
+                'source': key
+              },
+              'time': x['timestamp'],
+              'fields': {
+                'value': float(value)
+              }
+            })
+        json_body.append({
+          'measurement': 'energy_detail',
+          'tags': {
+            'source': 'load_power'
+          },
+          'time': x['timestamp'],
+          'fields': {
+            'value': float(
+              x['grid_power']
+              + x['battery_power']
+              + x['solar_power']
+            )
+          }
+        })
+
+    # Write to Influxdb
+    client = getDBClient()
+    client.switch_database('energy')
+    client.write_points(json_body)
+    client.close()
+  except Exception as e:
+    logError('writeEnergyDetailToDB(): ' + str(e))
 
 
 ##
@@ -140,6 +200,212 @@ def writeEnergySummaryToDB(date):
     client.close()
   except Exception as e:
     logError('writeEnergySummaryToDB(): ' + str(e))
+
+
+##
+# Writes Tesla battery charge state history into an InfluxDB for 
+# Grafana visualization.  These are in 15 minute increments.
+#
+# author: mjhwa@yahoo.com
+##
+def writeBatteryChargeToDB(date):
+  try:
+    # get battery charge history data
+    data = getBatteryChargeHistory('day', date)
+
+    json_body = []
+    dt = ''
+    soe = ''
+    for x in data['response']['time_series']:
+      for key, value in x.items():
+        if key == 'timestamp':
+          dt = value
+        elif key == 'soe':
+          soe = value
+
+          json_body.append({
+            'measurement': 'energy_detail',
+            'tags': {
+              'source': 'percentage_charged'
+            },
+            'time': dt,
+            'fields': {
+              'value': float(soe)
+            }
+          })
+
+    # Write to Influxdb
+    client = getDBClient()
+    client.switch_database('energy')
+    client.write_points(json_body)
+    client.close()
+  except Exception as e:
+    logError('writeBatteryChargeToDB(): ' + str(e))
+
+
+##
+# Contains functions to read/write the solar and powerwall data, separated 
+# by peak/partial peak/off peak, into InfluxDB for tracking, analysis, 
+# and graphs.  The data is a summary level down to the day.
+#
+# author: mjhwa@yahoo.com
+##
+def writeEnergyTOUSummaryToDB(date):
+  try:
+    json_body = []
+
+    # get solar data for all day
+    data = getSiteHistory('day', date)
+
+    # write solar data for all day
+    for key_1, value_1 in data['response'].items():
+      if (isinstance(value_1, list) == True):
+        for i in range(len(data['response'][key_1])):
+          d = datetime.strptime(
+            data['response'][key_1][i]['timestamp'].split('T',1)[0],
+            '%Y-%m-%d'
+          )
+
+          if (d.year == date.year
+              and d.month == date.month
+              and d.day == date.day):
+
+            """
+            print(datetime(
+              date.year, 
+              date.month, 
+              date.day, 
+              0, 
+              0, 
+              0, 
+              0
+            ).replace(tzinfo=PAC))
+            """
+
+            for key_2, value_2 in data['response'][key_1][i].items():
+              if (key_2 != 'timestamp'):
+                json_body.append({
+                  'measurement': 'all_day',
+                  'tags': {
+                    'source': key_2
+                  },
+                  'time': str(datetime(
+                    date.year, 
+                    date.month, 
+                    date.day, 
+                    0, 
+                    0, 
+                    0, 
+                    0
+                  ).replace(tzinfo=PAC)),
+                  'fields': {
+                    'value': float(value_2)
+                  }
+                })
+
+    # get solar data for TOU
+    data = getSiteTOUHistory('day', date)
+
+    # write solar data for off peak
+    for key_1, value_1 in data['response'].items():
+      if (key_1 == 'off_peak'):
+        for i in range(len(data['response'][key_1]['time_series'])):
+          d = datetime.strptime(
+            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
+            '%Y-%m-%d'
+          )
+
+          if (d.year == date.year
+              and d.month == date.month
+              and d.day == date.day):
+            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
+              if (key_2 != 'timestamp'):
+                json_body.append({
+                  'measurement': 'off_peak',
+                  'tags': {
+                    'source': key_2
+                  },
+                  'time': str(datetime(
+                    date.year, 
+                    date.month, 
+                    date.day, 
+                    0, 
+                    0, 
+                    0, 
+                    0
+                  ).replace(tzinfo=PAC)),
+                  'fields': {
+                    'value': float(value_2)
+                  }
+                })
+      elif (key_1 == 'partial_peak'):
+        for i in range(len(data['response'][key_1]['time_series'])):
+          d = datetime.strptime(
+            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
+            '%Y-%m-%d'
+          )
+
+          if (d.year == date.year
+              and d.month == date.month
+              and d.day == date.day):
+            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
+              if (key_2 != 'timestamp'):
+                json_body.append({
+                  'measurement': 'partial_peak',
+                  'tags': {
+                    'source': key_2
+                  },
+                  'time': str(datetime(
+                    date.year, 
+                    date.month, 
+                    date.day, 
+                    0, 
+                    0, 
+                    0, 
+                    0
+                  ).replace(tzinfo=PAC)),
+                  'fields': {
+                    'value': float(value_2)
+                  }
+                })
+      elif (key_1 == 'peak'):
+        for i in range(len(data['response'][key_1]['time_series'])):
+          d = datetime.strptime(
+            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
+            '%Y-%m-%d'
+          )
+
+          if (d.year == date.year
+              and d.month == date.month
+              and d.day == date.day):
+            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
+              if (key_2 != 'timestamp'):
+                json_body.append({
+                  'measurement': 'peak',
+                  'tags': {
+                    'source': key_2
+                  },
+                  'time': str(datetime(
+                    date.year, 
+                    date.month, 
+                    date.day, 
+                    0, 
+                    0, 
+                    0, 
+                    0
+                  ).replace(tzinfo=PAC)),
+                  'fields': {
+                    'value': float(value_2)
+                  }
+                })
+
+    # Write to Influxdb
+    client = getDBClient()
+    client.switch_database('summary')
+    client.write_points(json_body)
+    client.close()
+  except Exception as e:
+    logError('writeEnergyTOUSummaryToDB(): ' + str(e))
 
 
 ##
@@ -761,230 +1027,6 @@ def writeEnergyTOUSummaryToGsheet(date):
   except Exception as e:
     logError('writeEnergyTOUSummaryToGsheet(): ' + str(e))
 
-##
-# Contains functions to read/write the solar and powerwall data, separated 
-# by peak/partial peak/off peak, into InfluxDB for tracking, analysis, 
-# and graphs.  The data is a summary level down to the day.
-#
-# author: mjhwa@yahoo.com
-##
-def writeEnergyTOUSummaryToDB(date):
-  try:
-    json_body = []
-
-    # get solar data for all day
-    data = getSiteHistory('day', date)
-
-    # write solar data for all day
-    for key_1, value_1 in data['response'].items():
-      if (isinstance(value_1, list) == True):
-        for i in range(len(data['response'][key_1])):
-          d = datetime.strptime(
-            data['response'][key_1][i]['timestamp'].split('T',1)[0],
-            '%Y-%m-%d'
-          )
-
-          if (d.year == date.year
-              and d.month == date.month
-              and d.day == date.day):
-
-            """
-            print(datetime(
-              date.year, 
-              date.month, 
-              date.day, 
-              0, 
-              0, 
-              0, 
-              0
-            ).replace(tzinfo=PAC))
-            """
-
-            for key_2, value_2 in data['response'][key_1][i].items():
-              if (key_2 != 'timestamp'):
-                json_body.append({
-                  'measurement': 'all_day',
-                  'tags': {
-                    'source': key_2
-                  },
-                  'time': str(datetime(
-                    date.year, 
-                    date.month, 
-                    date.day, 
-                    0, 
-                    0, 
-                    0, 
-                    0
-                  ).replace(tzinfo=PAC)),
-                  'fields': {
-                    'value': float(value_2)
-                  }
-                })
-
-    # get solar data for TOU
-    data = getSiteTOUHistory('day', date)
-
-    # write solar data for off peak
-    for key_1, value_1 in data['response'].items():
-      if (key_1 == 'off_peak'):
-        for i in range(len(data['response'][key_1]['time_series'])):
-          d = datetime.strptime(
-            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
-            '%Y-%m-%d'
-          )
-
-          if (d.year == date.year
-              and d.month == date.month
-              and d.day == date.day):
-            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
-              if (key_2 != 'timestamp'):
-                json_body.append({
-                  'measurement': 'off_peak',
-                  'tags': {
-                    'source': key_2
-                  },
-                  'time': str(datetime(
-                    date.year, 
-                    date.month, 
-                    date.day, 
-                    0, 
-                    0, 
-                    0, 
-                    0
-                  ).replace(tzinfo=PAC)),
-                  'fields': {
-                    'value': float(value_2)
-                  }
-                })
-      elif (key_1 == 'partial_peak'):
-        for i in range(len(data['response'][key_1]['time_series'])):
-          d = datetime.strptime(
-            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
-            '%Y-%m-%d'
-          )
-
-          if (d.year == date.year
-              and d.month == date.month
-              and d.day == date.day):
-            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
-              if (key_2 != 'timestamp'):
-                json_body.append({
-                  'measurement': 'partial_peak',
-                  'tags': {
-                    'source': key_2
-                  },
-                  'time': str(datetime(
-                    date.year, 
-                    date.month, 
-                    date.day, 
-                    0, 
-                    0, 
-                    0, 
-                    0
-                  ).replace(tzinfo=PAC)),
-                  'fields': {
-                    'value': float(value_2)
-                  }
-                })
-      elif (key_1 == 'peak'):
-        for i in range(len(data['response'][key_1]['time_series'])):
-          d = datetime.strptime(
-            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
-            '%Y-%m-%d'
-          )
-
-          if (d.year == date.year
-              and d.month == date.month
-              and d.day == date.day):
-            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
-              if (key_2 != 'timestamp'):
-                json_body.append({
-                  'measurement': 'peak',
-                  'tags': {
-                    'source': key_2
-                  },
-                  'time': str(datetime(
-                    date.year, 
-                    date.month, 
-                    date.day, 
-                    0, 
-                    0, 
-                    0, 
-                    0
-                  ).replace(tzinfo=PAC)),
-                  'fields': {
-                    'value': float(value_2)
-                  }
-                })
-
-    # Write to Influxdb
-    client = getDBClient()
-    client.switch_database('summary')
-    client.write_points(json_body)
-    client.close()
-  except Exception as e:
-    logError('writeEnergyTOUSummaryToDB(): ' + str(e))
-
-
-##
-# This writes solar and battery data in 5 minute increments in InfluxDB
-# for a given day that can be visualized in Grafana.  This recreates the 
-# "Energy Usage" graph from the mobile app.  
-#
-# author: mjhwa@yahoo.com
-##
-def writeEnergyDetailToDB(date):
-  try:
-    # get time series data
-    data = getPowerHistory('day', date)
-
-    json_body = []
-    for x in data['response']['time_series']:
-      d = datetime.strptime(
-        x['timestamp'].split('T',1)[0],
-        '%Y-%m-%d'
-      )
-
-      if (
-        d.year == date.year
-        and d.month == date.month
-        and d.day == date.day
-      ):
-        for key, value in x.items():
-          if (key != 'timestamp'):
-            json_body.append({
-              'measurement': 'energy_detail',
-              'tags': {
-                'source': key
-              },
-              'time': x['timestamp'],
-              'fields': {
-                'value': float(value)
-              }
-            })
-        json_body.append({
-          'measurement': 'energy_detail',
-          'tags': {
-            'source': 'load_power'
-          },
-          'time': x['timestamp'],
-          'fields': {
-            'value': float(
-              x['grid_power']
-              + x['battery_power']
-              + x['solar_power']
-            )
-          }
-        })
-
-    # Write to Influxdb
-    client = getDBClient()
-    client.switch_database('energy')
-    client.write_points(json_body)
-    client.close()
-  except Exception as e:
-    logError('writeEnergyDetailToDB(): ' + str(e))
-
 
 ##
 # Write the data for the previous day based on a cron job that runs just after
@@ -993,10 +1035,11 @@ def writeEnergyDetailToDB(date):
 # author: mjhwa@yahoo.com
 ##
 def main():
-  writeEnergySummaryToDB(datetime.today() - timedelta(1))
-  writeEnergyTOUSummaryToGsheet(datetime.today() - timedelta(1))
-  writeEnergyTOUSummaryToDB(datetime.today() - timedelta(1))
   writeEnergyDetailToDB(datetime.today() - timedelta(1))
+  writeEnergySummaryToDB(datetime.today() - timedelta(1))
+  writeBatteryChargeToDB(datetime.today() - timedelta(1))
+  writeEnergyTOUSummaryToDB(datetime.today() - timedelta(1))
+  writeEnergyTOUSummaryToGsheet(datetime.today() - timedelta(1))
 
   # send email notification
   message = ('Energy telemetry successfully logged on '

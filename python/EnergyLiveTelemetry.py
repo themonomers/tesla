@@ -4,7 +4,7 @@ from Logger import logError
 
 
 ##
-# Writes live energy data to InfluxDB.  
+# Writes live energy data to InfluxDB from the Tesla API.  
 #
 # author: mjhwa@yahoo.com
 ##
@@ -58,14 +58,8 @@ def writeLiveSiteTelemetry():
       }
     })
 
-    # Write to Influxdb
-    client = getDBClient()
-    client.switch_database('live')
-    client.write_points(json_body)
-
-    json_body = []
     json_body.append({
-      'measurement': 'energy_detail',
+      'measurement': 'energy_live',
       'tags': {
         'source': 'percentage_charged'
       },
@@ -76,7 +70,8 @@ def writeLiveSiteTelemetry():
     })
 
     # Write to Influxdb
-    client.switch_database('energy')
+    client = getDBClient()
+    client.switch_database('live')
     client.write_points(json_body)
     client.close()
   except Exception as e:
