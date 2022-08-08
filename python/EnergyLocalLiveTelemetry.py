@@ -130,6 +130,7 @@ def writeLocalLiveSiteTelemetry():
     client = getDBClient()
     client.switch_database('live')
     client.write_points(json_body)
+    client.close()
   except Exception as e:
     logError('writeLocalLiveSiteTelemetry(): ' + str(e))
 
