@@ -43,7 +43,7 @@ def getLocalConfig():
     buffer.close()
     return values
   except Exception as e:
-    print('getLocalConfig(): ' + str(e))
+    logError('getLocalConfig(): ' + str(e))
 
 
 config = getLocalConfig()
@@ -284,7 +284,7 @@ def getLocalToken():
     buffer.close()
     return values
   except Exception as e:
-    print('getLocalToken(): ' + str(e))
+    logError('getLocalToken(): ' + str(e))
 
 
 ##
