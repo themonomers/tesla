@@ -5,8 +5,8 @@ from Logger import logError
 from datetime import datetime, date, timedelta
 
 config = getConfig()
-HOME_LAT = float(config['vehicle']['home_lat'])
-HOME_LNG = float(config['vehicle']['home_lng'])
+PRIMARY_LAT = float(config['vehicle']['primary_lat'])
+PRIMARY_LNG = float(config['vehicle']['primary_lng'])
 EMAIL_1 = config['notification']['email_1']
 
 PCT_THRESHOLD = 0.5
@@ -26,7 +26,7 @@ PCT_THRESHOLD = 0.5
 def setEnergyModeBasedOnWeather():
   try:
     # get weather forecast
-    wdata = getDailyWeather(HOME_LAT, HOME_LNG)
+    wdata = getDailyWeather(PRIMARY_LAT, PRIMARY_LNG)
     check_dates = [date.today(), (date.today() + timedelta(1))]
     msg = ''
 

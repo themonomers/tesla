@@ -42,10 +42,10 @@ def getConfig():
     print('getConfig(): ' + str(e))
 
 config = getConfig()
-HOME_LAT = float(config['vehicle']['home_lat'])
-HOME_LNG = float(config['vehicle']['home_lng'])
-NAPA_LAT = float(config['vehicle']['napa_lat'])
-NAPA_LNG = float(config['vehicle']['napa_lng'])
+PRIMARY_LAT = float(config['vehicle']['primary_lat'])
+PRIMARY_LNG = float(config['vehicle']['primary_lng'])
+SECONDARY_LAT = float(config['vehicle']['secondary_lat'])
+SECONDARY_LNG = float(config['vehicle']['secondary_lng'])
 OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
 
 
@@ -112,8 +112,8 @@ def createCronTab(command, month, day, hour, minute):
 
 
 ##
-# Calculates if the distance of the car is greater than 0.25 miles away from 
-# home.  The calculation uses Haversine Formula expressed in terms of a 
+# Calculates if the distance of the car is greater than 0.25 miles away from the
+# primary location.  The calculation uses Haversine Formula expressed in terms of a 
 # two-argument inverse tangent function to calculate the great circle distance 
 # between two points on the Earth. This is the method recommended for 
 # calculating short distances by Bob Chamberlain (rgc@jpl.nasa.gov) of Caltech 
@@ -122,12 +122,12 @@ def createCronTab(command, month, day, hour, minute):
 #
 # author: mjhwa@yahoo.com
 ##
-def isVehicleAtHome(data):
-  return isVehicleAtLocation(data, HOME_LAT, HOME_LNG)
+def isVehicleAtPrimary(data):
+  return isVehicleAtLocation(data, PRIMARY_LAT, PRIMARY_LNG)
 
 
-def isVehicleAtNapa(data):
-  return isVehicleAtLocation(data, NAPA_LAT, NAPA_LNG)
+def isVehicleAtSecondary(data):
+  return isVehicleAtLocation(data, SECONDARY_LAT, SECONDARY_LNG)
 
 
 def isVehicleAtLocation(data, lat, lng):
@@ -286,13 +286,13 @@ def main():
     lat = float(input('latitude: '))
     lng = float(input('longitude: '))
     print(
-      'distance from home: ' 
+      'distance from primary location: ' 
       + str(
         getDistance(
           lat, 
           lng, 
-          HOME_LAT,
-          HOME_LNG
+          PRIMARY_LAT,
+          PRIMARY_LNG
         )
       )
     )
@@ -302,7 +302,7 @@ def main():
 
     printJson(data, 0)
   elif (choice == 3):
-    data = getDailyWeather(HOME_LAT, HOME_LNG)
+    data = getDailyWeather(PRIMARY_LAT, PRIMARY_LNG)
     printJson(data, 0)
 
 

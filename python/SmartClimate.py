@@ -1,5 +1,5 @@
 from GoogleAPI import getGoogleSheetService
-from Utilities import isVehicleAtHome, deleteCronTab, createCronTab, getConfig
+from Utilities import isVehicleAtPrimary, deleteCronTab, createCronTab, getConfig
 from Logger import logError
 from datetime import timedelta, datetime
 
@@ -8,13 +8,13 @@ EV_SPREADSHEET_ID = getConfig()['google']['ev_spreadsheet_id']
 
 ##
 # Creates a trigger to precondition the cabin for the following morning, 
-# based on if the car is at home and if "Eco Mode" is off similar to how 
-# Nest thermostats work for vacation scenarios.  With the new endpoints 
-# released, you can achieve the same functionality by setting scheduled 
-# departure for preconditioning.  I decided to keep this code running 
-# as I don't drive long distances so the added feature of preconditioning 
-# the battery, in addition to the cabin, is a waste of energy (entropy) 
-# for me.
+# based on if the car is at the primary location and if "Eco Mode" is off 
+# similar to how Nest thermostats work for vacation scenarios.  With the 
+# new endpoints released, you can achieve the same functionality by setting 
+# scheduled departure for preconditioning.  I decided to keep this code 
+# running as I don't drive long distances so the added feature of 
+# preconditioning the battery, in addition to the cabin, is a waste of 
+# energy (entropy) for me.
 #
 # author: mjhwa@yahoo.com
 ## 
@@ -29,8 +29,8 @@ def setM3Precondition(data):
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
     if (eco_mode == 'off'):
-      # check if the car is with 0.25 miles of home
-      if (isVehicleAtHome(data)):
+      # check if the car is with 0.25 miles of the primary location
+      if (isVehicleAtPrimary(data)):
         # get start time preferences
         start_time = service.spreadsheets().values().get(
           spreadsheetId=EV_SPREADSHEET_ID, 
@@ -72,8 +72,8 @@ def setMXPrecondition(data):
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
     if (eco_mode == 'off'):
-      # check if the car is with 0.25 miles of home
-      if (isVehicleAtHome(data)):
+      # check if the car is with 0.25 miles of the primary location
+      if (isVehicleAtPrimary(data)):
         # get start time preferences
         start_time = service.spreadsheets().values().get(
           spreadsheetId=EV_SPREADSHEET_ID, 

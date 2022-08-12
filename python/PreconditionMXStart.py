@@ -2,7 +2,7 @@ import time
 
 from TeslaVehicleAPI import getVehicleData, wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
 from GoogleAPI import getGoogleSheetService
-from Utilities import deleteCronTab, createCronTab, isVehicleAtHome, getCurrentWeather, getConfig
+from Utilities import deleteCronTab, createCronTab, isVehicleAtPrimary, getCurrentWeather, getConfig
 from SmartClimate import getMXSeatSetting
 from Logger import logError
 from datetime import datetime
@@ -318,7 +318,7 @@ def preconditionMXStart():
     #print('seats: ' + str(seats))
     # no need to execute if unsure where the car is or if it's in motion
     data = getVehicleData(MX_VIN)
-    if (isVehicleAtHome(data)):
+    if (isVehicleAtPrimary(data)):
       # set driver and passenger temps
       setCarTemp(MX_VIN, d_temp, p_temp)
       

@@ -1,7 +1,7 @@
 import time
 
 from TeslaVehicleAPI import wakeVehicle, getVehicleData, preconditionCarStop
-from Utilities import isVehicleAtHome, getConfig
+from Utilities import isVehicleAtPrimary, getConfig
 from Logger import logError
 
 M3_VIN = getConfig()['vehicle']['m3_vin']
@@ -18,7 +18,7 @@ WAIT_TIME = 30
 def preconditionM3Stop():
   try:
     data = getVehicleData(M3_VIN)
-    if (isVehicleAtHome(data)): # no need to execute if unsure where the car is or if it's in motion
+    if (isVehicleAtPrimary(data)): # no need to execute if unsure where the car is or if it's in motion
       preconditionCarStop(M3_VIN)
   except Exception as e:
     logError('preconditionM3Stop(): ' + str(e))
