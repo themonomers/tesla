@@ -67,7 +67,7 @@ def wakeVehicle(vin):
            + getVehicleId(vin) 
            + '/wake_up')
 
-    requests.post(
+    return requests.post(
       url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
@@ -89,7 +89,7 @@ def chargeVehicle(vin):
            + getVehicleId(vin) 
            + '/command/charge_start')
 
-    requests.post(
+    return requests.post(
       url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
@@ -109,7 +109,7 @@ def stopChargeVehicle(vin):
            + getVehicleId(vin)
            + '/command/charge_stop')
 
-    requests.post(
+    return requests.post(
       url,
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
@@ -136,9 +136,9 @@ def setScheduledCharging(vin, time):
       'time': time
     }
 
-    requests.post(
+    return requests.post(
       url, 
-      data=payload, 
+      json=payload, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
@@ -177,7 +177,7 @@ def setScheduledDeparture(
       'end_off_peak_time': off_peak_end_time
     }
 
-    requests.post(
+    return requests.post(
       url,
       data=payload,
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
@@ -202,7 +202,7 @@ def setChargingAmps(vin, amps):
       'charging_amps': amps
     }
 
-    requests.post(
+    return requests.post(
       url,
       data=payload,
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
@@ -228,7 +228,7 @@ def setCarTemp(vin, d_temp, p_temp):
       'passenger_temp': p_temp
     }
 
-    requests.post(
+    return requests.post(
       url, 
       data=payload, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
@@ -259,7 +259,7 @@ def setCarSeatHeating(vin, seat, setting):
 #                               'heater': '4', 'level': seats[3],
 #                               'heater': '5', 'level': seats[4]})
 
-    requests.post(
+    return requests.post(
       url, 
       data=payload, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
@@ -280,7 +280,7 @@ def preconditionCarStart(vin):
            + getVehicleId(vin) 
            + '/command/auto_conditioning_start')
 
-    requests.post(
+    return requests.post(
       url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
@@ -300,7 +300,7 @@ def preconditionCarStop(vin):
            + getVehicleId(vin)
            + '/command/auto_conditioning_stop')
 
-    requests.post(
+    return requests.post(
       url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
