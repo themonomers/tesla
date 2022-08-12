@@ -27,124 +27,6 @@ WAIT_TIME = 30
 
 
 ##
-# Writes to a Google Sheet that calculates optimum charging start times 
-# for 2 vehicles to reach the target SoC by a time specified in the sheet.
-#
-# author: mjhwa@yahoo.com
-##
-def writeM3StartTimes(data):
-  try:
-    inputs = []
-
-    # write m3 range to Google Sheet
-    inputs.append({
-      'range': 'Smart Charger!B10',
-      'values': [[data['response']['charge_state']['battery_range']]]
-    })
-
-    # write m3 time and date stamp to Google Sheet
-    inputs.append({
-      'range': 'Smart Charger!D10',
-      'values': [[(
-        datetime.today().strftime('%H:%M:%S') 
-        + ', ' 
-        + datetime.today().strftime('%m/%d/%Y')
-      )]]
-    })
- 
-    # write m3 scheduled charge time to Google Sheet
-    inputs.append({
-      'range': 'Smart Charger!E28',
-      'values': [[
-        data['response']['charge_state']['scheduled_charging_start_time']
-      ]]
-    })
- 
-    # write m3 charge limit to Google Sheet
-    inputs.append({
-      'range': 'Smart Charger!B16',
-      'values': [[data['response']['charge_state']['charge_limit_soc']/100.0]]
-    })
- 
-    # write m3 max range
-    inputs.append({
-      'range': 'Smart Charger!B6',
-      'values': [[(
-        data['response']['charge_state']['battery_range'] 
-        / (data['response']['charge_state']['battery_level'] 
-           / 100.0)
-      )]]
-    })
- 
-    # batch write data to sheet
-    service = getGoogleSheetService()
-    service.spreadsheets().values().batchUpdate(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
-    ).execute()
-  except Exception as e:
-    logError('writeM3StartTimes(): ' + str(e))
-  finally:
-    service.close()
-
-
-def writeMXStartTimes(data):
-  try:
-    inputs = []
- 
-    # write mx range to Google Sheet
-    inputs.append({
-      'range': 'Smart Charger!B9',
-      'values': [[data['response']['charge_state']['battery_range']]]
-    })
-
-    # write mx time and date stamp to Google Sheet
-    inputs.append({
-      'range': 'Smart Charger!D9', 
-      'values': [[(
-        datetime.today().strftime('%H:%M:%S') 
-        + ', ' 
-        + datetime.today().strftime('%m/%d/%Y')
-      )]]
-    })
-  
-    # write mx scheduled charge time to Google Sheet
-    inputs.append({
-      'range': 'Smart Charger!F28', 
-      'values': [[
-        data['response']['charge_state']['scheduled_charging_start_time']
-      ]]
-    })
-  
-    # write mx charge limit to Google Sheet
-    inputs.append({
-      'range': 'Smart Charger!B15', 
-      'values': [[data['response']['charge_state']['charge_limit_soc']/100.0]]
-    })
-  
-    # write mx max range
-    inputs.append({
-      'range': 'Smart Charger!B5', 
-      'values': [[(
-        data['response']['charge_state']['battery_range'] 
-        / (data['response']['charge_state']['battery_level'] 
-           / 100.0)
-      )]]
-    })
-  
-    # batch write data to sheet
-    service = getGoogleSheetService()
-    service.spreadsheets().values().batchUpdate(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
-    ).execute()
-  except Exception as e:
-    logError('writeMXStartTimes(): ' + str(e))
-  finally:
-    service.close()
-
-
-##
 # Called by a crontab to read vehicle range and expected charge 
 # finish time from a Google Sheet, then call the API to set a time 
 # for scheduled charging in the vehicle.
@@ -504,12 +386,6 @@ def notifyIsTeslaPluggedIn():
     # get all vehicle data to avoid repeat API calls
     m3_data = getVehicleData(M3_VIN)
     mx_data = getVehicleData(MX_VIN)
-
-    # write data to calculate charging start times; both functions for this needs 
-    # to be executed, because the calculation on the Google Sheet is dependent on 
-    # values from both vehicles
-    writeM3StartTimes(m3_data)
-    writeMXStartTimes(mx_data)
 
     # get car info
     charge_port_door_open = m3_data['response']['charge_state']['charge_port_door_open']
