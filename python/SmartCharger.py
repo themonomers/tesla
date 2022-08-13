@@ -349,7 +349,7 @@ def notifyIsTeslaPluggedIn():
     service = getGoogleSheetService()
     email_notification = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Charger!H10'
+      range='Smart Charger!B4'
     ).execute().get('values', [])
     #print('email notify: ' + email_notification[0][0])
     
@@ -371,7 +371,7 @@ def notifyIsTeslaPluggedIn():
 
     email_notification = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Charger!H9'
+      range='Smart Charger!B3'
     ).execute().get('values', [])
     #print('email notify: ' + email_notification[0][0])
 
@@ -392,12 +392,12 @@ def notifyIsTeslaPluggedIn():
     # set cars for scheduled charging
     m3_target_finish_time = getTomorrowTime(service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Charger!B13'
+      range='Smart Charger!B7'
     ).execute().get('values', [])[0][0])
 
     mx_target_finish_time = getTomorrowTime(service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Charger!B12'
+      range='Smart Charger!B6'
     ).execute().get('values', [])[0][0])
     service.close()
 
