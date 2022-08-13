@@ -41,7 +41,7 @@ Ported Tesla Google Apps Scripts to python for more control over functionality a
       EnergyLocalLiveTelemetry.py - Option to write real time energy data using Tesla Gateway API
       EnergyMode.py - Customizes energy site behavior based on weather
 
-4.  Vehicles functions:
+4.  Vehicle functions:
       PreconditionM3Start.py - Triggers car HVAC based on preferences stored in a Google Sheet
       PreconditionM3Stop.py - Halts car HVAC
       PreconditionMXStart.py
@@ -54,6 +54,7 @@ Here are the packages needed:
   python3-pip
   teslapy
   google-api-python-client
+  google-auth-httplib2
   google-auth-oauthlib
   python-crontab
   pytz
