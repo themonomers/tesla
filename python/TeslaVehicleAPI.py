@@ -179,7 +179,7 @@ def setScheduledDeparture(
 
     return requests.post(
       url,
-      data=payload,
+      json=payload,
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
@@ -204,7 +204,7 @@ def setChargingAmps(vin, amps):
 
     return requests.post(
       url,
-      data=payload,
+      json=payload,
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
@@ -230,7 +230,7 @@ def setCarTemp(vin, d_temp, p_temp):
 
     return requests.post(
       url, 
-      data=payload, 
+      json=payload, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
@@ -261,7 +261,7 @@ def setCarSeatHeating(vin, seat, setting):
 
     return requests.post(
       url, 
-      data=payload, 
+      json=payload, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
