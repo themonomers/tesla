@@ -1,21 +1,21 @@
 var OPENWEATHERMAP_KEY = crypto('abcdef0123456789');
 
 /**
- * Creates a trigger to precondition the cabin for the following 
- * morning, based on if the car is at home and if "Eco Mode" is off 
- * similar to how Nest thermostats work for vacation scenarios.  With 
- * the new endpoints released, you can achieve the same functionality 
- * by setting scheduled departure for preconditioning.  I decided to 
- * keep this code running as I don't drive long distances so the added 
- * feature of preconditioning the battery, in addition to the cabin, 
- * is a waste of energy (entropy) for me.
+ * Creates a trigger to precondition the cabin for the following morning, based on if 
+ * the car is at the primary location and if "Eco Mode" is off similar to how Nest thermostats 
+ * work for vacation scenarios.  With the new endpoints released, you can achieve the same 
+ * functionality by setting scheduled departure for preconditioning.  I decided to keep this 
+ * code running as I don't drive long distances so the added feature of preconditioning the 
+ * battery, in addition to the cabin, is a waste of energy (entropy) for me.
+ *
+ * author: Michael Hwa
  */
 function setM3Precondition(data) {
   var tomorrow_date = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
   var eco_mode = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!B24').values[0];
     
-  // check if eco mode is off and the car is with 0.25 miles of home
-  if ((eco_mode == 'off') && (isVehicleAtHome(data))) {      
+  // check if eco mode is off and the car is with 0.25 miles of primary location
+  if ((eco_mode == 'off') && (isVehicleAtPrimary(data))) {      
     // get start time preferences
     var start_time = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!B20').values[0];
       
@@ -32,8 +32,8 @@ function setMXPrecondition(data) {
   var tomorrow_date = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
   var eco_mode = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!I24').values[0];
   
-  // check if eco mode is off and the car is with 0.25 miles of home
-  if ((eco_mode == 'off') && (isVehicleAtHome(data))) { 
+  // check if eco mode is off and the car is with 0.25 miles of primary location
+  if ((eco_mode == 'off') && (isVehicleAtPrimary(data))) { 
     // get start time preferences
     var start_time = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!I20').values[0];
       
@@ -264,7 +264,7 @@ function preconditionM3Start() {
   
     // no need to execute if unsure where the car is or if it's in motion
     var data = JSON.parse(getVehicleData(M3_VIN).getContentText());
-    if (isVehicleAtHome(data)) {
+    if (isVehicleAtPrimary(data)) {
       // send command to start auto conditioning
       preconditionCarStart(M3_VIN);  
 
@@ -444,7 +444,7 @@ function preconditionMXStart() {
 
     // no need to execute if unsure where the car is or if it's in motion
     var data = JSON.parse(getVehicleData(MX_VIN).getContentText());
-    if (isVehicleAtHome(data)) {
+    if (isVehicleAtPrimary(data)) {
       // set driver and passenger temps
       setCarTemp(MX_VIN, d_temp, p_temp);
       
@@ -476,7 +476,7 @@ function preconditionMXStart() {
 function preconditionM3Stop() {
   try {
     var data = JSON.parse(getVehicleData(M3_VIN).getContentText());
-    if (isVehicleAtHome(data)) { // no need to execute if unsure where the car is or if it's in motion
+    if (isVehicleAtPrimary(data)) { // no need to execute if unsure where the car is or if it's in motion
       preconditionCarStop(M3_VIN);
     }
   } catch (e) {
@@ -490,7 +490,7 @@ function preconditionM3Stop() {
 function preconditionMXStop() {
   try {
     var data = JSON.parse(getVehicleData(MX_VIN).getContentText());
-    if (isVehicleAtHome(data)) { // no need to execute if unsure where the car is or if it's in motion
+    if (isVehicleAtPrimary(data)) { // no need to execute if unsure where the car is or if it's in motion
       preconditionCarStop(MX_VIN);
     }
   } catch (e) {
