@@ -1,13 +1,12 @@
 import time
-import zoneinfo
 
 from TeslaVehicleAPI import getVehicleData, wakeVehicle, setScheduledCharging, stopChargeVehicle
 from GoogleAPI import getGoogleSheetService
 from SendEmail import sendEmail
 from SmartClimate import setM3Precondition, setMXPrecondition
-from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getConfig
+from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime,getConfig
 from Logger import logError
-from datetime import datetime, timedelta
+from datetime import timedelta
 from collections import namedtuple
 
 config = getConfig()
@@ -21,8 +20,6 @@ MX_FULL_CHARGE_RATE_AT_PRIMARY = 25  # (mi/hr)
 M3_FULL_CHARGE_RATE_AT_PRIMARY = 37  # (mi/hr)
 MX_FULL_CHARGE_RATE_AT_SECONDARY = 20  # (mi/hr)
 M3_FULL_CHARGE_RATE_AT_SECONDARY = 30  # (mi/hr)
-TIME_ZONE = 'America/Los_Angeles'
-PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 WAIT_TIME = 30 
 
 
@@ -327,23 +324,6 @@ def calcuateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time,
 
 
 ##
-# Helps format the charging time by defaulting the date.
-#
-# author: mjhwa@yahoo.com
-##
-def getFinishTime(time):
-    return datetime.strptime(
-        str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).year)
-      + '-'
-      + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).month)
-      + '-'
-      + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).day)
-      + 'T'
-      + time, '%Y-%m-%dT%H:%M'
-    ).replace(tzinfo=PAC)
-
-
-##
 # Checks to see if the vehicles are plugged in, inferred from the charge 
 # port door status, and sends an email to notify if it's not.  Also sets 
 # scheduled charging time to start charging at the calculated date and time. 
@@ -410,12 +390,12 @@ def notifyIsTeslaPluggedIn():
         #print('send email: ' + message)
 
     # set cars for scheduled charging
-    m3_target_finish_time = getFinishTime(service.spreadsheets().values().get(
+    m3_target_finish_time = getTomorrowTime(service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
       range='Smart Charger!B13'
     ).execute().get('values', [])[0][0])
 
-    mx_target_finish_time = getFinishTime(service.spreadsheets().values().get(
+    mx_target_finish_time = getTomorrowTime(service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
       range='Smart Charger!B12'
     ).execute().get('values', [])[0][0])

@@ -1,5 +1,5 @@
 from GoogleAPI import getGoogleSheetService
-from Utilities import isVehicleAtPrimary, deleteCronTab, createCronTab, getConfig
+from Utilities import isVehicleAtPrimary, getTomorrowTime, deleteCronTab, createCronTab, getConfig
 from Logger import logError
 from datetime import timedelta, datetime
 
@@ -39,23 +39,15 @@ def setM3Precondition(data):
       
         # specific date/time to create a crontab for tomorrow morning at 
         # the preferred start time
-        tomorrow_date = datetime.today() + timedelta(1)
-        start_time = datetime.strptime(start_time, '%I:%M %p').time()
-        estimated_start_time = datetime(
-          tomorrow_date.year, 
-          tomorrow_date.month, 
-          tomorrow_date.day, 
-          start_time.hour, 
-          start_time.minute
-        )
+        start_time = getTomorrowTime(start_time)
       
         # create precondition start crontab
         deleteCronTab('python /home/pi/tesla/python/PreconditionM3Start.py')
         createCronTab('python /home/pi/tesla/python/PreconditionM3Start.py', 
-                      estimated_start_time.month, 
-                      estimated_start_time.day, 
-                      estimated_start_time.hour, 
-                      estimated_start_time.minute)
+                      start_time.month, 
+                      start_time.day, 
+                      start_time.hour, 
+                      start_time.minute)
     service.close()
   except Exception as e:
     logError('setM3Precondition(): ' + str(e))
@@ -82,23 +74,15 @@ def setMXPrecondition(data):
       
         # specific date/time to create a crontab for tomorrow morning at 
         # the preferred start time
-        tomorrow_date = datetime.today() + timedelta(1)
-        start_time = datetime.strptime(start_time, '%I:%M %p').time()
-        estimated_start_time = datetime(
-          tomorrow_date.year, 
-          tomorrow_date.month, 
-          tomorrow_date.day, 
-          start_time.hour, 
-          start_time.minute
-        )
-      
+        start_time = getTomorrowTime(start_time)
+
         # create precondition start crontab
         deleteCronTab('python /home/pi/tesla/python/PreconditionMXStart.py')
         createCronTab('python /home/pi/tesla/python/PreconditionMXStart.py', 
-                      estimated_start_time.month, 
-                      estimated_start_time.day, 
-                      estimated_start_time.hour, 
-                      estimated_start_time.minute)
+                      start_time.month, 
+                      start_time.day, 
+                      start_time.hour, 
+                      start_time.minute)
     service.close()
   except Exception as e:
     logError('setMXPrecondition(): ' + str(e))

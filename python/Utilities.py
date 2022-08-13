@@ -2,14 +2,18 @@ import requests
 import math
 import json
 import datetime
+import zoneinfo
 import configparser
 import os
 
 from Crypto import decrypt
 from crontab import CronTab
+from datetime import datetime, timedelta
 from io import StringIO
 
 R = 3958.8  #Earth radius in miles
+TIME_ZONE = 'America/Los_Angeles'
+PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 BASE_WEATHER_URL = 'https://api.openweathermap.org/data/2.5'
 
 
@@ -161,6 +165,23 @@ def getDistance(car_lat, car_lng, x_lat, x_lng):
 
 def toRad(x):
   return x * math.pi/180
+
+
+##
+# Helps format the charging or preconditioning time by defaulting the date.
+#
+# author: mjhwa@yahoo.com
+##
+def getTomorrowTime(time):
+    return datetime.strptime(
+        str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).year)
+      + '-'
+      + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).month)
+      + '-'
+      + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).day)
+      + 'T'
+      + time, '%Y-%m-%dT%H:%M'
+    ).replace(tzinfo=PAC)
 
 
 ##
