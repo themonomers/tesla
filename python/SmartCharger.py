@@ -346,15 +346,16 @@ def notifyIsTeslaPluggedIn():
     battery_level = m3_data['response']['charge_state']['battery_level']
     battery_range = m3_data['response']['charge_state']['battery_range']
 
+    # get configuration info
     service = getGoogleSheetService()
-    email_notification = service.spreadsheets().values().get(
+    grid = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Charger!B4'
+      range='Smart Charger!B3:B7'
     ).execute().get('values', [])
-    #print('email notify: ' + email_notification[0][0])
-    
+    service.close()
+
     # check if email notification is set to "on" first 
-    if (email_notification[0][0] == 'on'):
+    if (grid[1][0] == 'on'):
       # send an email if the charge port door is not open, i.e. not plugged in
       if (charge_port_door_open == False):
         message = ('Your car is not plugged in.  \n\nCurrent battery level is ' 
@@ -369,14 +370,8 @@ def notifyIsTeslaPluggedIn():
     battery_level = mx_data['response']['charge_state']['battery_level']
     battery_range = mx_data['response']['charge_state']['battery_range']
 
-    email_notification = service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Charger!B3'
-    ).execute().get('values', [])
-    #print('email notify: ' + email_notification[0][0])
-
     # check if email notification is set to "on" first
-    if (email_notification[0][0] == 'on'):
+    if (grid[0][0] == 'on'):
       # send an email if the charge port door is not open, i.e. not plugged in
       if (charge_port_door_open == False):
         message = ('Your car is not plugged in.  \n\nCurrent battery level is '
@@ -390,16 +385,8 @@ def notifyIsTeslaPluggedIn():
         #print('send email: ' + message)
 
     # set cars for scheduled charging
-    m3_target_finish_time = getTomorrowTime(service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Charger!B7'
-    ).execute().get('values', [])[0][0])
-
-    mx_target_finish_time = getTomorrowTime(service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Charger!B6'
-    ).execute().get('values', [])[0][0])
-    service.close()
+    m3_target_finish_time = getTomorrowTime(grid[4][0])
+    mx_target_finish_time = getTomorrowTime(grid[3][0])
 
     scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
     scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
