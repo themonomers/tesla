@@ -33,21 +33,9 @@ WAIT_TIME = 30
 #
 # author: mjhwa@yahoo.com
 ##
-def scheduleM3Charging(m3_data, mx_data): 
+def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time): 
   try:
-    service = getGoogleSheetService()
-
     if (m3_data['response']['charge_state']['charging_state'] != 'Complete'):
-      m3_target_finish_time = getFinishTime(service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Smart Charger!B13'
-      ).execute().get('values', [])[0][0])
-
-      mx_target_finish_time = getFinishTime(service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Smart Charger!B12'
-      ).execute().get('values', [])[0][0])
-
       # get calculated start time depending on location of cars
       if ((isVehicleAtPrimary(m3_data) == True) and
           (isVehicleAtPrimary(mx_data) == True)):
@@ -82,26 +70,13 @@ def scheduleM3Charging(m3_data, mx_data):
                  + str(start_time)
                  + '.')
       sendEmail(EMAIL_1, 'Model 3 Set to Charge', message, '', '')
-    service.close()
   except Exception as e:
     logError('scheduleM3Charging(): ' + str(e))
 
 
-def scheduleMXCharging(m3_data, mx_data): 
+def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time): 
   try:
-    service = getGoogleSheetService()
-
     if (mx_data['response']['charge_state']['charging_state'] != 'Complete'):
-      m3_target_finish_time = getFinishTime(service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Smart Charger!B13'
-      ).execute().get('values', [])[0][0])
-
-      mx_target_finish_time = getFinishTime(service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Smart Charger!B12'
-      ).execute().get('values', [])[0][0])
-
       # get calculated start time depending on location of cars
       if ((isVehicleAtPrimary(mx_data) == True) and 
           (isVehicleAtPrimary(m3_data) == True)):
@@ -136,7 +111,6 @@ def scheduleMXCharging(m3_data, mx_data):
                  + str(start_time)
                  + '.')
       sendEmail(EMAIL_1, 'Model X Set to Charge', message, '', '')
-    service.close()
   except Exception as e:
     logError('scheduleMXCharging(): ' + str(e))
 
@@ -376,7 +350,7 @@ def getFinishTime(time):
 # Skips if it's not within 0.25 miles from the primary location.
 #
 # If one of the other cars is in the secondary location, set time charge 
-# start time based on the alternate charge rate and set the charge start 
+# start time based on the secondary charge rate and set the charge start 
 # time for the one at the primary location to charge at full charge rate. 
 #
 # author: mjhwa@yahoo.com
@@ -420,7 +394,6 @@ def notifyIsTeslaPluggedIn():
       range='Smart Charger!H9'
     ).execute().get('values', [])
     #print('email notify: ' + email_notification[0][0])
-    service.close()
 
     # check if email notification is set to "on" first
     if (email_notification[0][0] == 'on'):
@@ -436,9 +409,20 @@ def notifyIsTeslaPluggedIn():
                   message, EMAIL_1, '')
         #print('send email: ' + message)
 
-    # set set for scheduled charging
-    scheduleM3Charging(m3_data, mx_data)
-    scheduleMXCharging(m3_data, mx_data)
+    # set cars for scheduled charging
+    m3_target_finish_time = getFinishTime(service.spreadsheets().values().get(
+      spreadsheetId=EV_SPREADSHEET_ID, 
+      range='Smart Charger!B13'
+    ).execute().get('values', [])[0][0])
+
+    mx_target_finish_time = getFinishTime(service.spreadsheets().values().get(
+      spreadsheetId=EV_SPREADSHEET_ID, 
+      range='Smart Charger!B12'
+    ).execute().get('values', [])[0][0])
+    service.close()
+
+    scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
+    scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
     # set cabin preconditioning the next morning
     setM3Precondition(m3_data)
