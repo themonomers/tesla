@@ -20,27 +20,23 @@ EV_SPREADSHEET_ID = getConfig()['google']['ev_spreadsheet_id']
 ## 
 def setM3Precondition(data):
   try: 
+    # get configuration info
     service = getGoogleSheetService()
-    eco_mode = service.spreadsheets().values().get(
+    grid = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!B24'
-    ).execute().get('values', [])[0][0]
-    
+      range='Smart Climate!B20:B24'
+    ).execute().get('values', [])
+    service.close()
+
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
-    if (eco_mode == 'off'):
+    if (grid[4][0] == 'off'):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
-        # get start time preferences
-        start_time = service.spreadsheets().values().get(
-          spreadsheetId=EV_SPREADSHEET_ID, 
-          range='Smart Climate!B20'
-        ).execute().get('values', [])[0][0]
-      
         # specific date/time to create a crontab for tomorrow morning at 
         # the preferred start time
-        start_time = getTomorrowTime(start_time)
-      
+        start_time = getTomorrowTime(grid[0][0])
+        
         # create precondition start crontab
         deleteCronTab('python /home/pi/tesla/python/PreconditionM3Start.py')
         createCronTab('python /home/pi/tesla/python/PreconditionM3Start.py', 
@@ -48,33 +44,28 @@ def setM3Precondition(data):
                       start_time.day, 
                       start_time.hour, 
                       start_time.minute)
-    service.close()
   except Exception as e:
     logError('setM3Precondition(): ' + str(e))
 
 
 def setMXPrecondition(data):
   try: 
+    # get configuration info
     service = getGoogleSheetService()
-    eco_mode = service.spreadsheets().values().get(
+    grid = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!I24'
-    ).execute().get('values', [])[0][0]
-  
+      range='Smart Climate!I20:I24'
+    ).execute().get('values', [])
+    service.close()
+
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
-    if (eco_mode == 'off'):
+    if (grid[4][0] == 'off'):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
-        # get start time preferences
-        start_time = service.spreadsheets().values().get(
-          spreadsheetId=EV_SPREADSHEET_ID, 
-          range='Smart Climate!I20'
-        ).execute().get('values', [])[0][0]
-      
         # specific date/time to create a crontab for tomorrow morning at 
         # the preferred start time
-        start_time = getTomorrowTime(start_time)
+        start_time = getTomorrowTime(grid[0][0])
 
         # create precondition start crontab
         deleteCronTab('python /home/pi/tesla/python/PreconditionMXStart.py')
@@ -83,79 +74,5 @@ def setMXPrecondition(data):
                       start_time.day, 
                       start_time.hour, 
                       start_time.minute)
-    service.close()
   except Exception as e:
     logError('setMXPrecondition(): ' + str(e))
-
-##
-# Helper function to reduce lines of repetitive code to retrieve seat heater 
-# settings in Google Sheet.
-#
-# author: mjhwa@yahoo.com
-##
-def getM3SeatSetting(data, s1, s2, s3, s5, s6):
-  try:
-    service = getGoogleSheetService()
-
-    data.append(
-      service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range=s1
-      ).execute().get('values', [])[0][0]
-    )
-    data.append(
-      service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range=s2
-      ).execute().get('values', [])[0][0]
-    )
-    data.append(
-      service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range=s3
-      ).execute().get('values', [])[0][0]
-    )
-    data.append(-1) # skip index 3 as it's not assigned in the API
-    data.append(
-      service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range=s5
-      ).execute().get('values', [])[0][0]
-    )
-    data.append(
-      service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range=s6
-      ).execute().get('values', [])[0][0]
-    )
-
-    service.close
-
-    return data
-  except Exception as e:
-    logError('getM3SeatSetting(): ' + str(e))
-
-
-def getMXSeatSetting(data, s1, s2):
-  try:
-    service = getGoogleSheetService()
-
-    data.append(
-      service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range=s1
-      ).execute().get('values', [])[0][0]
-    )
-    data.append(
-      service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range=s2
-      ).execute().get('values', [])[0][0]
-    )
-
-    service.close
-
-    return data
-  except Exception as e:
-    logError('getMXSeatSetting(): ' + str(e))
-

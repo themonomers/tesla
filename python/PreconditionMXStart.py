@@ -2,8 +2,7 @@ import time
 
 from TeslaVehicleAPI import getVehicleData, wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
 from GoogleAPI import getGoogleSheetService
-from Utilities import deleteCronTab, createCronTab, isVehicleAtPrimary, getCurrentWeather, getConfig
-from SmartClimate import getMXSeatSetting
+from Utilities import deleteCronTab, createCronTab, isVehicleAtPrimary, getTomorrowTime, getCurrentWeather, getConfig
 from Logger import logError
 from datetime import datetime
 
@@ -17,31 +16,23 @@ WAIT_TIME = 30
 
 def preconditionMXStart():
   try:
-    # check if eco mode is off first so we don't have to even call the 
-    # Tesla API if we don't have to
+    # get configuration info
     service = getGoogleSheetService()
-    eco_mode = service.spreadsheets().values().get(
+    grid = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!I24'
-    ).execute().get('values', [])[0][0]
+      range='Smart Climate!I3:L24'
+    ).execute().get('values', [])
+    service.close()
 
-    if (eco_mode == 'on'): return
+    # check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
+    if (grid[21][0] == 'on'): return
     
     # get local weather
     wdata = getCurrentWeather(ZIPCODE)
-    #print('temp: ' + str(wdata['main']['temp']))    
+#    print('temp: ' + str(wdata['main']['temp']))    
 
-    # get data
-    cold_temp_threshold = service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!I22'
-    ).execute().get('values', [])[0][0]
-    hot_temp_threshold = service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!I23'
-    ).execute().get('values', [])[0][0]
-    #print('cold temp threshold: ' + cold_temp_threshold)
-    #print('hot temp threshold: ' + hot_temp_threshold)
+#    print('cold temp threshold: ' + grid[19][0])
+#    print('hot temp threshold: ' + grid[20][0])
 
     # get today's day of week to compare against Google Sheet temp preferences 
     # for that day
@@ -50,264 +41,138 @@ def preconditionMXStart():
     
     # compare temp readings and threshold to determine heating or cooling temps 
     # to use
-    if (wdata['main']['temp'] < cold_temp_threshold):
+    if (wdata['main']['temp'] < grid[19][0]):
       # get pre-heat preferences
-      if (day_of_week == 6): # Sunday
+      if (day_of_week == 0): # Monday
         try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I9'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J9'
-          ).execute().get('values', [])[0][0])
+          d_temp = float(grid[0][0])
+          p_temp = float(grid[0][1])
+        except ValueError:
+         return
+
+        seats.append(grid[0][2])
+        seats.append(grid[0][3])       
+      elif (day_of_week == 1): # Tuesday
+        try:
+          d_temp = float(grid[1][0])
+          p_temp = float(grid[1][1])
+        except ValueError:
+         return
+
+        seats.append(grid[1][2])
+        seats.append(grid[1][3])        
+      elif (day_of_week == 2): # Wednesday
+        try:
+          d_temp = float(grid[2][0])
+          p_temp = float(grid[2][1])
+        except ValueError:
+         return
+
+        seats.append(grid[2][2])
+        seats.append(grid[2][3])      
+      elif (day_of_week == 3): # Thursday
+        try:
+          d_temp = float(grid[3][0])
+          p_temp = float(grid[3][1])
+        except ValueError:
+         return
+
+        seats.append(grid[3][2])
+        seats.append(grid[3][3])        
+      elif (day_of_week == 4): # Friday
+        try:
+          d_temp = float(grid[4][0])
+          p_temp = float(grid[4][1])
+        except ValueError:
+         return
+
+        seats.append(grid[4][2])
+        seats.append(grid[4][3])         
+      elif (day_of_week == 5): # Saturday
+        try:
+          d_temp = float(grid[5][0])
+          p_temp = float(grid[5][1])
+        except ValueError:
+         return
+
+        seats.append(grid[5][2])
+        seats.append(grid[5][3])         
+      elif (day_of_week == 6): # Sunday
+        try:
+          d_temp = float(grid[6][0])
+          p_temp = float(grid[6][1])
         except ValueError:
          return
         
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K9',
-          'Smart Climate!L9'
-        )
-      elif (day_of_week == 0): # Monday
-        try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I3'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J3'
-          ).execute().get('values', [])[0][0])
-        except ValueError:
-         return
-
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K3',
-          'Smart Climate!L3' 
-        )        
-      elif (day_of_week == 1): # Tuesday
-        try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I4'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J4'
-          ).execute().get('values', [])[0][0])
-        except ValueError:
-         return
-
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K4',
-          'Smart Climate!L4' 
-        )        
-      elif (day_of_week == 2): # Wednesday
-        try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I5'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J5'
-          ).execute().get('values', [])[0][0])
-        except ValueError:
-         return
-
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K5',
-          'Smart Climate!L5' 
-        )        
-      elif (day_of_week == 3): # Thursday
-        try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I6'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J6'
-          ).execute().get('values', [])[0][0])
-        except ValueError:
-         return
-
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K6',
-          'Smart Climate!L6' 
-        )        
-      elif (day_of_week == 4): # Friday
-        try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I7'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J7'
-          ).execute().get('values', [])[0][0])
-        except ValueError:
-         return
-
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K7',
-          'Smart Climate!L7' 
-        )        
-      elif (day_of_week == 5): # Saturday
-        try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I8'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J8'
-          ).execute().get('values', [])[0][0])
-        except ValueError:
-         return
-
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K8',
-          'Smart Climate!L8' 
-        )        
+        seats.append(grid[6][2])
+        seats.append(grid[6][3])  
       else:
         return
-    elif (wdata['main']['temp'] > hot_temp_threshold):
+    elif (wdata['main']['temp'] > grid[20][0]):
       # get pre-cool preferences
-      if (day_of_week == 6): # Sunday
+      if (day_of_week == 0): # Monday
         try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I18'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J18'
-          ).execute().get('values', [])[0][0])
+          d_temp = float(grid[9][0])
+          p_temp = float(grid[9][1])
         except ValueError:
          return
 
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K18',
-          'Smart Climate!L18' 
-        )        
-      elif (day_of_week == 0): # Monday
-        try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I12'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J12'
-          ).execute().get('values', [])[0][0])
-        except ValueError:
-         return
-
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K12',
-          'Smart Climate!L12' 
-        )        
+        seats.append(grid[9][2])
+        seats.append(grid[9][3])    
       elif (day_of_week == 1): # Tuesday
         try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I13'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J13'
-          ).execute().get('values', [])[0][0])
+          d_temp = float(grid[10][0])
+          p_temp = float(grid[10][1])
         except ValueError:
          return
 
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K13',
-          'Smart Climate!L13' 
-        )        
+        seats.append(grid[10][2])
+        seats.append(grid[10][3])     
       elif (day_of_week == 2): # Wednesday
         try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I14'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J14'
-          ).execute().get('values', [])[0][0])
+          d_temp = float(grid[11][0])
+          p_temp = float(grid[11][1])
         except ValueError:
          return
 
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K14',
-          'Smart Climate!L14' 
-        )        
+        seats.append(grid[11][2])
+        seats.append(grid[11][3])     
       elif (day_of_week == 3): # Thursday
         try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I15'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J15'
-          ).execute().get('values', [])[0][0])
+          d_temp = float(grid[12][0])
+          p_temp = float(grid[12][1])
         except ValueError:
          return
 
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K15',
-          'Smart Climate!L15' 
-        )        
+        seats.append(grid[12][2])
+        seats.append(grid[12][3])     
       elif (day_of_week == 4): # Friday
         try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I16'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J16'
-          ).execute().get('values', [])[0][0])
+          d_temp = float(grid[13][0])
+          p_temp = float(grid[13][1])
         except ValueError:
          return
 
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K16',
-          'Smart Climate!L16' 
-        )        
+        seats.append(grid[13][2])
+        seats.append(grid[13][3])     
       elif (day_of_week == 5): # Saturday
         try:
-          d_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!I17'
-          ).execute().get('values', [])[0][0])
-          p_temp = float(service.spreadsheets().values().get(
-            spreadsheetId=EV_SPREADSHEET_ID, 
-            range='Smart Climate!J17'
-          ).execute().get('values', [])[0][0])
+          d_temp = float(grid[14][0])
+          p_temp = float(grid[14][1])
         except ValueError:
          return
 
-        seats = getMXSeatSetting(
-          seats,
-          'Smart Climate!K17',
-          'Smart Climate!L17' 
-        )        
+        seats.append(grid[14][2])
+        seats.append(grid[14][3])     
+      elif (day_of_week == 6): # Sunday
+        try:
+          d_temp = float(grid[15][0])
+          p_temp = float(grid[15][1])
+        except ValueError:
+         return
+
+        seats.append(grid[15][2])
+        seats.append(grid[15][3])
       else:
         return
     else:
@@ -319,43 +184,29 @@ def preconditionMXStart():
     # no need to execute if unsure where the car is or if it's in motion
     data = getVehicleData(MX_VIN)
     if (isVehicleAtPrimary(data)):
-      # set driver and passenger temps
-      setCarTemp(MX_VIN, d_temp, p_temp)
-      
       # send command to start auto conditioning
       preconditionCarStart(MX_VIN)
-      
+
+      # set driver and passenger temps
+      setCarTemp(MX_VIN, d_temp, p_temp)
+
       # set seat heater settings
       for index, item in enumerate(seats):
         setCarSeatHeating(MX_VIN, index, item)
       
-      # get stop time preferences
-      stop_time = service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Smart Climate!I21'
-      ).execute().get('values', [])[0][0]
-
-      # specific date/time to create a crontab at the preferred stop time 
-      # (this doesn't seem to work outside of AM, might need refactoring)
-      stop_time = datetime.strptime(stop_time, '%I:%M %p').time()
-      estimated_stop_time = datetime(
-        datetime.today().year, 
-        datetime.today().month, 
-        datetime.today().day, 
-        stop_time.hour, 
-        stop_time.minute
-      )
+      # specific date/time to create a crontab for tomorrow morning at 
+      # the preferred stop time
+      stop_time = getTomorrowTime(grid[18][0])
 
       # create crontab to stop preconditioning
       deleteCronTab('python /home/pi/tesla/python/PreconditionMXStop.py')
       createCronTab(
         'python /home/pi/tesla/python/PreconditionMXStop.py', 
-        estimated_stop_time.month, 
-        estimated_stop_time.day, 
-        estimated_stop_time.hour, 
-        estimated_stop_time.minute
+        stop_time.month, 
+        stop_time.day, 
+        stop_time.hour, 
+        stop_time.minute
       )
-    service.close()
   except Exception as e: 
     logError('preconditionMXStart(): ' + str(e))
     wakeVehicle(MX_VIN)
