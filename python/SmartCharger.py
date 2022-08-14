@@ -346,11 +346,17 @@ def notifyIsTeslaPluggedIn():
     battery_level = m3_data['response']['charge_state']['battery_level']
     battery_range = m3_data['response']['charge_state']['battery_range']
 
-    # get configuration info
+    # get charging configuration info
     service = getGoogleSheetService()
     charge_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
       range='Smart Charger!B3:B7'
+    ).execute().get('values', [])
+
+    # get climate configuration info
+    climate_config = service.spreadsheets().values().get(
+      spreadsheetId=EV_SPREADSHEET_ID, 
+      range='Smart Climate!B20:I24'
     ).execute().get('values', [])
     service.close()
 
@@ -392,8 +398,8 @@ def notifyIsTeslaPluggedIn():
     scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
     # set cabin preconditioning the next morning
-    setM3Precondition(m3_data)
-    setMXPrecondition(mx_data)
+    setM3Precondition(m3_data, climate_config)
+    setMXPrecondition(mx_data, climate_config)
   except Exception as e:
     logError('notifyIsTeslaPluggedIn(): ' + str(e))
     wakeVehicle(M3_VIN)

@@ -1,9 +1,5 @@
-from GoogleAPI import getGoogleSheetService
-from Utilities import isVehicleAtPrimary, getTomorrowTime, deleteCronTab, createCronTab, getConfig
+from Utilities import isVehicleAtPrimary, getTomorrowTime, deleteCronTab, createCronTab
 from Logger import logError
-from datetime import timedelta, datetime
-
-EV_SPREADSHEET_ID = getConfig()['google']['ev_spreadsheet_id']
 
 
 ##
@@ -18,16 +14,8 @@ EV_SPREADSHEET_ID = getConfig()['google']['ev_spreadsheet_id']
 #
 # author: mjhwa@yahoo.com
 ## 
-def setM3Precondition(data):
+def setM3Precondition(data, climate_config):
   try: 
-    # get configuration info
-    service = getGoogleSheetService()
-    climate_config = service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!B20:B24'
-    ).execute().get('values', [])
-    service.close()
-
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
     if (climate_config[4][0] == 'off'):
@@ -48,24 +36,16 @@ def setM3Precondition(data):
     logError('setM3Precondition(): ' + str(e))
 
 
-def setMXPrecondition(data):
+def setMXPrecondition(data, climate_config):
   try: 
-    # get configuration info
-    service = getGoogleSheetService()
-    climate_config = service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!I20:I24'
-    ).execute().get('values', [])
-    service.close()
-
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
-    if (climate_config[4][0] == 'off'):
+    if (climate_config[4][7] == 'off'):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
         # specific date/time to create a crontab for tomorrow morning at 
         # the preferred start time
-        start_time = getTomorrowTime(climate_config[0][0])
+        start_time = getTomorrowTime(climate_config[0][7])
 
         # create precondition start crontab
         deleteCronTab('python /home/pi/tesla/python/PreconditionMXStart.py')
