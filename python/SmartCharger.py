@@ -348,14 +348,14 @@ def notifyIsTeslaPluggedIn():
 
     # get configuration info
     service = getGoogleSheetService()
-    grid = service.spreadsheets().values().get(
+    charge_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
       range='Smart Charger!B3:B7'
     ).execute().get('values', [])
     service.close()
 
     # check if email notification is set to "on" first 
-    if (grid[1][0] == 'on'):
+    if (charge_config[1][0] == 'on'):
       # send an email if the charge port door is not open, i.e. not plugged in
       if (charge_port_door_open == False):
         message = ('Your car is not plugged in.  \n\nCurrent battery level is ' 
@@ -371,7 +371,7 @@ def notifyIsTeslaPluggedIn():
     battery_range = mx_data['response']['charge_state']['battery_range']
 
     # check if email notification is set to "on" first
-    if (grid[0][0] == 'on'):
+    if (charge_config[0][0] == 'on'):
       # send an email if the charge port door is not open, i.e. not plugged in
       if (charge_port_door_open == False):
         message = ('Your car is not plugged in.  \n\nCurrent battery level is '
@@ -385,8 +385,8 @@ def notifyIsTeslaPluggedIn():
         #print('send email: ' + message)
 
     # set cars for scheduled charging
-    m3_target_finish_time = getTomorrowTime(grid[4][0])
-    mx_target_finish_time = getTomorrowTime(grid[3][0])
+    m3_target_finish_time = getTomorrowTime(charge_config[4][0])
+    mx_target_finish_time = getTomorrowTime(charge_config[3][0])
 
     scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
     scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)

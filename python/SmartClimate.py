@@ -22,7 +22,7 @@ def setM3Precondition(data):
   try: 
     # get configuration info
     service = getGoogleSheetService()
-    grid = service.spreadsheets().values().get(
+    climate_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
       range='Smart Climate!B20:B24'
     ).execute().get('values', [])
@@ -30,12 +30,12 @@ def setM3Precondition(data):
 
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
-    if (grid[4][0] == 'off'):
+    if (climate_config[4][0] == 'off'):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
         # specific date/time to create a crontab for tomorrow morning at 
         # the preferred start time
-        start_time = getTomorrowTime(grid[0][0])
+        start_time = getTomorrowTime(climate_config[0][0])
         
         # create precondition start crontab
         deleteCronTab('python /home/pi/tesla/python/PreconditionM3Start.py')
@@ -52,7 +52,7 @@ def setMXPrecondition(data):
   try: 
     # get configuration info
     service = getGoogleSheetService()
-    grid = service.spreadsheets().values().get(
+    climate_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
       range='Smart Climate!I20:I24'
     ).execute().get('values', [])
@@ -60,12 +60,12 @@ def setMXPrecondition(data):
 
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
-    if (grid[4][0] == 'off'):
+    if (climate_config[4][0] == 'off'):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
         # specific date/time to create a crontab for tomorrow morning at 
         # the preferred start time
-        start_time = getTomorrowTime(grid[0][0])
+        start_time = getTomorrowTime(climate_config[0][0])
 
         # create precondition start crontab
         deleteCronTab('python /home/pi/tesla/python/PreconditionMXStart.py')
