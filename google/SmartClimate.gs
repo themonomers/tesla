@@ -1,5 +1,6 @@
 var OPENWEATHERMAP_KEY = crypto('abcdef0123456789');
 
+
 /**
  * Creates a trigger to precondition the cabin for the following morning, based on if 
  * the car is at the primary location and if "Eco Mode" is off similar to how Nest thermostats 
@@ -28,6 +29,7 @@ function setM3Precondition(data, climate_config) {
   }
 }
 
+
 function setMXPrecondition(data, climate_config) {
   var tomorrow_date = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
   var eco_mode = climate_config[4][7];
@@ -45,6 +47,7 @@ function setMXPrecondition(data, climate_config) {
     ScriptApp.newTrigger('preconditionMXStart').timeBased().at(estimated_start_time).create();
   }
 }
+
 
 /**
  * Checks a Google Sheet for heating and cooling preferences and sends a 
@@ -296,6 +299,7 @@ function preconditionM3Start() {
   }
 }
 
+
 function preconditionMXStart() {
   try {
     // get configuration info
@@ -477,6 +481,7 @@ function preconditionMXStart() {
   }
 }
 
+
 function preconditionM3Stop() {
   try {
     var data = JSON.parse(getVehicleData(M3_VIN).getContentText());
@@ -490,6 +495,7 @@ function preconditionM3Stop() {
     preconditionM3Stop();
   }
 }
+
 
 function preconditionMXStop() {
   try {
@@ -505,6 +511,7 @@ function preconditionMXStop() {
   }
 }
 
+
 function setCarTemp(vin, d_temp, p_temp) {
   var url = BASE_URL + getVehicleId(vin) + '/command/set_temps';
   var options = {
@@ -518,6 +525,7 @@ function setCarTemp(vin, d_temp, p_temp) {
   var response = UrlFetchApp.fetch(url, options);
   return response;
 }
+
 
 function setCarSeatHeating(vin, seat, setting) {
   var url = BASE_URL + getVehicleId(vin) + '/command/remote_seat_heater_request';
@@ -533,6 +541,7 @@ function setCarSeatHeating(vin, seat, setting) {
   return response;
 }
 
+
 function preconditionCarStart(vin) {
   var url = BASE_URL + getVehicleId(vin) + '/command/auto_conditioning_start';
   var options = {
@@ -546,6 +555,7 @@ function preconditionCarStart(vin) {
   return response;
 }
 
+
 function preconditionCarStop(vin) {
   var url = BASE_URL + getVehicleId(vin) + '/command/auto_conditioning_stop';
   var options = {
@@ -558,6 +568,7 @@ function preconditionCarStop(vin) {
   var response = UrlFetchApp.fetch(url, options);
   return response;
 }
+
 
 function getCurrentWeather(zipcode) {
   var url = 'https://api.openweathermap.org/data/2.5/weather?zip=' + zipcode + '&APPID=' + OPENWEATHERMAP_KEY + '&units=metric';

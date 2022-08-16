@@ -76,6 +76,7 @@ function writeM3Telemetry() {
   }
 }
 
+
 function writeMXTelemetry() { 
   try {
     // get rollup of vehicle data
@@ -150,6 +151,7 @@ function writeMXTelemetry() {
   }
 }
 
+
 /**
  * Looks for the next empty cell in a Google Sheet row to avoid overwriting data when reading/writing values.
  */
@@ -160,6 +162,7 @@ function findOpenRow(sheetId, sheetName, range) {
   }
   return values.length + 1;
 }
+
 
 /**
  * Looks to see if a trigger exists.
@@ -173,6 +176,7 @@ function doesTriggerExist(func) {
   }
   return false;
 }
+
 
 /**
  * Gets all available vehicle data and writes them to a Google Sheet in a nested format.
@@ -224,6 +228,7 @@ function writeAllM3Data() {
   // batch write data to sheet
   Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'RAW', data: inputs}, SPREADSHEET_ID);
 }
+
 
 // TODO:  add try catch block
 function writeAllMXData() {  

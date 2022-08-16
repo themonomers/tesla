@@ -1,5 +1,6 @@
 var LOG_SPREADSHEET_ID = crypto('abcdef0123456789');
 
+
 /**
  * Logs errors from try/catch blocks into a Google Sheet (I couldn't get the Stackdriver Logging/Error to work).
  */
@@ -17,6 +18,7 @@ function logError(msg) {
     {valueInputOption: "USER_ENTERED"}
   );
 }
+
 
 /**
  * Keeps the error log from getting too long/big; deletes any rows older than 30 days.  
