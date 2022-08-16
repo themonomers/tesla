@@ -37,23 +37,23 @@ def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       if ((isVehicleAtPrimary(m3_data) == True) and
           (isVehicleAtPrimary(mx_data) == True)):
         start_time = calculateScheduledCharging('m3_primary_shared_charging', 
-                                               m3_data, 
-                                               mx_data, 
-                                               m3_target_finish_time, 
-                                               mx_target_finish_time)
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
       elif ((isVehicleAtPrimary(m3_data) == True) and 
             (isVehicleAtPrimary(mx_data) == False)):
         start_time = calculateScheduledCharging('m3_primary_full_rate', 
-                                               m3_data, 
-                                               mx_data, 
-                                               m3_target_finish_time, 
-                                               mx_target_finish_time)
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
       elif (isVehicleAtSecondary(m3_data)):
         start_time = calculateScheduledCharging('m3_secondary_full_rate', 
-                                               m3_data, 
-                                               mx_data, 
-                                               m3_target_finish_time, 
-                                               mx_target_finish_time)
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
       else:
         return
 
@@ -78,23 +78,22 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       if ((isVehicleAtPrimary(mx_data) == True) and 
           (isVehicleAtPrimary(m3_data) == True)):
         start_time = calculateScheduledCharging('mx_primary_shared_charging', 
-                                               m3_data, 
-                                               mx_data, 
-                                               m3_target_finish_time, 
-                                               mx_target_finish_time)
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
       elif ((isVehicleAtPrimary(mx_data) == True) and 
             (isVehicleAtPrimary(m3_data) == False)):
         start_time = calculateScheduledCharging('mx_primary_full_rate', 
-                                               m3_data, 
-                                               mx_data, 
-                                               m3_target_finish_time, 
-                                               mx_target_finish_time)
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
       elif (isVehicleAtSecondary(mx_data)):
         start_time = calculateScheduledCharging('mx_secondary_full_rate', 
-                                               m3_data, 
-                                               mx_data, 
-                                               m3_target_finish_time, 
-                                               mx_target_finish_time)
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
       else:
         return
 
