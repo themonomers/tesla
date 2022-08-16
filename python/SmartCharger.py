@@ -36,20 +36,20 @@ def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       # get calculated start time depending on location of cars
       if ((isVehicleAtPrimary(m3_data) == True) and
           (isVehicleAtPrimary(mx_data) == True)):
-        start_time = calcuateScheduledCharging('m3_primary_shared_charging', 
+        start_time = calculateScheduledCharging('m3_primary_shared_charging', 
                                                m3_data, 
                                                mx_data, 
                                                m3_target_finish_time, 
                                                mx_target_finish_time)
       elif ((isVehicleAtPrimary(m3_data) == True) and 
             (isVehicleAtPrimary(mx_data) == False)):
-        start_time = calcuateScheduledCharging('m3_primary_full_rate', 
+        start_time = calculateScheduledCharging('m3_primary_full_rate', 
                                                m3_data, 
                                                mx_data, 
                                                m3_target_finish_time, 
                                                mx_target_finish_time)
       elif (isVehicleAtSecondary(m3_data)):
-        start_time = calcuateScheduledCharging('m3_secondary_full_rate', 
+        start_time = calculateScheduledCharging('m3_secondary_full_rate', 
                                                m3_data, 
                                                mx_data, 
                                                m3_target_finish_time, 
@@ -77,20 +77,20 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       # get calculated start time depending on location of cars
       if ((isVehicleAtPrimary(mx_data) == True) and 
           (isVehicleAtPrimary(m3_data) == True)):
-        start_time = calcuateScheduledCharging('mx_primary_shared_charging', 
+        start_time = calculateScheduledCharging('mx_primary_shared_charging', 
                                                m3_data, 
                                                mx_data, 
                                                m3_target_finish_time, 
                                                mx_target_finish_time)
       elif ((isVehicleAtPrimary(mx_data) == True) and 
             (isVehicleAtPrimary(m3_data) == False)):
-        start_time = calcuateScheduledCharging('mx_primary_full_rate', 
+        start_time = calculateScheduledCharging('mx_primary_full_rate', 
                                                m3_data, 
                                                mx_data, 
                                                m3_target_finish_time, 
                                                mx_target_finish_time)
       elif (isVehicleAtSecondary(mx_data)):
-        start_time = calcuateScheduledCharging('mx_secondary_full_rate', 
+        start_time = calculateScheduledCharging('mx_secondary_full_rate', 
                                                m3_data, 
                                                mx_data, 
                                                m3_target_finish_time, 
@@ -118,7 +118,7 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
 #
 # author: mjhwa@yahoo.com
 ##
-def calcuateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time, mx_target_finish_time):
+def calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time, mx_target_finish_time):
   try:
     # Calculate how many miles are needed for charging based on 
     # current range and charging % target
