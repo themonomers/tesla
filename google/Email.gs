@@ -10,9 +10,6 @@ function truncateEmail() {
   var queries = [
     'in:sent subject:"Model X"', 
     'in:sent subject:"Model 3"', 
-    'in:sent subject:"Tesla Access Token Expiring Soon"', 
-    'in:sent subject:"Your Weekly Metrics"', 
-    'in:sent subject:"Netgear RAX45 Log"'
   ];
 
   for (var i = 0; i < queries.length; i++) {
