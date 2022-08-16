@@ -67,7 +67,7 @@ function writeM3Telemetry() {
     var timezone = Session.getScriptTimeZone();
     var time = Utilities.formatDate(new Date(), timezone, "MMMM dd, yyyy h:mm:ss a");
     var message = 'Model 3 telemetry successfully logged on ' + time + '.';
-    MailApp.sendEmail(email_address1, 'Model 3 Telemetry Logged', message);
+    MailApp.sendEmail(EMAIL_ADDRESS_1, 'Model 3 Telemetry Logged', message);
   } catch (e) {
     logError('writeM3Telemetry(): ' + e);
     wakeVehicle(M3_VIN);
@@ -142,7 +142,7 @@ function writeMXTelemetry() {
     var timezone = Session.getScriptTimeZone();
     var time = Utilities.formatDate(new Date(), timezone, "MMMM dd, yyyy h:mm:ss a");
     var message = 'Model X telemetry successfully logged on ' + time + '.';
-    MailApp.sendEmail(email_address1, 'Model X Telemetry Logged', message);
+    MailApp.sendEmail(EMAIL_ADDRESS_1, 'Model X Telemetry Logged', message);
   } catch (e) {
     logError('writeMXTelemetry(): ' + e);
     wakeVehicle(MX_VIN);
