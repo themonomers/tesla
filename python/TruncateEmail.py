@@ -55,8 +55,8 @@ def truncateEmail(query):
 
 
 def main():
-  for key, value in QUERIES.items():
-    truncateEmail(value)
+  for key in QUERIES:
+    truncateEmail(QUERIES[key])
 
 
 if __name__ == "__main__":
