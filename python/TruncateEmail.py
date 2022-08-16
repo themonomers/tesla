@@ -3,11 +3,7 @@ from Utilities import getConfig
 from Logger import logError
 from datetime import datetime, timedelta
 
-config = getConfig()
-QUERY_1 = config['notification']['query_1']
-QUERY_2 = config['notification']['query_2']
-QUERY_3 = config['notification']['query_3']
-
+QUERIES = getConfig()['query']
 DELETE_THRESHOLD = 30
 
 
@@ -59,12 +55,9 @@ def truncateEmail(query):
 
 
 def main():
-  truncateEmail(QUERY_1)
-  truncateEmail(QUERY_2)
-  truncateEmail(QUERY_3)
+  for key, value in QUERIES.items():
+    truncateEmail(value)
 
 
 if __name__ == "__main__":
   main()
-
-
