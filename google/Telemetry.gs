@@ -1,6 +1,9 @@
 /**
- * Contains functions to read/write the vehicle's data, e.g. mileage, efficiency, etc. into a Google Sheet for tracking, 
- * analysis, and graphs.
+ * Contains functions to read/write the vehicle's data, 
+ * e.g. mileage, efficiency, etc. into a Google Sheet for 
+ * tracking, analysis, and graphs.
+ *
+ * author: mjhwa@yahoo.com
  */
 function writeM3Telemetry() { 
   try {
@@ -153,7 +156,10 @@ function writeMXTelemetry() {
 
 
 /**
- * Looks for the next empty cell in a Google Sheet row to avoid overwriting data when reading/writing values.
+ * Looks for the next empty cell in a Google Sheet row 
+ * to avoid overwriting data when reading/writing values.
+ *
+ * author: mjhwa@yahoo.com
  */
 function findOpenRow(sheetId, sheetName, range) {
   var values = Sheets.Spreadsheets.Values.get(sheetId, sheetName + '!' + range).values;
@@ -166,6 +172,8 @@ function findOpenRow(sheetId, sheetName, range) {
 
 /**
  * Looks to see if a trigger exists.
+ *
+ * author: mjhwa@yahoo.com
  */
 function doesTriggerExist(func) {
   var triggers = ScriptApp.getProjectTriggers();
@@ -179,7 +187,25 @@ function doesTriggerExist(func) {
 
 
 /**
- * Gets all available vehicle data and writes them to a Google Sheet in a nested format.
+ * Deletes a trigger by it's name.
+ *
+ * author: mjhwa@yahoo.com
+ */
+function deleteTrigger(func) {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var x = 0; x < triggers.length; x++ ) {
+    if (triggers[x].getHandlerFunction() == func) {
+      ScriptApp.deleteTrigger(triggers[x]);
+    }
+  }
+}
+
+
+/**
+ * Gets all available vehicle data and writes them to a 
+ * Google Sheet in a nested format.
+ *
+ * author: mjhwa@yahoo.com
  */
 // TODO:  add try catch block
 function writeAllM3Data() {

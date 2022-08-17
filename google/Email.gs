@@ -1,10 +1,12 @@
-var DELETE_THRESHOLD = 30;
+var DELETE_THRESHOLD = 30;  // days
 
 
 /**
- * Keeps the email sent folder from being overloaded with notifications; deletes any notification emails older than a specified number of days.  
+ * Keeps the email sent folder from being overloaded with 
+ * notifications; deletes any notification emails older than 
+ * a specified number of days.  
  *
- * author: Michael Hwa
+ * author: mjhwa@yahoo.com
  */
 function truncateEmail() {
   var queries = [

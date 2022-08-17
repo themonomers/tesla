@@ -2,7 +2,10 @@ var LOG_SPREADSHEET_ID = crypto('abcdef0123456789');
 
 
 /**
- * Logs errors from try/catch blocks into a Google Sheet (I couldn't get the Stackdriver Logging/Error to work).
+ * Logs errors from try/catch blocks into a Google Sheet 
+ * (I couldn't get the Stackdriver Logging/Error to work).
+ *
+ * author: mjhwa@yahoo.com
  */
 function logError(msg) {
   // write this into an open row in logging Google Sheet
@@ -21,9 +24,10 @@ function logError(msg) {
 
 
 /**
- * Keeps the error log from getting too long/big; deletes any rows older than 30 days.  
+ * Keeps the error log from getting too long/big; deletes 
+ * any rows older than 30 days.  
  *
- * author: Michael Hwa
+ * author: mjhwa@yahoo.com
  */
 function truncateLog() {
   // get time stamps from each log entry

@@ -2,14 +2,17 @@ var OPENWEATHERMAP_KEY = crypto('abcdef0123456789');
 
 
 /**
- * Creates a trigger to precondition the cabin for the following morning, based on if 
- * the car is at the primary location and if "Eco Mode" is off similar to how Nest thermostats 
- * work for vacation scenarios.  With the new endpoints released, you can achieve the same 
- * functionality by setting scheduled departure for preconditioning.  I decided to keep this 
- * code running as I don't drive long distances so the added feature of preconditioning the 
- * battery, in addition to the cabin, is a waste of energy (entropy) for me.
+ * Creates a trigger to precondition the cabin for the 
+ * following morning, based on if the car is at the primary 
+ * location and if "Eco Mode" is off similar to how Nest 
+ * thermostats work for vacation scenarios.  With the new 
+ * endpoints released, you can achieve the same functionality 
+ * by setting scheduled departure for preconditioning.  I decided 
+ * to keep this code as I don't drive long distances so the added 
+ * feature of preconditioning the battery, in addition to the cabin, 
+ * is a waste of energy (entropy) for me.
  *
- * author: Michael Hwa
+ * author: mjhwa@yahoo.com
  */
 function setM3Precondition(data, climate_config) {
   var tomorrow_date = new Date(Date.now() + 1000*60*60*24).toLocaleDateString();
@@ -50,18 +53,19 @@ function setMXPrecondition(data, climate_config) {
 
 
 /**
- * Checks a Google Sheet for heating and cooling preferences and sends a 
- * command to precondition the car.  Includes seat heating preferences.
- * Originally this just used the inside car temp but to also account for 
- * the outside temperature, it might be more comfortable for the 
- * occupants to look at the average of the two to determine when to 
- * pre-heat/cool.
+ * Checks a Google Sheet for heating and cooling preferences 
+ * and sends a command to precondition the car.  Includes seat 
+ * heating preferences. Originally this just used the inside car 
+ * temp but to also account for the outside temperature, it might 
+ * be more comfortable for the occupants to look at the average 
+ * of the two to determine when to pre-heat/cool.
  *
- * Currently using a weather API instead of the inside or outside temp 
- * data from the cars.  The temp data from the cars don't seem to be 
- * accurate enough and not representative of passenger comfort of when 
- * to pre-heat/cool.
+ * Currently using a weather API instead of the inside or outside 
+ * temp data from the cars.  The temp data from the cars don't seem 
+ * to be accurate enough and not representative of passenger comfort 
+ * of when to pre-heat/cool.
  *
+ * author: mjhwa@yahoo.com
  */
 function preconditionM3Start() {
   try {    
@@ -482,6 +486,13 @@ function preconditionMXStart() {
 }
 
 
+/**
+ * Function to check if the car is at home before stopping
+ * the HVAC.  This is so it doesn't change the HVAC state
+ * while someone is driving the car.
+ * 
+ * author: mjhwa@yahoo.com
+ */
 function preconditionM3Stop() {
   try {
     var data = JSON.parse(getVehicleData(M3_VIN).getContentText());
@@ -512,6 +523,12 @@ function preconditionMXStop() {
 }
 
 
+/**
+ * Function to send API call to set driver and passenger
+ * temperature.
+ * 
+ * author: mjhwa@yahoo.com
+ */
 function setCarTemp(vin, d_temp, p_temp) {
   var url = BASE_URL + getVehicleId(vin) + '/command/set_temps';
   var options = {
@@ -527,6 +544,12 @@ function setCarTemp(vin, d_temp, p_temp) {
 }
 
 
+/**
+ * Function to send API call to set heating levels on
+ * different seats.
+ * 
+ * author: mjhwa@yahoo.com
+ */
 function setCarSeatHeating(vin, seat, setting) {
   var url = BASE_URL + getVehicleId(vin) + '/command/remote_seat_heater_request';
   var options = {
@@ -542,6 +565,11 @@ function setCarSeatHeating(vin, seat, setting) {
 }
 
 
+/**
+ * Function to send API call to start the vehicle HVAC.
+ * 
+ * author: mjhwa@yahoo.com
+ */
 function preconditionCarStart(vin) {
   var url = BASE_URL + getVehicleId(vin) + '/command/auto_conditioning_start';
   var options = {
@@ -556,6 +584,11 @@ function preconditionCarStart(vin) {
 }
 
 
+/**
+ * Function to send API call to stop the vehicle HVAC.
+ * 
+ * author: mjhwa@yahoo.com
+ */
 function preconditionCarStop(vin) {
   var url = BASE_URL + getVehicleId(vin) + '/command/auto_conditioning_stop';
   var options = {
@@ -570,6 +603,11 @@ function preconditionCarStop(vin) {
 }
 
 
+/**
+ * Function to send API call to get local weather data.
+ * 
+ * author: mjhwa@yahoo.com
+ */
 function getCurrentWeather(zipcode) {
   var url = 'https://api.openweathermap.org/data/2.5/weather?zip=' + zipcode + '&APPID=' + OPENWEATHERMAP_KEY + '&units=metric';
   var response = UrlFetchApp.fetch(url);
