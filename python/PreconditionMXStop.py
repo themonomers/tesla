@@ -13,9 +13,9 @@ def preconditionMXStop():
   try:
     data = getVehicleData(MX_VIN)
     if (isVehicleAtPrimary(data) and 
-         (data['response']['drive_state']['shift_state'] == 'P' or
-          data['response']['drive_state']['shift_state'] == 'None')
-       ): # only execute if the car is at primary location and in park
+        data['response']['drive_state']['shift_state'] != 'D' and
+        data['response']['drive_state']['shift_state'] != 'R' and
+        data['response']['drive_state']['shift_state'] != 'N'): # only execute if the car is at primary location and in park
       preconditionCarStop(MX_VIN)
   except Exception as e:
     logError('preconditionMXStop(): ' + str(e))

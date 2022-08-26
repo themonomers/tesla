@@ -497,8 +497,9 @@ function preconditionM3Stop() {
   try {
     var data = JSON.parse(getVehicleData(M3_VIN).getContentText());
     if (isVehicleAtPrimary(data) &&
-         (data.response.drive_state.shift_state == 'P' ||
-          data.response.drive_state.shift_state == 'None')) { // only execute if the car is at primary location and in park
+        data.response.drive_state.shift_state != 'D' &&
+        data.response.drive_state.shift_state != 'R' &&
+        data.response.drive_state.shift_state != 'N') { // only execute if the car is at primary location and in park
       preconditionCarStop(M3_VIN);
     }
   } catch (e) {
@@ -514,8 +515,9 @@ function preconditionMXStop() {
   try {
     var data = JSON.parse(getVehicleData(MX_VIN).getContentText());
     if (isVehicleAtPrimary(data) &&
-         (data.response.drive_state.shift_state == 'P' ||
-          data.response.drive_state.shift_state == 'None')) { // only execute if the car is at primary location and in park
+        data.response.drive_state.shift_state != 'D' &&
+        data.response.drive_state.shift_state != 'R' &&
+        data.response.drive_state.shift_state != 'N') { // only execute if the car is at primary location and in park
       preconditionCarStop(MX_VIN);
     }
   } catch (e) {
