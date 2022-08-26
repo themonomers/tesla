@@ -139,8 +139,6 @@ def writeLocalLiveSiteTelemetry():
 # Retrieves site energy data locally from the Tesla 
 # Energy Gateway.
 #
-# @todo: detect token expiration and call authLocalToken()
-#
 # author: mjhwa@yahoo.com
 ##
 def getLocalSiteLiveStatus():
