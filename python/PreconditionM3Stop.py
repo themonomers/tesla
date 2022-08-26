@@ -18,7 +18,10 @@ WAIT_TIME = 30
 def preconditionM3Stop():
   try:
     data = getVehicleData(M3_VIN)
-    if (isVehicleAtPrimary(data)): # no need to execute if unsure where the car is or if it's in motion
+    if (isVehicleAtPrimary(data) and 
+         (data['response']['drive_state']['shift_state'] == 'P' or
+          data['response']['drive_state']['shift_state'] == 'None')
+       ): # only execute if the car is at primary location and in park
       preconditionCarStop(M3_VIN)
   except Exception as e:
     logError('preconditionM3Stop(): ' + str(e))

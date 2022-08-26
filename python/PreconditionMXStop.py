@@ -12,7 +12,10 @@ WAIT_TIME = 30
 def preconditionMXStop():
   try:
     data = getVehicleData(MX_VIN)
-    if (isVehicleAtPrimary(data)): # no need to execute if unsure where the car is or if it's in motion
+    if (isVehicleAtPrimary(data) and 
+         (data['response']['drive_state']['shift_state'] == 'P' or
+          data['response']['drive_state']['shift_state'] == 'None')
+       ): # only execute if the car is at primary location and in park
       preconditionCarStop(MX_VIN)
   except Exception as e:
     logError('preconditionMXStop(): ' + str(e))
