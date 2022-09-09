@@ -160,7 +160,7 @@ def getLocalSiteLiveStatus():
     if ('message' in response):
       if (response['message'] == 'Invalid bearer token'):
         authLocalToken()
-        return writeLocalLiveSiteTelemetry()
+        writeLocalLiveSiteTelemetry()
 
     return response
   except Exception as e:
@@ -192,7 +192,7 @@ def getLocalSOE():
     if ('message' in response):
       if (response['message'] == 'Invalid bearer token'):
         authLocalToken()
-        return writeLocalLiveSiteTelemetry()
+        writeLocalLiveSiteTelemetry()
 
     return response
   except Exception as e:
