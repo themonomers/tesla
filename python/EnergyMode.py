@@ -1,4 +1,4 @@
-from TeslaEnergyAPI import setBatteryModeBackup, setBatteryModeAdvancedCost, setBatteryBackupReserve
+from TeslaEnergyAPI import setBatteryBackupReserve
 from SendEmail import sendEmail
 from Utilities import getDailyWeather, getConfig
 from Logger import logError
@@ -69,7 +69,7 @@ def setEnergyModeBasedOnWeather():
       # if the ratio of rain to non-rain hours is greater than a specified
       # percentage, set backup only mode, otherwise set time-based control mode
       if ((float(rain) / float(total)) > PCT_THRESHOLD): 
-        setBatteryModeBackup()
+        setBatteryBackupReserve(100)
 
         msg += 'Greater than ' + str(int(PCT_THRESHOLD * 100))
         msg += '% rain forecasted, setting backup only mode\n'
@@ -79,7 +79,6 @@ def setEnergyModeBasedOnWeather():
       else:
         # if none of the days is above the threshold
         if (msg == ''):
-          setBatteryModeAdvancedCost()
           setBatteryBackupReserve(35)
 
     if (msg != ''):
