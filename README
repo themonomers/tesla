@@ -1,17 +1,18 @@
 /google
 These scripts are based on Google Apps Script (https://script.google.com/home), which is free!  There are 5 components to this project:
 
-1.  SmartCharger.gs - sends an email if you forget to plug in your vehicle and calculates then sets the optimal charge start time.
-2.  Telemetry.gs - logs data from your vehicle for analysis, e.g. miles, efficiency, battery capacity, etc.
+1.  Telemetry.gs - logs data from your vehicle for analysis, e.g. miles, efficiency, battery capacity, etc.
+2.  SmartCharger.gs - sends an email if you forget to plug in your vehicle and calculates then sets the optimal charge start time.
 3.  SmartClimate.gs - customized scheduling of pre-heating/cooling of cabin and seat heating by day of the week.
 4.  Logging.gs - logs error messages in the try/catch blocks.
 5.  Email.gs - keeps email sent folder from growing too large.
+Additional component:  GoogleSheetScriptEditor.gs - cut/paste contents into a Google Sheet script editor as simple way to get API data.
 
 Google Sheet example:  https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing
+The first 3 tabs of the Google Sheet corresponds to the first 3 scripts above.
 
 I created several in-depth videos walking through the functionality and code:  https://www.youtube.com/watch?v=l1pqhlGSuVg&list=PLgiPnlzk2O712gwiTIquUzdfVlzIMyS2M
 
-Separate project:  GoogleSheetScriptEditor.gs - add to a Google Sheet script editor as a more simple way to get API data.
 
 /python
 Ported Tesla Google Apps Scripts to python for more control over functionality and as a backup. Additional scripts for Tesla Energy products that run on local machines as they are writing to InfluxDB and I don't want to open that to the internet. 
