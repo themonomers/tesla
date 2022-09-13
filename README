@@ -7,7 +7,7 @@ These scripts are based on Google Apps Script (https://script.google.com/home), 
 4.  Logging.gs - logs error messages in the try/catch blocks.
 5.  Email.gs - keeps email sent folder from growing too large.
 
-I need to find a way to either share the Google Sheets format or refactor these into a database.
+Google Sheet example:  https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing
 
 I created several in-depth videos walking through the functionality and code:  https://www.youtube.com/watch?v=l1pqhlGSuVg&list=PLgiPnlzk2O712gwiTIquUzdfVlzIMyS2M
 
