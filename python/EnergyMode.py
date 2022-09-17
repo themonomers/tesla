@@ -67,14 +67,15 @@ def setEnergyModeBasedOnWeather():
           total += 1
 
       # if the ratio of rain to non-rain hours is greater than a specified
-      # percentage, set backup only mode, otherwise set time-based control mode
+      # percentage, set backup reserve to 100%, otherwise set to normal 
+      # backup reserve of 35%
       if ((float(rain) / float(total)) > PCT_THRESHOLD): 
         setBatteryBackupReserve(100)
 
         msg += 'Greater than ' + str(int(PCT_THRESHOLD * 100))
-        msg += '% rain forecasted, setting backup only mode\n'
+        msg += '% rain forecasted, setting backup reserve to 100%\n'
         msg += 'Percent rain: ' 
-        msg += str(float(rain) / float(total) * 100) + '%\n'
+        msg += str(round(float(rain) / float(total) * 100, 1)) + '%\n'
         msg += forecast + '\n'
       else:
         # if none of the days is above the threshold
@@ -83,7 +84,7 @@ def setEnergyModeBasedOnWeather():
 
     if (msg != ''):
       sendEmail(EMAIL_1, 
-                'Energy:  Switching to Backup Only Mode', 
+                'Energy:  Setting Backup Reserve to 100%', 
                 msg, 
                 '', 
                 '')
