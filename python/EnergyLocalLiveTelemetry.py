@@ -63,64 +63,57 @@ def writeLocalLiveSiteTelemetry():
 
     json_body = []
 
-    timestamp = data['solar']['last_communication_time']
-    timestamp = timestamp[:26] + timestamp[-6:]  # Strip out the last 3 digits of nanoseconds
     json_body.append({
       'measurement': 'energy_live',
       'tags': {
         'source': 'solar_power'
       },
-      'time': datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%f%z'),
+      'time': timestampSplit(data['solar']['last_communication_time']),
       'fields': {
         'value': float(data['solar']['instant_power'])
       }
     })
 
-    timestamp = data['battery']['last_communication_time']
-    timestamp = timestamp[:26] + timestamp[-6:]  # Strip out the last 3 digits of nanoseconds
     json_body.append({
       'measurement': 'energy_live',
       'tags': {
         'source': 'battery_power'
       },
-      'time': datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%f%z'),
+      'time': timestampSplit(data['battery']['last_communication_time']),
       'fields': {
         'value': float(data['battery']['instant_power'])
       }
     })
 
-    timestamp = data['site']['last_communication_time']
-    timestamp = timestamp[:26] + timestamp[-6:]  # Strip out the last 3 digits of nanoseconds
     json_body.append({
       'measurement': 'energy_live',
       'tags': {
         'source': 'grid_power'
       },
-      'time': datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%f%z'),
+      'time': timestampSplit(data['site']['last_communication_time']),
       'fields': {
         'value': float(data['site']['instant_power'])
       }
     })
 
-    timestamp = data['load']['last_communication_time']
-    timestamp = timestamp[:26] + timestamp[-6:]  # Strip out the last 3 digits of nanoseconds
     json_body.append({
       'measurement': 'energy_live',
       'tags': {
         'source': 'load_power'
       },
-      'time': datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%f%z'),
+      'time': timestampSplit(data['load']['last_communication_time']),
       'fields': {
         'value': float(data['load']['instant_power'])
       }
     })
 
+    timestamp = datetime.now().replace(tzinfo=PAC).strftime('%Y-%m-%dT%H:%M:%S.%f%z')
     json_body.append({
       'measurement': 'energy_live',
       'tags': {
         'source': 'percentage_charged'
       },
-      'time': datetime.now().replace(tzinfo=PAC),  
+      'time': timestampSplit(timestamp),  
       'fields': {
         'value': float(getLocalSOE()['percentage'])
       }
@@ -197,6 +190,22 @@ def getLocalSOE():
     return response
   except Exception as e:
     logError('getLocalSOE(): ' + str(e))
+
+
+##
+# Removes the nanoseconds in the timestamp provided by the
+# local Tesla Gateway that sometimes gives less digits and
+# breaks the timestamp string format function.
+#
+# author: mjhwa@yahoo.com
+##
+def timestampSplit(timestamp):
+  if (timestamp.split('.', 1)[1].find('-') > -1):
+    timestamp = timestamp.split('.', 1)[0] + '-' + timestamp.split('.', 1)[1].split('-', 1)[1]
+  elif (timestamp.split('.', 1)[1].find('+') > -1):
+    timestamp = timestamp.split('.', 1)[0] + '+' + timestamp.split('.', 1)[1].split('+', 1)[1]
+  
+  return datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S%z')
 
 
 ##
