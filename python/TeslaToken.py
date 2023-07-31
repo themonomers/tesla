@@ -2,9 +2,11 @@ import teslapy
 import datetime
 import zoneinfo
 
+from Utilities import getConfig
 from datetime import datetime, timedelta
 
-PAC = zoneinfo.ZoneInfo('America/Los_Angeles')
+TIME_ZONE = getConfig()['general']['timezone']
+PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 ##
 # Uses https://github.com/tdorssers/TeslaPy. To install, run:  

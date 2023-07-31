@@ -14,7 +14,7 @@ ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
 SUMMARY_SHEET_ID = config['google']['summary_sheet_id']
 EMAIL_1 = config['notification']['email_1']
 
-TIME_ZONE = 'America/Los_Angeles'
+TIME_ZONE = config['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 

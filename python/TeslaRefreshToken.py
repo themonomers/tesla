@@ -6,12 +6,13 @@ import zoneinfo
 import base64
 
 from Crypto import encrypt
-from Utilities import getToken
+from Utilities import getConfig, getToken
 from datetime import datetime, timedelta
 
 REFRESH_TOKEN = getToken()['tesla']['refresh_token']
 
-PAC = zoneinfo.ZoneInfo('America/Los_Angeles')
+TIME_ZONE = getConfig()['general']['timezone']
+PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 # Get new access and refresh tokens
 url = 'https://auth.tesla.com/oauth2/v3/token'

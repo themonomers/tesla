@@ -8,10 +8,11 @@ import urllib3
 from Crypto import encrypt, decrypt
 from Influxdb import getDBClient
 from Logger import logError
+from Utilities import getConfig
 from datetime import datetime
 from io import StringIO
 
-TIME_ZONE = 'America/Los_Angeles'
+TIME_ZONE = getConfig()['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 BASE_URL = 'https://powerwall/api/'
 

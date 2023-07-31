@@ -12,7 +12,7 @@ BATTERY_ID = config['energy']['battery_id']
 
 ACCESS_TOKEN = getToken()['tesla']['access_token']
 
-TIME_ZONE = 'America/Los_Angeles'
+TIME_ZONE = config['general']['timezone']
 BASE_URL = 'https://owner-api.teslamotors.com/api/1'
 
 
