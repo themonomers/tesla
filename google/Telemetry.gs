@@ -61,6 +61,17 @@ function writeM3Telemetry() {
     inputs.push({range: 'Telemetry!P' + (open_row - 1), values: [[inside_temp]]});
     inputs.push({range: 'Telemetry!Q' + (open_row - 1), values: [[outside_temp]]});
 
+    // write tire pressure data into telemetry sheet
+    var tpms_fl = data.response.vehicle_state.tpms_pressure_fl * 14.5038;
+    var tpms_fr = data.response.vehicle_state.tpms_pressure_fr * 14.5038;
+    var tpms_rl = data.response.vehicle_state.tpms_pressure_rl * 14.5038;
+    var tpms_rr = data.response.vehicle_state.tpms_pressure_rr * 14.5038;
+
+    inputs.push({range: 'Telemetry!R' + (open_row - 1), values: [[tpms_fl]]});
+    inputs.push({range: 'Telemetry!S' + (open_row - 1), values: [[tpms_fr]]});
+    inputs.push({range: 'Telemetry!T' + (open_row - 1), values: [[tpms_rl]]});
+    inputs.push({range: 'Telemetry!U' + (open_row - 1), values: [[tpms_rr]]});
+
     // batch write data to sheet
     Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'USER_ENTERED', data: inputs}, EV_SPREADSHEET_ID);
     
@@ -87,26 +98,26 @@ function writeMXTelemetry() {
     
     var inputs = [];
     // write odometer value
-    var open_row = findOpenRow(EV_SPREADSHEET_ID, 'Telemetry','R:R');
-    inputs.push({range: 'Telemetry!R' + open_row, values: [[data.response.vehicle_state.odometer]]});
+    var open_row = findOpenRow(EV_SPREADSHEET_ID, 'Telemetry','V:V');
+    inputs.push({range: 'Telemetry!V' + open_row, values: [[data.response.vehicle_state.odometer]]});
     
     // write date stamp
-    inputs.push({range: 'Telemetry!S' + open_row, values: [[new Date().toLocaleDateString()]]});
+    inputs.push({range: 'Telemetry!W' + open_row, values: [[new Date().toLocaleDateString()]]});
     
     // copy mileage formulas down
-    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!T3:X3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!T' + (open_row - 1) + ':X' + (open_row - 1)));
+    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!X3:AB3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!X' + (open_row - 1) + ':AB' + (open_row - 1)));
     
     // write max battery capacity
     inputs.push({
-      range: 'Telemetry!AD' + (open_row - 1), 
+      range: 'Telemetry!AH' + (open_row - 1), 
       values: [[data.response.charge_state.battery_range/(data.response.charge_state.battery_level/100)]]
     });
 
     // copy down battery degradation % formula
-    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AE3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AE' + (open_row - 1)));    
+    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AI3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AI' + (open_row - 1)));    
 
     // write target SoC %
-    inputs.push({range: 'Telemetry!AF' + (open_row), values: [[data.response.charge_state.charge_limit_soc/100]]});
+    inputs.push({range: 'Telemetry!AJ' + (open_row), values: [[data.response.charge_state.charge_limit_soc/100]]});
 
     // write data for efficiency calculation
     var starting_range = data.response.charge_state.battery_range/(data.response.charge_state.battery_level/100) * data.response.charge_state.charge_limit_soc/100;
@@ -123,18 +134,29 @@ function writeMXTelemetry() {
     }
 
     // write the starting_range for the next day
-    inputs.push({range: 'Telemetry!Y' + open_row, values: [[starting_range]]});
-    inputs.push({range: 'Telemetry!Z' + (open_row - 1), values: [[eod_range]]});
+    inputs.push({range: 'Telemetry!AC' + open_row, values: [[starting_range]]});
+    inputs.push({range: 'Telemetry!AD' + (open_row - 1), values: [[eod_range]]});
   
     // copy efficiency formulas down
-    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AA3:AC3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AA' + (open_row - 1) + ':AC' + (open_row - 1)));
+    SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AE3:AG3').copyTo(SpreadsheetApp.openById(EV_SPREADSHEET_ID).getRange('Telemetry!AE' + (open_row - 1) + ':AG' + (open_row - 1)));
 
     // write temperature data into telemetry sheet
     var inside_temp = data.response.climate_state.inside_temp * 9/5 + 32;  // convert to Fahrenheit
     var outside_temp = data.response.climate_state.outside_temp * 9/5 + 32;
 
-    inputs.push({range: 'Telemetry!AG' + (open_row - 1), values: [[inside_temp]]});
-    inputs.push({range: 'Telemetry!AH' + (open_row - 1), values: [[outside_temp]]});
+    inputs.push({range: 'Telemetry!AK' + (open_row - 1), values: [[inside_temp]]});
+    inputs.push({range: 'Telemetry!AL' + (open_row - 1), values: [[outside_temp]]});
+
+    // write tire pressure data into telemetry sheet
+    var tpms_fl = data.response.vehicle_state.tpms_pressure_fl * 14.5038;
+    var tpms_fr = data.response.vehicle_state.tpms_pressure_fr * 14.5038;
+    var tpms_rl = data.response.vehicle_state.tpms_pressure_rl * 14.5038;
+    var tpms_rr = data.response.vehicle_state.tpms_pressure_rr * 14.5038;
+
+    inputs.push({range: 'Telemetry!AM' + (open_row - 1), values: [[tpms_fl]]});
+    inputs.push({range: 'Telemetry!AN' + (open_row - 1), values: [[tpms_fr]]});
+    inputs.push({range: 'Telemetry!AO' + (open_row - 1), values: [[tpms_rl]]});
+    inputs.push({range: 'Telemetry!AP' + (open_row - 1), values: [[tpms_rr]]});
     
     // batch write data to sheet
     Sheets.Spreadsheets.Values.batchUpdate({valueInputOption: 'USER_ENTERED', data: inputs}, EV_SPREADSHEET_ID);
