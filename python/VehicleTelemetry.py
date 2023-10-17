@@ -169,6 +169,24 @@ def writeM3Telemetry():
       'values': [[outside_temp]]
     })
 
+    # write tire pressure data into telemetry sheet
+    inputs.append({
+      'range': 'Telemetry!R' + str(open_row - 1), 
+      'values': [[data['response']['vehicle_state']['tpms_pressure_fl'] * 14.5038]]
+    })
+    inputs.append({
+      'range': 'Telemetry!S' + str(open_row - 1), 
+      'values': [[data['response']['vehicle_state']['tpms_pressure_fr'] * 14.5038]]
+    })
+    inputs.append({
+      'range': 'Telemetry!T' + str(open_row - 1), 
+      'values': [[data['response']['vehicle_state']['tpms_pressure_rl'] * 14.5038]]
+    })
+    inputs.append({
+      'range': 'Telemetry!U' + str(open_row - 1), 
+      'values': [[data['response']['vehicle_state']['tpms_pressure_rr'] * 14.5038]]
+    })
+
     # batch write data and formula copies to sheet
     service = getGoogleSheetService()
     service.spreadsheets().values().batchUpdate(
@@ -200,15 +218,15 @@ def writeMXTelemetry():
     
     inputs = []
     # write odometer value
-    open_row = findOpenRow(EV_SPREADSHEET_ID, 'Telemetry','R:R')
+    open_row = findOpenRow(EV_SPREADSHEET_ID, 'Telemetry','V:V')
     inputs.append({
-      'range': 'Telemetry!R' + str(open_row),
+      'range': 'Telemetry!V' + str(open_row),
       'values': [[data['response']['vehicle_state']['odometer']]]
     })
    
     # write date stamp
     inputs.append({
-      'range': 'Telemetry!S' + str(open_row),
+      'range': 'Telemetry!W' + str(open_row),
       'values': [[datetime.today().strftime('%B %d, %Y')]]
     })
 
@@ -220,15 +238,15 @@ def writeMXTelemetry():
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': 2,
           'endRowIndex': 3,
-          'startColumnIndex': 19,
-          'endColumnIndex': 24
+          'startColumnIndex': 23,
+          'endColumnIndex': 28
         },
         'destination': {
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': open_row - 2,
           'endRowIndex': open_row - 1,
-          'startColumnIndex': 19,
-          'endColumnIndex': 24
+          'startColumnIndex': 23,
+          'endColumnIndex': 28
         },
         'pasteType': 'PASTE_FORMULA'
       }
@@ -236,7 +254,7 @@ def writeMXTelemetry():
 
     # write max battery capacity
     inputs.append({
-      'range': 'Telemetry!AD' + str((open_row - 1)), 
+      'range': 'Telemetry!AH' + str((open_row - 1)), 
       'values': [[(
         data['response']['charge_state']['battery_range'] 
         / (data['response']['charge_state']['battery_level'] 
@@ -251,15 +269,15 @@ def writeMXTelemetry():
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': 2,
           'endRowIndex': 3,
-          'startColumnIndex': 30,
-          'endColumnIndex': 31
+          'startColumnIndex': 34,
+          'endColumnIndex': 35
         },
         'destination': {
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': open_row - 2,
           'endRowIndex': open_row - 1,
-          'startColumnIndex': 30,
-          'endColumnIndex': 31
+          'startColumnIndex': 34,
+          'endColumnIndex': 35
         },
         'pasteType': 'PASTE_FORMULA'
       }
@@ -267,7 +285,7 @@ def writeMXTelemetry():
 
     # write target SoC %
     inputs.append({
-      'range': 'Telemetry!AF' + str(open_row), 
+      'range': 'Telemetry!AJ' + str(open_row), 
       'values': [[data['response']['charge_state']['charge_limit_soc']/100.0]]
     })
     
@@ -292,11 +310,11 @@ def writeMXTelemetry():
     
     # write the starting_range for the next day   
     inputs.append({
-      'range': 'Telemetry!Y' + str(open_row), 
+      'range': 'Telemetry!AC' + str(open_row), 
       'values': [[starting_range]]
     })
     inputs.append({
-      'range': 'Telemetry!Z' + str(open_row - 1), 
+      'range': 'Telemetry!AD' + str(open_row - 1), 
       'values': [[eod_range]]
     })
  
@@ -307,15 +325,15 @@ def writeMXTelemetry():
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': 2,
           'endRowIndex': 3,
-          'startColumnIndex': 26,
-          'endColumnIndex': 29
+          'startColumnIndex': 30,
+          'endColumnIndex': 33
         },
         'destination': {
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': open_row - 2,
           'endRowIndex': open_row - 1,
-          'startColumnIndex': 26,
-          'endColumnIndex': 29
+          'startColumnIndex': 30,
+          'endColumnIndex': 33
         },
         'pasteType': 'PASTE_FORMULA'
       }
@@ -330,12 +348,30 @@ def writeMXTelemetry():
                     + 32)
 
     inputs.append({
-      'range': 'Telemetry!AG' + str(open_row - 1), 
+      'range': 'Telemetry!AK' + str(open_row - 1), 
       'values': [[inside_temp]]
     })
     inputs.append({
-      'range': 'Telemetry!AH' + str(open_row - 1), 
+      'range': 'Telemetry!AL' + str(open_row - 1), 
       'values': [[outside_temp]]
+    })
+
+    # write tire pressure data into telemetry sheet
+    inputs.append({
+      'range': 'Telemetry!AM' + str(open_row - 1), 
+      'values': [[data['response']['vehicle_state']['tpms_pressure_fl'] * 14.5038]]
+    })
+    inputs.append({
+      'range': 'Telemetry!AN' + str(open_row - 1), 
+      'values': [[data['response']['vehicle_state']['tpms_pressure_fr'] * 14.5038]]
+    })
+    inputs.append({
+      'range': 'Telemetry!AO' + str(open_row - 1), 
+      'values': [[data['response']['vehicle_state']['tpms_pressure_rl'] * 14.5038]]
+    })
+    inputs.append({
+      'range': 'Telemetry!AP' + str(open_row - 1), 
+      'values': [[data['response']['vehicle_state']['tpms_pressure_rr'] * 14.5038]]
     })
 
     # batch write data and formula copies to sheet
