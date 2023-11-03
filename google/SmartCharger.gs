@@ -34,8 +34,9 @@ function notifyIsTeslaPluggedIn() {
   try {
     // get all vehicle data to avoid repeat API calls
     var m3_data = JSON.parse(getVehicleData(M3_VIN).getContentText());
+    m3_data = addVehicleLocationData(M3_VIN, m3_data);
     var mx_data = JSON.parse(getVehicleData(MX_VIN).getContentText());
-
+    
     // get car info
     var charge_port_door_open = m3_data.response.charge_state.charge_port_door_open;
     var battery_level = m3_data.response.charge_state.battery_level;
@@ -58,7 +59,7 @@ function notifyIsTeslaPluggedIn() {
     charge_port_door_open = mx_data.response.charge_state.charge_port_door_open;
     battery_level = mx_data.response.charge_state.battery_level;
     battery_range = mx_data.response.charge_state.battery_range;
-    
+
     // check if email notification is set to "on" first 
     if (charge_config[0][0] == 'on') {
       // send an email if the charge port door is not open, i.e. not plugged in
@@ -76,7 +77,7 @@ function notifyIsTeslaPluggedIn() {
 
     scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time);
     scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time);
-    
+
     // get climate configuration info
     var climate_config = Sheets.Spreadsheets.Values.get(EV_SPREADSHEET_ID, 'Smart Climate!B20:I24').values;
 
@@ -126,7 +127,7 @@ function scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_f
     }
 
     var total_minutes = (start_time.getHours() * 60) + start_time.getMinutes();
-
+    
     setScheduledCharging(M3_VIN, total_minutes);
     stopChargeVehicle(M3_VIN);  // for some reason charging starts sometimes after scheduled charging API is called
 
@@ -226,11 +227,32 @@ function calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish
 
     // Calculate scheduled charging time based on location of cars
     if ((scenario == 'mx_primary_shared_charging') || (scenario == 'm3_primary_shared_charging')) {
+      Logger.log('*shared charging');
+
       var mx_charging_time_at_full_rate = mx_miles_needed / MX_FULL_CHARGE_RATE_AT_PRIMARY;  // hours
       var m3_charging_time_at_full_rate = m3_miles_needed / M3_FULL_CHARGE_RATE_AT_PRIMARY;  // hours
 
       var mx_start_time_at_full_rate = timeDelta(mx_target_finish_time, -mx_charging_time_at_full_rate);
       var m3_start_time_at_full_rate = timeDelta(m3_target_finish_time, -m3_charging_time_at_full_rate);
+
+      Logger.log('  mx full rate charging times: ' 
+                 + Utilities.formatDate(mx_start_time_at_full_rate, 
+                                        TIME_ZONE, 
+                                        DATE_FORMAT) 
+                 + ' to ' 
+                 + Utilities.formatDate(mx_target_finish_time, 
+                                        TIME_ZONE, 
+                                        DATE_FORMAT) 
+      );
+      Logger.log('  m3 full rate charging times: ' 
+                 + Utilities.formatDate(m3_start_time_at_full_rate, 
+                                        TIME_ZONE, 
+                                        DATE_FORMAT) 
+                 + ' to ' 
+                 + Utilities.formatDate(m3_target_finish_time, 
+                                        TIME_ZONE, 
+                                        DATE_FORMAT) 
+      );
 
       // Determine if there is a charging time overlap
       var overlap = false;
@@ -247,6 +269,8 @@ function calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish
       // Car 2 |======================|
       //        Charging at full rate | 7:00
       if (overlap == false) {
+        Logger.log('  no overlap');
+
         if (scenario == 'm3_primary_shared_charging') { 
           return m3_start_time_at_full_rate;
         }
@@ -275,6 +299,7 @@ function calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish
                  )
                )
            ) {
+          Logger.log('  overlap, fully with different finish times');
 
           // Find the longer session
           if ((mx_target_finish_time.getTime() - mx_start_time_at_full_rate.getTime()) > 
@@ -326,6 +351,8 @@ function calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish
       //        rate                Charging at 
       //                            half rate
         } else if (mx_target_finish_time.valueOf() > m3_target_finish_time.valueOf()) {
+          Logger.log('  overlap, partially');
+
           // Car 1
           var mx_miles_added_at_full_rate = ((mx_target_finish_time.getTime() - m3_target_finish_time.getTime())
                                               / 1000 / 60 / 60 
@@ -343,6 +370,8 @@ function calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish
           var m3_start_time = timeDelta(mx_start_time, -m3_charging_time_at_full_rate);
 
         } else if (mx_target_finish_time.valueOf() < m3_target_finish_time.valueOf()) {
+          Logger.log('  overlap, partially');
+
           // Car 1
           var m3_miles_added_at_full_rate = ((m3_target_finish_time.getTime() - mx_target_finish_time.getTime())
                                               / 1000 / 60 / 60 
@@ -371,6 +400,8 @@ function calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish
       // Car 2 |======================|===========================|
       //        Charging at full rate 
         } else if (mx_target_finish_time.valueOf() == m3_target_finish_time.valueOf()) {
+          Logger.log('  overlap, with the same finish times');
+
           var mx_charging_time_at_half_rate = mx_miles_needed / (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2);  // hours
           var m3_charging_time_at_half_rate = m3_miles_needed / (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2);  // hours
 
@@ -417,18 +448,26 @@ function calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish
         }
       }
     } else if (scenario == 'mx_primary_full_rate') {
+      Logger.log('*mx at primary, m3 not at primary');
+
       mx_start_time = timeDelta(mx_target_finish_time, -(mx_miles_needed / MX_FULL_CHARGE_RATE_AT_PRIMARY));
       
       return mx_start_time;
     } else if (scenario == 'm3_primary_full_rate') {
+      Logger.log('*m3 at primary, mx not at primary');
+
       m3_start_time = timeDelta(m3_target_finish_time, -(m3_miles_needed / M3_FULL_CHARGE_RATE_AT_PRIMARY));
       
       return m3_start_time;
     } else if (scenario == 'mx_secondary_full_rate') {
+      Logger.log('*mx at secondary');
+
       mx_start_time = timeDelta(mx_target_finish_time, -(mx_miles_needed / MX_FULL_CHARGE_RATE_AT_SECONDARY));
       
       return mx_start_time;
     } else if (scenario == 'm3_secondary_full_rate') {
+      Logger.log('*m3 at secondary');
+
       m3_start_time = timeDelta(m3_target_finish_time, -(m3_miles_needed / M3_FULL_CHARGE_RATE_AT_SECONDARY));
 
       return m3_start_time;
@@ -451,7 +490,7 @@ function calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish
  * author: mjhwa@yahoo.com
  */
 function isVehicleAtPrimary(data) {
-  return isVehicleAtLocation(data, PRIMARY_LAT, SECONDARY_LNG);
+  return isVehicleAtLocation(data, PRIMARY_LAT, PRIMARY_LNG);
 }
 
 
@@ -461,9 +500,9 @@ function isVehicleAtSecondary(data) {
 
 
 function isVehicleAtLocation(data, lat, lng) {
-  var d = getDistance(data.response.drive_state.active_route_latitude, data.response.drive_state.active_route_longitude, lat, lng);
+  var d = getDistance(data.response.drive_state.latitude, data.response.drive_state.longitude, lat, lng);
   
-  // check if the car is more than a quarter of a mile away
+  // check if the car is more than a quarter of a mile away from a certain location
   if (d < 0.25) {
     return true;
   } else {
@@ -538,6 +577,7 @@ function stopChargeVehicle(vin) {
     Utilities.sleep(WAIT_TIME);
     stopChargeVehicle(vin);
   }
+}
 
 
 /**
@@ -710,6 +750,29 @@ function getVehicleData(vin) {
   }
 }
 
+/**
+ * Adds the vehicle latitude and longitude data from a separate API call
+ * to an existing JSON object to account for recent return value changes 
+ * for data privacy.
+ * 
+ * author: mjhwa@yahoo.com
+ */
+function addVehicleLocationData(vin, data) {
+  var url = BASE_URL + getVehicleId(vin) + '/vehicle_data?endpoints=location_data';
+  
+  var options = {
+    'headers': {
+      'authorization': 'Bearer ' + ACCESS_TOKEN
+    }
+  };
+  var response = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
+
+  data['response']['drive_state']['latitude'] = response.response.drive_state.latitude;
+  data['response']['drive_state']['longitude'] = response.response.drive_state.longitude;
+
+  return data;
+}
+
 
 /**
  * Retrieves the vehicle ID, which changes from time to time, 
@@ -774,9 +837,11 @@ function reuseAccessToken() {
   var text;
   while (file.hasNext()) {
     text = file.next().getAs('application/octet-stream').getDataAsString().trim();
+//    Logger.log('token: ' + text);
   }
 
   var decoded = decode(text);
+//  Logger.log('decoded token: ' + decoded);
 
   return decoded;
 }
@@ -818,4 +883,3 @@ function decode(str) {
 
   return Utilities.newBlob(decoded).getDataAsString().trim();
 }
-
