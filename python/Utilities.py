@@ -136,8 +136,8 @@ def isVehicleAtSecondary(data):
 
 def isVehicleAtLocation(data, lat, lng):
   try:
-    d = getDistance(data['response']['drive_state']['active_route_latitude'], 
-                    data['response']['drive_state']['active_route_longitude'], 
+    d = getDistance(data['response']['drive_state']['latitude'], 
+                    data['response']['drive_state']['longitude'], 
                     lat, lng)
   
     # check if the car is more than a quarter of a mile away 

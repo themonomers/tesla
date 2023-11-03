@@ -1,10 +1,10 @@
 import time
 
-from TeslaVehicleAPI import getVehicleData, wakeVehicle, setScheduledCharging, stopChargeVehicle
+from TeslaVehicleAPI import getVehicleData, addVehicleLocationData, wakeVehicle, setScheduledCharging, stopChargeVehicle
 from GoogleAPI import getGoogleSheetService
 from SendEmail import sendEmail
 from SmartClimate import setM3Precondition, setMXPrecondition
-from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime,getConfig
+from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime, getConfig
 from Logger import logError
 from datetime import timedelta
 from collections import namedtuple
@@ -338,6 +338,7 @@ def notifyIsTeslaPluggedIn():
   try:
     # get all vehicle data to avoid repeat API calls
     m3_data = getVehicleData(M3_VIN)
+    m3_data = addVehicleLocationData(M3_VIN, m3_data)
     mx_data = getVehicleData(MX_VIN)
 
     # get car info

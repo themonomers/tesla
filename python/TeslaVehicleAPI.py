@@ -55,6 +55,35 @@ def getVehicleData(vin):
 
 
 ##
+# Adds the vehicle latitude and longitude data from a separate API call
+# to an existing JSON object to account for recent return value changes 
+# for data privacy.
+# 
+# author: mjhwa@yahoo.com
+##
+def addVehicleLocationData(vin, data):
+  try:
+    url = (URL 
+           + '/'
+           + getVehicleId(vin) 
+           + '/vehicle_data?endpoints=location_data')
+
+    response = requests.get(
+      url, 
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+    )
+
+    response = json.loads(response.text)
+      
+    data['response']['drive_state']['latitude'] = response['response']['drive_state']['latitude']
+    data['response']['drive_state']['longitude'] = response['response']['drive_state']['longitude']
+
+    return data
+  except Exception as e:
+    logError('addVehicleLocationData(' + vin + '): ' + str(e))
+
+
+##
 # Function to repeatedly run (after a certain wait time) to wake the vehicle up
 # when it's asleep.
 #
