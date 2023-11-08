@@ -8,7 +8,7 @@
 function writeM3Telemetry() { 
   try {
     // get rollup of vehicle data
-    var data = JSON.parse(getVehicleData(M3_VIN).getContentText());  
+    var data = getVehicleData(M3_VIN);
     
     var inputs = [];
     // write odometer value
@@ -94,7 +94,7 @@ function writeM3Telemetry() {
 function writeMXTelemetry() { 
   try {
     // get rollup of vehicle data
-    var data = JSON.parse(getVehicleData(MX_VIN).getContentText());  
+    var data = getVehicleData(MX_VIN);
     
     var inputs = [];
     // write odometer value
@@ -238,7 +238,7 @@ function writeAllM3Data() {
   SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Data-M3!A:D').setNumberFormat('@');
   
   // loop through entire nested response to build input for writing all vehicle data
-  var data = JSON.parse(getVehicleData(M3_VID).getContentText());
+  var data = getVehicleData(M3_VIN);
   var inputs = [];
   var row = 0;
 
@@ -287,7 +287,7 @@ function writeAllMXData() {
   SpreadsheetApp.openById(SPREADSHEET_ID).getRange('Data-MX!A:D').setNumberFormat('@');
   
   // loop through entire nested response to build input for writing all vehicle data
-  var data = JSON.parse(getVehicleData(MX_VID).getContentText());
+  var data = getVehicleData(MX_VIN);
   var inputs = [];
   var row = 0;
 
