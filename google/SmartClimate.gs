@@ -273,6 +273,7 @@ function preconditionM3Start() {
   
     // no need to execute if unsure where the car is or if it's in motion
     var data = JSON.parse(getVehicleData(M3_VIN).getContentText());
+    data = addVehicleLocationData(M3_VIN, data);
     if (isVehicleAtPrimary(data)) {
       // send command to start auto conditioning
       preconditionCarStart(M3_VIN);  
@@ -496,6 +497,7 @@ function preconditionMXStart() {
 function preconditionM3Stop() {
   try {
     var data = JSON.parse(getVehicleData(M3_VIN).getContentText());
+    data = addVehicleLocationData(M3_VIN, data);
     if (isVehicleAtPrimary(data) &&
         data.response.drive_state.shift_state != 'D' &&
         data.response.drive_state.shift_state != 'R' &&
