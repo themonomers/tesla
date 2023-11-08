@@ -62,8 +62,8 @@ def getVehicleData(vin):
 
 
 ##
-# Adds the vehicle latitude and longitude data from a separate API call
-# to an existing JSON object to account for recent return value changes 
+# Adds the vehicle drive state data from a separate API call to an
+# existing JSON object to account for recent return value changes 
 # for data privacy.
 # 
 # author: mjhwa@yahoo.com
@@ -82,8 +82,14 @@ def addVehicleLocationData(vin, data):
 
     response = json.loads(response.text)
       
+    data['response']['drive_state']['gps_as_of'] = response['response']['drive_state']['gps_as_of']
+    data['response']['drive_state']['heading'] = response['response']['drive_state']['heading']
     data['response']['drive_state']['latitude'] = response['response']['drive_state']['latitude']
     data['response']['drive_state']['longitude'] = response['response']['drive_state']['longitude']
+    data['response']['drive_state']['native_latitude'] = response['response']['drive_state']['native_latitude']
+    data['response']['drive_state']['native_location_supported'] = response['response']['drive_state']['native_location_supported']
+    data['response']['drive_state']['native_longitude'] = response['response']['drive_state']['native_longitude']
+    data['response']['drive_state']['native_type'] = response['response']['drive_state']['native_type']
 
     return data
   except Exception as e:
