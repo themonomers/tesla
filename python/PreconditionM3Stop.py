@@ -1,6 +1,6 @@
 import time
 
-from TeslaVehicleAPI import wakeVehicle, getVehicleData, addVehicleLocationData, preconditionCarStop
+from TeslaVehicleAPI import wakeVehicle, getVehicleData, preconditionCarStop
 from Utilities import isVehicleAtPrimary, getConfig
 from Logger import logError
 
@@ -18,7 +18,6 @@ WAIT_TIME = 30
 def preconditionM3Stop():
   try:
     data = getVehicleData(M3_VIN)
-    data = addVehicleLocationData(M3_VIN, data)
     if (isVehicleAtPrimary(data) and 
         data['response']['drive_state']['shift_state'] != 'D' and
         data['response']['drive_state']['shift_state'] != 'R' and

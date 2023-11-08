@@ -3,9 +3,10 @@ import json
 import time
 
 from Logger import logError
-from Utilities import printJson, getToken
+from Utilities import printJson, getToken, getConfig
 
 ACCESS_TOKEN = getToken()['tesla']['access_token']
+M3_VIN = getConfig()['vehicle']['m3_vin']
 
 WAIT_TIME = 30 
 URL = 'https://owner-api.teslamotors.com/api/1/vehicles'
@@ -49,7 +50,13 @@ def getVehicleData(vin):
       url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
-    return json.loads(response.text)
+
+    response = json.loads(response.text)
+
+    if (vin == M3_VIN):
+      response = addVehicleLocationData(M3_VIN, response)
+
+    return response
   except Exception as e:
     logError('getVehicleData(' + vin + '): ' + str(e))
 

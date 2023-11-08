@@ -1,6 +1,6 @@
 import time
 
-from TeslaVehicleAPI import getVehicleData, addVehicleLocationData, wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
+from TeslaVehicleAPI import getVehicleData, wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
 from GoogleAPI import getGoogleSheetService
 from Utilities import deleteCronTab, createCronTab, isVehicleAtPrimary, getTomorrowTime, getCurrentWeather, getConfig
 from Logger import logError
@@ -252,7 +252,6 @@ def preconditionM3Start():
     #print('seats: ' + str(seats))
     # no need to execute if unsure where the car is or if it's in motion
     data = getVehicleData(M3_VIN)
-    data = addVehicleLocationData(M3_VIN, data)
     if (isVehicleAtPrimary(data)):
       # send command to start auto conditioning
       preconditionCarStart(M3_VIN)
