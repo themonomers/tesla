@@ -33,9 +33,8 @@ var BASE_URL = 'https://owner-api.teslamotors.com/api/1/vehicles/';
 function notifyIsTeslaPluggedIn() {
   try {
     // get all vehicle data to avoid repeat API calls
-    var m3_data = JSON.parse(getVehicleData(M3_VIN).getContentText());
-    m3_data = addVehicleLocationData(M3_VIN, m3_data);
-    var mx_data = JSON.parse(getVehicleData(MX_VIN).getContentText());
+    var m3_data = getVehicleData(M3_VIN);
+    var mx_data = getVehicleData(MX_VIN);
     
     // get car info
     var charge_port_door_open = m3_data.response.charge_state.charge_port_door_open;
@@ -743,7 +742,12 @@ function getVehicleData(vin) {
         'authorization': 'Bearer ' + ACCESS_TOKEN
       }
     };
-    var response = UrlFetchApp.fetch(url, options);
+    var response = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
+
+    if (vin == M3_VIN) {
+      response = addVehicleLocationData(M3_VIN, response);
+    }
+
     return response;
   } catch (e) {
     logError('getVehicleData(' + vin + '): ' + e);
