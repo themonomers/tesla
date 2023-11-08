@@ -272,8 +272,7 @@ function preconditionM3Start() {
     }
   
     // no need to execute if unsure where the car is or if it's in motion
-    var data = JSON.parse(getVehicleData(M3_VIN).getContentText());
-    data = addVehicleLocationData(M3_VIN, data);
+    var data = getVehicleData(M3_VIN);
     if (isVehicleAtPrimary(data)) {
       // send command to start auto conditioning
       preconditionCarStart(M3_VIN);  
@@ -456,7 +455,7 @@ function preconditionMXStart() {
     }
 
     // no need to execute if unsure where the car is or if it's in motion
-    var data = JSON.parse(getVehicleData(MX_VIN).getContentText());
+    var data = getVehicleData(MX_VIN);
     if (isVehicleAtPrimary(data)) {
       // set driver and passenger temps
       setCarTemp(MX_VIN, d_temp, p_temp);
@@ -496,8 +495,7 @@ function preconditionMXStart() {
  */
 function preconditionM3Stop() {
   try {
-    var data = JSON.parse(getVehicleData(M3_VIN).getContentText());
-    data = addVehicleLocationData(M3_VIN, data);
+    var data = getVehicleData(M3_VIN);
     if (isVehicleAtPrimary(data) &&
         data.response.drive_state.shift_state != 'D' &&
         data.response.drive_state.shift_state != 'R' &&
@@ -515,7 +513,7 @@ function preconditionM3Stop() {
 
 function preconditionMXStop() {
   try {
-    var data = JSON.parse(getVehicleData(MX_VIN).getContentText());
+    var data = getVehicleData(MX_VIN);
     if (isVehicleAtPrimary(data) &&
         data.response.drive_state.shift_state != 'D' &&
         data.response.drive_state.shift_state != 'R' &&
