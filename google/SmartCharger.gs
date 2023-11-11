@@ -743,7 +743,7 @@ function getVehicleData(vin) {
       }
     };
     var response = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
-    response = addVehicleLocationData(M3_VIN, response);
+    response = addVehicleLocationData(vin, response);
 
     return response;
   } catch (e) {
