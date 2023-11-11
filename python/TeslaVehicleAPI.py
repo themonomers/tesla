@@ -51,7 +51,7 @@ def getVehicleData(vin):
     )
 
     response = json.loads(response.text)
-    response = addVehicleLocationData(M3_VIN, response)
+    response = addVehicleLocationData(vin, response)
 
     return response
   except Exception as e:
