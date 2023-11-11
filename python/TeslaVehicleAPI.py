@@ -3,10 +3,9 @@ import json
 import time
 
 from Logger import logError
-from Utilities import printJson, getToken, getConfig
+from Utilities import printJson, getToken
 
 ACCESS_TOKEN = getToken()['tesla']['access_token']
-M3_VIN = getConfig()['vehicle']['m3_vin']
 
 WAIT_TIME = 30 
 URL = 'https://owner-api.teslamotors.com/api/1/vehicles'
