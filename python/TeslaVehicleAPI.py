@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import urllib.parse
 
 from Logger import logError
 from Utilities import printJson, getToken
@@ -43,7 +44,15 @@ def getVehicleData(vin):
     url = (URL
            + '/'
            + getVehicleId(vin) 
-           + '/vehicle_data')
+           + '/vehicle_data?endpoints='
+           + 'location_data' + urllib.parse.quote(';')
+           + 'charge_state' + urllib.parse.quote(';')
+           + 'climate_state' + urllib.parse.quote(';')
+           + 'vehicle_state' + urllib.parse.quote(';')
+           + 'gui_settings' + urllib.parse.quote(';')
+           + 'vehicle_config' + urllib.parse.quote(';')
+           + 'closures_state' + urllib.parse.quote(';')
+           + 'drive_state')
 
     response = requests.get(
       url, 
@@ -51,46 +60,10 @@ def getVehicleData(vin):
     )
 
     response = json.loads(response.text)
-    response = addVehicleLocationData(vin, response)
 
     return response
   except Exception as e:
     logError('getVehicleData(' + vin + '): ' + str(e))
-
-
-##
-# Adds the vehicle drive state data from a separate API call to an
-# existing JSON object to account for recent return value changes 
-# for data privacy.
-# 
-# author: mjhwa@yahoo.com
-##
-def addVehicleLocationData(vin, data):
-  try:
-    url = (URL 
-           + '/'
-           + getVehicleId(vin) 
-           + '/vehicle_data?endpoints=location_data')
-
-    response = requests.get(
-      url, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
-
-    response = json.loads(response.text)
-      
-    data['response']['drive_state']['gps_as_of'] = response['response']['drive_state']['gps_as_of']
-    data['response']['drive_state']['heading'] = response['response']['drive_state']['heading']
-    data['response']['drive_state']['latitude'] = response['response']['drive_state']['latitude']
-    data['response']['drive_state']['longitude'] = response['response']['drive_state']['longitude']
-    data['response']['drive_state']['native_latitude'] = response['response']['drive_state']['native_latitude']
-    data['response']['drive_state']['native_location_supported'] = response['response']['drive_state']['native_location_supported']
-    data['response']['drive_state']['native_longitude'] = response['response']['drive_state']['native_longitude']
-    data['response']['drive_state']['native_type'] = response['response']['drive_state']['native_type']
-
-    return data
-  except Exception as e:
-    logError('addVehicleLocationData(' + vin + '): ' + str(e))
 
 
 ##
