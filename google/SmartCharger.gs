@@ -735,52 +735,26 @@ function wakeVehicle(vin) {
  */
 function getVehicleData(vin) {
   try {
-    var url = BASE_URL + getVehicleId(vin) + '/vehicle_data';
-    
+    var url = BASE_URL + getVehicleId(vin) + '/vehicle_data?endpoints=' +
+              'location_data' + encodeURIComponent(';') +
+              'charge_state' + encodeURIComponent(';') +
+              'climate_state' + encodeURIComponent(';') +
+              'vehicle_state' + encodeURIComponent(';') +
+              'gui_settings' + encodeURIComponent(';') +
+              'vehicle_config' + encodeURIComponent(';') +
+              'closures_state' + encodeURIComponent(';') +
+              'drive_state';
+
     var options = {
       'headers': {
         'authorization': 'Bearer ' + ACCESS_TOKEN
       }
     };
     var response = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
-    response = addVehicleLocationData(M3_VIN, response);
 
     return response;
   } catch (e) {
     logError('getVehicleData(' + vin + '): ' + e);
-  }
-}
-
-/**
- * Adds the vehicle drive state data from a separate API call to an
- * existing JSON object to account for recent return value changes 
- * for data privacy.
- * 
- * author: mjhwa@yahoo.com
- */
-function addVehicleLocationData(vin, data) {
-  try {
-    var url = BASE_URL + getVehicleId(vin) + '/vehicle_data?endpoints=location_data';
-    
-    var options = {
-      'headers': {
-        'authorization': 'Bearer ' + ACCESS_TOKEN
-      }
-    };
-    var response = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
-
-    data['response']['drive_state']['gps_as_of'] = response.response.drive_state.gps_as_of;
-    data['response']['drive_state']['heading'] = response.response.drive_state.heading;
-    data['response']['drive_state']['latitude'] = response.response.drive_state.latitude;
-    data['response']['drive_state']['longitude'] = response.response.drive_state.longitude;
-    data['response']['drive_state']['native_latitude'] = response.response.drive_state.native_latitude;
-    data['response']['drive_state']['native_location_supported'] = response.response.drive_state.native_location_supported;
-    data['response']['drive_state']['native_longitude'] = response.response.drive_state.native_longitude;
-    data['response']['drive_state']['native_type'] = response.response.drive_state.native_type;
-
-    return data;
-  } catch (e) {
-    logError('addVehicleLocationData(' + vin + '): ' + e);
   }
 }
 
