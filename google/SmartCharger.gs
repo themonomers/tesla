@@ -736,23 +736,23 @@ function wakeVehicle(vin) {
 function getVehicleData(vin) {
   try {
     var url = BASE_URL + getVehicleId(vin) + '/vehicle_data?endpoints=' +
-              'location_data' + encodeURIComponent(';') +
-              'charge_state' + encodeURIComponent(';') +
-              'climate_state' + encodeURIComponent(';') +
-              'vehicle_state' + encodeURIComponent(';') +
-              'gui_settings' + encodeURIComponent(';') +
-              'vehicle_config' + encodeURIComponent(';') +
-              'closures_state' + encodeURIComponent(';') +
-              'drive_state';
+              encodeURIComponent(
+                'location_data;' +
+                'charge_state;' +
+                'climate_state;' + 
+                'vehicle_state;' + 
+                'gui_settings;' + 
+                'vehicle_config;' + 
+                'closures_state;' + 
+                'drive_state');
 
     var options = {
       'headers': {
         'authorization': 'Bearer ' + ACCESS_TOKEN
       }
     };
-    var response = JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
-
-    return response;
+    
+    return JSON.parse(UrlFetchApp.fetch(url, options).getContentText());
   } catch (e) {
     logError('getVehicleData(' + vin + '): ' + e);
   }
