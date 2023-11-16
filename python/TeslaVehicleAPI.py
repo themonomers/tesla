@@ -45,23 +45,22 @@ def getVehicleData(vin):
            + '/'
            + getVehicleId(vin) 
            + '/vehicle_data?endpoints='
-           + 'location_data' + urllib.parse.quote(';')
-           + 'charge_state' + urllib.parse.quote(';')
-           + 'climate_state' + urllib.parse.quote(';')
-           + 'vehicle_state' + urllib.parse.quote(';')
-           + 'gui_settings' + urllib.parse.quote(';')
-           + 'vehicle_config' + urllib.parse.quote(';')
-           + 'closures_state' + urllib.parse.quote(';')
-           + 'drive_state')
+           + urllib.parse.quote(
+               'location_data;'
+               + 'charge_state;'
+               + 'climate_state;'
+               + 'vehicle_state;'
+               + 'gui_settings;'
+               + 'vehicle_config;'
+               + 'closures_state;'
+               + 'drive_state'))
 
     response = requests.get(
       url, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
 
-    response = json.loads(response.text)
-
-    return response
+    return json.loads(response.text)
   except Exception as e:
     logError('getVehicleData(' + vin + '): ' + str(e))
 
