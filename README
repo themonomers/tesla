@@ -1,3 +1,5 @@
+All the vehicle functions in Google Apps Script and Python, both using Tesla REST API, have stopped working returning a 412 error as of January 22, 2024.  I'll be working on getting the same functionality to work using the Tesla Vehicle Command SDK (https://github.com/teslamotors/vehicle-command) and Golang running on Raspberry Pi.
+
 /google
 These scripts are based on Google Apps Script (https://script.google.com/home), which is free!  There are 5 components to this project:
 
