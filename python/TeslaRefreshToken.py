@@ -3,7 +3,6 @@ import json
 import datetime
 import os
 import zoneinfo
-import base64
 
 from Crypto import encrypt
 from Utilities import getConfig, getToken
@@ -49,12 +48,3 @@ encrypt(
     'tesla_private_key.pem'
   )
 )
-
-# Write encoded key for Google Apps Script
-s_bytes = (response)['access_token'].encode('ascii')
-base64_bytes = base64.b64encode(s_bytes)
-base64_string = base64_bytes.decode('ascii')
-
-f = open('/mnt/gdrive/google-apps-script/token.ini', 'wb')
-f.write(str.encode(base64_string))
-f.close()
