@@ -41,7 +41,7 @@ def preconditionMXStart():
     
     # compare temp readings and threshold to determine heating or cooling temps 
     # to use
-    if (wdata['main']['temp'] < climate_config[19][0]):
+    if (wdata['main']['temp'] < float(climate_config[19][0])):
       # get pre-heat preferences
       if (day_of_week == 0): # Monday
         try:
@@ -108,7 +108,7 @@ def preconditionMXStart():
         seats.append(climate_config[6][3])  
       else:
         return
-    elif (wdata['main']['temp'] > climate_config[20][0]):
+    elif (wdata['main']['temp'] > float(climate_config[20][0])):
       # get pre-cool preferences
       if (day_of_week == 0): # Monday
         try:
@@ -192,16 +192,16 @@ def preconditionMXStart():
 
       # set seat heater settings
       for index, item in enumerate(seats):
-        setCarSeatHeating(MX_VIN, index, item)
+        setCarSeatHeating(MX_VIN, int(index), int(item))
       
       # specific date/time to create a crontab for tomorrow morning at 
       # the preferred stop time
       stop_time = getTomorrowTime(climate_config[18][0])
 
       # create crontab to stop preconditioning
-      deleteCronTab('python /home/pi/tesla/python/PreconditionMXStop.py')
+      deleteCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionMXStop.py >> /home/pi/tesla/python/cron.log 2>&1')
       createCronTab(
-        'python /home/pi/tesla/python/PreconditionMXStop.py', 
+        '/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionMXStop.py >> /home/pi/tesla/python/cron.log 2>&1', 
         stop_time.month, 
         stop_time.day, 
         stop_time.hour, 

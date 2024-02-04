@@ -26,8 +26,8 @@ def setM3Precondition(data, climate_config):
         start_time = getTomorrowTime(climate_config[0][0])
         
         # create precondition start crontab
-        deleteCronTab('python /home/pi/tesla/python/PreconditionM3Start.py')
-        createCronTab('python /home/pi/tesla/python/PreconditionM3Start.py', 
+        deleteCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionM3Start.py >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionM3Start.py >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
@@ -48,8 +48,8 @@ def setMXPrecondition(data, climate_config):
         start_time = getTomorrowTime(climate_config[0][7])
 
         # create precondition start crontab
-        deleteCronTab('python /home/pi/tesla/python/PreconditionMXStart.py')
-        createCronTab('python /home/pi/tesla/python/PreconditionMXStart.py', 
+        deleteCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionMXStart.py >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionMXStart.py >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
