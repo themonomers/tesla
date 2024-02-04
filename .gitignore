@@ -2,5 +2,5 @@
 *.json
 *.xor
 *Test*
-*_key
-*_log
+*.log
+*.pem
