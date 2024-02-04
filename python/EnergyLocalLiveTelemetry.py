@@ -33,7 +33,7 @@ def getLocalConfig():
         ),
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          'config_key'
+          'tesla_private_key.pem'
         )
       )
     )
@@ -249,7 +249,7 @@ def authLocalToken():
       ),
       os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        'token_key'
+        'tesla_private_key.pem'
       )
     )
   except Exception as e:
@@ -281,7 +281,7 @@ def getLocalToken():
         ),
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          'token_key'
+          'tesla_private_key.pem'
         )
       )
     )
