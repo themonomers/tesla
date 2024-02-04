@@ -64,7 +64,7 @@ def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
 
       # send email notification
       message = ('The Model 3 is set to charge at ' 
-                 + str(start_time)
+                 + start_time.strftime('%B %d, %Y %H:%M')
                  + '.')
       sendEmail(EMAIL_1, 'Model 3 Set to Charge', message, '', '')
   except Exception as e:
@@ -77,7 +77,8 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       # get calculated start time depending on location of cars
       if ((isVehicleAtPrimary(mx_data) == True) and 
           (isVehicleAtPrimary(m3_data) == True)):
-        start_time = calculateScheduledCharging('mx_primary_shared_charging', 
+        start_time = calculateScheduledCharging('mx_primary_shared_charging',
+                                                m3_data, 
                                                 mx_data, 
                                                 m3_target_finish_time, 
                                                 mx_target_finish_time)
@@ -104,7 +105,7 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
 
       # send email notification
       message = ('The Model X is set to charge at ' 
-                 + str(start_time)
+                 + start_time.strftime('%B %d, %Y %H:%M')
                  + '.')
       sendEmail(EMAIL_1, 'Model X Set to Charge', message, '', '')
   except Exception as e:
@@ -296,7 +297,7 @@ def calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time
             m3_miles_remaining = m3_miles_needed - m3_miles_added_at_half_rate
             m3_miles_remaining_charging_time_at_full_rate = m3_miles_remaining / M3_FULL_CHARGE_RATE_AT_PRIMARY
             m3_start_time = mx_start_time_at_half_rate - timedelta(hours = m3_miles_remaining_charging_time_at_full_rate)
-      
+
         if (scenario == 'm3_primary_shared_charging'): 
           return m3_start_time
 
