@@ -46,7 +46,7 @@ encrypt(
   ),
   os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    'token_key'
+    'tesla_private_key.pem'
   )
 )
 
