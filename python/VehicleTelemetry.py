@@ -60,7 +60,7 @@ def writeM3Telemetry():
           'startColumnIndex': 2,
           'endColumnIndex': 7
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
 
@@ -91,7 +91,7 @@ def writeM3Telemetry():
           'startColumnIndex': 13,
           'endColumnIndex': 14
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
 
@@ -148,7 +148,7 @@ def writeM3Telemetry():
           'startColumnIndex': 9,
           'endColumnIndex': 12
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
     
@@ -248,7 +248,7 @@ def writeMXTelemetry():
           'startColumnIndex': 23,
           'endColumnIndex': 28
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
 
@@ -279,7 +279,7 @@ def writeMXTelemetry():
           'startColumnIndex': 34,
           'endColumnIndex': 35
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
 
@@ -335,7 +335,7 @@ def writeMXTelemetry():
           'startColumnIndex': 30,
           'endColumnIndex': 33
         },
-        'pasteType': 'PASTE_FORMULA'
+        'pasteType': 'PASTE_NORMAL'
       }
     })
     
