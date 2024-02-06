@@ -14,7 +14,6 @@ from io import StringIO
 
 TIME_ZONE = getConfig()['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
-BASE_URL = 'https://powerwall/api/'
 
 
 ##
@@ -50,7 +49,7 @@ def getLocalConfig():
 config = getLocalConfig()
 USERNAME = config['energy']['email']
 PASSWORD = config['energy']['password']
-
+BASE_URL = config['energy']['base_url']
 
 ##
 # Writes live energy data to InfluxDB, accessed locally
@@ -138,7 +137,7 @@ def writeLocalLiveSiteTelemetry():
 def getLocalSiteLiveStatus():
   try:
     url = (BASE_URL
-            + 'meters/aggregates')
+            + '/meters/aggregates')
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -170,7 +169,7 @@ def getLocalSiteLiveStatus():
 def getLocalSOE():
   try:
     url = (BASE_URL
-            + 'system_status/soe')
+            + '/system_status/soe')
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -218,7 +217,7 @@ def timestampSplit(timestamp):
 def authLocalToken():
   try:
     url = (BASE_URL
-            + 'login/Basic')
+            + '/login/Basic')
 
     payload = {
       'username': 'customer',
