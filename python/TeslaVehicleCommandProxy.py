@@ -2,37 +2,17 @@ import requests
 import json
 import time
 import urllib.parse
-import TeslaVehicleCommandProxy
+import urllib3
 
 from Logger import logError
 from Utilities import printJson, getToken, getConfig
 
 ACCESS_TOKEN = getToken()['tesla']['access_token']
 config = getConfig()
-M3_VIN = config['vehicle']['m3_vin']
-MX_VIN = config['vehicle']['mx_vin']
+BASE_URL = config['vehicle']['base_url']
+CERT = config['vehicle']['certificate']
 
 WAIT_TIME = 30 
-URL = 'https://owner-api.teslamotors.com/api/1/vehicles'
-
-
-##
-# Retrieves the vehicle ID, which changes from time to time, by the VIN, which 
-# doesn't change.  The vehicle ID is required for many of the API calls.
-# 
-# author: mjhwa@yahoo.com 
-##
-def getVehicleId(vin):
-  try:
-    if vin == M3_VIN:
-      data = TeslaVehicleCommandProxy.getVehicleData(M3_VIN)
-
-    if vin == MX_VIN:
-      data = TeslaVehicleCommandProxy.getVehicleData(MX_VIN)
-
-    return data['response']['id_s']
-  except Exception as e:
-    logError('getVehicleId(' + vin + '): ' + str(e))
 
 
 ##
@@ -43,12 +23,9 @@ def getVehicleId(vin):
 ##
 def getVehicleData(vin):
   try:
-    if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.getVehicleData(vin)
-
-    url = (URL
+    url = (BASE_URL
            + '/'
-           + getVehicleId(vin) 
+           + vin 
            + '/vehicle_data?endpoints='
            + urllib.parse.quote(
                'location_data;'
@@ -60,12 +37,20 @@ def getVehicleData(vin):
                + 'closures_state;'
                + 'drive_state'))
 
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
     response = requests.get(
       url, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
     )
 
-    return json.loads(response.text)
+    response = json.loads(response.text)
+
+    if 'error' in response or response == 'None':
+      raise Exception(response['error'])
+
+    return response
   except Exception as e:
     logError('getVehicleData(' + vin + '): ' + str(e))
     raise Exception(e)
@@ -79,31 +64,22 @@ def getVehicleData(vin):
 ##
 def wakeVehicle(vin):
   try:
-    return TeslaVehicleCommandProxy.wakeVehicle(vin)
+    url = (BASE_URL
+           + '/'
+           + vin 
+           + '/wake_up')
+
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
+    return requests.post(
+      url, 
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
+    )
   except Exception as e:
     logError('wakeVehicle(' + vin + '): ' + str(e))
     time.sleep(WAIT_TIME)
     wakeVehicle(vin)
-
-
-##
-# Function to send API call to start charging a vehicle.
-#
-# author: mjhwa@yahoo.com
-##
-def chargeVehicle(vin):
-  try:
-    url = (URL
-           + '/'
-           + getVehicleId(vin) 
-           + '/command/charge_start')
-
-    return requests.post(
-      url, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
-  except Exception as e:
-    logError('chargeVehicle(' + vin + '): ' + str(e))
 
 
 ##
@@ -113,17 +89,17 @@ def chargeVehicle(vin):
 ##
 def stopChargeVehicle(vin):
   try:
-    if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.stopChargeVehicle(vin)
-  
-    url = (URL
+    url = (BASE_URL
            + '/'
-           + getVehicleId(vin)
+           + vin
            + '/command/charge_stop')
+
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 
     return requests.post(
       url,
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
     )
   except Exception as e:
     logError('stopChargeVehicle(' + vin + '): ' + str(e))
@@ -138,92 +114,26 @@ def stopChargeVehicle(vin):
 ##
 def setScheduledCharging(vin, time):
   try:
-    if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.setScheduledCharging(vin, time)
-
-    url = (URL
+    url = (BASE_URL
            + '/'
-           + getVehicleId(vin) 
+           + vin 
            + '/command/set_scheduled_charging')
 
     payload = {
-      'enable': 'True',
+      'enable': True,
       'time': time
     }
+
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 
     return requests.post(
       url, 
       json=payload, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
     )
   except Exception as e:
     logError('setScheduledCharging(' + vin + '): ' + str(e))
-
-
-##
-# Sends command and parameters to set a specific vehicle to charge and/or
-# precondition by a departure time.  Departure Time and Off-Peak Charge End 
-# Time are in minutes, e.g. 7:30 AM = (7 * 60) + 30 = 450
-#
-# author: mjhwa@yahoo.com
-##
-def setScheduledDeparture(
-  vin, 
-  depart_time, 
-  precondition_enable, 
-  precondition_weekdays, 
-  off_peak_charging_enable, 
-  off_peak_weekdays, 
-  off_peak_end_time
-):
-  try:
-    url = (URL
-           + '/'
-           + getVehicleId(vin)
-           + '/command/set_scheduled_departure')
-
-    payload = {
-      'enable': 'True',
-      'departure_time': depart_time,
-      'preconditioning_enabled': precondition_enable,
-      'preconditioning_weekdays_only': precondition_weekdays,
-      'off_peak_charging_enabled': off_peak_charging_enable,
-      'off_peak_charging_weekdays_only': off_peak_weekdays,
-      'end_off_peak_time': off_peak_end_time
-    }
-
-    return requests.post(
-      url,
-      json=payload,
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
-  except Exception as e:
-    logError('setScheduledDeparture(' + vin + '): ' + str(e))
-
-
-##
-# Sends command to set the charging amps for a specified vehicle.
-#
-# author: mjhwa@yahoo.com
-##
-def setChargingAmps(vin, amps):
-  try:
-    url = (URL
-           + '/'
-           + getVehicleId(vin)
-           + '/command/set_charging_amps')
-
-    payload = {
-      'charging_amps': amps
-    }
-
-    return requests.post(
-      url,
-      json=payload,
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
-  except Exception as e:
-    logError('setChargingAmps(' + vin + '): ' + str(e))
 
 
 ##
@@ -233,12 +143,9 @@ def setChargingAmps(vin, amps):
 ##
 def setCarTemp(vin, d_temp, p_temp):
   try:
-    if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.setCarTemp(vin, d_temp, p_temp)
-
-    url = (URL
+    url = (BASE_URL
            + '/'
-           + getVehicleId(vin) 
+           + vin 
            + '/command/set_temps')
 
     payload = {
@@ -246,10 +153,13 @@ def setCarTemp(vin, d_temp, p_temp):
       'passenger_temp': p_temp
     }
 
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
     return requests.post(
       url, 
       json=payload, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
     )
   except Exception as e:
     logError('setCarTemp(' + vin + '): ' + str(e))
@@ -262,16 +172,13 @@ def setCarTemp(vin, d_temp, p_temp):
 ##
 def setCarSeatHeating(vin, seat, setting):
   try:
-    if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.setCarSeatHeating(vin, seat, setting)
-
-    url = (URL
+    url = (BASE_URL
            + '/'
-           + getVehicleId(vin) 
+           + vin 
            + '/command/remote_seat_heater_request')
 
     payload = {
-      'heater': seat,
+      'seat_position': seat,
       'level': setting
     }
 #    "payload": JSON.stringify({'heater': '0', 'level': seats[0],
@@ -280,10 +187,13 @@ def setCarSeatHeating(vin, seat, setting):
 #                               'heater': '4', 'level': seats[3],
 #                               'heater': '5', 'level': seats[4]})
 
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
     return requests.post(
       url, 
       json=payload, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
     )
   except Exception as e:
     logError('setCarSeatHeating(' + vin + '): ' + str(e))
@@ -296,17 +206,17 @@ def setCarSeatHeating(vin, seat, setting):
 ##
 def preconditionCarStart(vin):
   try:  
-    if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.preconditionCarStart(vin)
-
-    url = (URL
+    url = (BASE_URL
            + '/'
-           + getVehicleId(vin) 
+           + vin 
            + '/command/auto_conditioning_start')
+
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 
     return requests.post(
       url, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
     )
   except Exception as e:
     logError('preconditionCarStart(' + vin + '): ' + str(e))
@@ -319,17 +229,17 @@ def preconditionCarStart(vin):
 ##
 def preconditionCarStop(vin):
   try:
-    if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.preconditionCarStop(vin)
-
-    url = (URL
+    url = (BASE_URL
            + '/'
-           + getVehicleId(vin)
+           + vin
            + '/command/auto_conditioning_stop')
+    
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 
     return requests.post(
       url, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
     )
   except Exception as e:
     logError('preconditionCarStop(' + vin + '): ' + str(e))

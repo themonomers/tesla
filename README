@@ -1,27 +1,17 @@
-All the vehicle functions in Google Apps Script and Python, both using Tesla REST API, have stopped working returning a 412 error as of January 22, 2024.  I'll be working on getting the same functionality to work using the Tesla Vehicle Command SDK (https://github.com/teslamotors/vehicle-command) and Golang running on Raspberry Pi.
+As of January 22, 2024 communicating with Tesla Vehicles by directly using the existing Owner API is no longer allowed.  Instead, applications must use the Tesla Vehicle Command SDK or HTTP proxy (https://github.com/teslamotors/vehicle-command).  Using either of these 2 options provided by Tesla presents a few challenges, requiring the device to be near the vehicle to communicate via BLE and/or requiring registration and approval to use the Tesla Fleet API.
 
-/google
-These scripts are based on Google Apps Script (https://script.google.com/home), which is free!  There are 5 components to this project:
+Alternatively, using a modified tesla-http-proxy (https://github.com/lotharbach/tesla-command-proxy) which forwards API requests to the Owner API, allows reuse of the existing code.  Pre-2021 Model X and S still need to use the existing Owner API, except for the wake_up endpoint for some reason.
 
-1.  Telemetry.gs - logs data from your vehicle for analysis, e.g. miles, efficiency, battery capacity, etc.
-2.  SmartCharger.gs - sends an email if you forget to plug in your vehicle and calculates then sets the optimal charge start time.
-3.  SmartClimate.gs - customized scheduling of pre-heating/cooling of cabin and seat heating by day of the week.
-4.  Logging.gs - logs error messages in the try/catch blocks.
-5.  Email.gs - keeps email sent folder from growing too large.
-Additional component:  GoogleSheetScriptEditor.gs - cut/paste contents into a Google Sheet script editor as simple way to get API data.
-
-Google Sheet example:  https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing
-The first 3 tabs of the Google Sheet corresponds to the first 3 scripts above.
-
-I created several in-depth videos walking through the functionality and code:  https://www.youtube.com/watch?v=l1pqhlGSuVg&list=PLgiPnlzk2O712gwiTIquUzdfVlzIMyS2M
+Before running the modified tesla-http-proxy, you need to follow instructions to generate a private key in your system keyring and save the public key to a file (https://github.com/teslamotors/vehicle-command/blob/main/cmd/tesla-control/README.md).  Then you need to pair your public key with your Tesla by getting in your car, enabling bluetooth on your device running these Tesla command-line tools, and using your NFC card.
 
 
 /python
-Ported Tesla Google Apps Scripts to python for more control over functionality and as a backup. Additional scripts for Tesla Energy products that run on local machines as they are writing to InfluxDB and I don't want to open that to the internet. 
+Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB. 
 
 1.  Core functions:
       TeslaEnergyAPI.py - API calls for Tesla Energy products
-      TeslaVehicleAPI.py - API calls for Tesla Vehicles
+      TeslaVehicleAPI.py - API calls for Tesla Vehicles (Pre-2021 Model X and S)
+      TeslaVehicleCommandProxy.py - API calls to modified tesla-http-proxy running on localhost 
       TeslaToken.py - API call for the Tesla authentication flow to retrieve new access and refresh tokens
       TeslaRefreshToken.py - API call to refresh new access and refresh tokens
       GoogleAPI.py - API calls for Google products and services
@@ -53,6 +43,9 @@ Ported Tesla Google Apps Scripts to python for more control over functionality a
       SmartCharger.py - Calculates and sets charging times to complete at a departure time for 2 EV's
       SmartClimate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
 
+Vehicle functions ready/write to a Google Sheet like this example:  https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing
+
+
 Here are the packages needed:
   python3-pip
   teslapy
@@ -62,3 +55,26 @@ Here are the packages needed:
   python-crontab
   pytz
   influxdb
+
+Additional packages needed for Tesla Vehicle Command SDK:
+  go
+  gcc-arm-linux-gnueabi
+
+
+These are some older videos I created for in-depth walk throughs of the functionality and code which I'll update over time:  https://www.youtube.com/watch?v=l1pqhlGSuVg&list=PLgiPnlzk2O712gwiTIquUzdfVlzIMyS2M
+
+
+/google [deprecated]
+These scripts are based on Google Apps Script (https://script.google.com/home), which is free!  There are 5 components to this project:
+
+1.  Telemetry.gs - logs data from your vehicle for analysis, e.g. miles, efficiency, battery capacity, etc.
+2.  SmartCharger.gs - sends an email if you forget to plug in your vehicle and calculates then sets the optimal charge start time.
+3.  SmartClimate.gs - customized scheduling of pre-heating/cooling of cabin and seat heating by day of the week.
+4.  Logging.gs - logs error messages in the try/catch blocks.
+5.  Email.gs - keeps email sent folder from growing too large.
+Additional component:  GoogleSheetScriptEditor.gs - cut/paste contents into a Google Sheet script editor as simple way to get API data.
+
+Google Sheet example:  https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing
+The first 3 tabs of the Google Sheet corresponds to the first 3 scripts above.
+
+I created several in-depth videos walking through the functionality and code:  https://www.youtube.com/watch?v=l1pqhlGSuVg&list=PLgiPnlzk2O712gwiTIquUzdfVlzIMyS2M
