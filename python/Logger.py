@@ -35,6 +35,6 @@ def logError(msg):
     ).execute()
     service.close()
   except Exception as e:
-    print('logError(): ' + str(e))
+    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' logError(): ' + str(e))
 
 
