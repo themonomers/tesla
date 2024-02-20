@@ -27,6 +27,9 @@ def logError(msg):
       'values': [[msg]]
     })
 
+    # check for empty data
+    if msg == '' : raise Exception('Empty data')
+    
     # batch write data and formula copies to sheet
     service = GoogleAPI.getGoogleSheetService()
     service.spreadsheets().values().batchUpdate(
