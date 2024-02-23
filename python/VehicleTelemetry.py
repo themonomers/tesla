@@ -48,8 +48,8 @@ def writeM3Telemetry():
       'copyPaste': {
         'source': {
           'sheetId': TELEMETRY_SHEET_ID,
-          'startRowIndex': 3,
-          'endRowIndex': 4,
+          'startRowIndex': 2,
+          'endRowIndex': 3,
           'startColumnIndex': 2,
           'endColumnIndex': 7
         },
@@ -79,8 +79,8 @@ def writeM3Telemetry():
       'copyPaste': {
         'source': {
           'sheetId': TELEMETRY_SHEET_ID,
-          'startRowIndex': 3,
-          'endRowIndex': 4,
+          'startRowIndex': 2,
+          'endRowIndex': 3,
           'startColumnIndex': 13,
           'endColumnIndex': 14
         },
@@ -136,8 +136,8 @@ def writeM3Telemetry():
       'copyPaste': {
         'source': {
           'sheetId': TELEMETRY_SHEET_ID,
-          'startRowIndex': 3,
-          'endRowIndex': 4,
+          'startRowIndex': 2,
+          'endRowIndex': 3,
           'startColumnIndex': 9,
           'endColumnIndex': 12
         },
