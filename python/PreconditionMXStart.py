@@ -1,4 +1,5 @@
 import time
+import zoneinfo
 
 from TeslaVehicleAPI import getVehicleData, wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
 from GoogleAPI import getGoogleSheetService
@@ -10,9 +11,10 @@ config = getConfig()
 MX_VIN = config['vehicle']['mx_vin']
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
 ZIPCODE = config['weather']['zipcode']
+TIME_ZONE = config['general']['timezone']
 
 WAIT_TIME = 30 
-
+PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 def preconditionMXStart():
   try:
@@ -194,9 +196,17 @@ def preconditionMXStart():
       for index, item in enumerate(seats):
         setCarSeatHeating(MX_VIN, int(index), int(item))
       
-      # specific date/time to create a crontab for tomorrow morning at 
+      # specific date/time to create a crontab for later this morning at 
       # the preferred stop time
-      stop_time = getTomorrowTime(climate_config[18][0])
+      stop_time = datetime.strptime(str(datetime.now().replace(tzinfo=PAC).year)
+        + '-'
+        + str(datetime.now().replace(tzinfo=PAC).month)
+        + '-'
+        + str(datetime.now().replace(tzinfo=PAC).day)
+        + 'T'
+        + climate_config[18][0], '%Y-%m-%dT%H:%M'
+      ).replace(tzinfo=PAC)
+
 
       # create crontab to stop preconditioning
       deleteCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionMXStop.py >> /home/pi/tesla/python/cron.log 2>&1')
