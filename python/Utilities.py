@@ -184,6 +184,18 @@ def getTomorrowTime(time):
     ).replace(tzinfo=PAC)
 
 
+def getTodayTime(time):
+    return datetime.strptime(
+        str(datetime.now().replace(tzinfo=PAC).year)
+      + '-'
+      + str(datetime.now().replace(tzinfo=PAC).month)
+      + '-'
+      + str(datetime.now().replace(tzinfo=PAC).day)
+      + 'T'
+      + time, '%Y-%m-%dT%H:%M'
+    ).replace(tzinfo=PAC)
+
+
 ##
 # Uses a free weather service with API to look up data by zipcode or other 
 # attributes.  Gets current weather conditions.
