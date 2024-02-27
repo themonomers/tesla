@@ -64,6 +64,13 @@ Additional packages needed for Tesla Vehicle Command SDK:
 These are some older videos I created for in-depth walk throughs of the functionality and code which I'll update over time:  https://www.youtube.com/watch?v=l1pqhlGSuVg&list=PLgiPnlzk2O712gwiTIquUzdfVlzIMyS2M
 
 
+/golang
+I've started porting over the python code to golang as another backup, in case Tesla only allows access through the SDK in the future which is written in golang.  I haven't replicated all the functions that I have in Python but I have the majority of the vehicle basics down.  Currently this code is still dependent on the Python ones, e.g. getting auth token and refresh token.  I'll continue to work on filling out the rest of the vehicle functions, energy functions, and making it stand-alone as I have more time.
+
+I'm a beginner at golang, and coding overall, so please forgive my design of the golang code and folder structure.
+
+
+
 /google [deprecated]
 These scripts are based on Google Apps Script (https://script.google.com/home), which is free!  There are 5 components to this project:
 
