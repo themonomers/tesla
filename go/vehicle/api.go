@@ -35,8 +35,8 @@ func init() {
 	BASE_OWNER_URL, err = c.String("tesla.base_owner_url")
 	common.LogError("init(): load base owner url", err)
 
-	CERT, err = c.String("vehicle.certificate")
-	common.LogError("init(): load vehicle certificate", err)
+	CERT, err = c.String("tesla.certificate")
+	common.LogError("init(): load tesla certificate", err)
 }
 
 // Retrieves the vehicle data needed for higher level functions to drive
