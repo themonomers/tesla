@@ -11,9 +11,9 @@ ACCESS_TOKEN = getToken()['tesla']['access_token']
 config = getConfig()
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
+BASE_OWNER_URL = config['tesla']['base_owner_url']
 
 WAIT_TIME = 30 
-URL = 'https://owner-api.teslamotors.com/api/1/vehicles'
 
 
 ##
@@ -46,8 +46,8 @@ def getVehicleData(vin):
     if vin == M3_VIN:
       return TeslaVehicleCommandProxy.getVehicleData(vin)
 
-    url = (URL
-           + '/'
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
            + getVehicleId(vin) 
            + '/vehicle_data?endpoints='
            + urllib.parse.quote(
@@ -93,8 +93,8 @@ def wakeVehicle(vin):
 ##
 def chargeVehicle(vin):
   try:
-    url = (URL
-           + '/'
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
            + getVehicleId(vin) 
            + '/command/charge_start')
 
@@ -116,8 +116,8 @@ def stopChargeVehicle(vin):
     if vin == M3_VIN:
       return TeslaVehicleCommandProxy.stopChargeVehicle(vin)
   
-    url = (URL
-           + '/'
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
            + getVehicleId(vin)
            + '/command/charge_stop')
 
@@ -141,8 +141,8 @@ def setScheduledCharging(vin, time):
     if vin == M3_VIN:
       return TeslaVehicleCommandProxy.setScheduledCharging(vin, time)
 
-    url = (URL
-           + '/'
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
            + getVehicleId(vin) 
            + '/command/set_scheduled_charging')
 
@@ -177,8 +177,8 @@ def setScheduledDeparture(
   off_peak_end_time
 ):
   try:
-    url = (URL
-           + '/'
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
            + getVehicleId(vin)
            + '/command/set_scheduled_departure')
 
@@ -208,8 +208,8 @@ def setScheduledDeparture(
 ##
 def setChargingAmps(vin, amps):
   try:
-    url = (URL
-           + '/'
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
            + getVehicleId(vin)
            + '/command/set_charging_amps')
 
@@ -236,8 +236,8 @@ def setCarTemp(vin, d_temp, p_temp):
     if vin == M3_VIN:
       return TeslaVehicleCommandProxy.setCarTemp(vin, d_temp, p_temp)
 
-    url = (URL
-           + '/'
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
            + getVehicleId(vin) 
            + '/command/set_temps')
 
@@ -265,8 +265,8 @@ def setCarSeatHeating(vin, seat, setting):
     if vin == M3_VIN:
       return TeslaVehicleCommandProxy.setCarSeatHeating(vin, seat, setting)
 
-    url = (URL
-           + '/'
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
            + getVehicleId(vin) 
            + '/command/remote_seat_heater_request')
 
@@ -299,8 +299,8 @@ def preconditionCarStart(vin):
     if vin == M3_VIN:
       return TeslaVehicleCommandProxy.preconditionCarStart(vin)
 
-    url = (URL
-           + '/'
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
            + getVehicleId(vin) 
            + '/command/auto_conditioning_start')
 
@@ -322,8 +322,8 @@ def preconditionCarStop(vin):
     if vin == M3_VIN:
       return TeslaVehicleCommandProxy.preconditionCarStop(vin)
 
-    url = (URL
-           + '/'
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
            + getVehicleId(vin)
            + '/command/auto_conditioning_stop')
 

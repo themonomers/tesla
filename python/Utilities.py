@@ -12,7 +12,6 @@ from datetime import datetime, timedelta
 from io import StringIO
 
 R = 3958.8  #Earth radius in miles
-BASE_WEATHER_URL = 'https://api.openweathermap.org/data/2.5'
 
 
 ##
@@ -49,6 +48,7 @@ PRIMARY_LNG = float(config['vehicle']['primary_lng'])
 SECONDARY_LAT = float(config['vehicle']['secondary_lat'])
 SECONDARY_LNG = float(config['vehicle']['secondary_lng'])
 OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
+BASE_WEATHER_URL = config['weather']['base_url']
 TIME_ZONE = config['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 

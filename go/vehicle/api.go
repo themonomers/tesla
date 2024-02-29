@@ -15,10 +15,10 @@ import (
 )
 
 var ACCESS_TOKEN string
-var BASE_URL string
+var BASE_OWNER_URL string
+var BASE_PROXY_URL string
 var CERT string
 var WAIT_TIME time.Duration = 30 // seconds
-var URL string = "https://owner-api.teslamotors.com/api/1/vehicles"
 var RETRY_MSG string = "vehicle unavailable: vehicle is offline or asleep"
 
 func init() {
@@ -29,8 +29,11 @@ func init() {
 	common.LogError("init(): load access token", err)
 
 	var c = common.GetConfig()
-	BASE_URL, err = c.String("vehicle.base_url")
-	common.LogError("init(): load base url", err)
+	BASE_PROXY_URL, err = c.String("tesla.base_proxy_url")
+	common.LogError("init(): load base proxy url", err)
+
+	BASE_OWNER_URL, err = c.String("tesla.base_owner_url")
+	common.LogError("init(): load base owner url", err)
 
 	CERT, err = c.String("vehicle.certificate")
 	common.LogError("init(): load vehicle certificate", err)
@@ -39,8 +42,8 @@ func init() {
 // Retrieves the vehicle data needed for higher level functions to drive
 // calcuations and actions.
 func GetVehicleData(vin string) map[string]interface{} {
-	var url = BASE_URL +
-		"/" +
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
 		vin +
 		"/vehicle_data?endpoints=" +
 		url.PathEscape(
@@ -79,8 +82,8 @@ func GetVehicleData(vin string) map[string]interface{} {
 // Function to repeatedly run (after a certain wait time) to wake the vehicle up
 // when it's asleep.
 func WakeVehicle(vin string) map[string]interface{} {
-	var url = BASE_URL +
-		"/" +
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
 		vin +
 		"/wake_up"
 
@@ -104,8 +107,8 @@ func StopChargeVehicle(vin string) map[string]interface{} {
 		return stopChargeVehicle(vin)
 	}
 
-	var url = BASE_URL +
-		"/" +
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
 		vin +
 		"/command/charge_stop"
 
@@ -134,8 +137,8 @@ func StopChargeVehicle(vin string) map[string]interface{} {
 }
 
 func stopChargeVehicle(vin string) map[string]interface{} {
-	var url = URL +
-		"/" +
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/charge_stop"
 
@@ -171,8 +174,8 @@ func SetScheduledCharging(vin string, sch_time int) map[string]interface{} {
 		return setScheduledCharging(vin, sch_time)
 	}
 
-	var url = BASE_URL +
-		"/" +
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
 		vin +
 		"/command/set_scheduled_charging"
 
@@ -206,8 +209,8 @@ func SetScheduledCharging(vin string, sch_time int) map[string]interface{} {
 }
 
 func setScheduledCharging(vin string, sch_time int) map[string]interface{} {
-	var url = URL +
-		"/" +
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/set_scheduled_charging"
 
@@ -251,8 +254,8 @@ func SetCarTemp(vin string, d_temp float64, p_temp float64) map[string]interface
 		return setCarTemp(vin, d_temp, p_temp)
 	}
 
-	var url = BASE_URL +
-		"/" +
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
 		vin +
 		"/command/set_temps"
 
@@ -286,8 +289,8 @@ func SetCarTemp(vin string, d_temp float64, p_temp float64) map[string]interface
 }
 
 func setCarTemp(vin string, d_temp float64, p_temp float64) map[string]interface{} {
-	var url = URL +
-		"/" +
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/set_temps"
 
@@ -326,8 +329,8 @@ func SetCarSeatHeating(vin string, seat int, setting int) map[string]interface{}
 		return setCarSeatHeating(vin, seat, setting)
 	}
 
-	var url = BASE_URL +
-		"/" +
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
 		vin +
 		"/command/remote_seat_heater_request"
 
@@ -361,8 +364,8 @@ func SetCarSeatHeating(vin string, seat int, setting int) map[string]interface{}
 }
 
 func setCarSeatHeating(vin string, seat int, setting int) map[string]interface{} {
-	var url = URL +
-		"/" +
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/remote_seat_heater_request"
 
@@ -401,8 +404,8 @@ func PreconditionCarStart(vin string) map[string]interface{} {
 		return preconditionCarStart(vin)
 	}
 
-	var url = BASE_URL +
-		"/" +
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
 		vin +
 		"/command/auto_conditioning_start"
 
@@ -431,8 +434,8 @@ func PreconditionCarStart(vin string) map[string]interface{} {
 }
 
 func preconditionCarStart(vin string) map[string]interface{} {
-	var url = URL +
-		"/" +
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/auto_conditioning_start"
 
@@ -466,8 +469,8 @@ func PreconditionCarStop(vin string) map[string]interface{} {
 		return preconditionCarStop(vin)
 	}
 
-	var url = BASE_URL +
-		"/" +
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
 		vin +
 		"/command/auto_conditioning_stop"
 
@@ -496,8 +499,8 @@ func PreconditionCarStop(vin string) map[string]interface{} {
 }
 
 func preconditionCarStop(vin string) map[string]interface{} {
-	var url = URL +
-		"/" +
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/auto_conditioning_stop"
 

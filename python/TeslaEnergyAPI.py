@@ -6,14 +6,12 @@ from Logger import logError
 from Utilities import printJson, getConfig, getToken
 from datetime import datetime
 
+ACCESS_TOKEN = getToken()['tesla']['access_token']
 config = getConfig()
 SITE_ID = config['energy']['site_id']
 BATTERY_ID = config['energy']['battery_id']
-
-ACCESS_TOKEN = getToken()['tesla']['access_token']
-
+BASE_OWNER_URL = config['tesla']['base_owner_url']
 TIME_ZONE = config['general']['timezone']
-BASE_URL = 'https://owner-api.teslamotors.com/api/1'
 
 
 ##
@@ -23,7 +21,7 @@ BASE_URL = 'https://owner-api.teslamotors.com/api/1'
 ##
 def getSiteStatus():
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID 
            + '/site_status')
@@ -47,7 +45,7 @@ def getSiteStatus():
 ##
 def getSiteLiveStatus():
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID
            + '/live_status')
@@ -71,7 +69,7 @@ def getSiteLiveStatus():
 ##
 def getSiteInfo():
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID
            + '/site_info')
@@ -107,7 +105,7 @@ def getSiteHistory(period, date):
       0
     ), is_dst=None)
 
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID 
            + '/calendar_history'
@@ -136,7 +134,7 @@ def getSiteHistory(period, date):
 ##
 def getBatteryPowerHistory():
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/powerwalls/' 
            + BATTERY_ID
            + '/powerhistory')
@@ -160,7 +158,7 @@ def getBatteryPowerHistory():
 ##
 def getBatteryBackupHistory():
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID 
            + '/history?kind=backup')
@@ -206,7 +204,7 @@ def getSiteTOUHistory(period, date):
       0
     ), is_dst=None)
 
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID
            + '/calendar_history'
@@ -253,7 +251,7 @@ def getBatteryChargeHistory(period, date):
       0
     ), is_dst=None)
 
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID 
            + '/calendar_history'
@@ -304,7 +302,7 @@ def getPowerHistory(period, date):
       0
     ), is_dst=None)
 
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID
            + '/calendar_history'
@@ -338,7 +336,7 @@ def getPowerHistory(period, date):
 ##
 def getRateTariffs():
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + 'rate_tariffs')
 
@@ -362,7 +360,7 @@ def getRateTariffs():
 ##
 def getSiteTariff():
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID
            + '/tariff_rate')
@@ -408,7 +406,7 @@ def getSavingsForecast(period, date):
       0
     ), is_dst=None)
 
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID
            + '/calendar_history'
@@ -444,7 +442,7 @@ def getSavingsForecast(period, date):
 ##
 def getBackupTimeRemaining():
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID
            + '/backup_time_remaining')
@@ -507,7 +505,7 @@ def setBatteryModeAdvancedCost():
 ##
 def setBatteryMode(mode):
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID 
            + '/operation')
@@ -533,7 +531,7 @@ def setBatteryMode(mode):
 ##
 def setBatteryBackupReserve(backup_percent):
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID 
            + '/backup')
@@ -560,7 +558,7 @@ def setBatteryBackupReserve(backup_percent):
 ##
 def setOffGridVehicleChargingReserve(percent):
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID 
            + '/off_grid_vehicle_charging_reserve')
@@ -589,7 +587,7 @@ def setOffGridVehicleChargingReserve(percent):
 ##
 def setEnergyTOUSettings(strategy):
   try:
-    url = (BASE_URL
+    url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID
            + '/time_of_use_settings')

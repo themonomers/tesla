@@ -11,7 +11,7 @@ import (
 var ACCESS_TOKEN string
 var SITE_ID string
 var BATTERY_ID string
-var URL string = "https://owner-api.teslamotors.com/api/1"
+var BASE_OWNER_URL string
 
 func init() {
 	var err error
@@ -27,13 +27,16 @@ func init() {
 	BATTERY_ID, err = c.String("energy.battery_id")
 	common.LogError("init(): load battery id", err)
 
+	BASE_OWNER_URL, err = c.String("tesla.base_owner_url")
+	common.LogError("init(): load base owner url", err)
+
 	TIMEZONE, err = c.String("general.timezone")
 	common.LogError("init(): load timezone", err)
 }
 
 // Gets some quick and basic information.
 func GetSiteStatus() map[string]interface{} {
-	url := URL +
+	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
 		"/site_status"

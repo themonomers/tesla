@@ -9,8 +9,8 @@ from Utilities import printJson, getToken, getConfig
 
 ACCESS_TOKEN = getToken()['tesla']['access_token']
 config = getConfig()
-BASE_URL = config['vehicle']['base_url']
-CERT = config['vehicle']['certificate']
+BASE_PROXY_URL = config['tesla']['base_proxy_url']
+CERT = config['tesla']['certificate']
 
 WAIT_TIME = 30 
 
@@ -23,8 +23,8 @@ WAIT_TIME = 30
 ##
 def getVehicleData(vin):
   try:
-    url = (BASE_URL
-           + '/'
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
            + vin 
            + '/vehicle_data?endpoints='
            + urllib.parse.quote(
@@ -64,8 +64,8 @@ def getVehicleData(vin):
 ##
 def wakeVehicle(vin):
   try:
-    url = (BASE_URL
-           + '/'
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
            + vin 
            + '/wake_up')
 
@@ -89,8 +89,8 @@ def wakeVehicle(vin):
 ##
 def stopChargeVehicle(vin):
   try:
-    url = (BASE_URL
-           + '/'
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
            + vin
            + '/command/charge_stop')
 
@@ -114,8 +114,8 @@ def stopChargeVehicle(vin):
 ##
 def setScheduledCharging(vin, time):
   try:
-    url = (BASE_URL
-           + '/'
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
            + vin 
            + '/command/set_scheduled_charging')
 
@@ -143,8 +143,8 @@ def setScheduledCharging(vin, time):
 ##
 def setCarTemp(vin, d_temp, p_temp):
   try:
-    url = (BASE_URL
-           + '/'
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
            + vin 
            + '/command/set_temps')
 
@@ -172,8 +172,8 @@ def setCarTemp(vin, d_temp, p_temp):
 ##
 def setCarSeatHeating(vin, seat, setting):
   try:
-    url = (BASE_URL
-           + '/'
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
            + vin 
            + '/command/remote_seat_heater_request')
 
@@ -206,8 +206,8 @@ def setCarSeatHeating(vin, seat, setting):
 ##
 def preconditionCarStart(vin):
   try:  
-    url = (BASE_URL
-           + '/'
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
            + vin 
            + '/command/auto_conditioning_start')
 
@@ -229,8 +229,8 @@ def preconditionCarStart(vin):
 ##
 def preconditionCarStop(vin):
   try:
-    url = (BASE_URL
-           + '/'
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
            + vin
            + '/command/auto_conditioning_stop')
     

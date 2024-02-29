@@ -18,7 +18,7 @@ var PRIMARY_LNG float64
 var SECONDARY_LAT float64
 var SECONDARY_LNG float64
 var R float64 = 3958.8 // Earth radius in miles
-var BASE_WEATHER_URL = "https://api.openweathermap.org/data/2.5"
+var BASE_WEATHER_URL string
 var OPENWEATHERMAP_KEY string
 var TIMEZONE string
 
@@ -39,6 +39,9 @@ func init() {
 	LogError("init(): load vehicle secondary lng", err)
 
 	OPENWEATHERMAP_KEY, err = c.String("weather.openweathermap_key")
+	LogError("init(): load open weather map key", err)
+
+	BASE_WEATHER_URL, err = c.String("weather.base_url")
 	LogError("init(): load open weather map key", err)
 
 	TIMEZONE, err = c.String("general.timezone")
