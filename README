@@ -19,10 +19,10 @@ Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, 
 
 2.  Utility functions:
       Utilities.py - Commonly used and helpful tools
-      SendEmail.py - Service to send emails
+      Email.py - Service to send emails
       Logger.py - Central logging service 
       Crypto.py - Encryption and decryption functions for sensitve files
-      CheckTokenExpiration.py - Retrieves new Tesla tokens based on expiration date/time
+      TeslaTokenExpiration.py - Retrieves new Tesla tokens based on expiration date/time
       RemoveTeslaCron.py - Cleans up crontabs that are meant to exist for each specific day
       TruncateEmail.py - Helper function to keep email sent folder from growing
       TruncateLog.py - Helper function to keep central logging from growing
@@ -40,8 +40,8 @@ Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, 
       PreconditionMXStart.py
       PreconditionMXStop.py
       VehicleTelemetry.py - Write all vehicle data from previous day in Google Sheet
-      SmartCharger.py - Calculates and sets charging times to complete at a departure time for 2 EV's
-      SmartClimate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
+      Charger.py - Calculates and sets charging times to complete at a departure time for 2 EV's
+      Climate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
 
 Vehicle functions ready/write to a Google Sheet like this example:  https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing
 

@@ -2,7 +2,7 @@ import time
 
 from TeslaVehicleAPI import getVehicleData, wakeVehicle
 from GoogleAPI import getGoogleSheetService, findOpenRow
-from SendEmail import sendEmail
+from Email import sendEmail
 from Utilities import getConfig
 from Logger import logError
 from datetime import datetime

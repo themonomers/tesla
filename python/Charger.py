@@ -2,8 +2,8 @@ import time
 
 from TeslaVehicleAPI import getVehicleData, wakeVehicle, setScheduledCharging, stopChargeVehicle
 from GoogleAPI import getGoogleSheetService
-from SendEmail import sendEmail
-from SmartClimate import setM3Precondition, setMXPrecondition
+from Email import sendEmail
+from Climate import setM3Precondition, setMXPrecondition
 from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime, getConfig
 from Logger import logError
 from datetime import timedelta

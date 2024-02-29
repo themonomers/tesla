@@ -1,5 +1,5 @@
 from TeslaEnergyAPI import setBatteryBackupReserve
-from SendEmail import sendEmail
+from Email import sendEmail
 from Utilities import getDailyWeather, getConfig
 from Logger import logError
 from datetime import datetime, date, timedelta

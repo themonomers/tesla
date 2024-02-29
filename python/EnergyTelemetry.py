@@ -4,7 +4,7 @@ import zoneinfo
 from Influxdb import getDBClient
 from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast, getBatteryChargeHistory
 from GoogleAPI import getGoogleSheetService, findOpenRow
-from SendEmail import sendEmail
+from Email import sendEmail
 from Utilities import getConfig
 from Logger import logError
 from datetime import datetime, timedelta
