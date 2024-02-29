@@ -33,74 +33,7 @@ func init() {
 // from the Tesla Energy Gateway.
 func WriteLiveSiteTelemetry() {
 	data := getLocalSiteLiveStatus()
-	/*
-		var payload [][]byte
-		json_body, _ := json.Marshal(map[string]interface{}{
-			"measurement": "energy_live",
-			"tags": map[string]interface{}{
-				"source": "solar_power",
-			},
-			"time": handleTeslaTimestamp(data["solar"].(map[string]interface{})["last_communication_time"].(string)),
-			"fields": map[string]interface{}{
-				"value": data["solar"].(map[string]interface{})["instant_power"].(float64),
-			},
-		})
-		payload = append(payload, json_body)
 
-		json_body, _ = json.Marshal(map[string]interface{}{
-			"measurement": "energy_live",
-			"tags": map[string]interface{}{
-				"source": "battery_power",
-			},
-			"time": handleTeslaTimestamp(data["battery"].(map[string]interface{})["last_communication_time"].(string)),
-			"fields": map[string]interface{}{
-				"value": data["battery"].(map[string]interface{})["instant_power"].(float64),
-			},
-		})
-		payload = append(payload, json_body)
-
-		json_body, _ = json.Marshal(map[string]interface{}{
-			"measurement": "energy_live",
-			"tags": map[string]interface{}{
-				"source": "grid_power",
-			},
-			"time": handleTeslaTimestamp(data["site"].(map[string]interface{})["last_communication_time"].(string)),
-			"fields": map[string]interface{}{
-				"value": data["site"].(map[string]interface{})["instant_power"].(float64),
-			},
-		})
-		payload = append(payload, json_body)
-
-		json_body, _ = json.Marshal(map[string]interface{}{
-			"measurement": "energy_live",
-			"tags": map[string]interface{}{
-				"source": "load_power",
-			},
-			"time": handleTeslaTimestamp(data["load"].(map[string]interface{})["last_communication_time"].(string)),
-			"fields": map[string]interface{}{
-				"value": data["load"].(map[string]interface{})["instant_power"].(float64),
-			},
-		})
-		payload = append(payload, json_body)
-
-		json_body, _ = json.Marshal(map[string]interface{}{
-			"measurement": "energy_live",
-			"tags": map[string]interface{}{
-				"source": "percentage_charged",
-			},
-			"time": time.Now(),
-			"fields": map[string]interface{}{
-				"value": getLocalSOE()["percentage"].(float64),
-			},
-		})
-		payload = append(payload, json_body)
-
-		var i map[string]interface{}
-		for x := 0; x < len(payload); x++ {
-			_ = json.Unmarshal(payload[x], &i)
-			fmt.Println(i)
-		}
-	*/
 	c := common.GetDBClient()
 	defer c.Close()
 
