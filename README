@@ -43,8 +43,7 @@ Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, 
       Charger.py - Calculates and sets charging times to complete at a departure time for 2 EV's
       Climate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
 
-Vehicle functions ready/write to a Google Sheet like this example:  https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing
-
+Vehicle functions read/write to a Google Sheet like this example:  https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing
 
 Here are the packages needed:
   python3-pip
@@ -59,7 +58,6 @@ Here are the packages needed:
 Additional packages needed for Tesla Vehicle Command SDK:
   go
   gcc-arm-linux-gnueabi
-
 
 These are some older videos I created for in-depth walk throughs of the functionality and code which I'll update over time:  https://www.youtube.com/watch?v=l1pqhlGSuVg&list=PLgiPnlzk2O712gwiTIquUzdfVlzIMyS2M
 
