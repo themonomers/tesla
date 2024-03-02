@@ -109,7 +109,7 @@ func GetSiteHistory(period string, date time.Time) map[string]interface{} {
 		SITE_ID +
 		"/calendar_history" +
 		"?kind=energy" +
-		"&end_date=" + date.Format("2006-01-02T15:04:05Z") +
+		"&end_date=" + date.UTC().Format("2006-01-02T15:04:05Z") +
 		"&period=" + period
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -158,8 +158,8 @@ func GetSiteTOUHistory(period string, date time.Time) map[string]interface{} {
 		SITE_ID +
 		"/calendar_history" +
 		"?kind=time_of_use_energy" +
-		"&start_date=" + s_date.Format("2006-01-02T15:04:05Z") +
-		"&end_date=" + e_date.Format("2006-01-02T15:04:05Z") +
+		"&start_date=" + s_date.UTC().Format("2006-01-02T15:04:05Z") +
+		"&end_date=" + e_date.UTC().Format("2006-01-02T15:04:05Z") +
 		"&period=" + period
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -186,7 +186,7 @@ func GetBatteryChargeHistory(period string, date time.Time) map[string]interface
 		SITE_ID +
 		"/calendar_history" +
 		"?kind=soe" +
-		"&end_date=" + date.Format("2006-01-02T15:04:05Z") +
+		"&end_date=" + date.UTC().Format("2006-01-02T15:04:05Z") +
 		"&period=" + period
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -214,8 +214,8 @@ func GetPowerHistory(period string, date time.Time) map[string]interface{} {
 		SITE_ID +
 		"/calendar_history" +
 		"?kind=power" +
-		"&start_date=" + s_date.Format("2006-01-02T15:04:05Z") +
-		"&end_date=" + e_date.Format("2006-01-02T15:04:05Z") +
+		"&start_date=" + s_date.UTC().Format("2006-01-02T15:04:05Z") +
+		"&end_date=" + e_date.UTC().Format("2006-01-02T15:04:05Z") +
 		"&period=" + period
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -285,8 +285,8 @@ func GetSavingsForecast(period string, date time.Time) map[string]interface{} {
 		SITE_ID +
 		"/calendar_history" +
 		"?kind=savings" +
-		"&start_date=" + s_date.Format("2006-01-02T15:04:05Z") +
-		"&end_date=" + e_date.Format("2006-01-02T15:04:05Z") +
+		"&start_date=" + s_date.UTC().Format("2006-01-02T15:04:05Z") +
+		"&end_date=" + e_date.UTC().Format("2006-01-02T15:04:05Z") +
 		"&period=" + period +
 		"&tariff=PGE-EV2-A"
 
