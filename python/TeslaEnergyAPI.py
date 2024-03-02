@@ -127,31 +127,6 @@ def getSiteHistory(period, date):
 
 
 ##
-# Gets energy information in 5 minute increments.  Used to create the "ENERGY 
-# USAGE" charts in the mobile app.
-#
-# author: mjhwa@yahoo.com
-##
-def getBatteryPowerHistory():
-  try:
-    url = (BASE_OWNER_URL
-           + '/powerwalls/' 
-           + BATTERY_ID
-           + '/powerhistory')
-
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
-    )
-
-    return response
-  except Exception as e:
-    logError('getBatteryPowerHistory(): ' + str(e))
-
-
-##
 # Get grid outage/battery backup events.
 #
 # author: mjhwa@yahoo.com
@@ -378,6 +353,30 @@ def getSiteTariff():
 
 
 ##
+# Retrieves the estimated time remaining in the powerwall(s).
+#
+# author: mjhwa@yahoo.com
+##
+def getBackupTimeRemaining():
+  try:
+    url = (BASE_OWNER_URL
+           + '/energy_sites/' 
+           + SITE_ID
+           + '/backup_time_remaining')
+
+    response = json.loads(
+      requests.get(
+        url,
+        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+      ).text
+    )
+
+    return response
+  except Exception as e:
+    logError('getBackupTimeRemaining(): ' + str(e))
+
+
+##
 # Gets the data for Solar Value in the mobile app to show estimated 
 # cost savings.  
 #
@@ -436,95 +435,6 @@ def getSavingsForecast(period, date):
 
 
 ##
-# Retrieves the estimated time remaining in the powerwall(s).
-#
-# author: mjhwa@yahoo.com
-##
-def getBackupTimeRemaining():
-  try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/backup_time_remaining')
-
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
-    )
-
-    return response
-  except Exception as e:
-    logError('getBackupTimeRemaining(): ' + str(e))
-
-
-##
-# Changes operating mode, "CUSTOMIZE", in the mobile app to "Backup-only".
-#
-# author: mjhwa@yahoo.com
-##
-def setBatteryModeBackup():
-  return setBatteryMode('backup')
-
-
-##
-# Changes operating mode, "CUSTOMIZE", in the mobile app to "Self-powered".
-#
-# author: mjhwa@yahoo.com
-##
-def setBatteryModeSelfPowered():
-  return setBatteryMode('self_consumption')
-
-
-##
-# Changes operating mode, "CUSTOMIZE", in the mobile app to "Advanced -
-# Time-based control" and a setting of "Balanced".
-#
-# author: mjhwa@yahoo.com
-##
-def setBatteryModeAdvancedBalanced():
-  setBatteryMode('autonomous')
-  return setEnergyTOUSettings('balanced')
-
-
-##
-# Changes operating mode, "CUSTOMIZE", in the mobile app to "Advanced -
-# Time-based control" and a setting of "Cost Saving".
-#
-# author: mjhwa@yahoo.com
-##
-def setBatteryModeAdvancedCost():
-  return setBatteryMode('autonomous')
-
-
-##
-# Changes operating mode, "CUSTOMIZE", in the mobile app. 
-#
-# author: mjhwa@yahoo.com
-##
-def setBatteryMode(mode):
-  try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID 
-           + '/operation')
-    payload = {
-      'default_real_mode': mode
-    }
-
-    response = requests.post(
-                 url,
-                 json=payload,
-                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-               )
-
-    return response
-  except Exception as e:
-    logError('setBatteryMode(' + mode + '): ' + str(e))
-
-
-##
 # Sets battery reserve %, "Reserve for Power Outages", in the mobile app.
 #
 # author: mjhwa@yahoo.com
@@ -577,80 +487,21 @@ def setOffGridVehicleChargingReserve(percent):
     logError('setOffGridVehicleChargingReserve(' + percent + '): ' + str(e))
 
 
-##
-# Sets the Advanced operation optimization strategy.  You always have to send 
-# the TOU schedule because if it's omitted, it erases your TOU schedule saved 
-# in the mobile app.  It's hard coded because it's not meant to be configured 
-# outside the mobile app. 
-#
-# author: mjhwa@yahoo.com
-##
-def setEnergyTOUSettings(strategy):
-  try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/time_of_use_settings')
-    payload = {
-      'tou_settings': {
-        'optimization_strategy': strategy,
-        'schedule': [{
-          'target': 'peak',
-          'week_days': [1,2,3,4,5],
-          'start_seconds': (16 * 60 * 60),
-          'end_seconds': (21 * 60 * 60)
-        },
-        {
-          'target': 'off_peak',
-          'week_days': [1,2,3,4,5],
-          'start_seconds': 0,
-          'end_seconds': (15 * 60 * 60)
-        },
-        {
-          'target': 'peak',
-          'week_days': [0,6],
-          'start_seconds': (16 * 60 * 60),
-          'end_seconds': (21 * 60 * 60)
-        },
-        {
-          'target': 'off_peak',
-          'week_days': [0,6],
-          'start_seconds': 0,
-          'end_seconds': (15 * 60 * 60)
-        }]
-      }
-    }
-
-    response = requests.post(
-                 url,
-                 json=payload,
-                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-               )
-
-    return response
-  except Exception as e:
-    logError('setEnergyTOUSettings(' + strategy + '): ' + str(e))
-
-
 def main():
   print('[1]  getSiteStatus()')
   print('[2]  getSiteLiveStatus()')
   print('[3]  getSiteInfo()')
   print('[4]  getSiteHistory()')
-  print('[5]  getBatteryPowerHistory()')
-  print('[6]  getBatteryBackupHistory()')
-  print('[7]  getSiteTOUHistory()')
-  print('[8]  getBatteryChargeHistory()')
-  print('[9]  getPowerHistory()')
-  print('[10] getRateTariffs()')
-  print('[11] getSiteTariff()')
-  print('[12] getBackupTimeRemaining()')
-  print('[13] getSavingsForecast()')
-  print('[14] setBatteryModeBackup()')
-  print('[15] setBatteryModeSelfPowered()')
-  print('[16] setBatteryModeAdvancedBalanced()')
-  print('[17] setBatteryModeAdvancedCost()')
-  print('[18] setOffGridVehicleChargingReserve()')
+  print('[5]  getBatteryBackupHistory()')
+  print('[6]  getSiteTOUHistory()')
+  print('[7]  getBatteryChargeHistory()')
+  print('[8]  getPowerHistory()')
+  print('[9]  getRateTariffs()')
+  print('[10] getSiteTariff()')
+  print('[11] getBackupTimeRemaining()')
+  print('[12] getSavingsForecast()')
+  print('[13] setBatteryBackupReserve()')
+  print('[14] setOffGridVehicleChargingReserve()')
 
   try:
     choice = int(input('selection: '))
@@ -668,46 +519,33 @@ def main():
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getSiteHistory('day', date)
   elif choice == 5:
-    data = getBatteryPowerHistory()
-  elif choice == 6:
     data = getBatteryBackupHistory()
-  elif choice == 7:
+  elif choice == 6:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getSiteTOUHistory('day', date)
-  elif choice == 8:
+  elif choice == 7:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getBatteryChargeHistory('day', date)
-  elif choice == 9:
+  elif choice == 8:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getPowerHistory('day', date)
-  elif choice == 10:
+  elif choice == 9:
     data = getRateTariffs()
-  elif choice == 11:
+  elif choice == 10:
     data = getSiteTariff()
-  elif choice == 12:
+  elif choice == 11:
     data = getBackupTimeRemaining()
-  elif choice == 13:
+  elif choice == 12:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getSavingsForecast('day', date)
+  elif choice == 13:
+    percent = float(input('% for backup use: '))
+    data = setBatteryBackupReserve(percent)
   elif choice == 14:
-    data = setBatteryModeBackup()
-  elif choice == 15:
-    percent = float(input('% battery reserve: '))
-    data = setBatteryModeSelfPowered()
-    setBatteryBackupReserve(percent)
-  elif choice == 16:
-    percent = float(input('% battery reserve: '))
-    data = setBatteryModeAdvancedBalanced()
-    setBatteryBackupReserve(percent)
-  elif choice == 17:
-    percent = float(input('% battery reserve: '))
-    data = setBatteryModeAdvancedCost()
-    setBatteryBackupReserve(percent)
-  elif choice == 18:
     percent = float(input('% save for home use: '))
     data = setOffGridVehicleChargingReserve(percent)
   
