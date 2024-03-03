@@ -45,15 +45,9 @@ def getVehicleData(vin):
       verify=CERT
     )
 
-    response = json.loads(response.text)
-
-    if 'error' in response or response == 'None':
-      raise Exception(response['error'])
-
-    return response
+    return json.loads(response.text)
   except Exception as e:
     logError('getVehicleData(' + vin + '): ' + str(e))
-    raise Exception(e)
 
 
 ##

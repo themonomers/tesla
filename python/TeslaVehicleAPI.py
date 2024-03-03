@@ -68,7 +68,6 @@ def getVehicleData(vin):
     return json.loads(response.text)
   except Exception as e:
     logError('getVehicleData(' + vin + '): ' + str(e))
-    raise Exception(e)
 
 
 ##
