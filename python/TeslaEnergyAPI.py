@@ -435,16 +435,124 @@ def getSavingsForecast(period, date):
 
 
 ##
-# Sets battery reserve %, "Reserve for Power Outages", in the mobile app.
+# Changes Operational Mode in the mobile app to "Backup-only".
+# This doesn't appear to be any setting in the mobile app
+# but this API call still forces the system to only use the 
+# battery in an outage.  This also has a side effect of hiding
+# the Time of Use card as well as returns an empty response
+# when calling the API for Time of Use data.
 #
 # author: mjhwa@yahoo.com
 ##
-def setBatteryBackupReserve(backup_percent):
+def setOperationalModeBackup():
+  return setOperationalMode('backup')
+
+
+##
+# Changes Operational Mode in the mobile app to "Self-Powered".
+#
+# author: mjhwa@yahoo.com
+##
+def setOperationalModeSelfPowered():
+  return setOperationalMode('self_consumption')
+
+
+##
+# Changes Operational Mode in the mobile app to "Time-Based Control".
+#
+# author: mjhwa@yahoo.com
+##
+def setOperationalModeTimeBasedControl():
+  return setOperationalMode('autonomous')
+
+
+##
+# Changes Energy Exports in the mobile app to "Everything".
+# Defaults Grid Charging setting to "No".
+#
+# author: mjhwa@yahoo.com
+##
+def setEnergyExportsEverything():
+  return setGridImportExport('battery_ok', True)
+
+
+##
+# Changes Energy Exports in the mobile app to "Solar".
+# Defaults Grid Charging setting to "No".
+#
+# author: mjhwa@yahoo.com
+##
+def setEnergyExportsSolar():
+  return setGridImportExport('pv_only', True)
+
+
+##
+# Changes Operational Mode setting in the mobile app. 
+#
+# author: mjhwa@yahoo.com
+##
+def setOperationalMode(mode):
+  try:
+    url = (BASE_OWNER_URL
+           + '/energy_sites/' 
+           + SITE_ID 
+           + '/operation')
+  
+    payload = {
+      'default_real_mode': mode
+    }
+
+    response = requests.post(
+                 url,
+                 json=payload,
+                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+               )
+
+    return response
+  except Exception as e:
+    logError('setOperationalMode(' + mode + '): ' + str(e))
+
+
+##
+# Changes Energy Exports and Grid Charging settings in the mobile app.
+#
+# author: mjhwa@yahoo.com
+##
+def setGridImportExport(export_rule, disallow_grid_charging):
+  try:
+    url = (BASE_OWNER_URL
+           + '/energy_sites/' 
+           + SITE_ID
+           + '/grid_import_export')
+    
+    payload = {
+      'customer_preferred_export_rule': export_rule,
+      'disallow_charge_from_grid_with_solar_installed': disallow_grid_charging
+    }
+
+    response = requests.post(
+                 url,
+                 json=payload,
+                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+               )
+
+    return response
+  except Exception as e:
+    logError('setGridImportExport(' + export_rule + ', ' + disallow_grid_charging + '): ' + str(e))
+
+
+##
+# Sets "Reserve Energy for Grid Outages", % Backup, in the mobile app.
+#
+# author: mjhwa@yahoo.com
+##
+def setBackupReserve(backup_percent):
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID 
            + '/backup')
+    
     payload = {
       'backup_reserve_percent': backup_percent
     }
@@ -457,7 +565,7 @@ def setBatteryBackupReserve(backup_percent):
 
     return response
   except Exception as e:
-    logError('setBatteryBackupReserve(' + backup_percent + '): ' + str(e))
+    logError('setBackupReserve(' + backup_percent + '): ' + str(e))
 
 
 ##
@@ -472,6 +580,7 @@ def setOffGridVehicleChargingReserve(percent):
            + '/energy_sites/' 
            + SITE_ID 
            + '/off_grid_vehicle_charging_reserve')
+    
     payload = {
       'off_grid_vehicle_charging_reserve_percent': percent
     }
@@ -500,8 +609,13 @@ def main():
   print('[10] getSiteTariff()')
   print('[11] getBackupTimeRemaining()')
   print('[12] getSavingsForecast()')
-  print('[13] setBatteryBackupReserve()')
-  print('[14] setOffGridVehicleChargingReserve()')
+  print('[13] setOperationalModeBackup()')
+  print('[14] setOperationalModeSelfPowered()')
+  print('[15] setOperationalModeTimeBasedControl()')
+  print('[16] setEnergyExportsEverything()')
+  print('[17] setEnergyExportsSolar()')
+  print('[18] setBackupReserve()')
+  print('[19] setOffGridVehicleChargingReserve()')
 
   try:
     choice = int(input('selection: '))
@@ -543,9 +657,19 @@ def main():
     date = datetime.strptime(date, '%m/%d/%Y')
     data = getSavingsForecast('day', date)
   elif choice == 13:
-    percent = float(input('% for backup use: '))
-    data = setBatteryBackupReserve(percent)
+    setOperationalModeBackup()
   elif choice == 14:
+    setOperationalModeSelfPowered()
+  elif choice == 15:
+    setOperationalModeTimeBasedControl()
+  elif choice == 16:
+    setEnergyExportsEverything()
+  elif choice == 17:
+    setEnergyExportsSolar()
+  elif choice == 18:
+    percent = float(input('% for backup use: '))
+    data = setBackupReserve(percent)
+  elif choice == 19:
     percent = float(input('% save for home use: '))
     data = setOffGridVehicleChargingReserve(percent)
   

@@ -1,4 +1,4 @@
-from TeslaEnergyAPI import setBatteryBackupReserve
+from TeslaEnergyAPI import setBackupReserve
 from Email import sendEmail
 from Utilities import getDailyWeather, getConfig
 from Logger import logError
@@ -70,7 +70,7 @@ def setEnergyModeBasedOnWeather():
       # percentage, set backup reserve to 100%, otherwise set to normal 
       # backup reserve of 35%
       if ((float(rain) / float(total)) > PCT_THRESHOLD): 
-        setBatteryBackupReserve(100)
+        setBackupReserve(100)
 
         msg += 'Greater than ' + str(int(PCT_THRESHOLD * 100))
         msg += '% rain forecasted, setting backup reserve to 100%\n'
@@ -80,7 +80,7 @@ def setEnergyModeBasedOnWeather():
       else:
         # if none of the days is above the threshold
         if (msg == ''):
-          setBatteryBackupReserve(35)
+          setBackupReserve(35)
 
     if (msg != ''):
       sendEmail(EMAIL_1, 
