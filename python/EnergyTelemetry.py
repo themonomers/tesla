@@ -306,9 +306,11 @@ def writeEnergyTOUSummaryToDB(date):
     # get solar data for TOU
     data = getSiteTOUHistory('day', date)
 
-    # write solar data for off peak
+    # write solar data for TOU
     for key_1, value_1 in data['response'].items():
-      if (key_1 == 'off_peak'):
+      if (key_1 == 'off_peak'
+          or key_1 == 'partial_peak'
+          or key_1 == 'peak'):
         for i in range(len(data['response'][key_1]['time_series'])):
           d = datetime.strptime(
             data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
@@ -321,67 +323,7 @@ def writeEnergyTOUSummaryToDB(date):
             for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
               if (key_2 != 'timestamp'):
                 json_body.append({
-                  'measurement': 'off_peak',
-                  'tags': {
-                    'source': key_2
-                  },
-                  'time': str(datetime(
-                    date.year, 
-                    date.month, 
-                    date.day, 
-                    0, 
-                    0, 
-                    0, 
-                    0
-                  ).replace(tzinfo=PAC)),
-                  'fields': {
-                    'value': float(value_2)
-                  }
-                })
-      elif (key_1 == 'partial_peak'):
-        for i in range(len(data['response'][key_1]['time_series'])):
-          d = datetime.strptime(
-            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
-            '%Y-%m-%d'
-          )
-
-          if (d.year == date.year
-              and d.month == date.month
-              and d.day == date.day):
-            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
-              if (key_2 != 'timestamp'):
-                json_body.append({
-                  'measurement': 'partial_peak',
-                  'tags': {
-                    'source': key_2
-                  },
-                  'time': str(datetime(
-                    date.year, 
-                    date.month, 
-                    date.day, 
-                    0, 
-                    0, 
-                    0, 
-                    0
-                  ).replace(tzinfo=PAC)),
-                  'fields': {
-                    'value': float(value_2)
-                  }
-                })
-      elif (key_1 == 'peak'):
-        for i in range(len(data['response'][key_1]['time_series'])):
-          d = datetime.strptime(
-            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
-            '%Y-%m-%d'
-          )
-
-          if (d.year == date.year
-              and d.month == date.month
-              and d.day == date.day):
-            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
-              if (key_2 != 'timestamp'):
-                json_body.append({
-                  'measurement': 'peak',
+                  'measurement': key_1,
                   'tags': {
                     'source': key_2
                   },
