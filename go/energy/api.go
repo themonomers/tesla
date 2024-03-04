@@ -325,8 +325,93 @@ func GetBackupTimeRemaining() map[string]interface{} {
 	return body
 }
 
-// Sets battery reserve %, "Reserve for Power Outages", in the mobile app.
-func SetBatteryBackupReserve(backup_percent int) map[string]interface{} {
+// Changes Operational Mode in the mobile app to "Backup-only".
+// This doesn't appear to be any setting in the mobile app
+// but this API call still forces the system to only use the
+// battery in an outage.  This also has a side effect of hiding
+// the Time of Use card as well as returns an empty response
+// when calling the API for Time of Use data.
+func SetOperationalModeBackup() map[string]interface{} {
+	return setOperationalMode("backup")
+}
+
+// Changes Operational Mode in the mobile app to "Self-Powered".
+func SetOperationalModeSelfPowered() map[string]interface{} {
+	return setOperationalMode("self_consumption")
+}
+
+// Changes Operational Mode in the mobile app to "Time-Based Control".
+func SetOperationalModeTimeBasedControl() map[string]interface{} {
+	return setOperationalMode("autonomous")
+}
+
+// Changes Energy Exports in the mobile app to "Everything".
+// Defaults Grid Charging setting to "No".
+func SetEnergyExportsEverything() map[string]interface{} {
+	return setGridImportExport("battery_ok", true)
+}
+
+// Changes Energy Exports in the mobile app to "Solar".
+// Defaults Grid Charging setting to "No".
+func SetEnergyExportsSolar() map[string]interface{} {
+	return setGridImportExport("pv_only", true)
+}
+
+// Changes Operational Mode setting in the mobile app.
+func setOperationalMode(mode string) map[string]interface{} {
+	url := BASE_OWNER_URL +
+		"/energy_sites/" +
+		SITE_ID +
+		"/operation"
+
+	payload, _ := json.Marshal(map[string]interface{}{
+		"default_real_mode": mode,
+	})
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	common.LogError("setOperationalMode(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := GetHttpsClient().Do(req)
+	common.LogError("setOperationalMode(): GetHttpsClient", err)
+
+	defer resp.Body.Close()
+	body := map[string]interface{}{}
+	json.NewDecoder(resp.Body).Decode(&body)
+
+	return body
+}
+
+// Changes Energy Exports and Grid Charging settings in the mobile app.
+func setGridImportExport(export_rule string, disallow_grid_charging bool) map[string]interface{} {
+	url := BASE_OWNER_URL +
+		"/energy_sites/" +
+		SITE_ID +
+		"/grid_import_export"
+
+	payload, _ := json.Marshal(map[string]interface{}{
+		"customer_preferred_export_rule":                 export_rule,
+		"disallow_charge_from_grid_with_solar_installed": disallow_grid_charging,
+	})
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	common.LogError("setGridImportExport(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := GetHttpsClient().Do(req)
+	common.LogError("setGridImportExport(): GetHttpsClient", err)
+
+	defer resp.Body.Close()
+	body := map[string]interface{}{}
+	json.NewDecoder(resp.Body).Decode(&body)
+
+	return body
+}
+
+// Sets "Reserve Energy for Grid Outages", % Backup, in the mobile app.
+func SetBackupReserve(backup_percent int) map[string]interface{} {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
@@ -337,12 +422,12 @@ func SetBatteryBackupReserve(backup_percent int) map[string]interface{} {
 	})
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("SetBatteryBackupReserve(): http.NewRequest", err)
+	common.LogError("SetBackupReserve(): http.NewRequest", err)
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
 	resp, err := GetHttpsClient().Do(req)
-	common.LogError("SetBatteryBackupReserve(): GetHttpsClient", err)
+	common.LogError("SetBackupReserve(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
