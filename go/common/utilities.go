@@ -181,6 +181,28 @@ func GetCurrentWeather(zipcode string) map[string]interface{} {
 	return body
 }
 
+// Uses a free weather service with API to look up data by latitude and
+// longitude or other attributes.  Gets daily weather conditions for
+// today + 7 days, and hourly weather conditions for 48 hours.
+func GetDailyWeather(lat, lng float64) map[string]interface{} {
+	url := BASE_WEATHER_URL +
+		"/onecall" +
+		"?lat=" + strconv.FormatFloat(lat, 'f', -1, 64) +
+		"&lon=" + strconv.FormatFloat(lng, 'f', -1, 64) +
+		"&APPID=" + OPENWEATHERMAP_KEY +
+		"&exclude=current,minutely,alerts" +
+		"&units=metric"
+
+	resp, err := http.Get(url)
+	LogError("GetDailyWeather(): http.Get", err)
+
+	defer resp.Body.Close()
+	body := map[string]interface{}{}
+	json.NewDecoder(resp.Body).Decode(&body)
+
+	return body
+}
+
 // Creates crontab entry for a single command.
 func CreateCronTab(command string, minute int, hour int, dom int, mon int) {
 	cron := fmt.Sprint(minute) + " " + fmt.Sprint(hour) + " " + fmt.Sprint(dom) + " " + fmt.Sprint(mon) + " * " + command
