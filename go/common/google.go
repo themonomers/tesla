@@ -48,7 +48,7 @@ func GetGoogleSheetService() *sheets.Service {
 	b, err := os.ReadFile("/home/pi/tesla/go/common/google_client_secret.json")
 	logError("GetGoogleSheetService(): os.ReadFile", err)
 
-	// If modifying these scopes, delete your previously saved google_token.json.
+	// If modifying these scopes, delete your previously saved gsheet_token.json.
 	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
 	logError("GetGoogleSheetService(): google.ConfigFromJSON", err)
 
