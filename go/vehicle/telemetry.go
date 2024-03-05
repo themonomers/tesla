@@ -31,9 +31,14 @@ func init() {
 	common.LogError("init(): load email 1", err)
 }
 
+func WriteVehicleTelemetry() {
+	writeM3Telemetry()
+	writeMXTelemetry()
+}
+
 // Contains functions to read/write the vehicle's data, e.g. mileage,
 // efficiency, etc. into a Google Sheet for tracking, analysis, and graphs.
-func WriteM3Telemetry() {
+func writeM3Telemetry() {
 	// get rollup of vehicle data
 	data := GetVehicleData(M3_VIN)
 
@@ -210,7 +215,7 @@ func WriteM3Telemetry() {
 	common.SendEmail(EMAIL_1, "Model 3 Telemetry Logged", message, "")
 }
 
-func WriteMXTelemetry() {
+func writeMXTelemetry() {
 	// get rollup of vehicle data
 	data := GetVehicleData(MX_VIN)
 
