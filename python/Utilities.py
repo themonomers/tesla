@@ -7,7 +7,6 @@ import configparser
 import os
 
 from Crypto import decrypt
-from Logger import logError
 from crontab import CronTab
 from datetime import datetime, timedelta
 from io import StringIO
@@ -80,7 +79,7 @@ def getToken():
     buffer.close()
     return values
   except Exception as e:
-    logError('getToken(): ' + str(e))
+    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getToken(): ' + str(e))
 
 
 ##
@@ -95,7 +94,7 @@ def deleteCronTab(command):
     cron.remove(job)
     cron.write()
   except Exception as e:
-    logError('deleteCronTab(' + command + '): ' + str(e))
+    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + 'deleteCronTab(' + command + '): ' + str(e))
 
 
 ##
@@ -113,7 +112,7 @@ def createCronTab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    logError('createCronTab(' + command + '): ' + str(e))
+    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + 'createCronTab(' + command + '): ' + str(e))
 
 
 ##
@@ -147,7 +146,7 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    logError('isVehicleAtLocation(): ' + str(e))
+    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + 'isVehicleAtLocation(): ' + str(e))
 
 
 def getDistance(car_lat, car_lng, x_lat, x_lng):
@@ -215,7 +214,7 @@ def getCurrentWeather(zipcode):
 
     return json.loads(response.text)
   except Exception as e:
-    logError('getCurrentWeather(): ' + str(e))
+      print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + 'getCurrentWeather(): ' + str(e))
 
 
 ##
@@ -239,7 +238,7 @@ def getDailyWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    logError('getDailyWeather(): ' + str(e))
+    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + 'getDailyWeather(): ' + str(e))
 
 
 ##

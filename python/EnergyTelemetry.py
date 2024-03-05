@@ -868,7 +868,7 @@ def writeEnergyTOUSummaryToGsheet(date):
                 }
               })
 
-      # copy formulas down: column CV to CX 
+      # copy formulas down: column CV to DK 
       requests.append({
         'copyPaste': {
           'source': {
@@ -876,60 +876,18 @@ def writeEnergyTOUSummaryToGsheet(date):
             'startRowIndex': 4,
             'endRowIndex': 5,
             'startColumnIndex': 99,
-            'endColumnIndex': 102
+            'endColumnIndex': 115
           },
           'destination': {
             'sheetId': SUMMARY_SHEET_ID,
             'startRowIndex': open_row - 1,
             'endRowIndex': open_row,
             'startColumnIndex': 99,
-            'endColumnIndex': 102
-          },
-          'pasteType': 'PASTE_NORMAL'
-        }
-      })
-
-      # copy formulas down: column DC to DK 
-      requests.append({
-        'copyPaste': {
-          'source': {
-            'sheetId': SUMMARY_SHEET_ID,
-            'startRowIndex': 4,
-            'endRowIndex': 5,
-            'startColumnIndex': 106,
-            'endColumnIndex': 115
-          },
-          'destination': {
-            'sheetId': SUMMARY_SHEET_ID,
-            'startRowIndex': open_row - 1,
-            'endRowIndex': open_row,
-            'startColumnIndex': 106,
             'endColumnIndex': 115
           },
           'pasteType': 'PASTE_NORMAL'
         }
       })
-    
-    # copy formulas down: column CY to DB
-    requests.append({
-      'copyPaste': {
-        'source': {
-          'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': 4,
-          'endRowIndex': 5,
-          'startColumnIndex': 102,
-          'endColumnIndex': 106
-        },
-        'destination': {
-          'sheetId': SUMMARY_SHEET_ID,
-          'startRowIndex': open_row - 1,
-          'endRowIndex': open_row,
-          'startColumnIndex': 102,
-          'endColumnIndex': 106
-        },
-        'pasteType': 'PASTE_NORMAL'
-      }
-    })
 
     # copy formulas down: column DM to DP, copy from previous row to allow for
     # changes in formula due to electricity rate changes
