@@ -320,7 +320,7 @@ def calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time
 
       return m3_start_time
   except Exception as e:
-    print('calcuateScheduledCharging(' + scenario + '): ' + str(e))
+    logError('calcuateScheduledCharging(' + scenario + '): ' + str(e))
 
 
 ##
