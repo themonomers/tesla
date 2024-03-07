@@ -34,6 +34,8 @@ def logError(msg):
       body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
     ).execute()
     service.close()
+
+    exit(0)
   except Exception as e:
     print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' logError(): ' + str(e))
 

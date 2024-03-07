@@ -10,9 +10,6 @@ M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
 BASE_OWNER_URL = config['tesla']['base_owner_url']
 
-WAIT_TIME = 30 
-RETRY_MSG = 'vehicle unavailable: vehicle is offline or asleep'
-
 
 ##
 # Retrieves the vehicle ID, which changes from time to time, by the VIN, which 
