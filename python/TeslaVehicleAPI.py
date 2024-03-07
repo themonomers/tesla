@@ -1,7 +1,4 @@
 import requests
-import json
-import time
-import urllib.parse
 import TeslaVehicleCommandProxy
 
 from Logger import logError
@@ -14,6 +11,7 @@ MX_VIN = config['vehicle']['mx_vin']
 BASE_OWNER_URL = config['tesla']['base_owner_url']
 
 WAIT_TIME = 30 
+RETRY_MSG = 'vehicle unavailable: vehicle is offline or asleep'
 
 
 ##
@@ -43,29 +41,7 @@ def getVehicleId(vin):
 ##
 def getVehicleData(vin):
   try:
-    if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.getVehicleData(vin)
-
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + getVehicleId(vin) 
-           + '/vehicle_data?endpoints='
-           + urllib.parse.quote(
-               'location_data;'
-               + 'charge_state;'
-               + 'climate_state;'
-               + 'vehicle_state;'
-               + 'gui_settings;'
-               + 'vehicle_config;'
-               + 'closures_state;'
-               + 'drive_state'))
-
-    response = requests.get(
-      url, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
-
-    return json.loads(response.text)
+    return TeslaVehicleCommandProxy.getVehicleData(vin)
   except Exception as e:
     logError('getVehicleData(' + vin + '): ' + str(e))
 
@@ -81,8 +57,6 @@ def wakeVehicle(vin):
     return TeslaVehicleCommandProxy.wakeVehicle(vin)
   except Exception as e:
     logError('wakeVehicle(' + vin + '): ' + str(e))
-    time.sleep(WAIT_TIME)
-    wakeVehicle(vin)
 
 
 ##

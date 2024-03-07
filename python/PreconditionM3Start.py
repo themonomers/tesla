@@ -1,6 +1,4 @@
-import time
-
-from TeslaVehicleAPI import getVehicleData, wakeVehicle, setCarTemp, setCarSeatHeating, preconditionCarStart
+from TeslaVehicleAPI import getVehicleData, setCarTemp, setCarSeatHeating, preconditionCarStart
 from GoogleAPI import getGoogleSheetService
 from Utilities import deleteCronTab, createCronTab, isVehicleAtPrimary, getTodayTime, getCurrentWeather, getConfig
 from Logger import logError
@@ -280,9 +278,6 @@ def preconditionM3Start():
       )
   except Exception as e:
     logError('preconditionM3Start(): ' + str(e))
-    wakeVehicle(M3_VIN)
-    time.sleep(WAIT_TIME)
-    preconditionM3Start()
 
 
 def main():

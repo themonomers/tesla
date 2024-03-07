@@ -1,6 +1,4 @@
-import time
-
-from TeslaVehicleAPI import getVehicleData, wakeVehicle, setScheduledCharging, stopChargeVehicle
+from TeslaVehicleAPI import getVehicleData, setScheduledCharging, stopChargeVehicle
 from GoogleAPI import getGoogleSheetService
 from Email import sendEmail
 from Climate import setM3Precondition, setMXPrecondition
@@ -402,10 +400,6 @@ def notifyIsTeslaPluggedIn():
     setMXPrecondition(mx_data, climate_config)
   except Exception as e:
     logError('notifyIsTeslaPluggedIn(): ' + str(e))
-    wakeVehicle(M3_VIN)
-    wakeVehicle(MX_VIN)
-    time.sleep(WAIT_TIME)
-    notifyIsTeslaPluggedIn()
 
 
 def main():

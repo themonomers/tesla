@@ -1,6 +1,6 @@
 import time
 
-from TeslaVehicleAPI import wakeVehicle, getVehicleData, preconditionCarStop
+from TeslaVehicleAPI import getVehicleData, preconditionCarStop
 from Utilities import isVehicleAtPrimary, getConfig
 from Logger import logError
 
@@ -25,9 +25,6 @@ def preconditionM3Stop():
       preconditionCarStop(M3_VIN)
   except Exception as e:
     logError('preconditionM3Stop(): ' + str(e))
-    wakeVehicle(M3_VIN)
-    time.sleep(WAIT_TIME)
-    preconditionM3Stop()
 
 
 def main():

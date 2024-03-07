@@ -94,7 +94,7 @@ def deleteCronTab(command):
     cron.remove(job)
     cron.write()
   except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + 'deleteCronTab(' + command + '): ' + str(e))
+    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' deleteCronTab(' + command + '): ' + str(e))
 
 
 ##
@@ -112,7 +112,7 @@ def createCronTab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + 'createCronTab(' + command + '): ' + str(e))
+    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' createCronTab(' + command + '): ' + str(e))
 
 
 ##
@@ -146,7 +146,7 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    raise Exception(e)
+    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' isVehicleAtLocation(): ' + str(e))
 
 
 def getDistance(car_lat, car_lng, x_lat, x_lng):

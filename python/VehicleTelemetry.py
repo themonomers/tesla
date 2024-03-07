@@ -206,9 +206,6 @@ def writeM3Telemetry():
     sendEmail(EMAIL_1, 'Model 3 Telemetry Logged', message, '', '')
   except Exception as e:
     logError('writeM3Telemetry(): ' + str(e))
-    wakeVehicle(M3_VIN)
-    time.sleep(WAIT_TIME)
-    writeM3Telemetry()
 
 
 def writeMXTelemetry():
@@ -393,9 +390,6 @@ def writeMXTelemetry():
     sendEmail(EMAIL_1, 'Model X Telemetry Logged', message, '', '')
   except Exception as e:
     logError('writeMXTelemetry(): ' + str(e))
-    wakeVehicle(MX_VIN)
-    time.sleep(WAIT_TIME)
-    writeMXTelemetry()
 
 
 ##

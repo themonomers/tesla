@@ -13,6 +13,7 @@ BASE_PROXY_URL = config['tesla']['base_proxy_url']
 CERT = config['tesla']['certificate']
 
 WAIT_TIME = 30 
+RETRY_MSG = 'vehicle unavailable: vehicle is offline or asleep'
 
 
 ##
@@ -45,7 +46,17 @@ def getVehicleData(vin):
       verify=CERT
     )
 
-    return json.loads(response.text)
+    response = json.loads(response.text)
+
+    if 'error' in response and response['response'] is None:
+      if response['error'] == RETRY_MSG:
+        wakeVehicle(vin)
+        time.sleep(WAIT_TIME)
+        return getVehicleData(vin)
+      else :
+        raise Exception(response['error'])
+
+    return response
   except Exception as e:
     logError('getVehicleData(' + vin + '): ' + str(e))
 
@@ -72,8 +83,6 @@ def wakeVehicle(vin):
     )
   except Exception as e:
     logError('wakeVehicle(' + vin + '): ' + str(e))
-    time.sleep(WAIT_TIME)
-    wakeVehicle(vin)
 
 
 ##
