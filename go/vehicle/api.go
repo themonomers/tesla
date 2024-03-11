@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/url"
 	"os"
@@ -19,7 +18,6 @@ var BASE_OWNER_URL string
 var BASE_PROXY_URL string
 var CERT string
 var WAIT_TIME time.Duration = 30 // seconds
-var RETRY_MSG string = "vehicle unavailable: vehicle is offline or asleep"
 
 func init() {
 	var err error
@@ -63,19 +61,15 @@ func GetVehicleData(vin string) map[string]interface{} {
 	resp, err := getHttpsClient().Do(req)
 	common.LogError("GetVehicleData(): getHttpClient", err)
 
+	if resp.StatusCode != 200 {
+		WakeVehicle(vin)
+		time.Sleep(WAIT_TIME * time.Second)
+		return GetVehicleData(vin)
+	}
+
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return GetVehicleData(vin)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("GetVehicleData("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -123,16 +117,6 @@ func StopChargeVehicle(vin string) map[string]interface{} {
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return StopChargeVehicle(vin)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("StopChargeVehicle("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -153,16 +137,6 @@ func stopChargeVehicle(vin string) map[string]interface{} {
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return stopChargeVehicle(vin)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("stopChargeVehicle("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -195,16 +169,6 @@ func SetScheduledCharging(vin string, sch_time int) map[string]interface{} {
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return SetScheduledCharging(vin, sch_time)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("SetScheduledCharging("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -235,16 +199,6 @@ func setScheduledCharging(vin string, sch_time int) map[string]interface{} {
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return setScheduledCharging(vin, sch_time)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("setScheduledCharging("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -275,16 +229,6 @@ func SetCarTemp(vin string, d_temp float64, p_temp float64) map[string]interface
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return SetCarTemp(vin, d_temp, p_temp)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("SetCarTemp("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -310,16 +254,6 @@ func setCarTemp(vin string, d_temp float64, p_temp float64) map[string]interface
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return setCarTemp(vin, d_temp, p_temp)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("setCarTemp("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -350,16 +284,6 @@ func SetCarSeatHeating(vin string, seat int, setting int) map[string]interface{}
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return SetCarSeatHeating(vin, seat, setting)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("SetCarSeatHeating("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -385,16 +309,6 @@ func setCarSeatHeating(vin string, seat int, setting int) map[string]interface{}
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return setCarSeatHeating(vin, seat, setting)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("setCarSeatHeating("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -420,16 +334,6 @@ func PreconditionCarStart(vin string) map[string]interface{} {
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return PreconditionCarStart(vin)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("PreconditionCarStart("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -450,16 +354,6 @@ func preconditionCarStart(vin string) map[string]interface{} {
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return preconditionCarStart(vin)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("preconditionCarStart("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -485,16 +379,6 @@ func PreconditionCarStop(vin string) map[string]interface{} {
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return PreconditionCarStop(vin)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("PreconditionCarStop("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
@@ -515,16 +399,6 @@ func preconditionCarStop(vin string) map[string]interface{} {
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
-	if body["response"] == nil && body["error"] != nil {
-		if body["error"] == RETRY_MSG {
-			WakeVehicle(vin)
-			time.Sleep(WAIT_TIME * time.Second)
-			return preconditionCarStop(vin)
-		} else if body["error"] != RETRY_MSG {
-			common.LogError("preconditionCarStop("+vin+"): ", errors.New(body["error"].(string)))
-		}
-	}
-
 	return body
 }
 
