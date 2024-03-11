@@ -50,7 +50,7 @@ def getVehicleData(vin):
     response = json.loads(response.text)
 
     if 'error' in response and response['response'] is None:
-      if response['error'] == RETRY_MSG_1 or response['error'] == RETRY_MSG_2:
+      if response['error'] == RETRY_MSG_1 or response['error']['error'] == RETRY_MSG_2:
         wakeVehicle(vin)
         time.sleep(WAIT_TIME)
         return getVehicleData(vin)
