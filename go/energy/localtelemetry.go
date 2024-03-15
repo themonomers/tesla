@@ -12,6 +12,7 @@ import (
 var BASE_URL string
 var LOCAL_ACCESS_TOKEN string
 var TIMEZONE string
+var WAIT_TIME time.Duration = 30 // seconds
 
 func init() {
 	var err error
@@ -105,6 +106,11 @@ func getLocalSiteLiveStatus() map[string]interface{} {
 	resp, err := GetHttpsClient().Do(req)
 	common.LogError("getLocalSiteLiveStatus(): getHttpsClient().Do", err)
 
+	if resp.StatusCode != 200 {
+		time.Sleep(WAIT_TIME * time.Second)
+		return getLocalSiteLiveStatus()
+	}
+
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
@@ -124,6 +130,11 @@ func getLocalSOE() map[string]interface{} {
 
 	resp, err := GetHttpsClient().Do(req)
 	common.LogError("getLocalSOE(): getHttpsClient().Do", err)
+
+	if resp.StatusCode != 200 {
+		time.Sleep(WAIT_TIME * time.Second)
+		return getLocalSOE()
+	}
 
 	defer resp.Body.Close()
 	body := map[string]interface{}{}

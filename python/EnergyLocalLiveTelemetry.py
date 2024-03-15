@@ -4,6 +4,7 @@ import configparser
 import os
 import zoneinfo
 import urllib3
+import time
 
 from Crypto import encrypt, decrypt
 from Influxdb import getDBClient
@@ -14,6 +15,7 @@ from io import StringIO
 
 TIME_ZONE = getConfig()['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
+WAIT_TIME = 30  # seconds
 
 
 ##
@@ -141,21 +143,23 @@ def getLocalSiteLiveStatus():
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    response = json.loads(
-      requests.get(
+    response = requests.get(
         url,
         verify = False,
         headers={'authorization': 'Bearer ' + getLocalToken()['tesla']['token']}
-      ).text
     )
 
     # Detect expired local token and re-auth
-    if ('message' in response):
-      if (response['message'] == 'Invalid bearer token'):
+    resp = json.loads(response.text)
+    if ('message' in resp):
+      if (resp['message'] == 'Invalid bearer token'):
         authLocalToken()
         writeLocalLiveSiteTelemetry()
+    elif (response.status_code != 200):
+      time.sleep(WAIT_TIME)
+      return getLocalSiteLiveStatus()
 
-    return response
+    return resp
   except Exception as e:
     logError('getLocalSiteLiveStatus(): ' + str(e))
 
@@ -173,21 +177,23 @@ def getLocalSOE():
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    response = json.loads(
-      requests.get(
+    response = requests.get(
         url,
         verify = False,
         headers={'authorization': 'Bearer ' + getLocalToken()['tesla']['token']}
-      ).text
     )
 
     # Detect expired local token and re-auth
-    if ('message' in response):
-      if (response['message'] == 'Invalid bearer token'):
+    resp = json.loads(response.text)    
+    if ('message' in resp):
+      if (resp['message'] == 'Invalid bearer token'):
         authLocalToken()
         writeLocalLiveSiteTelemetry()
+    elif (response.status_code != 200):
+      time.sleep(WAIT_TIME)
+      return getLocalSOE()
 
-    return response
+    return resp
   except Exception as e:
     logError('getLocalSOE(): ' + str(e))
 
