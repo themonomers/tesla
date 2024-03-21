@@ -95,8 +95,9 @@ func WriteEnergyDetailToDB(date time.Time) {
 // InfluxDB for tracking, analysis, and graphs.  The data is a summary level
 // down to the day.
 func WriteEnergySummaryToDB(date time.Time) {
-	// get battery data
-	data := GetSiteStatus()
+	// get local battery data
+	data := getLocalSystemStatus()
+	date = time.Date(date.Year(), date.Month(), date.Day(), date.Hour(), date.Minute(), date.Second(), date.Nanosecond(), time.Local)
 
 	c := common.GetDBClient()
 	defer c.Close()
@@ -111,17 +112,17 @@ func WriteEnergySummaryToDB(date time.Time) {
 	// Create points and add to batch
 	tags := map[string]string{"source": "total_pack_energy"}
 	fields := map[string]interface{}{
-		"value": data["response"].(map[string]interface{})["total_pack_energy"].(float64),
+		"value": data["nominal_full_pack_energy"].(float64),
 	}
-	pt, err := client.NewPoint("energy_summary", tags, fields, date)
+	pt, err := client.NewPoint("energy_summary", tags, fields, date.Local().UTC())
 	common.LogError("WriteEnergySummaryToDB(): client.NewPoint", err)
 	bp.AddPoint(pt)
 
 	tags = map[string]string{"source": "percentage_charged"}
 	fields = map[string]interface{}{
-		"value": data["response"].(map[string]interface{})["percentage_charged"].(float64),
+		"value": data["nominal_energy_remaining"].(float64) / data["nominal_full_pack_energy"].(float64) * 100,
 	}
-	pt, err = client.NewPoint("energy_summary", tags, fields, date)
+	pt, err = client.NewPoint("energy_summary", tags, fields, date.Local().UTC())
 	common.LogError("WriteEnergySummaryToDB(): client.NewPoint", err)
 	bp.AddPoint(pt)
 
@@ -288,8 +289,8 @@ func WriteEnergyTOUSummaryToDB(date time.Time) {
 // by peak/partial peak/off peak, into a Google Sheet for tracking, analysis,
 // and graphs.  The data is a summary level down to the day.
 func WriteEnergyTOUSummaryToGsheet(date time.Time) {
-	// get battery data
-	data := GetSiteStatus()
+	// get local battery data
+	data := getLocalSystemStatus()
 
 	// write total pack energy value
 	open_row := common.FindOpenRow(ENERGY_SPREADSHEET_ID, "Telemetry-Summary", "A:A")
@@ -304,12 +305,12 @@ func WriteEnergyTOUSummaryToGsheet(date time.Time) {
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry-Summary!B" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["total_pack_energy"].(float64)}},
+		Values: [][]interface{}{{data["nominal_full_pack_energy"].(float64)}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry-Summary!C" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["percentage_charged"].(float64)}},
+		Values: [][]interface{}{{data["nominal_energy_remaining"].(float64) / data["nominal_full_pack_energy"].(float64) * 100}},
 	})
 
 	// copy formula down: column D

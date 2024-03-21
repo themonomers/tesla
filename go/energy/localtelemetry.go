@@ -33,7 +33,7 @@ func init() {
 // Writes live energy data to InfluxDB, accessed locally
 // from the Tesla Energy Gateway.
 func WriteLiveSiteTelemetry() {
-	data := getLocalSiteLiveStatus()
+	data := getLocalMetersAggregates()
 
 	c := common.GetDBClient()
 	defer c.Close()
@@ -79,7 +79,7 @@ func WriteLiveSiteTelemetry() {
 
 	tags = map[string]string{"source": "percentage_charged"}
 	fields = map[string]interface{}{
-		"value": getLocalSOE()["percentage"].(float64),
+		"value": getLocalSystemStatusSOE()["percentage"].(float64),
 	}
 	pt, err = client.NewPoint("energy_live", tags, fields, time.Now())
 	common.LogError("WriteLiveSiteTelemetry(): client.NewPoint", err)
@@ -95,20 +95,20 @@ func WriteLiveSiteTelemetry() {
 
 // Retrieves site energy data locally from the Tesla
 // Energy Gateway.
-func getLocalSiteLiveStatus() map[string]interface{} {
+func getLocalMetersAggregates() map[string]interface{} {
 	url := BASE_URL +
 		"/meters/aggregates"
 
 	req, err := http.NewRequest("GET", url, nil)
-	common.LogError("getLocalSiteLiveStatus(): http.NewRequest", err)
+	common.LogError("getLocalMetersAggregates(): http.NewRequest", err)
 	req.Header.Add("authorization", "Bearer "+LOCAL_ACCESS_TOKEN)
 
 	resp, err := GetHttpsClient().Do(req)
-	common.LogError("getLocalSiteLiveStatus(): getHttpsClient().Do", err)
+	common.LogError("getLocalMetersAggregates(): getHttpsClient().Do", err)
 
 	if resp.StatusCode != 200 {
 		time.Sleep(WAIT_TIME * time.Second)
-		return getLocalSiteLiveStatus()
+		return getLocalMetersAggregates()
 	}
 
 	defer resp.Body.Close()
@@ -120,20 +120,44 @@ func getLocalSiteLiveStatus() map[string]interface{} {
 
 // Retrieves battery charge state locally from the Tesla
 // Energy Gateway.
-func getLocalSOE() map[string]interface{} {
+func getLocalSystemStatusSOE() map[string]interface{} {
 	url := BASE_URL +
 		"/system_status/soe"
 
 	req, err := http.NewRequest("GET", url, nil)
-	common.LogError("getLocalSOE(): http.NewRequest", err)
+	common.LogError("getLocalSystemStatusSOE(): http.NewRequest", err)
 	req.Header.Add("authorization", "Bearer "+LOCAL_ACCESS_TOKEN)
 
 	resp, err := GetHttpsClient().Do(req)
-	common.LogError("getLocalSOE(): getHttpsClient().Do", err)
+	common.LogError("getLocalSystemStatusSOE(): getHttpsClient().Do", err)
 
 	if resp.StatusCode != 200 {
 		time.Sleep(WAIT_TIME * time.Second)
-		return getLocalSOE()
+		return getLocalSystemStatusSOE()
+	}
+
+	defer resp.Body.Close()
+	body := map[string]interface{}{}
+	json.NewDecoder(resp.Body).Decode(&body)
+
+	return body
+}
+
+// Provides information on batteries and inverters.
+func getLocalSystemStatus() map[string]interface{} {
+	url := BASE_URL +
+		"/system_status"
+
+	req, err := http.NewRequest("GET", url, nil)
+	common.LogError("getLocalSystemStatus(): http.NewRequest", err)
+	req.Header.Add("authorization", "Bearer "+LOCAL_ACCESS_TOKEN)
+
+	resp, err := GetHttpsClient().Do(req)
+	common.LogError("getLocalSystemStatus(): getHttpsClient().Do", err)
+
+	if resp.StatusCode != 200 {
+		time.Sleep(WAIT_TIME * time.Second)
+		return getLocalSystemStatus()
 	}
 
 	defer resp.Body.Close()
