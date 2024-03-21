@@ -61,7 +61,7 @@ BASE_URL = config['energy']['base_url']
 ##
 def writeLocalLiveSiteTelemetry():
   try:
-    data = getLocalSiteLiveStatus()
+    data = getLocalMetersAggregates()
 
     json_body = []
 
@@ -117,7 +117,7 @@ def writeLocalLiveSiteTelemetry():
       },
       'time': timestampSplit(timestamp),  
       'fields': {
-        'value': float(getLocalSOE()['percentage'])
+        'value': float(getLocalSystemStatusSOE()['percentage'])
       }
     })
 
@@ -136,7 +136,7 @@ def writeLocalLiveSiteTelemetry():
 #
 # author: mjhwa@yahoo.com
 ##
-def getLocalSiteLiveStatus():
+def getLocalMetersAggregates():
   try:
     url = (BASE_URL
             + '/meters/aggregates')
@@ -157,11 +157,11 @@ def getLocalSiteLiveStatus():
         writeLocalLiveSiteTelemetry()
     elif (response.status_code != 200):
       time.sleep(WAIT_TIME)
-      return getLocalSiteLiveStatus()
+      return getLocalMetersAggregates()
 
     return resp
   except Exception as e:
-    logError('getLocalSiteLiveStatus(): ' + str(e))
+    logError('getLocalMetersAggregates(): ' + str(e))
 
 
 ##
@@ -170,7 +170,7 @@ def getLocalSiteLiveStatus():
 #
 # author: mjhwa@yahoo.com
 ##
-def getLocalSOE():
+def getLocalSystemStatusSOE():
   try:
     url = (BASE_URL
             + '/system_status/soe')
@@ -191,11 +191,44 @@ def getLocalSOE():
         writeLocalLiveSiteTelemetry()
     elif (response.status_code != 200):
       time.sleep(WAIT_TIME)
-      return getLocalSOE()
+      return getLocalSystemStatusSOE()
 
     return resp
   except Exception as e:
-    logError('getLocalSOE(): ' + str(e))
+    logError('getLocalSystemStatusSOE(): ' + str(e))
+
+
+##
+# Provides information on batteries and inverters.
+#
+# author: mjhwa@yahoo.com
+##
+def getLocalSystemStatus():
+  try:
+    url = (BASE_URL
+            + '/system_status')
+
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    response = requests.get(
+        url,
+        verify = False,
+        headers={'authorization': 'Bearer ' + getLocalToken()['tesla']['token']}
+    )
+
+    # Detect expired local token and re-auth
+    resp = json.loads(response.text)    
+    if ('message' in resp):
+      if (resp['message'] == 'Invalid bearer token'):
+        authLocalToken()
+        writeLocalLiveSiteTelemetry()
+    elif (response.status_code != 200):
+      time.sleep(WAIT_TIME)
+      return getLocalSystemStatus()
+
+    return resp
+  except Exception as e:
+    logError('getLocalSystemStatus(): ' + str(e))
 
 
 ##

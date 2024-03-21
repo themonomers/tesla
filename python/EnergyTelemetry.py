@@ -2,7 +2,8 @@ import pytz
 import zoneinfo
 
 from Influxdb import getDBClient
-from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast, getBatteryChargeHistory
+from TeslaEnergyAPI import getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast, getBatteryChargeHistory
+from EnergyLocalLiveTelemetry import getLocalSystemStatus
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from Email import sendEmail
 from Utilities import getConfig
@@ -87,8 +88,8 @@ def writeEnergyDetailToDB(date):
 ##
 def writeEnergySummaryToDB(date):
   try:
-    # get battery data
-    data = getSiteStatus()  
+    # get local battery data
+    data = getLocalSystemStatus()  
     
     json_body = []
     # write battery data
@@ -107,7 +108,7 @@ def writeEnergySummaryToDB(date):
         date.microsecond
       ).replace(tzinfo=PAC)),
       'fields': {
-        'value': float(data['response']['total_pack_energy'])
+        'value': float(data['nominal_full_pack_energy'])
       }
     })
 
@@ -126,7 +127,7 @@ def writeEnergySummaryToDB(date):
         date.microsecond
       ).replace(tzinfo=PAC)),
       'fields': {
-        'value': float(data['response']['percentage_charged'])
+        'value': float(data['nominal_energy_remaining']) / float(data['nominal_full_pack_energy']) * 100
       }
     })
 
@@ -359,8 +360,8 @@ def writeEnergyTOUSummaryToDB(date):
 ##
 def writeEnergyTOUSummaryToGsheet(date):
   try:
-    # get battery data
-    data = getSiteStatus()
+    # get local battery data
+    data = getLocalSystemStatus()
 
     inputs = []
     # write total pack energy value
@@ -372,12 +373,12 @@ def writeEnergyTOUSummaryToGsheet(date):
 
     inputs.append({
       'range': 'Telemetry-Summary!B' + str(open_row),
-      'values': [[data['response']['total_pack_energy']]]
+      'values': [[data['nominal_full_pack_energy']]]
     })
 
     inputs.append({
       'range': 'Telemetry-Summary!C' + str(open_row),
-      'values': [[data['response']['percentage_charged']]]
+      'values': [[float(data['nominal_energy_remaining']) / float(data['nominal_full_pack_energy']) * 100]]
     })
 
     # copy formula down: column D
