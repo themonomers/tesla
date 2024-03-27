@@ -2,7 +2,7 @@ import pytz
 import zoneinfo
 
 from Influxdb import getDBClient
-from TeslaEnergyAPI import getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast, getBatteryChargeHistory
+from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast, getBatteryChargeHistory
 from EnergyLocalLiveTelemetry import getLocalSystemStatus
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from Email import sendEmail
@@ -112,6 +112,9 @@ def writeEnergySummaryToDB(date):
       }
     })
 
+    # get battery data
+    data = getSiteStatus()  
+
     json_body.append({
       'measurement': 'energy_summary',
       'tags': {
@@ -127,7 +130,7 @@ def writeEnergySummaryToDB(date):
         date.microsecond
       ).replace(tzinfo=PAC)),
       'fields': {
-        'value': float(data['nominal_energy_remaining']) / float(data['nominal_full_pack_energy']) * 100
+        'value': float(data['response']['percentage_charged'])
       }
     })
 
@@ -376,9 +379,12 @@ def writeEnergyTOUSummaryToGsheet(date):
       'values': [[data['nominal_full_pack_energy']]]
     })
 
+    # get battery data
+    data = getSiteStatus()
+
     inputs.append({
       'range': 'Telemetry-Summary!C' + str(open_row),
-      'values': [[float(data['nominal_energy_remaining']) / float(data['nominal_full_pack_energy']) * 100]]
+      'values': [[data['response']['percentage_charged']]]
     })
 
     # copy formula down: column D

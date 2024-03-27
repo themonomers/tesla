@@ -118,9 +118,11 @@ func WriteEnergySummaryToDB(date time.Time) {
 	common.LogError("WriteEnergySummaryToDB(): client.NewPoint", err)
 	bp.AddPoint(pt)
 
+	// get battery data
+	data = GetSiteStatus()
 	tags = map[string]string{"source": "percentage_charged"}
 	fields = map[string]interface{}{
-		"value": data["nominal_energy_remaining"].(float64) / data["nominal_full_pack_energy"].(float64) * 100,
+		"value": data["response"].(map[string]interface{})["percentage_charged"].(float64),
 	}
 	pt, err = client.NewPoint("energy_summary", tags, fields, date.Local().UTC())
 	common.LogError("WriteEnergySummaryToDB(): client.NewPoint", err)
@@ -308,9 +310,11 @@ func WriteEnergyTOUSummaryToGsheet(date time.Time) {
 		Values: [][]interface{}{{data["nominal_full_pack_energy"].(float64)}},
 	})
 
+	// get battery data
+	data = GetSiteStatus()
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry-Summary!C" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{data["nominal_energy_remaining"].(float64) / data["nominal_full_pack_energy"].(float64) * 100}},
+		Values: [][]interface{}{{data["response"].(map[string]interface{})["percentage_charged"].(float64)}},
 	})
 
 	// copy formula down: column D
