@@ -21,6 +21,7 @@ var R float64 = 3958.8 // Earth radius in miles
 var BASE_WEATHER_URL string
 var OPENWEATHERMAP_KEY string
 var TIMEZONE string
+var WAIT_TIME time.Duration = 30 // seconds
 
 func init() {
 	var err error
@@ -174,6 +175,11 @@ func GetCurrentWeather(zipcode string) map[string]interface{} {
 	resp, err := http.Get(url)
 	LogError("GetCurrentWeather(): http.Get", err)
 
+	if resp.StatusCode != 200 {
+		time.Sleep(WAIT_TIME * time.Second)
+		return GetCurrentWeather(zipcode)
+	}
+
 	defer resp.Body.Close()
 	body := map[string]interface{}{}
 	json.NewDecoder(resp.Body).Decode(&body)
@@ -195,6 +201,11 @@ func GetDailyWeather(lat, lng float64) map[string]interface{} {
 
 	resp, err := http.Get(url)
 	LogError("GetDailyWeather(): http.Get", err)
+
+	if resp.StatusCode != 200 {
+		time.Sleep(WAIT_TIME * time.Second)
+		return GetDailyWeather(lat, lng)
+	}
 
 	defer resp.Body.Close()
 	body := map[string]interface{}{}

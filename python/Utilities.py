@@ -5,6 +5,7 @@ import datetime
 import zoneinfo
 import configparser
 import os
+import time
 
 from Crypto import decrypt
 from crontab import CronTab
@@ -12,6 +13,7 @@ from datetime import datetime, timedelta
 from io import StringIO
 
 R = 3958.8  #Earth radius in miles
+WAIT_TIME = 30  # seconds
 
 
 ##
@@ -212,9 +214,13 @@ def getCurrentWeather(zipcode):
 
     response = requests.get(url)
 
+    if (response.status_code != 200):
+      time.sleep(WAIT_TIME)
+      return getCurrentWeather(zipcode)
+
     return json.loads(response.text)
   except Exception as e:
-      print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + 'getCurrentWeather(): ' + str(e))
+      print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getCurrentWeather(): ' + str(e))
 
 
 ##
@@ -236,9 +242,13 @@ def getDailyWeather(lat, lng):
 
     response = requests.get(url)
 
+    if (response.status_code != 200):
+      time.sleep(WAIT_TIME)
+      return getDailyWeather(lat, lng)
+
     return json.loads(response.text)
   except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + 'getDailyWeather(): ' + str(e))
+    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getDailyWeather(): ' + str(e))
 
 
 ##
