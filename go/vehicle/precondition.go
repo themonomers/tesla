@@ -7,7 +7,8 @@ import (
 	"github.com/themonomers/tesla/go/common"
 )
 
-var ZIPCODE string
+var PRIMARY_LAT float64
+var PRIMARY_LNG float64
 
 func init() {
 	var err error
@@ -22,8 +23,11 @@ func init() {
 	EV_SPREADSHEET_ID, err = c.String("google.ev_spreadsheet_id")
 	common.LogError("init(): load ev spreadsheet id", err)
 
-	ZIPCODE, err = c.String("weather.zipcode")
-	common.LogError("init(): load weather zipcode", err)
+	PRIMARY_LAT, err = c.Float("vehicle.primary_lat")
+	common.LogError("init(): load vehicle primary lat", err)
+
+	PRIMARY_LNG, err = c.Float("vehicle.primary_lng")
+	common.LogError("init(): load vehicle primary lng", err)
 }
 
 // Checks a Google Sheet for heating and cooling preferences and sends a command
@@ -47,7 +51,7 @@ func PreconditionM3Start() {
 	}
 
 	// get local weather
-	wdata := common.GetCurrentWeather(ZIPCODE)
+	wdata := common.GetCurrentWeather(PRIMARY_LAT, PRIMARY_LNG)
 
 	// get today's day of week to compare against Google Sheet temp preferences
 	// for that day
@@ -61,7 +65,7 @@ func PreconditionM3Start() {
 	config_temp_cold, _ := strconv.ParseFloat(climate_config.Values[19][0].(string), 64)
 	config_temp_hot, _ := strconv.ParseFloat(climate_config.Values[20][0].(string), 64)
 
-	if wdata["main"].(map[string]interface{})["temp"].(float64) < config_temp_cold {
+	if wdata["current"].(map[string]interface{})["temp"].(float64) < config_temp_cold {
 		// get pre-heat preferences
 		switch day_of_week {
 		case 0: // Sunday
@@ -194,7 +198,7 @@ func PreconditionM3Start() {
 		default:
 			return
 		}
-	} else if wdata["main"].(map[string]interface{})["temp"].(float64) > config_temp_hot {
+	} else if wdata["current"].(map[string]interface{})["temp"].(float64) > config_temp_hot {
 		// get pre-cool preferences
 		switch day_of_week {
 		case 0: // Sunday
@@ -373,7 +377,7 @@ func PreconditionMXStart() {
 	}
 
 	// get local weather
-	wdata := common.GetCurrentWeather(ZIPCODE)
+	wdata := common.GetCurrentWeather(PRIMARY_LAT, PRIMARY_LNG)
 
 	// get today's day of week to compare against Google Sheet temp preferences
 	// for that day
@@ -387,7 +391,7 @@ func PreconditionMXStart() {
 	config_temp_cold, _ := strconv.ParseFloat(climate_config.Values[19][0].(string), 64)
 	config_temp_hot, _ := strconv.ParseFloat(climate_config.Values[20][0].(string), 64)
 
-	if wdata["main"].(map[string]interface{})["temp"].(float64) < config_temp_cold {
+	if wdata["current"].(map[string]interface{})["temp"].(float64) < config_temp_cold {
 		// get pre-heat preferences
 		switch day_of_week {
 		case 0: // Sunday
@@ -471,7 +475,7 @@ func PreconditionMXStart() {
 		default:
 			return
 		}
-	} else if wdata["main"].(map[string]interface{})["temp"].(float64) > config_temp_hot {
+	} else if wdata["current"].(map[string]interface{})["temp"].(float64) > config_temp_hot {
 		// get pre-cool preferences
 		switch day_of_week {
 		case 0: // Sunday

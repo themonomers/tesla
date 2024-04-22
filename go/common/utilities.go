@@ -165,11 +165,13 @@ func GetTodayTime(t string) time.Time {
 
 // Uses a free weather service with API to look up data by zipcode or other
 // attributes.  Gets current weather conditions.
-func GetCurrentWeather(zipcode string) map[string]interface{} {
+func GetCurrentWeather(lat, lng float64) map[string]interface{} {
 	url := BASE_WEATHER_URL +
-		"/weather" +
-		"?zip=" + zipcode +
-		"&APPID=" + OPENWEATHERMAP_KEY +
+		"/onecall" +
+		"?lat=" + strconv.FormatFloat(lat, 'f', -1, 64) +
+		"&lon=" + strconv.FormatFloat(lng, 'f', -1, 64) +
+		"&appid=" + OPENWEATHERMAP_KEY +
+		"&exclude=minutely,hourly,daily,alerts" +
 		"&units=metric"
 
 	resp, err := http.Get(url)
@@ -177,7 +179,7 @@ func GetCurrentWeather(zipcode string) map[string]interface{} {
 
 	if resp.StatusCode != 200 {
 		time.Sleep(WAIT_TIME * time.Second)
-		return GetCurrentWeather(zipcode)
+		return GetCurrentWeather(lat, lng)
 	}
 
 	defer resp.Body.Close()
@@ -195,7 +197,7 @@ func GetDailyWeather(lat, lng float64) map[string]interface{} {
 		"/onecall" +
 		"?lat=" + strconv.FormatFloat(lat, 'f', -1, 64) +
 		"&lon=" + strconv.FormatFloat(lng, 'f', -1, 64) +
-		"&APPID=" + OPENWEATHERMAP_KEY +
+		"&appid=" + OPENWEATHERMAP_KEY +
 		"&exclude=current,minutely,alerts" +
 		"&units=metric"
 
