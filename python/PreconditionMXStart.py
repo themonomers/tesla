@@ -7,7 +7,8 @@ from datetime import datetime
 config = getConfig()
 MX_VIN = config['vehicle']['mx_vin']
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
-ZIPCODE = config['weather']['zipcode']
+PRIMARY_LAT = float(config['vehicle']['primary_lat'])
+PRIMARY_LNG = float(config['vehicle']['primary_lng'])
 
 WAIT_TIME = 30 
 
@@ -26,8 +27,8 @@ def preconditionMXStart():
     if (climate_config[21][0] == 'on'): return
     
     # get local weather
-    wdata = getCurrentWeather(ZIPCODE)
-#    print('temp: ' + str(wdata['main']['temp']))    
+    wdata = getCurrentWeather(PRIMARY_LAT, PRIMARY_LNG)
+#    print('temp: ' + str(wdata['current']['temp']))    
 
 #    print('cold temp threshold: ' + climate_config[19][0])
 #    print('hot temp threshold: ' + climate_config[20][0])
@@ -39,7 +40,7 @@ def preconditionMXStart():
     
     # compare temp readings and threshold to determine heating or cooling temps 
     # to use
-    if (wdata['main']['temp'] < float(climate_config[19][0])):
+    if (wdata['current']['temp'] < float(climate_config[19][0])):
       # get pre-heat preferences
       if (day_of_week == 0): # Monday
         try:
@@ -106,7 +107,7 @@ def preconditionMXStart():
         seats.append(climate_config[6][3])  
       else:
         return
-    elif (wdata['main']['temp'] > float(climate_config[20][0])):
+    elif (wdata['current']['temp'] > float(climate_config[20][0])):
       # get pre-cool preferences
       if (day_of_week == 0): # Monday
         try:

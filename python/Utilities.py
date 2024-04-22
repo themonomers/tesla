@@ -204,19 +204,21 @@ def getTodayTime(time):
 #
 # author: mjhwa@yahoo.com
 ##
-def getCurrentWeather(zipcode):
+def getCurrentWeather(lat, lng):
   try:
     url = (BASE_WEATHER_URL
-           + '/weather'
-           + '?zip=' + zipcode
-           + '&APPID=' + OPENWEATHERMAP_KEY
+           + '/onecall'
+           + '?lat=' + str(lat)
+           + '&lon=' + str(lng)
+           + '&appid=' + OPENWEATHERMAP_KEY
+           + '&exclude=minutely,hourly,daily,alerts'
            + '&units=metric')
 
     response = requests.get(url)
 
     if (response.status_code != 200):
       time.sleep(WAIT_TIME)
-      return getCurrentWeather(zipcode)
+      return getCurrentWeather(lat, lng)
 
     return json.loads(response.text)
   except Exception as e:
@@ -236,7 +238,7 @@ def getDailyWeather(lat, lng):
            + '/onecall'
            + '?lat=' + str(lat)
            + '&lon=' + str(lng)
-           + '&APPID=' + OPENWEATHERMAP_KEY
+           + '&appid=' + OPENWEATHERMAP_KEY
            + '&exclude=current,minutely,alerts'
            + '&units=metric')
 
@@ -340,9 +342,7 @@ def main():
       )
     )
   elif (choice == 2):
-    zip = input('zip code: ')
-    data = getCurrentWeather(zip)
-
+    data = getCurrentWeather(PRIMARY_LAT, PRIMARY_LNG)
     printJson(data, 0)
   elif (choice == 3):
     data = getDailyWeather(PRIMARY_LAT, PRIMARY_LNG)
