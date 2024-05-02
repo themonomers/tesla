@@ -325,7 +325,7 @@ def writeEnergyTOUSummaryToDB(date):
               and d.month == date.month
               and d.day == date.day):
             for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
-              if (key_2 != 'timestamp'):
+              if ((key_2 != 'timestamp') and (key_2 != 'raw_timestamp')):
                 json_body.append({
                   'measurement': key_1,
                   'tags': {

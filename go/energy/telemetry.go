@@ -266,7 +266,7 @@ func WriteEnergyTOUSummaryToDB(date time.Time) {
 			key_1 == "partial_peak" ||
 			key_1 == "peak" {
 			for key_2, val_2 := range data["response"].(map[string]interface{})[key_1].(map[string]interface{})["time_series"].([]interface{})[0].(map[string]interface{}) {
-				if key_2 != "timestamp" {
+				if key_2 != "timestamp" && key_2 != "raw_timestamp" {
 					tags := map[string]string{"source": key_2}
 					fields := map[string]interface{}{
 						"value": val_2.(float64),
