@@ -155,6 +155,11 @@ func scheduleM3Charging(m3_data map[string]interface{}, mx_data map[string]inter
 		// send email notification
 		message := "The Model 3 is set to charge at " +
 			start_time.Format("January 2, 2006 15:04") +
+			" to " +
+			strconv.FormatFloat(m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64), 'f', -1, 64) + "%" +
+			" (" + strconv.FormatFloat((m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)/
+			m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64)*
+			m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64)), 'f', 0, 64) + " estimated miles)" +
 			"."
 		common.SendEmail(EMAIL_1, "Model 3 Set to Charge", message, "")
 	}
@@ -199,6 +204,11 @@ func scheduleMXCharging(m3_data map[string]interface{}, mx_data map[string]inter
 		// send email notification
 		message := "The Model X is set to charge at " +
 			start_time.Format("January 2, 2006 15:04") +
+			" to " +
+			strconv.FormatFloat(mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64), 'f', -1, 64) + "%" +
+			" (" + strconv.FormatFloat((mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)/
+			mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64)*
+			mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64)), 'f', 0, 64) + " estimated miles)" +
 			"."
 		common.SendEmail(EMAIL_1, "Model X Set to Charge", message, "")
 	}

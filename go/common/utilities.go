@@ -147,7 +147,7 @@ func GetTomorrowTime(t string) time.Time {
 	now := time.Now()
 	loc, _ := time.LoadLocation(TIMEZONE)
 
-	date, err := time.ParseInLocation("2006-1-02 15:4", strconv.Itoa(now.Year())+"-"+strconv.Itoa(int(now.Month()))+"-"+strconv.Itoa(now.Day())+" "+t, loc)
+	date, err := time.ParseInLocation("2006-1-2 15:4", strconv.Itoa(now.Year())+"-"+strconv.Itoa(int(now.Month()))+"-"+strconv.Itoa(now.Day())+" "+t, loc)
 	LogError("GetTomorrowTime(): time.ParseInLocation", err)
 
 	return date.AddDate(0, 0, 1)
@@ -157,7 +157,7 @@ func GetTodayTime(t string) time.Time {
 	now := time.Now()
 	loc, _ := time.LoadLocation(TIMEZONE)
 
-	date, err := time.ParseInLocation("2006-1-02 15:4", strconv.Itoa(now.Year())+"-"+strconv.Itoa(int(now.Month()))+"-"+strconv.Itoa(now.Day())+" "+t, loc)
+	date, err := time.ParseInLocation("2006-1-2 15:4", strconv.Itoa(now.Year())+"-"+strconv.Itoa(int(now.Month()))+"-"+strconv.Itoa(now.Day())+" "+t, loc)
 	LogError("GetTomorrowTime(): time.ParseInLocation", err)
 
 	return date
