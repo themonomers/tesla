@@ -65,9 +65,9 @@ def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
                  + start_time.strftime('%B %d, %Y %H:%M')
                  + ' to '
                  + str(m3_data['response']['charge_state']['charge_limit_soc']) + '%'
-                 + ' (' + str(round(m3_data['response']['charge_state']['battery_range']
+                 + ', ' + str(round(m3_data['response']['charge_state']['battery_range']
                               / m3_data['response']['charge_state']['battery_level']
-                              * m3_data['response']['charge_state']['charge_limit_soc']))  + ' estimated miles)'
+                              * m3_data['response']['charge_state']['charge_limit_soc']))  + ' miles of estimated range'
                  + '.')
       sendEmail(EMAIL_1, 'Model 3 Set to Charge', message, '', '')
   except Exception as e:
@@ -111,9 +111,9 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
                  + start_time.strftime('%B %d, %Y %H:%M')
                  + ' to '
                  + str(mx_data['response']['charge_state']['charge_limit_soc']) + '%'
-                 + ' (' + str(round(mx_data['response']['charge_state']['battery_range']
+                 + ', ' + str(round(mx_data['response']['charge_state']['battery_range']
                               / mx_data['response']['charge_state']['battery_level']
-                              * mx_data['response']['charge_state']['charge_limit_soc']))  + ' estimated miles)'
+                              * mx_data['response']['charge_state']['charge_limit_soc']))  + ' miles of estimated range'
                  + '.')
       sendEmail(EMAIL_1, 'Model X Set to Charge', message, '', '')
   except Exception as e:
