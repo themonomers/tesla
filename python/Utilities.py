@@ -149,6 +149,7 @@ def isVehicleAtLocation(data, lat, lng):
       return False
   except Exception as e:
     print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' isVehicleAtLocation(): ' + str(e))
+    return False
 
 
 def getDistance(car_lat, car_lng, x_lat, x_lng):
