@@ -1,4 +1,4 @@
-from TeslaVehicleAPI import getVehicleData, setScheduledCharging, stopChargeVehicle
+from TeslaVehicleAPI import getVehicleData, addChargeSchedule, removeChargeSchedule, stopChargeVehicle
 from GoogleAPI import getGoogleSheetService
 from Email import sendEmail
 from Climate import setM3Precondition, setMXPrecondition
@@ -57,7 +57,11 @@ def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
 
       total_minutes = (start_time.hour * 60) + start_time.minute
 
-      setScheduledCharging(M3_VIN, total_minutes)
+      # Remove any previous scheduled charging by this program, temporarily set to
+      # id=1, until I can figure out how to view the list of charge schedules and
+      # their corresponding ID's.
+      removeChargeSchedule(M3_VIN, 1)
+      addChargeSchedule(M3_VIN, m3_data['response']['drive_state']['latitude'], m3_data['response']['drive_state']['longitude'], total_minutes, 1)
       stopChargeVehicle(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
       # send email notification
@@ -103,7 +107,8 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
 
       total_minutes = (start_time.hour * 60) + start_time.minute
 
-      setScheduledCharging(MX_VIN, total_minutes)
+      removeChargeSchedule(MX_VIN, 1)
+      addChargeSchedule(MX_VIN, mx_data['response']['drive_state']['latitude'], mx_data['response']['drive_state']['longitude'], total_minutes, 1)
       stopChargeVehicle(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
       # send email notification

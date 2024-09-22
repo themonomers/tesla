@@ -100,6 +100,75 @@ def stopChargeVehicle(vin):
 
 
 ##
+# Uses new endpoint to add a schedule for vehicle charging. 
+# Scheduled Time is in minutes, e.g. 7:30 AM = 
+# (7 * 60) + 30 = 450
+#
+# author: mjhwa@yahoo.com
+##
+def addChargeSchedule(vin, lat, lon, start_time, id):
+  try:
+    if vin == M3_VIN:
+      return TeslaVehicleCommandProxy.addChargeSchedule(vin, lat, lon, start_time, id)
+
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
+           + getVehicleId(vin) 
+           + '/command/add_charge_schedule')
+
+    payload = {
+      'days_of_week': 'All',
+      'enabled': True,
+      'start_enabled': True,
+      'end_enabled': False,
+      'lat': lat,
+      'lon': lon,
+      'start_time': start_time,
+      'one_time': False,
+      'id': id
+    }
+
+    return requests.post(
+      url, 
+      json=payload, 
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+    )
+  except Exception as e:
+    logError('addChargeSchedule(' + vin + '): ' + str(e))
+
+
+##
+# Uses new endpoint to remove a schedule for vehicle charging. 
+#
+# author: mjhwa@yahoo.com
+##
+def removeChargeSchedule(vin, id):
+  try:
+    if vin == M3_VIN:
+      return TeslaVehicleCommandProxy.removeChargeSchedule(vin, id)
+    
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
+           + getVehicleId(vin) 
+           + '/command/remove_charge_schedule')
+
+    payload = {
+      'id': id
+    }
+
+    return requests.post(
+      url, 
+      json=payload, 
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+    )
+  except Exception as e:
+    logError('removeChargeSchedule(' + vin + '): ' + str(e))
+  
+
+##
+# Per Tesla (https://developer.tesla.com/docs/fleet-api/endpoints/vehicle-commands#set-scheduled-charging):  
+# This endpoint is not recommended beginning with firmware version 2024.26.
+#
 # Sends command and parameter to set a specific vehicle to charge
 # at a scheduled time.  Scheduled Time is in minutes, e.g. 7:30 AM = 
 # (7 * 60) + 30 = 450
@@ -131,6 +200,9 @@ def setScheduledCharging(vin, time):
 
 
 ##
+# Per Tesla (https://developer.tesla.com/docs/fleet-api/endpoints/vehicle-commands#set-scheduled-departure):  
+# This endpoint is not recommended beginning with firmware version 2024.26.
+#
 # Sends command and parameters to set a specific vehicle to charge and/or
 # precondition by a departure time.  Departure Time and Off-Peak Charge End 
 # Time are in minutes, e.g. 7:30 AM = (7 * 60) + 30 = 450

@@ -140,6 +140,109 @@ func stopChargeVehicle(vin string) map[string]interface{} {
 	return body
 }
 
+// Uses new endpoint to add a schedule for vehicle charging.
+// Scheduled Time is in minutes after midnight, e.g. 7:30 AM
+// = (7 * 60) + 30 = 450
+func AddChargeSchedule(vin string, lat float64, lon float64, sch_time int, id int) map[string]interface{} {
+	if vin == MX_VIN {
+		return addChargeSchedule(vin, lat, lon, sch_time, id)
+	}
+
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
+		vin +
+		"/command/add_charge_schedule"
+
+	payload, _ := json.Marshal(map[string]interface{}{
+		"days_of_week":  "All",
+		"enabled":       true,
+		"start_enabled": true,
+		"end_enabled":   false,
+		"lat":           lat,
+		"lon":           lon,
+		"start_time":    sch_time,
+		"one_time":      false,
+		"id":            id,
+	})
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	common.LogError("AddChargeSchedule(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := getHttpsClient().Do(req)
+	common.LogError("AddChargeSchedule(): getHttpClient", err)
+
+	defer resp.Body.Close()
+	body := map[string]interface{}{}
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
+}
+
+func addChargeSchedule(vin string, lat float64, lon float64, sch_time int, id int) map[string]interface{} {
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
+		getVehicleId(vin) +
+		"/command/add_charge_schedule"
+
+	payload, _ := json.Marshal(map[string]interface{}{
+		"days_of_week":  "All",
+		"enabled":       true,
+		"start_enabled": true,
+		"end_enabled":   false,
+		"lat":           lat,
+		"lon":           lon,
+		"start_time":    sch_time,
+		"one_time":      false,
+		"id":            id,
+	})
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	common.LogError("addChargeSchedule(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := http.DefaultClient.Do(req)
+	common.LogError("addChargeSchedule(): http.DefaultClient.Do", err)
+
+	defer resp.Body.Close()
+	body := map[string]interface{}{}
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
+}
+
+// Uses new endpoint to remove a schedule for vehicle charging.
+// The Owner API for this function on older model vehicles throws
+// an error ("x509: certificate signed by unknown authority") unlike
+// other endpoints.  This endpoint works for both newer and older model
+// cars.
+func RemoveChargeSchedule(vin string, id int) map[string]interface{} {
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
+		vin +
+		"/command/remove_charge_schedule"
+
+	payload, _ := json.Marshal(map[string]interface{}{
+		"id": id,
+	})
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	common.LogError("RemoveChargeSchedule(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := getHttpsClient().Do(req)
+	common.LogError("RemoveChargeSchedule(): getHttpClient", err)
+
+	defer resp.Body.Close()
+	body := map[string]interface{}{}
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
+}
+
+// Per Tesla (https://developer.tesla.com/docs/fleet-api/endpoints/vehicle-commands#set-scheduled-charging):
+// This endpoint is not recommended beginning with firmware version 2024.26.
+//
 // Sends command and parameter to set a specific vehicle to charge
 // at a scheduled time.  Scheduled Time is in minutes after midnight,
 // e.g. 7:30 AM = (7 * 60) + 30 = 450
@@ -182,11 +285,6 @@ func setScheduledCharging(vin string, sch_time int) map[string]interface{} {
 		"enable": true,
 		"time":   sch_time,
 	})
-	/*
-		    payload = {
-				'enable': 'True',
-				'time': time
-			  }*/
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	common.LogError("setScheduledCharging(): http.NewRequest", err)

@@ -149,7 +149,11 @@ func scheduleM3Charging(m3_data map[string]interface{}, mx_data map[string]inter
 
 		total_minutes := (start_time.Hour() * 60) + start_time.Minute()
 
-		SetScheduledCharging(M3_VIN, total_minutes)
+		// Remove any previous scheduled charging by this program, temporarily set to
+		// id=1, until I can figure out how to view the list of charge schedules and
+		// their corresponding ID's.
+		RemoveChargeSchedule(M3_VIN, 1)
+		AddChargeSchedule(M3_VIN, m3_data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["latitude"].(float64), m3_data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(M3_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
 		// send email notification
@@ -198,7 +202,8 @@ func scheduleMXCharging(m3_data map[string]interface{}, mx_data map[string]inter
 
 		total_minutes := (start_time.Hour() * 60) + start_time.Minute()
 
-		SetScheduledCharging(MX_VIN, total_minutes)
+		RemoveChargeSchedule(MX_VIN, 1)
+		AddChargeSchedule(MX_VIN, mx_data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["latitude"].(float64), mx_data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(MX_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
 		// send email notification

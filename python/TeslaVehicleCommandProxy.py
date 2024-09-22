@@ -34,8 +34,8 @@ def getVehicleData(vin):
                + 'vehicle_state;'
                + 'gui_settings;'
                + 'vehicle_config;'
-               + 'closures_state;'
-               + 'drive_state'))
+               + 'drive_state;'
+               + 'charge_schedule_data'))
 
     urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 
@@ -101,8 +101,76 @@ def stopChargeVehicle(vin):
   except Exception as e:
     logError('stopChargeVehicle(' + vin + '): ' + str(e))
 
+##
+# Uses new endpoint to add a schedule for vehicle charging. 
+# Scheduled Time is in minutes, e.g. 7:30 AM = 
+# (7 * 60) + 30 = 450
+#
+# author: mjhwa@yahoo.com
+##
+def addChargeSchedule(vin, lat, lon, start_time, id):
+  try:
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
+           + vin 
+           + '/command/add_charge_schedule')
+
+    payload = {
+      'days_of_week': 'All',
+      'enabled': True,
+      'start_enabled': True,
+      'end_enabled': False,
+      'lat': lat,
+      'lon': lon,
+      'start_time': start_time,
+      'one_time': False,
+      'id': id
+    }
+
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
+    return requests.post(
+      url, 
+      json=payload, 
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
+    )
+  except Exception as e:
+    logError('addChargeSchedule(' + vin + '): ' + str(e))
+
 
 ##
+# Uses new endpoint to remove a schedule for vehicle charging. 
+#
+# author: mjhwa@yahoo.com
+##
+def removeChargeSchedule(vin, id):
+  try:
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
+           + vin 
+           + '/command/remove_charge_schedule')
+
+    payload = {
+      'id': id
+    }
+
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
+    return requests.post(
+      url, 
+      json=payload, 
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
+    )
+  except Exception as e:
+    logError('removeChargeSchedule(' + vin + '): ' + str(e))
+  
+
+##
+# Per Tesla (https://developer.tesla.com/docs/fleet-api/endpoints/vehicle-commands#set-scheduled-charging):  
+# This endpoint is not recommended beginning with firmware version 2024.26.
+#
 # Sends command and parameter to set a specific vehicle to charge
 # at a scheduled time.  Scheduled Time is in minutes, e.g. 7:30 AM = 
 # (7 * 60) + 30 = 450
