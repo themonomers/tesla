@@ -171,8 +171,8 @@ def writeEnergySummaryToDB(date):
 
     for i in range(len(data['response'])):
       d = datetime.strptime(
-        data['response'][i]['timestamp'].split('+',1)[0],
-        '%Y-%m-%dT%H:%M:%S'
+         data['response'][i]['timestamp'].split('T',1)[0], 
+         '%Y-%m-%d'
       )
       local = pytz.timezone('UTC')
       d = local.localize(d, is_dst=None)
