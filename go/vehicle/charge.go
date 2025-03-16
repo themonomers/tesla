@@ -164,8 +164,10 @@ func scheduleM3Charging(m3_data map[string]interface{}, mx_data map[string]inter
 			" by " + m3_target_finish_time.Format("15:04") + ", " +
 			strconv.FormatFloat((m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)/
 				m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64)*
-				m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range" +
-			"."
+				m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range.  " +
+			"The Model 3 is currently at " +
+			strconv.FormatFloat(m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64), 'f', 0, 64) + "%, " +
+			strconv.FormatFloat(m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range."
 		common.SendEmail(EMAIL_1, "Model 3 Set to Charge", message, "")
 	}
 }
@@ -215,8 +217,10 @@ func scheduleMXCharging(m3_data map[string]interface{}, mx_data map[string]inter
 			" by " + mx_target_finish_time.Format("15:04") + ", " +
 			strconv.FormatFloat((mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)/
 				mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64)*
-				mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range" +
-			"."
+				mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range.  " +
+			"The Model X is currently at " +
+			strconv.FormatFloat(mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64), 'f', 0, 64) + "%, " +
+			strconv.FormatFloat(mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range."
 		common.SendEmail(EMAIL_1, "Model X Set to Charge", message, "")
 	}
 }
