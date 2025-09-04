@@ -14,18 +14,14 @@ from Logger import logError
 #
 # author: mjhwa@yahoo.com
 ## 
-def setM3Precondition(data, climate_config):
+def setM3Precondition(data, eco_mode, start_time):
   try: 
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
-    if (climate_config[4][0] == 'off'):
+    if (eco_mode == 'off'):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
-        # specific date/time to create a crontab for tomorrow morning at 
-        # the preferred start time
-        start_time = getTomorrowTime(climate_config[0][0])
-        
-        # create precondition start crontab
+        # create precondition start crontab at preferred time tomorrow
         deleteCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionM3Start.py >> /home/pi/tesla/python/cron.log 2>&1')
         createCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionM3Start.py >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
@@ -36,18 +32,14 @@ def setM3Precondition(data, climate_config):
     logError('setM3Precondition(): ' + str(e))
 
 
-def setMXPrecondition(data, climate_config):
+def setMXPrecondition(data, eco_mode, start_time):
   try: 
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
-    if (climate_config[4][7] == 'off'):
+    if (eco_mode == 'off'):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
-        # specific date/time to create a crontab for tomorrow morning at 
-        # the preferred start time
-        start_time = getTomorrowTime(climate_config[0][7])
-
-        # create precondition start crontab
+        # create precondition start crontab at preferred time tomorrow
         deleteCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionMXStart.py >> /home/pi/tesla/python/cron.log 2>&1')
         createCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionMXStart.py >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 

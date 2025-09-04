@@ -4,7 +4,7 @@ from Email import sendEmail
 from Climate import setM3Precondition, setMXPrecondition
 from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime, getConfig
 from Logger import logError
-from datetime import timedelta
+from datetime import timedelta, datetime
 from collections import namedtuple
 
 config = getConfig()
@@ -65,18 +65,11 @@ def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       stopChargeVehicle(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
       # send email notification
-      message = ('The Model 3 is set to charge at ' 
-                 + start_time.strftime('%B %d, %Y %H:%M')
-                 + ' to '
-                 + str(m3_data['response']['charge_state']['charge_limit_soc']) + '%'
-                 + ' by ' + m3_target_finish_time.strftime('%H:%M') + ', ' 
-                 + str(round(m3_data['response']['charge_state']['battery_range']
-                       / m3_data['response']['charge_state']['battery_level']
-                       * m3_data['response']['charge_state']['charge_limit_soc'])) + ' miles of estimated range.  '
-                 + 'The Model 3 is currently at '
-                 + str(m3_data['response']['charge_state']['battery_level']) + '%, '
-                 + str(round(m3_data['response']['charge_state']['battery_range'])) + ' miles of estimated range.')
-      sendEmail(EMAIL_1, 'Model 3 Set to Charge', message, '', '')
+      sendEmail(EMAIL_1, 
+                'Model 3 Set to Charge', 
+                getScheduledChargeMessage('Model 3', m3_data, start_time, m3_target_finish_time), 
+                '', 
+                '')
   except Exception as e:
     logError('scheduleM3Charging(): ' + str(e))
 
@@ -115,18 +108,11 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       stopChargeVehicle(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
       # send email notification
-      message = ('The Model X is set to charge at ' 
-                 + start_time.strftime('%B %d, %Y %H:%M')
-                 + ' to '
-                 + str(mx_data['response']['charge_state']['charge_limit_soc']) + '%'
-                 + ' by ' + mx_target_finish_time.strftime('%H:%M') + ', ' 
-                 + str(round(mx_data['response']['charge_state']['battery_range']
-                       / mx_data['response']['charge_state']['battery_level']
-                       * mx_data['response']['charge_state']['charge_limit_soc']))  + ' miles of estimated range.  '
-                 + 'The Model X is currently at '
-                 + str(mx_data['response']['charge_state']['battery_level']) + '%, '
-                 + str(round(mx_data['response']['charge_state']['battery_range'])) + ' miles of estimated range.')
-      sendEmail(EMAIL_1, 'Model X Set to Charge', message, '', '')
+      sendEmail(EMAIL_1, 
+                'Model X Set to Charge', 
+                getScheduledChargeMessage('Model X', mx_data, start_time, mx_target_finish_time), 
+                '', 
+                '')
   except Exception as e:
     logError('scheduleMXCharging(): ' + str(e))
 
@@ -342,6 +328,32 @@ def calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time
     logError('calcuateScheduledCharging(' + scenario + '): ' + str(e))
 
 
+def getPluggedInMessage(vehicle, battery_level, battery_range):
+  message = ('Your car is not plugged in.  \n\nCurrent battery level is '
+              + str(battery_level) 
+              + '%, '
+              + str(battery_range) 
+              + ' estimated miles.  \n\n-Your ' + vehicle)
+  
+  return message
+
+
+def getScheduledChargeMessage(vehicle, data, start_time, finish_time):
+  message = ('The ' + vehicle + ' is set to charge at ' 
+              + start_time.strftime('%B %d, %Y %H:%M')
+              + ' to '
+              + str(data['response']['charge_state']['charge_limit_soc']) + '%'
+              + ' by ' + finish_time.strftime('%H:%M') + ', ' 
+              + str(round(data['response']['charge_state']['battery_range']
+                    / data['response']['charge_state']['battery_level']
+                    * data['response']['charge_state']['charge_limit_soc']))  + ' miles of estimated range.  '
+              + 'The ' + vehicle + ' is currently at '
+              + str(data['response']['charge_state']['battery_level']) + '%, '
+              + str(round(data['response']['charge_state']['battery_range'])) + ' miles of estimated range.')
+  
+  return message
+
+
 ##
 # Checks to see if the vehicles are plugged in, inferred from the charge 
 # port door status, and sends an email to notify if it's not.  Also sets 
@@ -369,26 +381,25 @@ def notifyIsTeslaPluggedIn():
     service = getGoogleSheetService()
     charge_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Charger!B3:B7'
+      range='Smart Charger!A3:C11'
     ).execute().get('values', [])
 
     # get climate configuration info
     climate_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!B20:I24'
+      range='Smart Climate!A3:P22'
     ).execute().get('values', [])
     service.close()
 
     # check if email notification is set to "on" first 
-    if (charge_config[1][0] == 'on'):
+    if (charge_config[8][1] == 'on'):
       # send an email if the charge port door is not open, i.e. not plugged in
       if (charge_port_door_open == False):
-        message = ('Your car is not plugged in.  \n\nCurrent battery level is ' 
-                   + str(battery_level) 
-                   + '%, ' 
-                   + str(battery_range) 
-                   + ' estimated miles.  \n\n-Your Model 3')
-        sendEmail(EMAIL_1, 'Please Plug In Your Model 3', message, '', '')
+        sendEmail(EMAIL_1, 
+                  'Please Plug In Your Model 3', 
+                  getPluggedInMessage('Model 3', battery_level, battery_range), 
+                  '', 
+                  '')
         #print('send email: ' + message)
 
     charge_port_door_open = mx_data['response']['charge_state']['charge_port_door_open']
@@ -396,29 +407,32 @@ def notifyIsTeslaPluggedIn():
     battery_range = mx_data['response']['charge_state']['battery_range']
 
     # check if email notification is set to "on" first
-    if (charge_config[0][0] == 'on'):
+    if (charge_config[8][2] == 'on'):
       # send an email if the charge port door is not open, i.e. not plugged in
       if (charge_port_door_open == False):
-        message = ('Your car is not plugged in.  \n\nCurrent battery level is '
-                   + str(battery_level) 
-                   + '%, '
-                   + str(battery_range) 
-                   + ' estimated miles.  \n\n-Your Model X')
         sendEmail(EMAIL_2, 
                   'Please Plug In Your Model X', 
-                  message, EMAIL_1, '')
+                  getPluggedInMessage('Model X', battery_level, battery_range), 
+                  EMAIL_1, 
+                  '')
         #print('send email: ' + message)
 
-    # set cars for scheduled charging
-    m3_target_finish_time = getTomorrowTime(charge_config[4][0])
-    mx_target_finish_time = getTomorrowTime(charge_config[3][0])
+    # set cars for scheduled charging by daily charge time preference
+    day_of_week = (datetime.today() + timedelta(1)).strftime('%A')
+    dow_index = [index for index, element in enumerate(charge_config) if day_of_week in element]
+    m3_target_finish_time = getTomorrowTime(charge_config[dow_index[0]][1])
+    mx_target_finish_time = getTomorrowTime(charge_config[dow_index[0]][2])
+
+    dow_index = [index for index, element in enumerate(climate_config) if day_of_week in element]
+    m3_climate_start_time = getTomorrowTime(climate_config[dow_index[0]][8])
+    mx_climate_start_time = getTomorrowTime(climate_config[dow_index[0]][14])
 
     scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
     scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
     # set cabin preconditioning the next morning
-    setM3Precondition(m3_data, climate_config)
-    setMXPrecondition(mx_data, climate_config)
+    setM3Precondition(m3_data, climate_config[19][1], m3_climate_start_time)
+    setMXPrecondition(mx_data, climate_config[19][10], mx_climate_start_time)
   except Exception as e:
     logError('notifyIsTeslaPluggedIn(): ' + str(e))
 

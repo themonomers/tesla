@@ -32,217 +32,60 @@ def preconditionM3Start():
     service = getGoogleSheetService()
     climate_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!B3:H24'
+      range='Smart Climate!A3:P22'
     ).execute().get('values', [])
     service.close()
 
     # check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
-    if (climate_config[21][0] == 'on'): return
+    if (climate_config[19][1] == 'on'): return
     
     # get local weather
     wdata = getCurrentWeather(PRIMARY_LAT, PRIMARY_LNG)
 #    print('temp: ' + str(wdata['current']['temp']))
     
-#    print('cold temp threshold: ' + climate_config[19][0])
-#    print('hot temp threshold: ' + climate_config[20][0])
+#    print('cold temp threshold: ' + climate_config[17][1])
+#    print('hot temp threshold: ' + climate_config[18][1])
 
     # get today's day of week to compare against Google Sheet temp preferences 
     # for that day
-    day_of_week = datetime.today().weekday()
+    day_of_week = datetime.today().strftime('%A')
+    dow_index = [index for index, element in enumerate(climate_config) if day_of_week in element]
     seats = []
     
     # compare temp readings and threshold to determine heating or cooling temps 
     # to use
-    if (wdata['current']['temp'] < float(climate_config[19][0])):
+    if (wdata['current']['temp'] < float(climate_config[17][1])):
       # get pre-heat preferences  
-      if (day_of_week == 0): # Monday
-        try:
-          d_temp = float(climate_config[0][0])
-          p_temp = float(climate_config[0][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[0][2])
-        seats.append(climate_config[0][3])
-        seats.append(climate_config[0][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[0][5])
-        seats.append(climate_config[0][6])
-      elif (day_of_week == 1): # Tuesday
-        try:
-          d_temp = float(climate_config[1][0])
-          p_temp = float(climate_config[1][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[1][2])
-        seats.append(climate_config[1][3])
-        seats.append(climate_config[1][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[1][5])
-        seats.append(climate_config[1][6])
-      elif (day_of_week == 2): # Wednesday
-        try:
-          d_temp = float(climate_config[2][0])
-          p_temp = float(climate_config[2][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[2][2])
-        seats.append(climate_config[2][3])
-        seats.append(climate_config[2][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[2][5])
-        seats.append(climate_config[2][6])
-      elif (day_of_week == 3): # Thursday
-        try:
-          d_temp = float(climate_config[3][0])
-          p_temp = float(climate_config[3][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[3][2])
-        seats.append(climate_config[3][3])
-        seats.append(climate_config[3][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[3][5])
-        seats.append(climate_config[3][6])
-      elif (day_of_week == 4): # Friday
-        try:
-          d_temp = float(climate_config[4][0])
-          p_temp = float(climate_config[4][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[4][2])
-        seats.append(climate_config[4][3])
-        seats.append(climate_config[4][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[4][5])
-        seats.append(climate_config[4][6])
-      elif (day_of_week == 5): # Saturday
-        try:
-          d_temp = float(climate_config[5][0])
-          p_temp = float(climate_config[5][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[5][2])
-        seats.append(climate_config[5][3])
-        seats.append(climate_config[5][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[5][5])
-        seats.append(climate_config[5][6])
-      elif (day_of_week == 6):  # Sunday
-        try:
-          d_temp = float(climate_config[6][0])
-          p_temp = float(climate_config[6][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[6][2])
-        seats.append(climate_config[6][3])
-        seats.append(climate_config[6][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[6][5])
-        seats.append(climate_config[6][6])
-      else:
+      try:
+        d_temp = float(climate_config[dow_index[0]][1])
+        p_temp = float(climate_config[dow_index[0]][2])
+      except ValueError:
         return
-    elif (wdata['current']['temp'] > float(climate_config[20][0])):
+
+      seats.append(climate_config[dow_index[0]][3])
+      seats.append(climate_config[dow_index[0]][4])
+      seats.append(climate_config[dow_index[0]][5])
+      seats.append(-1) # placeholder for index 3 as it's not assigned in the API
+      seats.append(climate_config[dow_index[0]][6])
+      seats.append(climate_config[dow_index[0]][7])
+
+      stop_time = getTodayTime(climate_config[dow_index[0]][9])
+    elif (wdata['current']['temp'] > float(climate_config[18][1])):
       # get pre-cool preferences
-      if (day_of_week == 0): # Monday
-        try:
-          d_temp = float(climate_config[9][0])
-          p_temp = float(climate_config[9][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[9][2])
-        seats.append(climate_config[9][3])
-        seats.append(climate_config[9][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[9][5])
-        seats.append(climate_config[9][6])   
-      elif (day_of_week == 1): # Tuesday
-        try:
-          d_temp = float(climate_config[10][0])
-          p_temp = float(climate_config[10][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[10][2])
-        seats.append(climate_config[10][3])
-        seats.append(climate_config[10][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[10][5])
-        seats.append(climate_config[10][6])          
-      elif (day_of_week == 2): # Wednesday
-        try:
-          d_temp = float(climate_config[11][0])
-          p_temp = float(climate_config[11][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[11][2])
-        seats.append(climate_config[11][3])
-        seats.append(climate_config[11][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[11][5])
-        seats.append(climate_config[11][6])           
-      elif (day_of_week == 3): # Thursday
-        try:
-          d_temp = float(climate_config[12][0])
-          p_temp = float(climate_config[12][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[12][2])
-        seats.append(climate_config[12][3])
-        seats.append(climate_config[12][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[12][5])
-        seats.append(climate_config[12][6])      
-      elif (day_of_week == 4): # Friday
-        try:
-          d_temp = float(climate_config[13][0])
-          p_temp = float(climate_config[13][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[13][2])
-        seats.append(climate_config[13][3])
-        seats.append(climate_config[13][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[13][5])
-        seats.append(climate_config[13][6]) 
-      elif (day_of_week == 5): # Saturday
-        try:
-          d_temp = float(climate_config[14][0])
-          p_temp = float(climate_config[14][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[14][2])
-        seats.append(climate_config[14][3])
-        seats.append(climate_config[14][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[14][5])
-        seats.append(climate_config[14][6]) 
-      elif (day_of_week == 6): # Sunday
-        try:
-          d_temp = float(climate_config[15][0])
-          p_temp = float(climate_config[15][1])
-        except ValueError:
-         return
-
-        seats.append(climate_config[15][2])
-        seats.append(climate_config[15][3])
-        seats.append(climate_config[15][4])
-        seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-        seats.append(climate_config[15][5])
-        seats.append(climate_config[15][6])     
-      else:
+      try:
+        d_temp = float(climate_config[dow_index[1]][1])
+        p_temp = float(climate_config[dow_index[1]][2])
+      except ValueError:
         return
+
+      seats.append(climate_config[dow_index[1]][3])
+      seats.append(climate_config[dow_index[1]][4])
+      seats.append(climate_config[dow_index[1]][5])
+      seats.append(-1) # placeholder for index 3 as it's not assigned in the API
+      seats.append(climate_config[dow_index[1]][6])
+      seats.append(climate_config[dow_index[1]][7])
+
+      stop_time = getTodayTime(climate_config[dow_index[1]][9])
     else:
       return # outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 
@@ -264,11 +107,7 @@ def preconditionM3Start():
           continue # skip index 3 as it's not assigned in the API
         setCarSeatHeating(M3_VIN, int(index), int(item))
 
-      # specific date/time to create a crontab for later this morning at 
-      # the preferred stop time
-      stop_time = getTodayTime(climate_config[18][0])
-      
-      # create crontab to stop preconditioning
+      # create crontab to stop preconditioning at preferred time later in the day
       deleteCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionM3Stop.py >> /home/pi/tesla/python/cron.log 2>&1')
       createCronTab(
         '/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionM3Stop.py >> /home/pi/tesla/python/cron.log 2>&1', 
