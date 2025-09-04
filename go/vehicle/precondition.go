@@ -42,11 +42,11 @@ func init() {
 func PreconditionM3Start() {
 	// get configuration info
 	srv := common.GetGoogleSheetService()
-	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Climate!B3:H24").Do()
+	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Climate!A3:P22").Do()
 	common.LogError("PreconditionM3Start(): srv.Spreadsheets.Values.Get", err)
 
 	// check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
-	if climate_config.Values[21][0] == "on" {
+	if climate_config.Values[19][1] == "on" {
 		return
 	}
 
@@ -55,281 +55,60 @@ func PreconditionM3Start() {
 
 	// get today's day of week to compare against Google Sheet temp preferences
 	// for that day
-	day_of_week := time.Now().Weekday()
+	day_of_week := time.Now().Format("Monday")
+	dow_index := common.FindStringIn2DArray(climate_config.Values, day_of_week)
 	var d_temp float64
 	var p_temp float64
 	var seats []int
+	var stop_time time.Time
 
 	// compare temp readings and threshold to determine heating or cooling temps
 	// to use
-	config_temp_cold, _ := strconv.ParseFloat(climate_config.Values[19][0].(string), 64)
-	config_temp_hot, _ := strconv.ParseFloat(climate_config.Values[20][0].(string), 64)
+	config_temp_cold, _ := strconv.ParseFloat(climate_config.Values[17][1].(string), 64)
+	config_temp_hot, _ := strconv.ParseFloat(climate_config.Values[18][1].(string), 64)
 
 	if wdata["current"].(map[string]interface{})["temp"].(float64) < config_temp_cold {
 		// get pre-heat preferences
-		switch day_of_week {
-		case 0: // Sunday
-			// get pre-heat preferences
-			d_temp, err = strconv.ParseFloat(climate_config.Values[6][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[6][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[6][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[6][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[6][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[6][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[6][6].(string))
-			seats = append(seats, seat_set)
-		case 1: // Monday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[0][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[0][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[0][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[0][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[0][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[0][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[0][6].(string))
-			seats = append(seats, seat_set)
-		case 2: // Tuesday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[1][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[1][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[1][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[1][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[1][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[1][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[1][6].(string))
-			seats = append(seats, seat_set)
-		case 3: // Wednesday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[2][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[2][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[2][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[2][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[2][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[2][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[2][6].(string))
-			seats = append(seats, seat_set)
-		case 4: // Thursday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[3][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[3][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[3][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[3][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[3][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[3][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[3][6].(string))
-			seats = append(seats, seat_set)
-		case 5: // Friday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[4][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[4][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[4][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[4][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[4][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[4][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[4][6].(string))
-			seats = append(seats, seat_set)
-		case 6: // Saturday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[5][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[5][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[5][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[5][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[5][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[5][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[5][6].(string))
-			seats = append(seats, seat_set)
-		default:
+		d_temp, err = strconv.ParseFloat(climate_config.Values[dow_index[0]][1].(string), 64)
+		if err != nil {
 			return
 		}
+		p_temp, _ = strconv.ParseFloat(climate_config.Values[dow_index[0]][2].(string), 64)
+
+		seat_set, _ := strconv.Atoi(climate_config.Values[dow_index[0]][3].(string))
+		seats = append(seats, seat_set)
+		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[0]][4].(string))
+		seats = append(seats, seat_set)
+		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[0]][5].(string))
+		seats = append(seats, seat_set)
+		seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
+		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[0]][6].(string))
+		seats = append(seats, seat_set)
+		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[0]][7].(string))
+		seats = append(seats, seat_set)
+
+		stop_time = common.GetTodayTime(climate_config.Values[dow_index[0]][9].(string))
 	} else if wdata["current"].(map[string]interface{})["temp"].(float64) > config_temp_hot {
 		// get pre-cool preferences
-		switch day_of_week {
-		case 0: // Sunday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[15][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[15][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[15][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[15][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[15][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[15][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[15][6].(string))
-			seats = append(seats, seat_set)
-		case 1: // Monday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[9][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[9][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[9][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[9][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[9][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[9][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[9][6].(string))
-			seats = append(seats, seat_set)
-		case 2: // Tuesday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[10][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[10][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[10][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[10][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[10][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[10][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[10][6].(string))
-			seats = append(seats, seat_set)
-		case 3: // Wednesday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[11][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[11][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[11][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[11][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[11][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[11][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[11][6].(string))
-			seats = append(seats, seat_set)
-		case 4: // Thursday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[12][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[12][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[12][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[12][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[12][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[12][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[12][6].(string))
-			seats = append(seats, seat_set)
-		case 5: // Friday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[13][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[13][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[13][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[13][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[13][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[13][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[13][6].(string))
-			seats = append(seats, seat_set)
-		case 6: // Saturday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[14][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[14][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[14][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[14][3].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[14][4].(string))
-			seats = append(seats, seat_set)
-			seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-			seat_set, _ = strconv.Atoi(climate_config.Values[14][5].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[14][6].(string))
-			seats = append(seats, seat_set)
-		default:
+		d_temp, err = strconv.ParseFloat(climate_config.Values[dow_index[1]][1].(string), 64)
+		if err != nil {
 			return
 		}
+		p_temp, _ = strconv.ParseFloat(climate_config.Values[dow_index[1]][2].(string), 64)
+
+		seat_set, _ := strconv.Atoi(climate_config.Values[dow_index[1]][3].(string))
+		seats = append(seats, seat_set)
+		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][4].(string))
+		seats = append(seats, seat_set)
+		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][5].(string))
+		seats = append(seats, seat_set)
+		seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
+		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][6].(string))
+		seats = append(seats, seat_set)
+		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][7].(string))
+		seats = append(seats, seat_set)
+
+		stop_time = common.GetTodayTime(climate_config.Values[dow_index[1]][9].(string))
 	} else {
 		return // outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 	}
@@ -351,11 +130,7 @@ func PreconditionM3Start() {
 			SetCarSeatHeating(M3_VIN, i, seats[i])
 		}
 
-		// specific date/time to create a crontab for later this morning at
-		// the preferred stop time
-		stop_time := common.GetTodayTime(climate_config.Values[18][0].(string))
-
-		// create crontab to stop preconditioning
+		// create crontab to stop preconditioning at preferred time later in the day
 		common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionm3stop >> /home/pi/tesla/go/cron.log 2>&1")
 		common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionm3stop >> /home/pi/tesla/go/cron.log 2>&1",
 			stop_time.Minute(),
@@ -368,11 +143,11 @@ func PreconditionM3Start() {
 func PreconditionMXStart() {
 	// get configuration info
 	srv := common.GetGoogleSheetService()
-	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Climate!I3:L24").Do()
+	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Climate!A3:P22").Do()
 	common.LogError("PreconditionM3Start(): srv.Spreadsheets.Values.Get", err)
 
 	// check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
-	if climate_config.Values[21][0] == "on" {
+	if climate_config.Values[19][10] == "on" {
 		return
 	}
 
@@ -381,183 +156,46 @@ func PreconditionMXStart() {
 
 	// get today's day of week to compare against Google Sheet temp preferences
 	// for that day
-	day_of_week := time.Now().Weekday()
+	day_of_week := time.Now().Format("Monday")
+	dow_index := common.FindStringIn2DArray(climate_config.Values, day_of_week)
 	var d_temp float64
 	var p_temp float64
 	var seats []int
+	var stop_time time.Time
 
 	// compare temp readings and threshold to determine heating or cooling temps
 	// to use
-	config_temp_cold, _ := strconv.ParseFloat(climate_config.Values[19][0].(string), 64)
-	config_temp_hot, _ := strconv.ParseFloat(climate_config.Values[20][0].(string), 64)
+	config_temp_cold, _ := strconv.ParseFloat(climate_config.Values[17][10].(string), 64)
+	config_temp_hot, _ := strconv.ParseFloat(climate_config.Values[18][10].(string), 64)
 
 	if wdata["current"].(map[string]interface{})["temp"].(float64) < config_temp_cold {
 		// get pre-heat preferences
-		switch day_of_week {
-		case 0: // Sunday
-			// get pre-heat preferences
-			d_temp, err = strconv.ParseFloat(climate_config.Values[6][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[6][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[6][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[6][3].(string))
-			seats = append(seats, seat_set)
-		case 1: // Monday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[0][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[0][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[0][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[0][3].(string))
-			seats = append(seats, seat_set)
-		case 2: // Tuesday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[1][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[1][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[1][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[1][3].(string))
-			seats = append(seats, seat_set)
-		case 3: // Wednesday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[2][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[2][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[2][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[2][3].(string))
-			seats = append(seats, seat_set)
-		case 4: // Thursday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[3][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[3][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[3][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[3][3].(string))
-			seats = append(seats, seat_set)
-		case 5: // Friday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[4][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[4][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[4][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[4][3].(string))
-			seats = append(seats, seat_set)
-		case 6: // Saturday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[5][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[5][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[5][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[5][3].(string))
-			seats = append(seats, seat_set)
-		default:
+		d_temp, err = strconv.ParseFloat(climate_config.Values[dow_index[0]][10].(string), 64)
+		if err != nil {
 			return
 		}
+		p_temp, _ = strconv.ParseFloat(climate_config.Values[dow_index[0]][11].(string), 64)
+
+		seat_set, _ := strconv.Atoi(climate_config.Values[dow_index[0]][12].(string))
+		seats = append(seats, seat_set)
+		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[0]][13].(string))
+		seats = append(seats, seat_set)
+
+		stop_time = common.GetTodayTime(climate_config.Values[dow_index[0]][15].(string))
 	} else if wdata["current"].(map[string]interface{})["temp"].(float64) > config_temp_hot {
 		// get pre-cool preferences
-		switch day_of_week {
-		case 0: // Sunday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[15][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[15][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[15][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[15][3].(string))
-			seats = append(seats, seat_set)
-		case 1: // Monday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[9][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[9][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[9][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[9][3].(string))
-			seats = append(seats, seat_set)
-		case 2: // Tuesday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[10][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[10][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[10][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[10][3].(string))
-			seats = append(seats, seat_set)
-		case 3: // Wednesday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[11][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[11][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[11][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[11][3].(string))
-			seats = append(seats, seat_set)
-		case 4: // Thursday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[12][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[12][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[12][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[12][3].(string))
-			seats = append(seats, seat_set)
-		case 5: // Friday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[13][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[13][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[13][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[13][3].(string))
-			seats = append(seats, seat_set)
-		case 6: // Saturday
-			d_temp, err = strconv.ParseFloat(climate_config.Values[14][0].(string), 64)
-			if err != nil {
-				return
-			}
-			p_temp, _ = strconv.ParseFloat(climate_config.Values[14][1].(string), 64)
-
-			seat_set, _ := strconv.Atoi(climate_config.Values[14][2].(string))
-			seats = append(seats, seat_set)
-			seat_set, _ = strconv.Atoi(climate_config.Values[14][3].(string))
-			seats = append(seats, seat_set)
-		default:
+		d_temp, err = strconv.ParseFloat(climate_config.Values[dow_index[1]][10].(string), 64)
+		if err != nil {
 			return
 		}
+		p_temp, _ = strconv.ParseFloat(climate_config.Values[dow_index[1]][11].(string), 64)
+
+		seat_set, _ := strconv.Atoi(climate_config.Values[dow_index[1]][12].(string))
+		seats = append(seats, seat_set)
+		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][13].(string))
+		seats = append(seats, seat_set)
+
+		stop_time = common.GetTodayTime(climate_config.Values[dow_index[1]][15].(string))
 	} else {
 		return // outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 	}
@@ -579,11 +217,7 @@ func PreconditionMXStart() {
 			SetCarSeatHeating(MX_VIN, i, seats[i])
 		}
 
-		// specific date/time to create a crontab for later this morning at
-		// the preferred stop time
-		stop_time := common.GetTodayTime(climate_config.Values[18][0].(string))
-
-		// create crontab to stop preconditioning
+		// create crontab to stop preconditioning at preferred time later in the day
 		common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionmxstop >> /home/pi/tesla/go/cron.log 2>&1")
 		common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionmxstop >> /home/pi/tesla/go/cron.log 2>&1",
 			stop_time.Minute(),

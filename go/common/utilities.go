@@ -229,3 +229,16 @@ func DeleteCronTab(command string) {
 	err := exec.Command("bash", "-c", "(crontab -l | grep -v '"+command+"') | crontab -").Run()
 	LogError("DeleteCronTab(): exec.Command", err)
 }
+
+func FindStringIn2DArray(arr [][]interface{}, target string) []int64 {
+	i := []int64{}
+	for rowIndex, row := range arr {
+		for _, val := range row {
+			if val == target {
+				i = append(i, int64(rowIndex))
+			}
+		}
+	}
+
+	return i
+}

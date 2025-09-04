@@ -64,23 +64,21 @@ func NotifyIsTeslaPluggedIn() {
 
 	// get charging configuration info
 	srv := common.GetGoogleSheetService()
-	charge_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Charger!B3:B7").Do()
+	charge_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Charger!A3:C11").Do()
 	common.LogError("NotifyIsTeslaPluggedIn(): srv.Spreadsheets.Values.Get", err)
 
 	// get climate configuration info
-	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Climate!B20:I24").Do()
+	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Climate!A3:P22").Do()
 	common.LogError("NotifyIsTeslaPluggedIn(): srv.Spreadsheets.Values.Get", err)
 
 	// check if email notification is set to "on" first
-	if charge_config.Values[1][0] == "on" {
+	if charge_config.Values[8][1] == "on" {
 		// send an email if the charge port door is not open, i.e. not plugged in
 		if !charge_port_door_open {
-			message := "Your car is not plugged in.  \n\nCurrent battery level is " +
-				strconv.FormatFloat(battery_level, 'f', -1, 64) +
-				"%, " +
-				strconv.FormatFloat(battery_range, 'f', -1, 64) +
-				" estimated miles.  \n\n-Your Model 3"
-			common.SendEmail(EMAIL_1, "Please Plug In Your Model 3", message, "")
+			common.SendEmail(EMAIL_1,
+				"Please Plug In Your Model 3",
+				getPluggedInMessage("Model 3", battery_level, battery_range),
+				"")
 		}
 	}
 
@@ -92,25 +90,29 @@ func NotifyIsTeslaPluggedIn() {
 	if charge_config.Values[0][0] == "on" {
 		// send an email if the charge port door is not open, i.e. not plugged in
 		if !charge_port_door_open {
-			message := "Your car is not plugged in.  \n\nCurrent battery level is " +
-				strconv.FormatFloat(battery_level, 'f', -1, 64) +
-				"%, " +
-				strconv.FormatFloat(battery_range, 'f', -1, 64) +
-				" estimated miles.  \n\n-Your Model X"
-			common.SendEmail(EMAIL_2, "Please Plug In Your Model X", message, EMAIL_1)
+			common.SendEmail(EMAIL_2,
+				"Please Plug In Your Model X",
+				getPluggedInMessage("Model X", battery_level, battery_range),
+				EMAIL_1)
 		}
 	}
 
 	// set cars for scheduled charging
-	m3_target_finish_time := common.GetTomorrowTime(charge_config.Values[4][0].(string))
-	mx_target_finish_time := common.GetTomorrowTime(charge_config.Values[3][0].(string))
+	day_of_week := time.Now().AddDate(0, 0, 1).Format("Monday")
+	dow_index := common.FindStringIn2DArray(charge_config.Values, day_of_week)
+	m3_target_finish_time := common.GetTomorrowTime(charge_config.Values[dow_index[0]][1].(string))
+	mx_target_finish_time := common.GetTomorrowTime(charge_config.Values[dow_index[0]][2].(string))
+
+	dow_index = common.FindStringIn2DArray(climate_config.Values, day_of_week)
+	m3_climate_start_time := common.GetTomorrowTime(climate_config.Values[dow_index[0]][8].(string))
+	mx_climate_start_time := common.GetTomorrowTime(climate_config.Values[dow_index[0]][14].(string))
 
 	scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 	scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
 	// set cabin preconditioning the next morning
-	SetM3Precondition(m3_data, climate_config)
-	SetMXPrecondition(mx_data, climate_config)
+	SetM3Precondition(m3_data, climate_config.Values[19][1].(string), m3_climate_start_time)
+	SetMXPrecondition(mx_data, climate_config.Values[19][10].(string), mx_climate_start_time)
 }
 
 // Called by a crontab to read vehicle range and expected charge
@@ -157,18 +159,10 @@ func scheduleM3Charging(m3_data map[string]interface{}, mx_data map[string]inter
 		StopChargeVehicle(M3_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
 		// send email notification
-		message := "The Model 3 is set to charge at " +
-			start_time.Format("January 2, 2006 15:04") +
-			" to " +
-			strconv.FormatFloat(m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64), 'f', -1, 64) + "%" +
-			" by " + m3_target_finish_time.Format("15:04") + ", " +
-			strconv.FormatFloat((m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)/
-				m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64)*
-				m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range.  " +
-			"The Model 3 is currently at " +
-			strconv.FormatFloat(m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64), 'f', 0, 64) + "%, " +
-			strconv.FormatFloat(m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range."
-		common.SendEmail(EMAIL_1, "Model 3 Set to Charge", message, "")
+		common.SendEmail(EMAIL_1,
+			"Model 3 Set to Charge",
+			getScheduledChargeMessage("Model 3", m3_data, start_time, m3_target_finish_time),
+			"")
 	}
 }
 
@@ -210,18 +204,10 @@ func scheduleMXCharging(m3_data map[string]interface{}, mx_data map[string]inter
 		StopChargeVehicle(MX_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
 		// send email notification
-		message := "The Model X is set to charge at " +
-			start_time.Format("January 2, 2006 15:04") +
-			" to " +
-			strconv.FormatFloat(mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64), 'f', -1, 64) + "%" +
-			" by " + mx_target_finish_time.Format("15:04") + ", " +
-			strconv.FormatFloat((mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)/
-				mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64)*
-				mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range.  " +
-			"The Model X is currently at " +
-			strconv.FormatFloat(mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64), 'f', 0, 64) + "%, " +
-			strconv.FormatFloat(mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range."
-		common.SendEmail(EMAIL_1, "Model X Set to Charge", message, "")
+		common.SendEmail(EMAIL_1,
+			"Model X Set to Charge",
+			getScheduledChargeMessage("Model X", mx_data, start_time, mx_target_finish_time),
+			"")
 	}
 }
 
@@ -467,4 +453,30 @@ func earliestTime(t1, t2 time.Time) time.Time {
 		return t1
 	}
 	return t2
+}
+
+func getScheduledChargeMessage(vehicle string, data map[string]interface{}, start_time time.Time, finish_time time.Time) string {
+	message := "The " + vehicle + " is set to charge at " +
+		start_time.Format("January 2, 2006 15:04") +
+		" to " +
+		strconv.FormatFloat(data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64), 'f', -1, 64) + "%" +
+		" by " + finish_time.Format("15:04") + ", " +
+		strconv.FormatFloat((data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)/
+			data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64)*
+			data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range.  " +
+		"The Model 3 is currently at " +
+		strconv.FormatFloat(data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64), 'f', 0, 64) + "%, " +
+		strconv.FormatFloat(data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range."
+
+	return message
+}
+
+func getPluggedInMessage(vehicle string, battery_level float64, battery_range float64) string {
+	message := "Your car is not plugged in.  \n\nCurrent battery level is " +
+		strconv.FormatFloat(battery_level, 'f', -1, 64) +
+		"%, " +
+		strconv.FormatFloat(battery_range, 'f', -1, 64) +
+		" estimated miles.  \n\n-Your " + vehicle
+
+	return message
 }
