@@ -87,7 +87,7 @@ func NotifyIsTeslaPluggedIn() {
 	battery_range = mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)
 
 	// check if email notification is set to "on" first
-	if charge_config.Values[0][0] == "on" {
+	if charge_config.Values[8][2] == "on" {
 		// send an email if the charge port door is not open, i.e. not plugged in
 		if !charge_port_door_open {
 			common.SendEmail(EMAIL_2,

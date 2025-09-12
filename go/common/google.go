@@ -88,7 +88,13 @@ func getClient(config *oauth2.Config, token_filename string) *http.Client {
 		tok = getTokenFromWeb(config)
 		saveToken(token_filename, tok)
 	}
-	return config.Client(context.Background(), tok)
+
+	// Automatically refresh token.
+	new_token, err := config.TokenSource(context.TODO(), tok).Token()
+	logError("getClient(): config.TokenSource", err)
+	saveToken(token_filename, new_token)
+
+	return config.Client(context.Background(), new_token)
 }
 
 // Request a token from the web, then returns the retrieved token.
