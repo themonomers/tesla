@@ -68,7 +68,7 @@ func getGoogleMailService() *gmail.Service {
 
 	// If modifying these scopes, delete your previously saved google_token.json.
 	config, err := google.ConfigFromJSON(b, gmail.GmailModifyScope)
-	logError("GetGoogleSheetService(): google.ConfigFromJSON", err)
+	logError("getGoogleMailService(): google.ConfigFromJSON", err)
 
 	client := getClient(config, "/home/pi/tesla/go/common/gmail_token.json")
 
