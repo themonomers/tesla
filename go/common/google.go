@@ -33,7 +33,11 @@ func FindOpenRow(sheet_id, sheet_name, rng string) int {
 	service := GetGoogleSheetService()
 	rng = sheet_name + "!" + rng
 	resp, err := service.Spreadsheets.Values.Get(sheet_id, rng).Do()
-	logError("FindOpenRow(): service.Spreadsheets.Values.Get", err)
+	if err != nil {
+		logError("FindOpenRow(): service.Spreadsheets.Values.Get", err)
+		time.Sleep(WAIT_TIME * time.Second)
+		return FindOpenRow(sheet_id, sheet_name, rng)
+	}
 
 	if len(resp.Values) == 0 {
 		return 1
