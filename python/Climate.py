@@ -22,8 +22,8 @@ def setM3Precondition(data, eco_mode, start_time):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
         # create precondition start crontab at preferred time tomorrow
-        deleteCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionM3Start.py >> /home/pi/tesla/python/cron.log 2>&1')
-        createCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionM3Start.py >> /home/pi/tesla/python/cron.log 2>&1', 
+        deleteCronTab('/usr/bin/timeout -k 360 300 python -u /home/pi/tesla/python/PreconditionM3Start.py >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 360 300 python -u /home/pi/tesla/python/PreconditionM3Start.py >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
@@ -40,8 +40,8 @@ def setMXPrecondition(data, eco_mode, start_time):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
         # create precondition start crontab at preferred time tomorrow
-        deleteCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionMXStart.py >> /home/pi/tesla/python/cron.log 2>&1')
-        createCronTab('/usr/bin/timeout -k 360 300 python /home/pi/tesla/python/PreconditionMXStart.py >> /home/pi/tesla/python/cron.log 2>&1', 
+        deleteCronTab('/usr/bin/timeout -k 360 300 python -u /home/pi/tesla/python/PreconditionMXStart.py >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 360 300 python -u /home/pi/tesla/python/PreconditionMXStart.py >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
