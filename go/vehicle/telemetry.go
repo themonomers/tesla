@@ -49,13 +49,13 @@ func writeM3Telemetry() {
 	}
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!A" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["vehicle_state"].(map[string]interface{})["odometer"].(float64)}},
+		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["odometer"].(float64)}},
 	})
 
 	// write date stamp
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!B" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{time.Now().Format("January 2, 2006")}},
+		Values: [][]any{{time.Now().Format("January 2, 2006")}},
 	})
 
 	// copy mileage formulas down
@@ -83,8 +83,8 @@ func writeM3Telemetry() {
 	// write max battery capacity
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!M" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64) /
-			data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64) /
+		Values: [][]any{{data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64) /
+			data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) /
 			100.0}},
 	})
 
@@ -111,36 +111,36 @@ func writeM3Telemetry() {
 	// write target SoC %
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!O" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64) /
+		Values: [][]any{{data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64) /
 			100.0}},
 	})
 
 	// write data for efficiency calculation
-	starting_range := (data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64) /
-		data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64) /
+	starting_range := (data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64) /
+		data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) /
 		100.0) *
-		(data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64) /
+		(data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64) /
 			100.0)
 
-	eod_range := data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)
+	eod_range := data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
 
 	// if the starting range is less than eod range or the car is not plugged
 	// in or charging state is complete, the starting range is equal to the
 	// eod range because it won't charge
 	if (starting_range < eod_range) ||
-		(!data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_port_door_open"].(bool) ||
-			(data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charging_state"].(string) == "Complete")) {
+		(!data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool) ||
+			(data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) == "Complete")) {
 		starting_range = eod_range
 	}
 
 	// write the starting_range for the next day
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!H" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{starting_range}},
+		Values: [][]any{{starting_range}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!I" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{eod_range}},
+		Values: [][]any{{eod_range}},
 	})
 
 	// copy efficiency formulas down
@@ -164,40 +164,40 @@ func writeM3Telemetry() {
 	request = append(request, &sheets.Request{CopyPaste: copy_paste_requests})
 
 	// write temperature data into telemetry sheet
-	inside_temp := data["response"].(map[string]interface{})["climate_state"].(map[string]interface{})["inside_temp"].(float64)*
+	inside_temp := data["response"].(map[string]any)["climate_state"].(map[string]any)["inside_temp"].(float64)*
 		9/5 +
 		32 // convert to Fahrenheit
-	outside_temp := data["response"].(map[string]interface{})["climate_state"].(map[string]interface{})["outside_temp"].(float64)*
+	outside_temp := data["response"].(map[string]any)["climate_state"].(map[string]any)["outside_temp"].(float64)*
 		9/5 +
 		32 // convert to Fahrenheit
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!P" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{inside_temp}},
+		Values: [][]any{{inside_temp}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!Q" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{outside_temp}},
+		Values: [][]any{{outside_temp}},
 	})
 
 	// write tire pressure data into telemetry sheet
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!R" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["vehicle_state"].(map[string]interface{})["tpms_pressure_fl"].(float64) *
+		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fl"].(float64) *
 			14.5038}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!S" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["vehicle_state"].(map[string]interface{})["tpms_pressure_fr"].(float64) *
+		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fr"].(float64) *
 			14.5038}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!T" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["vehicle_state"].(map[string]interface{})["tpms_pressure_rl"].(float64) *
+		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rl"].(float64) *
 			14.5038}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!U" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["vehicle_state"].(map[string]interface{})["tpms_pressure_rr"].(float64) *
+		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rr"].(float64) *
 			14.5038}},
 	})
 
@@ -226,13 +226,13 @@ func writeMXTelemetry() {
 	}
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!V" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["vehicle_state"].(map[string]interface{})["odometer"].(float64)}},
+		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["odometer"].(float64)}},
 	})
 
 	// write date stamp
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!W" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{time.Now().Format("January 2, 2006")}},
+		Values: [][]any{{time.Now().Format("January 2, 2006")}},
 	})
 
 	// copy mileage formulas down
@@ -260,8 +260,8 @@ func writeMXTelemetry() {
 	// write max battery capacity
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!AH" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64) /
-			data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64) /
+		Values: [][]any{{data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64) /
+			data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) /
 			100.0}},
 	})
 
@@ -288,36 +288,36 @@ func writeMXTelemetry() {
 	// write target SoC %
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!AJ" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64) /
+		Values: [][]any{{data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64) /
 			100.0}},
 	})
 
 	// write data for efficiency calculation
-	starting_range := (data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64) /
-		data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64) /
+	starting_range := (data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64) /
+		data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) /
 		100.0) *
-		(data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64) /
+		(data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64) /
 			100.0)
 
-	eod_range := data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)
+	eod_range := data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
 
 	// if the starting range is less than eod range or the car is not plugged
 	// in or charging state is complete, the starting range is equal to the
 	// eod range because it won't charge
 	if (starting_range < eod_range) ||
-		(!data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_port_door_open"].(bool) ||
-			(data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charging_state"].(string) == "Complete")) {
+		(!data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool) ||
+			(data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) == "Complete")) {
 		starting_range = eod_range
 	}
 
 	// write the starting_range for the next day
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!AC" + strconv.Itoa(open_row),
-		Values: [][]interface{}{{starting_range}},
+		Values: [][]any{{starting_range}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!AD" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{eod_range}},
+		Values: [][]any{{eod_range}},
 	})
 
 	// copy efficiency formulas down
@@ -341,40 +341,40 @@ func writeMXTelemetry() {
 	request = append(request, &sheets.Request{CopyPaste: copy_paste_requests})
 
 	// write temperature data into telemetry sheet
-	inside_temp := data["response"].(map[string]interface{})["climate_state"].(map[string]interface{})["inside_temp"].(float64)*
+	inside_temp := data["response"].(map[string]any)["climate_state"].(map[string]any)["inside_temp"].(float64)*
 		9/5 +
 		32 // convert to Fahrenheit
-	outside_temp := data["response"].(map[string]interface{})["climate_state"].(map[string]interface{})["outside_temp"].(float64)*
+	outside_temp := data["response"].(map[string]any)["climate_state"].(map[string]any)["outside_temp"].(float64)*
 		9/5 +
 		32 // convert to Fahrenheit
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!AK" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{inside_temp}},
+		Values: [][]any{{inside_temp}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!AL" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{outside_temp}},
+		Values: [][]any{{outside_temp}},
 	})
 
 	// write tire pressure data into telemetry sheet
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!AM" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["vehicle_state"].(map[string]interface{})["tpms_pressure_fl"].(float64) *
+		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fl"].(float64) *
 			14.5038}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!AN" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["vehicle_state"].(map[string]interface{})["tpms_pressure_fr"].(float64) *
+		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fr"].(float64) *
 			14.5038}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!AO" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["vehicle_state"].(map[string]interface{})["tpms_pressure_rl"].(float64) *
+		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rl"].(float64) *
 			14.5038}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range: "Telemetry!AP" + strconv.Itoa(open_row-1),
-		Values: [][]interface{}{{data["response"].(map[string]interface{})["vehicle_state"].(map[string]interface{})["tpms_pressure_rr"].(float64) *
+		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rr"].(float64) *
 			14.5038}},
 	})
 

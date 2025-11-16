@@ -46,13 +46,13 @@ func ImportOutageToDB() {
 	})
 	common.LogError("ImportOutageToDB(): client.NewBatchPoints", err)
 
-	for key, val := range data["response"].(map[string]interface{})["events"].([]interface{}) {
+	for key, val := range data["response"].(map[string]any)["events"].([]any) {
 		fmt.Println(key + 1)
 
 		// convert duration to hours
-		duration := val.(map[string]interface{})["duration"].(float64) / 1000 / 60 / 60
+		duration := val.(map[string]any)["duration"].(float64) / 1000 / 60 / 60
 
-		start, _ := time.Parse("2006-01-02T15:04:05-07:00", val.(map[string]interface{})["timestamp"].(string))
+		start, _ := time.Parse("2006-01-02T15:04:05-07:00", val.(map[string]any)["timestamp"].(string))
 		fmt.Print("  start = ")
 		fmt.Println(start.Format("2006-01-02 03:04:05 PM"))
 
@@ -73,7 +73,7 @@ func ImportOutageToDB() {
 		}
 
 		tags := map[string]string{"source": "event"}
-		fields := map[string]interface{}{
+		fields := map[string]any{
 			"value": duration,
 		}
 		pt, err := client.NewPoint("backup", tags, fields, start)
@@ -81,7 +81,7 @@ func ImportOutageToDB() {
 		bp.AddPoint(pt)
 
 		tags = map[string]string{"source": "event"}
-		fields = map[string]interface{}{
+		fields = map[string]any{
 			"value": duration,
 		}
 		pt, err = client.NewPoint("backup", tags, fields, end)

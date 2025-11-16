@@ -106,17 +106,17 @@ func newINIFile(data []byte) map[string]string {
 // calculating short distances by Bob Chamberlain (rgc@jpl.nasa.gov) of Caltech
 // and NASA's Jet Propulsion Laboratory as described on the U.S. Census Bureau
 // Web site.
-func IsVehicleAtPrimary(data map[string]interface{}) bool {
+func IsVehicleAtPrimary(data map[string]any) bool {
 	return isVehicleAtLocation(data, PRIMARY_LAT, PRIMARY_LNG)
 }
 
-func IsVehicleAtSecondary(data map[string]interface{}) bool {
+func IsVehicleAtSecondary(data map[string]any) bool {
 	return isVehicleAtLocation(data, SECONDARY_LAT, SECONDARY_LNG)
 }
 
-func isVehicleAtLocation(data map[string]interface{}, lat float64, lng float64) bool {
-	d := getDistance(data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["latitude"].(float64),
-		data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["longitude"].(float64),
+func isVehicleAtLocation(data map[string]any, lat float64, lng float64) bool {
+	d := getDistance(data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64),
+		data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64),
 		lat,
 		lng)
 
@@ -165,7 +165,7 @@ func GetTodayTime(t string) time.Time {
 
 // Uses a free weather service with API to look up data by zipcode or other
 // attributes.  Gets current weather conditions.
-func GetCurrentWeather(lat, lng float64) map[string]interface{} {
+func GetCurrentWeather(lat, lng float64) map[string]any {
 	url := BASE_WEATHER_URL +
 		"/onecall" +
 		"?lat=" + strconv.FormatFloat(lat, 'f', -1, 64) +
@@ -183,7 +183,7 @@ func GetCurrentWeather(lat, lng float64) map[string]interface{} {
 	}
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -192,7 +192,7 @@ func GetCurrentWeather(lat, lng float64) map[string]interface{} {
 // Uses a free weather service with API to look up data by latitude and
 // longitude or other attributes.  Gets daily weather conditions for
 // today + 7 days, and hourly weather conditions for 48 hours.
-func GetDailyWeather(lat, lng float64) map[string]interface{} {
+func GetDailyWeather(lat, lng float64) map[string]any {
 	url := BASE_WEATHER_URL +
 		"/onecall" +
 		"?lat=" + strconv.FormatFloat(lat, 'f', -1, 64) +
@@ -210,7 +210,7 @@ func GetDailyWeather(lat, lng float64) map[string]interface{} {
 	}
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -230,7 +230,7 @@ func DeleteCronTab(command string) {
 	LogError("DeleteCronTab(): exec.Command", err)
 }
 
-func FindStringIn2DArray(arr [][]interface{}, target string) []int64 {
+func FindStringIn2DArray(arr [][]any, target string) []int64 {
 	i := []int64{}
 	for rowIndex, row := range arr {
 		for _, val := range row {

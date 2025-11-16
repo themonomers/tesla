@@ -14,7 +14,7 @@ import (
 // running as I don't drive long distances so the added feature of
 // preconditioning the battery, in addition to the cabin, is a waste of
 // energy (entropy) for me.
-func SetM3Precondition(data map[string]interface{}, eco_mode string, start_time time.Time) {
+func SetM3Precondition(data map[string]any, eco_mode string, start_time time.Time) {
 	// check if eco mode is off first so we don't have to even call the
 	// Tesla API if we don't have to
 	if eco_mode == "off" {
@@ -31,7 +31,7 @@ func SetM3Precondition(data map[string]interface{}, eco_mode string, start_time 
 	}
 }
 
-func SetMXPrecondition(data map[string]interface{}, eco_mode string, start_time time.Time) {
+func SetMXPrecondition(data map[string]any, eco_mode string, start_time time.Time) {
 	// check if eco mode is off first so we don't have to even call the
 	// Tesla API if we don't have to
 	if eco_mode == "off" {

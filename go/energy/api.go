@@ -37,7 +37,7 @@ func init() {
 }
 
 // Gets some quick and basic information.
-func GetSiteStatus() map[string]interface{} {
+func GetSiteStatus() map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
@@ -51,14 +51,14 @@ func GetSiteStatus() map[string]interface{} {
 	common.LogError("GetSiteStatus(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
 }
 
 // Gets more information as well as live data such as solar production.
-func GetSiteLiveStatus() map[string]interface{} {
+func GetSiteLiveStatus() map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
@@ -72,14 +72,14 @@ func GetSiteLiveStatus() map[string]interface{} {
 	common.LogError("GetSiteLiveStatus(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
 }
 
 // Gets detailed information.
-func GetSiteInfo() map[string]interface{} {
+func GetSiteInfo() map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
@@ -93,7 +93,7 @@ func GetSiteInfo() map[string]interface{} {
 	common.LogError("GetSiteInfo(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -101,7 +101,7 @@ func GetSiteInfo() map[string]interface{} {
 
 // Gets summary level information about energy imports and exports down to the
 // day.
-func GetSiteHistory(period string, date time.Time) map[string]interface{} {
+func GetSiteHistory(period string, date time.Time) map[string]any {
 	date = time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, time.Local)
 
 	url := BASE_OWNER_URL +
@@ -120,14 +120,14 @@ func GetSiteHistory(period string, date time.Time) map[string]interface{} {
 	common.LogError("GetSiteHistory(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
 }
 
 // Get grid outage/battery backup events.
-func GetBatteryBackupHistory() map[string]interface{} {
+func GetBatteryBackupHistory() map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
@@ -141,7 +141,7 @@ func GetBatteryBackupHistory() map[string]interface{} {
 	common.LogError("GetBatteryPowerHistory(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -149,7 +149,7 @@ func GetBatteryBackupHistory() map[string]interface{} {
 
 // Gets summary level information about energy imports and exports down to the
 // day, separated by time of use.
-func GetSiteTOUHistory(period string, date time.Time) map[string]interface{} {
+func GetSiteTOUHistory(period string, date time.Time) map[string]any {
 	s_date := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.Local)
 	e_date := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, time.Local)
 
@@ -170,7 +170,7 @@ func GetSiteTOUHistory(period string, date time.Time) map[string]interface{} {
 	common.LogError("GetSiteTOUHistory(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -178,7 +178,7 @@ func GetSiteTOUHistory(period string, date time.Time) map[string]interface{} {
 
 // Gets the historic battery charge level data in 15 minute increments that's
 // shown on the mobile app.
-func GetBatteryChargeHistory(period string, date time.Time) map[string]interface{} {
+func GetBatteryChargeHistory(period string, date time.Time) map[string]any {
 	date = time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, time.Local)
 
 	url := BASE_OWNER_URL +
@@ -197,7 +197,7 @@ func GetBatteryChargeHistory(period string, date time.Time) map[string]interface
 	common.LogError("GetBatteryChargeHistory(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -205,7 +205,7 @@ func GetBatteryChargeHistory(period string, date time.Time) map[string]interface
 
 // Gets energy information in 5 minute increments, with ability to query by
 // date.  Used to create the "ENERGY USAGE" charts in the mobile app.
-func GetPowerHistory(period string, date time.Time) map[string]interface{} {
+func GetPowerHistory(period string, date time.Time) map[string]any {
 	s_date := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.Local)
 	e_date := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, time.Local)
 
@@ -226,14 +226,14 @@ func GetPowerHistory(period string, date time.Time) map[string]interface{} {
 	common.LogError("GetPowerHistory(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
 }
 
 // Lists all rate tariffs available in the mobile app.
-func GetRateTariffs() map[string]interface{} {
+func GetRateTariffs() map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		"rate_tariffs"
@@ -246,7 +246,7 @@ func GetRateTariffs() map[string]interface{} {
 	common.LogError("GetRateTariffs(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -254,7 +254,7 @@ func GetRateTariffs() map[string]interface{} {
 
 // Lists the tariff selected for your site in the mobile
 // app along with published rates, TOU schedules, etc.
-func GetSiteTariff() map[string]interface{} {
+func GetSiteTariff() map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
@@ -268,7 +268,7 @@ func GetSiteTariff() map[string]interface{} {
 	common.LogError("GetSiteTariff(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -276,7 +276,7 @@ func GetSiteTariff() map[string]interface{} {
 
 // Gets the data for Solar Value in the mobile app to show estimated
 // cost savings.
-func GetSavingsForecast(period string, date time.Time) map[string]interface{} {
+func GetSavingsForecast(period string, date time.Time) map[string]any {
 	s_date := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.Local)
 	e_date := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, time.Local)
 
@@ -298,14 +298,14 @@ func GetSavingsForecast(period string, date time.Time) map[string]interface{} {
 	common.LogError("GetSavingsForecast(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
 }
 
 // Retrieves the estimated time remaining in the powerwall(s).
-func GetBackupTimeRemaining() map[string]interface{} {
+func GetBackupTimeRemaining() map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
@@ -319,7 +319,7 @@ func GetBackupTimeRemaining() map[string]interface{} {
 	common.LogError("GetBackupTimeRemaining(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -331,40 +331,40 @@ func GetBackupTimeRemaining() map[string]interface{} {
 // battery in an outage.  This also has a side effect of hiding
 // the Time of Use card as well as returns an empty response
 // when calling the API for Time of Use data.
-func SetOperationalModeBackup() map[string]interface{} {
+func SetOperationalModeBackup() map[string]any {
 	return setOperationalMode("backup")
 }
 
 // Changes Operational Mode in the mobile app to "Self-Powered".
-func SetOperationalModeSelfPowered() map[string]interface{} {
+func SetOperationalModeSelfPowered() map[string]any {
 	return setOperationalMode("self_consumption")
 }
 
 // Changes Operational Mode in the mobile app to "Time-Based Control".
-func SetOperationalModeTimeBasedControl() map[string]interface{} {
+func SetOperationalModeTimeBasedControl() map[string]any {
 	return setOperationalMode("autonomous")
 }
 
 // Changes Energy Exports in the mobile app to "Everything".
 // Defaults Grid Charging setting to "No".
-func SetEnergyExportsEverything() map[string]interface{} {
+func SetEnergyExportsEverything() map[string]any {
 	return setGridImportExport("battery_ok", true)
 }
 
 // Changes Energy Exports in the mobile app to "Solar".
 // Defaults Grid Charging setting to "No".
-func SetEnergyExportsSolar() map[string]interface{} {
+func SetEnergyExportsSolar() map[string]any {
 	return setGridImportExport("pv_only", true)
 }
 
 // Changes Operational Mode setting in the mobile app.
-func setOperationalMode(mode string) map[string]interface{} {
+func setOperationalMode(mode string) map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
 		"/operation"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"default_real_mode": mode,
 	})
 
@@ -377,20 +377,20 @@ func setOperationalMode(mode string) map[string]interface{} {
 	common.LogError("setOperationalMode(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
 }
 
 // Changes Energy Exports and Grid Charging settings in the mobile app.
-func setGridImportExport(export_rule string, disallow_grid_charging bool) map[string]interface{} {
+func setGridImportExport(export_rule string, disallow_grid_charging bool) map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
 		"/grid_import_export"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"customer_preferred_export_rule":                 export_rule,
 		"disallow_charge_from_grid_with_solar_installed": disallow_grid_charging,
 	})
@@ -404,20 +404,20 @@ func setGridImportExport(export_rule string, disallow_grid_charging bool) map[st
 	common.LogError("setGridImportExport(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
 }
 
 // Sets "Reserve Energy for Grid Outages", % Backup, in the mobile app.
-func SetBackupReserve(backup_percent int) map[string]interface{} {
+func SetBackupReserve(backup_percent int) map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
 		"/backup"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"backup_reserve_percent": backup_percent,
 	})
 
@@ -430,7 +430,7 @@ func SetBackupReserve(backup_percent int) map[string]interface{} {
 	common.LogError("SetBackupReserve(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -438,13 +438,13 @@ func SetBackupReserve(backup_percent int) map[string]interface{} {
 
 // Sets off grid vehicle charging reserve % to save for home use.
 // It seems the maximum is 95% so 5% is the minimum to share with vehicle.
-func SetOffGridVehicleChargingReserve(percent int) map[string]interface{} {
+func SetOffGridVehicleChargingReserve(percent int) map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
 		"/off_grid_vehicle_charging_reserve"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"off_grid_vehicle_charging_reserve_percent                                                                                                                                                         ": percent,
 	})
 
@@ -457,7 +457,7 @@ func SetOffGridVehicleChargingReserve(percent int) map[string]interface{} {
 	common.LogError("SetOffGridVehicleChargingReserve(): GetHttpsClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body

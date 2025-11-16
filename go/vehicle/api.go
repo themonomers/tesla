@@ -39,7 +39,7 @@ func init() {
 
 // Retrieves the vehicle data needed for higher level functions to drive
 // calcuations and actions.
-func GetVehicleData(vin string) map[string]interface{} {
+func GetVehicleData(vin string) map[string]any {
 	var url = BASE_PROXY_URL +
 		"/vehicles/" +
 		vin +
@@ -68,14 +68,14 @@ func GetVehicleData(vin string) map[string]interface{} {
 	}
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
 // Function to repeatedly run (after a certain wait time) to wake the vehicle up
 // when it's asleep.
-func WakeVehicle(vin string) map[string]interface{} {
+func WakeVehicle(vin string) map[string]any {
 	var url = BASE_PROXY_URL +
 		"/vehicles/" +
 		vin +
@@ -89,14 +89,14 @@ func WakeVehicle(vin string) map[string]interface{} {
 	common.LogError("WakeVehicle(): getHttpClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
 }
 
 // Function to send API call to stop charging a vehicle.
-func StopChargeVehicle(vin string) map[string]interface{} {
+func StopChargeVehicle(vin string) map[string]any {
 	if vin == MX_VIN {
 		return stopChargeVehicle(vin)
 	}
@@ -115,12 +115,12 @@ func StopChargeVehicle(vin string) map[string]interface{} {
 	common.LogError("StopChargeVehicle(): getHttpClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
-func stopChargeVehicle(vin string) map[string]interface{} {
+func stopChargeVehicle(vin string) map[string]any {
 	var url = BASE_OWNER_URL +
 		"/vehicles/" +
 		getVehicleId(vin) +
@@ -135,7 +135,7 @@ func stopChargeVehicle(vin string) map[string]interface{} {
 	common.LogError("stopChargeVehicle(): http.DefaultClient.Do", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
@@ -143,7 +143,7 @@ func stopChargeVehicle(vin string) map[string]interface{} {
 // Uses new endpoint to add a schedule for vehicle charging.
 // Scheduled Time is in minutes after midnight, e.g. 7:30 AM
 // = (7 * 60) + 30 = 450
-func AddChargeSchedule(vin string, lat float64, lon float64, sch_time int, id int) map[string]interface{} {
+func AddChargeSchedule(vin string, lat float64, lon float64, sch_time int, id int) map[string]any {
 	if vin == MX_VIN {
 		return addChargeSchedule(vin, lat, lon, sch_time, id)
 	}
@@ -153,7 +153,7 @@ func AddChargeSchedule(vin string, lat float64, lon float64, sch_time int, id in
 		vin +
 		"/command/add_charge_schedule"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"days_of_week":  "All",
 		"enabled":       true,
 		"start_enabled": true,
@@ -174,18 +174,18 @@ func AddChargeSchedule(vin string, lat float64, lon float64, sch_time int, id in
 	common.LogError("AddChargeSchedule(): getHttpClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
-func addChargeSchedule(vin string, lat float64, lon float64, sch_time int, id int) map[string]interface{} {
+func addChargeSchedule(vin string, lat float64, lon float64, sch_time int, id int) map[string]any {
 	var url = BASE_OWNER_URL +
 		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/add_charge_schedule"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"days_of_week":  "All",
 		"enabled":       true,
 		"start_enabled": true,
@@ -206,7 +206,7 @@ func addChargeSchedule(vin string, lat float64, lon float64, sch_time int, id in
 	common.LogError("addChargeSchedule(): http.DefaultClient.Do", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
@@ -216,13 +216,13 @@ func addChargeSchedule(vin string, lat float64, lon float64, sch_time int, id in
 // an error ("x509: certificate signed by unknown authority") unlike
 // other endpoints.  This endpoint works for both newer and older model
 // cars.
-func RemoveChargeSchedule(vin string, id int) map[string]interface{} {
+func RemoveChargeSchedule(vin string, id int) map[string]any {
 	var url = BASE_PROXY_URL +
 		"/vehicles/" +
 		vin +
 		"/command/remove_charge_schedule"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"id": id,
 	})
 
@@ -235,7 +235,7 @@ func RemoveChargeSchedule(vin string, id int) map[string]interface{} {
 	common.LogError("RemoveChargeSchedule(): getHttpClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
@@ -246,7 +246,7 @@ func RemoveChargeSchedule(vin string, id int) map[string]interface{} {
 // Sends command and parameter to set a specific vehicle to charge
 // at a scheduled time.  Scheduled Time is in minutes after midnight,
 // e.g. 7:30 AM = (7 * 60) + 30 = 450
-func SetScheduledCharging(vin string, sch_time int) map[string]interface{} {
+func SetScheduledCharging(vin string, sch_time int) map[string]any {
 	if vin == MX_VIN {
 		return setScheduledCharging(vin, sch_time)
 	}
@@ -256,7 +256,7 @@ func SetScheduledCharging(vin string, sch_time int) map[string]interface{} {
 		vin +
 		"/command/set_scheduled_charging"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"enable": true,
 		"time":   sch_time,
 	})
@@ -270,18 +270,18 @@ func SetScheduledCharging(vin string, sch_time int) map[string]interface{} {
 	common.LogError("SetScheduledCharging(): getHttpClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
-func setScheduledCharging(vin string, sch_time int) map[string]interface{} {
+func setScheduledCharging(vin string, sch_time int) map[string]any {
 	var url = BASE_OWNER_URL +
 		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/set_scheduled_charging"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"enable": true,
 		"time":   sch_time,
 	})
@@ -295,13 +295,13 @@ func setScheduledCharging(vin string, sch_time int) map[string]interface{} {
 	common.LogError("setScheduledCharging(): http.DefaultClient.Do", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
 // Function to set vehicle temperature.
-func SetCarTemp(vin string, d_temp float64, p_temp float64) map[string]interface{} {
+func SetCarTemp(vin string, d_temp float64, p_temp float64) map[string]any {
 	if vin == MX_VIN {
 		return setCarTemp(vin, d_temp, p_temp)
 	}
@@ -311,7 +311,7 @@ func SetCarTemp(vin string, d_temp float64, p_temp float64) map[string]interface
 		vin +
 		"/command/set_temps"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"driver_temp":    d_temp,
 		"passenger_temp": p_temp,
 	})
@@ -325,18 +325,18 @@ func SetCarTemp(vin string, d_temp float64, p_temp float64) map[string]interface
 	common.LogError("SetCarTemp(): getHttpClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
-func setCarTemp(vin string, d_temp float64, p_temp float64) map[string]interface{} {
+func setCarTemp(vin string, d_temp float64, p_temp float64) map[string]any {
 	var url = BASE_OWNER_URL +
 		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/set_temps"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"driver_temp":    d_temp,
 		"passenger_temp": p_temp,
 	})
@@ -350,13 +350,13 @@ func setCarTemp(vin string, d_temp float64, p_temp float64) map[string]interface
 	common.LogError("setCarTemp(): http.DefaultClient.Do", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
 // Function to set vehicle seat heater level.
-func SetCarSeatHeating(vin string, seat int, setting int) map[string]interface{} {
+func SetCarSeatHeating(vin string, seat int, setting int) map[string]any {
 	if vin == MX_VIN {
 		return setCarSeatHeating(vin, seat, setting)
 	}
@@ -366,7 +366,7 @@ func SetCarSeatHeating(vin string, seat int, setting int) map[string]interface{}
 		vin +
 		"/command/remote_seat_heater_request"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"seat_position": seat,
 		"level":         setting,
 	})
@@ -380,18 +380,18 @@ func SetCarSeatHeating(vin string, seat int, setting int) map[string]interface{}
 	common.LogError("SetCarSeatHeating(): getHttpClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
-func setCarSeatHeating(vin string, seat int, setting int) map[string]interface{} {
+func setCarSeatHeating(vin string, seat int, setting int) map[string]any {
 	var url = BASE_OWNER_URL +
 		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/remote_seat_heater_request"
 
-	payload, _ := json.Marshal(map[string]interface{}{
+	payload, _ := json.Marshal(map[string]any{
 		"heater": seat,
 		"level":  setting,
 	})
@@ -405,13 +405,13 @@ func setCarSeatHeating(vin string, seat int, setting int) map[string]interface{}
 	common.LogError("setCarSeatHeating(): http.DefaultClient.Do", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
 // Function to start vehicle preconditioning.
-func PreconditionCarStart(vin string) map[string]interface{} {
+func PreconditionCarStart(vin string) map[string]any {
 	if vin == MX_VIN {
 		return preconditionCarStart(vin)
 	}
@@ -430,12 +430,12 @@ func PreconditionCarStart(vin string) map[string]interface{} {
 	common.LogError("PreconditionCarStart(): getHttpClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
-func preconditionCarStart(vin string) map[string]interface{} {
+func preconditionCarStart(vin string) map[string]any {
 	var url = BASE_OWNER_URL +
 		"/vehicles/" +
 		getVehicleId(vin) +
@@ -450,13 +450,13 @@ func preconditionCarStart(vin string) map[string]interface{} {
 	common.LogError("preconditionCarStart(): http.DefaultClient.Do", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
 // Function to stop vehicle preconditioning.
-func PreconditionCarStop(vin string) map[string]interface{} {
+func PreconditionCarStop(vin string) map[string]any {
 	if vin == MX_VIN {
 		return preconditionCarStop(vin)
 	}
@@ -475,12 +475,12 @@ func PreconditionCarStop(vin string) map[string]interface{} {
 	common.LogError("PreconditionCarStop(): getHttpClient", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
-func preconditionCarStop(vin string) map[string]interface{} {
+func preconditionCarStop(vin string) map[string]any {
 	var url = BASE_OWNER_URL +
 		"/vehicles/" +
 		getVehicleId(vin) +
@@ -495,7 +495,7 @@ func preconditionCarStop(vin string) map[string]interface{} {
 	common.LogError("preconditionCarStop(): http.DefaultClient.Do", err)
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
@@ -505,7 +505,7 @@ func preconditionCarStop(vin string) map[string]interface{} {
 func getVehicleId(vin string) string {
 	var data = GetVehicleData(vin)
 
-	return data["response"].(map[string]interface{})["id_s"].(string)
+	return data["response"].(map[string]any)["id_s"].(string)
 }
 
 // Retrieves HTTP client with a workaround for error "tls: failed to verify certificate: x509:

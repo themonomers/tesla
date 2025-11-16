@@ -46,39 +46,39 @@ func WriteLiveSiteTelemetry() {
 
 	// Create points and add to batch
 	tags := map[string]string{"source": "solar_power"}
-	fields := map[string]interface{}{
-		"value": data["solar"].(map[string]interface{})["instant_power"].(float64),
+	fields := map[string]any{
+		"value": data["solar"].(map[string]any)["instant_power"].(float64),
 	}
-	pt, err := client.NewPoint("energy_live", tags, fields, handleTeslaTimestamp(data["solar"].(map[string]interface{})["last_communication_time"].(string)))
+	pt, err := client.NewPoint("energy_live", tags, fields, handleTeslaTimestamp(data["solar"].(map[string]any)["last_communication_time"].(string)))
 	common.LogError("WriteLiveSiteTelemetry(): client.NewPoint", err)
 	bp.AddPoint(pt)
 
 	tags = map[string]string{"source": "battery_power"}
-	fields = map[string]interface{}{
-		"value": data["battery"].(map[string]interface{})["instant_power"].(float64),
+	fields = map[string]any{
+		"value": data["battery"].(map[string]any)["instant_power"].(float64),
 	}
-	pt, err = client.NewPoint("energy_live", tags, fields, handleTeslaTimestamp(data["battery"].(map[string]interface{})["last_communication_time"].(string)))
+	pt, err = client.NewPoint("energy_live", tags, fields, handleTeslaTimestamp(data["battery"].(map[string]any)["last_communication_time"].(string)))
 	common.LogError("WriteLiveSiteTelemetry(): client.NewPoint", err)
 	bp.AddPoint(pt)
 
 	tags = map[string]string{"source": "grid_power"}
-	fields = map[string]interface{}{
-		"value": data["site"].(map[string]interface{})["instant_power"].(float64),
+	fields = map[string]any{
+		"value": data["site"].(map[string]any)["instant_power"].(float64),
 	}
-	pt, err = client.NewPoint("energy_live", tags, fields, handleTeslaTimestamp(data["site"].(map[string]interface{})["last_communication_time"].(string)))
+	pt, err = client.NewPoint("energy_live", tags, fields, handleTeslaTimestamp(data["site"].(map[string]any)["last_communication_time"].(string)))
 	common.LogError("WriteLiveSiteTelemetry(): client.NewPoint", err)
 	bp.AddPoint(pt)
 
 	tags = map[string]string{"source": "load_power"}
-	fields = map[string]interface{}{
-		"value": data["load"].(map[string]interface{})["instant_power"].(float64),
+	fields = map[string]any{
+		"value": data["load"].(map[string]any)["instant_power"].(float64),
 	}
-	pt, err = client.NewPoint("energy_live", tags, fields, handleTeslaTimestamp(data["load"].(map[string]interface{})["last_communication_time"].(string)))
+	pt, err = client.NewPoint("energy_live", tags, fields, handleTeslaTimestamp(data["load"].(map[string]any)["last_communication_time"].(string)))
 	common.LogError("WriteLiveSiteTelemetry(): client.NewPoint", err)
 	bp.AddPoint(pt)
 
 	tags = map[string]string{"source": "percentage_charged"}
-	fields = map[string]interface{}{
+	fields = map[string]any{
 		"value": getLocalSystemStatusSOE()["percentage"].(float64),
 	}
 	pt, err = client.NewPoint("energy_live", tags, fields, time.Now())
@@ -95,7 +95,7 @@ func WriteLiveSiteTelemetry() {
 
 // Retrieves site energy data locally from the Tesla
 // Energy Gateway.
-func getLocalMetersAggregates() map[string]interface{} {
+func getLocalMetersAggregates() map[string]any {
 	url := BASE_URL +
 		"/meters/aggregates"
 
@@ -112,7 +112,7 @@ func getLocalMetersAggregates() map[string]interface{} {
 	}
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
@@ -120,7 +120,7 @@ func getLocalMetersAggregates() map[string]interface{} {
 
 // Retrieves battery charge state locally from the Tesla
 // Energy Gateway.
-func getLocalSystemStatusSOE() map[string]interface{} {
+func getLocalSystemStatusSOE() map[string]any {
 	url := BASE_URL +
 		"/system_status/soe"
 
@@ -137,14 +137,14 @@ func getLocalSystemStatusSOE() map[string]interface{} {
 	}
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body
 }
 
 // Provides information on batteries and inverters.
-func getLocalSystemStatus() map[string]interface{} {
+func getLocalSystemStatus() map[string]any {
 	url := BASE_URL +
 		"/system_status"
 
@@ -161,7 +161,7 @@ func getLocalSystemStatus() map[string]interface{} {
 	}
 
 	defer resp.Body.Close()
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 
 	return body

@@ -31,7 +31,7 @@ func LogError(msg string, err error) {
 		var open_row = strconv.Itoa(FindOpenRow(LOG_SPREADSHEET_ID, "error", "A:A"))
 
 		var vr sheets.ValueRange
-		data := []interface{}{time.Now().Format("3:04:05 PM, 1/2/2006"), msg + " " + err.Error()}
+		data := []any{time.Now().Format("3:04:05 PM, 1/2/2006"), msg + " " + err.Error()}
 		vr.Values = append(vr.Values, data)
 
 		srv := GetGoogleSheetService()

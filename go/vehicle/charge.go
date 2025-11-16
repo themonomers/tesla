@@ -58,9 +58,9 @@ func NotifyIsTeslaPluggedIn() {
 	mx_data := GetVehicleData(MX_VIN)
 
 	// get car info
-	charge_port_door_open := m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_port_door_open"].(bool)
-	battery_level := m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64)
-	battery_range := m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)
+	charge_port_door_open := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool)
+	battery_level := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64)
+	battery_range := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
 
 	// get charging configuration info
 	srv := common.GetGoogleSheetService()
@@ -82,9 +82,9 @@ func NotifyIsTeslaPluggedIn() {
 		}
 	}
 
-	charge_port_door_open = mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_port_door_open"].(bool)
-	battery_level = mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64)
-	battery_range = mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)
+	charge_port_door_open = mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool)
+	battery_level = mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64)
+	battery_range = mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
 
 	// check if email notification is set to "on" first
 	if charge_config.Values[8][2] == "on" {
@@ -118,10 +118,10 @@ func NotifyIsTeslaPluggedIn() {
 // Called by a crontab to read vehicle range and expected charge
 // finish time from a Google Sheet, then call the API to set a time
 // for scheduled charging in the vehicle.
-func scheduleM3Charging(m3_data map[string]interface{}, mx_data map[string]interface{}, m3_target_finish_time time.Time, mx_target_finish_time time.Time) {
+func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_target_finish_time time.Time, mx_target_finish_time time.Time) {
 	var start_time time.Time
 
-	if m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charging_state"].(string) != "Complete" {
+	if m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" {
 		// get calculated start time depending on location of cars
 		if common.IsVehicleAtPrimary(m3_data) &&
 			common.IsVehicleAtPrimary(mx_data) {
@@ -155,7 +155,7 @@ func scheduleM3Charging(m3_data map[string]interface{}, mx_data map[string]inter
 		// id=1, until I can figure out how to view the list of charge schedules and
 		// their corresponding ID's.
 		RemoveChargeSchedule(M3_VIN, 1)
-		AddChargeSchedule(M3_VIN, m3_data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["latitude"].(float64), m3_data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["longitude"].(float64), total_minutes, 1)
+		AddChargeSchedule(M3_VIN, m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(M3_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
 		// send email notification
@@ -166,10 +166,10 @@ func scheduleM3Charging(m3_data map[string]interface{}, mx_data map[string]inter
 	}
 }
 
-func scheduleMXCharging(m3_data map[string]interface{}, mx_data map[string]interface{}, m3_target_finish_time time.Time, mx_target_finish_time time.Time) {
+func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_target_finish_time time.Time, mx_target_finish_time time.Time) {
 	var start_time time.Time
 
-	if mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charging_state"].(string) != "Complete" {
+	if mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" {
 		// get calculated start time depending on location of cars
 		if common.IsVehicleAtPrimary(mx_data) &&
 			common.IsVehicleAtPrimary(m3_data) {
@@ -200,7 +200,7 @@ func scheduleMXCharging(m3_data map[string]interface{}, mx_data map[string]inter
 		total_minutes := (start_time.Hour() * 60) + start_time.Minute()
 
 		RemoveChargeSchedule(MX_VIN, 1)
-		AddChargeSchedule(MX_VIN, mx_data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["latitude"].(float64), mx_data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["longitude"].(float64), total_minutes, 1)
+		AddChargeSchedule(MX_VIN, mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(MX_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
 		// send email notification
@@ -213,22 +213,22 @@ func scheduleMXCharging(m3_data map[string]interface{}, mx_data map[string]inter
 
 // Calculates the scheduled charging time for 2 vehicles depending
 // on their location, charge state, and finish time.
-func calculateScheduledCharging(scenario string, m3_data map[string]interface{}, mx_data map[string]interface{}, m3_target_finish_time time.Time, mx_target_finish_time time.Time) time.Time {
+func calculateScheduledCharging(scenario string, m3_data map[string]any, mx_data map[string]any, m3_target_finish_time time.Time, mx_target_finish_time time.Time) time.Time {
 	var m3_start_time time.Time
 	var mx_start_time time.Time
 
 	// Calculate how many miles are needed for charging based on
 	// current range and charging % target
-	mx_current_range := mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)
-	m3_current_range := m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)
+	mx_current_range := mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
+	m3_current_range := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
 
-	mx_max_range := (mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64) /
-		(mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64) / 100.0))
-	m3_max_range := (m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64) /
-		(m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64) / 100.0))
+	mx_max_range := (mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64) /
+		(mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) / 100.0))
+	m3_max_range := (m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64) /
+		(m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) / 100.0))
 
-	mx_charge_limit := mx_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64) / 100.0
-	m3_charge_limit := m3_data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64) / 100.0
+	mx_charge_limit := mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64) / 100.0
+	m3_charge_limit := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64) / 100.0
 
 	mx_target_range := mx_max_range * mx_charge_limit
 	m3_target_range := m3_max_range * m3_charge_limit
@@ -455,18 +455,18 @@ func earliestTime(t1, t2 time.Time) time.Time {
 	return t2
 }
 
-func getScheduledChargeMessage(vehicle string, data map[string]interface{}, start_time time.Time, finish_time time.Time) string {
+func getScheduledChargeMessage(vehicle string, data map[string]any, start_time time.Time, finish_time time.Time) string {
 	message := "The " + vehicle + " is set to charge at " +
 		start_time.Format("January 2, 2006 15:04") +
 		" to " +
-		strconv.FormatFloat(data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64), 'f', -1, 64) + "%" +
+		strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64), 'f', -1, 64) + "%" +
 		" by " + finish_time.Format("15:04") + ", " +
-		strconv.FormatFloat((data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64)/
-			data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64)*
-			data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range.  " +
+		strconv.FormatFloat((data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)/
+			data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64)*
+			data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range.  " +
 		"The Model 3 is currently at " +
-		strconv.FormatFloat(data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_level"].(float64), 'f', 0, 64) + "%, " +
-		strconv.FormatFloat(data["response"].(map[string]interface{})["charge_state"].(map[string]interface{})["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range."
+		strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64), 'f', 0, 64) + "%, " +
+		strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range."
 
 	return message
 }

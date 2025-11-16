@@ -67,7 +67,7 @@ func PreconditionM3Start() {
 	config_temp_cold, _ := strconv.ParseFloat(climate_config.Values[17][1].(string), 64)
 	config_temp_hot, _ := strconv.ParseFloat(climate_config.Values[18][1].(string), 64)
 
-	if wdata["current"].(map[string]interface{})["temp"].(float64) < config_temp_cold {
+	if wdata["current"].(map[string]any)["temp"].(float64) < config_temp_cold {
 		// get pre-heat preferences
 		d_temp, err = strconv.ParseFloat(climate_config.Values[dow_index[0]][1].(string), 64)
 		if err != nil {
@@ -88,7 +88,7 @@ func PreconditionM3Start() {
 		seats = append(seats, seat_set)
 
 		stop_time = common.GetTodayTime(climate_config.Values[dow_index[0]][9].(string))
-	} else if wdata["current"].(map[string]interface{})["temp"].(float64) > config_temp_hot {
+	} else if wdata["current"].(map[string]any)["temp"].(float64) > config_temp_hot {
 		// get pre-cool preferences
 		d_temp, err = strconv.ParseFloat(climate_config.Values[dow_index[1]][1].(string), 64)
 		if err != nil {
@@ -168,7 +168,7 @@ func PreconditionMXStart() {
 	config_temp_cold, _ := strconv.ParseFloat(climate_config.Values[17][10].(string), 64)
 	config_temp_hot, _ := strconv.ParseFloat(climate_config.Values[18][10].(string), 64)
 
-	if wdata["current"].(map[string]interface{})["temp"].(float64) < config_temp_cold {
+	if wdata["current"].(map[string]any)["temp"].(float64) < config_temp_cold {
 		// get pre-heat preferences
 		d_temp, err = strconv.ParseFloat(climate_config.Values[dow_index[0]][10].(string), 64)
 		if err != nil {
@@ -182,7 +182,7 @@ func PreconditionMXStart() {
 		seats = append(seats, seat_set)
 
 		stop_time = common.GetTodayTime(climate_config.Values[dow_index[0]][15].(string))
-	} else if wdata["current"].(map[string]interface{})["temp"].(float64) > config_temp_hot {
+	} else if wdata["current"].(map[string]any)["temp"].(float64) > config_temp_hot {
 		// get pre-cool preferences
 		d_temp, err = strconv.ParseFloat(climate_config.Values[dow_index[1]][10].(string), 64)
 		if err != nil {
@@ -241,10 +241,10 @@ func preconditionStop(vin string) {
 	data := GetVehicleData(vin)
 
 	if common.IsVehicleAtPrimary(data) {
-		if data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["shift_state"] != nil {
-			if data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["shift_state"].(string) != "D" &&
-				data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["shift_state"].(string) != "R" &&
-				data["response"].(map[string]interface{})["drive_state"].(map[string]interface{})["shift_state"].(string) != "N" { // only execute if the car is at primary location and in park
+		if data["response"].(map[string]any)["drive_state"].(map[string]any)["shift_state"] != nil {
+			if data["response"].(map[string]any)["drive_state"].(map[string]any)["shift_state"].(string) != "D" &&
+				data["response"].(map[string]any)["drive_state"].(map[string]any)["shift_state"].(string) != "R" &&
+				data["response"].(map[string]any)["drive_state"].(map[string]any)["shift_state"].(string) != "N" { // only execute if the car is at primary location and in park
 				PreconditionCarStop(vin)
 			}
 		} else {
