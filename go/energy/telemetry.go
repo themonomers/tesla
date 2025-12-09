@@ -464,7 +464,8 @@ func WriteEnergyTOUSummaryToGsheet(date time.Time) {
 	// skip if system set to self-powered
 	if data["response"] != "" {
 		for key_1 := range data["response"].(map[string]any) { // write solar data for off peak
-			if key_1 == "off_peak" {
+			switch key_1 {
+			case "off_peak": // write solar data for off peak
 				for _, val_2 := range data["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
 					d, _ = time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
 
@@ -572,7 +573,7 @@ func WriteEnergyTOUSummaryToGsheet(date time.Time) {
 						request = append(request, &sheets.Request{CopyPaste: copy_paste_requests})
 					}
 				}
-			} else if key_1 == "partial_peak" { // write solar data for partial peak
+			case "partial_peak": // write solar data for partial peak
 				for _, val_2 := range data["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
 					d, _ = time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
 
@@ -680,7 +681,7 @@ func WriteEnergyTOUSummaryToGsheet(date time.Time) {
 						request = append(request, &sheets.Request{CopyPaste: copy_paste_requests})
 					}
 				}
-			} else if key_1 == "peak" { // write solar data for peak
+			case "peak": // write solar data for peak
 				for _, val_2 := range data["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
 					d, _ = time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
 
