@@ -21,8 +21,8 @@ func SetM3Precondition(data map[string]any, eco_mode string, start_time time.Tim
 		// check if the car is with 0.25 miles of the primary location
 		if common.IsVehicleAtPrimary(data) {
 			// create precondition start crontab at preferred time tomorrow
-			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionm3start >> /home/pi/tesla/go/cron.log 2>&1")
-			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionm3start >> /home/pi/tesla/go/cron.log 2>&1",
+			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionm3start >> /home/pi/tesla/go/cron.log 2>&1")
+			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionm3start >> /home/pi/tesla/go/cron.log 2>&1",
 				start_time.Minute(),
 				start_time.Hour(),
 				start_time.Day(),
@@ -38,8 +38,8 @@ func SetMXPrecondition(data map[string]any, eco_mode string, start_time time.Tim
 		// check if the car is with 0.25 miles of the primary location
 		if common.IsVehicleAtPrimary(data) {
 			// create precondition start crontab at preferred time tomorrow
-			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionmxstart >> /home/pi/tesla/go/cron.log 2>&1")
-			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionmxstart >> /home/pi/tesla/go/cron.log 2>&1",
+			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionmxstart >> /home/pi/tesla/go/cron.log 2>&1")
+			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionmxstart >> /home/pi/tesla/go/cron.log 2>&1",
 				start_time.Minute(),
 				start_time.Hour(),
 				start_time.Day(),

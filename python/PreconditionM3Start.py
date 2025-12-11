@@ -108,9 +108,9 @@ def preconditionM3Start():
         setCarSeatHeating(M3_VIN, int(index), int(item))
 
       # create crontab to stop preconditioning at preferred time later in the day
-      deleteCronTab('/usr/bin/timeout -k 360 300 python -u /home/pi/tesla/python/PreconditionM3Stop.py >> /home/pi/tesla/python/cron.log 2>&1')
+      deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/PreconditionM3Stop.py >> /home/pi/tesla/python/cron.log 2>&1')
       createCronTab(
-        '/usr/bin/timeout -k 360 300 python -u /home/pi/tesla/python/PreconditionM3Stop.py >> /home/pi/tesla/python/cron.log 2>&1', 
+        '/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/PreconditionM3Stop.py >> /home/pi/tesla/python/cron.log 2>&1', 
         stop_time.month, 
         stop_time.day, 
         stop_time.hour, 

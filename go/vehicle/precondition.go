@@ -131,8 +131,8 @@ func PreconditionM3Start() {
 		}
 
 		// create crontab to stop preconditioning at preferred time later in the day
-		common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionm3stop >> /home/pi/tesla/go/cron.log 2>&1")
-		common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionm3stop >> /home/pi/tesla/go/cron.log 2>&1",
+		common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionm3stop >> /home/pi/tesla/go/cron.log 2>&1")
+		common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionm3stop >> /home/pi/tesla/go/cron.log 2>&1",
 			stop_time.Minute(),
 			stop_time.Hour(),
 			stop_time.Day(),
@@ -218,8 +218,8 @@ func PreconditionMXStart() {
 		}
 
 		// create crontab to stop preconditioning at preferred time later in the day
-		common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionmxstop >> /home/pi/tesla/go/cron.log 2>&1")
-		common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionmxstop >> /home/pi/tesla/go/cron.log 2>&1",
+		common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionmxstop >> /home/pi/tesla/go/cron.log 2>&1")
+		common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionmxstop >> /home/pi/tesla/go/cron.log 2>&1",
 			stop_time.Minute(),
 			stop_time.Hour(),
 			stop_time.Day(),
@@ -257,8 +257,8 @@ func preconditionStop(vin string) {
 // set to run in the middle of the day as all the crontabs are evening or
 // early morning.
 func RemoveTeslaCron() {
-	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionm3start >> /home/pi/tesla/go/cron.log 2>&1")
-	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionm3stop >> /home/pi/tesla/go/cron.log 2>&1")
-	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionmxstart >> /home/pi/tesla/go/cron.log 2>&1")
-	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 360 300 go run main.go -preconditionmxstop >> /home/pi/tesla/go/cron.log 2>&1")
+	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionm3start >> /home/pi/tesla/go/cron.log 2>&1")
+	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionm3stop >> /home/pi/tesla/go/cron.log 2>&1")
+	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionmxstart >> /home/pi/tesla/go/cron.log 2>&1")
+	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionmxstop >> /home/pi/tesla/go/cron.log 2>&1")
 }
