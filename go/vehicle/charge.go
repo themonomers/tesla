@@ -243,7 +243,8 @@ func calculateScheduledCharging(scenario string, m3_data map[string]any, mx_data
 	}
 
 	// Calculate scheduled charging time based on location of cars
-	if scenario == "mx_primary_shared_charging" || scenario == "m3_primary_shared_charging" {
+	switch scenario {
+	case "mx_primary_shared_charging", "m3_primary_shared_charging":
 		mx_charging_time_at_full_rate := mx_miles_needed / MX_FULL_CHARGE_RATE_AT_PRIMARY // hours
 		m3_charging_time_at_full_rate := m3_miles_needed / M3_FULL_CHARGE_RATE_AT_PRIMARY // hours
 
@@ -403,19 +404,19 @@ func calculateScheduledCharging(scenario string, m3_data map[string]any, mx_data
 				return mx_start_time
 			}
 		}
-	} else if scenario == "mx_primary_full_rate" {
+	case "mx_primary_full_rate":
 		mx_start_time = mx_target_finish_time.Add(time.Duration(-mx_miles_needed / MX_FULL_CHARGE_RATE_AT_PRIMARY * float64(time.Hour)))
 
 		return mx_start_time
-	} else if scenario == "m3_primary_full_rate" {
+	case "m3_primary_full_rate":
 		m3_start_time = m3_target_finish_time.Add(time.Duration(-m3_miles_needed / M3_FULL_CHARGE_RATE_AT_PRIMARY * float64(time.Hour)))
 
 		return m3_start_time
-	} else if scenario == "mx_secondary_full_rate" {
+	case "mx_secondary_full_rate":
 		mx_start_time = mx_target_finish_time.Add(time.Duration(-mx_miles_needed / MX_FULL_CHARGE_RATE_AT_SECONDARY * float64(time.Hour)))
 
 		return mx_start_time
-	} else if scenario == "m3_secondary_full_rate" {
+	case "m3_secondary_full_rate":
 		m3_start_time = m3_target_finish_time.Add(time.Duration(-m3_miles_needed / M3_FULL_CHARGE_RATE_AT_SECONDARY * float64(time.Hour)))
 
 		return m3_start_time
