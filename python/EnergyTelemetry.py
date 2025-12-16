@@ -138,33 +138,46 @@ def writeEnergySummaryToDB(date):
     data = getSiteHistory('day', date)
 
     # write solar data
-    for key_1, value_1 in data['response'].items():
-      if (isinstance(value_1, list) == True):
-        for i in range(len(data['response'][key_1])):
-          d = datetime.strptime(
-            data['response'][key_1][i]['timestamp'].split('T',1)[0], 
-            '%Y-%m-%d'
-          )
-          if (d.year == date.year
-              and d.month == date.month
-              and d.day == date.day):
-            for key_2, value_2 in data['response'][key_1][i].items():
-              if (
-                (key_2 != 'timestamp')
-                and (key_2 != 'grid_services_energy_exported')
-                and (key_2 != 'grid_services_energy_imported')
-                and (key_2 != 'generator_energy_exported')
-              ):
-                json_body.append({
-                  'measurement': 'energy_summary',
-                  'tags': {
-                    'source': key_2
-                  },
-                  'time': data['response'][key_1][i]['timestamp'],
-                  'fields': {
-                    'value': float(value_2)
-                  }
-                })
+    cumulative_data = {}
+
+    for items in data['response']['time_series']:
+      d = datetime.strptime(
+        items['timestamp'].split('T',1)[0], 
+        '%Y-%m-%d'
+      )
+
+      if (d.year == date.year
+          and d.month == date.month
+          and d.day == date.day):
+        for key, value in items.items():
+          if (
+            (key != 'timestamp')
+            and (key != 'raw_timestamp')
+            and (key != 'grid_services_energy_exported')
+            and (key != 'grid_services_energy_imported')
+            and (key != 'generator_energy_exported')
+          ):
+            cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
+    
+    for key, value in cumulative_data.items():
+      json_body.append({
+        'measurement': 'energy_summary',
+        'tags': {
+          'source': key
+        },
+        'time': str(datetime(
+          date.year, 
+          date.month, 
+          date.day, 
+          0, 
+          0, 
+          0, 
+          0
+        ).replace(tzinfo=PAC)),
+        'fields': {
+          'value': float(value)
+        }
+      })
 
     # get solar value 
     data = getSavingsForecast('day', date)
@@ -262,50 +275,40 @@ def writeEnergyTOUSummaryToDB(date):
     data = getSiteHistory('day', date)
 
     # write solar data for all day
-    for key_1, value_1 in data['response'].items():
-      if (isinstance(value_1, list) == True):
-        for i in range(len(data['response'][key_1])):
-          d = datetime.strptime(
-            data['response'][key_1][i]['timestamp'].split('T',1)[0],
-            '%Y-%m-%d'
-          )
+    cumulative_data = {}
 
-          if (d.year == date.year
-              and d.month == date.month
-              and d.day == date.day):
+    for items in data['response']['time_series']:
+      d = datetime.strptime(
+        items['timestamp'].split('T',1)[0], 
+        '%Y-%m-%d'
+      )
 
-            """
-            print(datetime(
-              date.year, 
-              date.month, 
-              date.day, 
-              0, 
-              0, 
-              0, 
-              0
-            ).replace(tzinfo=PAC))
-            """
+      if (d.year == date.year
+          and d.month == date.month
+          and d.day == date.day):
+        for key, value in items.items():
+          if (key != 'timestamp') and (key != 'raw_timestamp'):
+            cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
 
-            for key_2, value_2 in data['response'][key_1][i].items():
-              if (key_2 != 'timestamp'):
-                json_body.append({
-                  'measurement': 'all_day',
-                  'tags': {
-                    'source': key_2
-                  },
-                  'time': str(datetime(
-                    date.year, 
-                    date.month, 
-                    date.day, 
-                    0, 
-                    0, 
-                    0, 
-                    0
-                  ).replace(tzinfo=PAC)),
-                  'fields': {
-                    'value': float(value_2)
-                  }
-                })
+    for key, value in cumulative_data.items():
+      json_body.append({
+        'measurement': 'all_day',
+        'tags': {
+          'source': key
+        },
+        'time': str(datetime(
+          date.year, 
+          date.month, 
+          date.day, 
+          0, 
+          0, 
+          0, 
+          0
+        ).replace(tzinfo=PAC)),
+        'fields': {
+          'value': float(value)
+        }
+      })
 
     # get solar data for TOU
     data = getSiteTOUHistory('day', date)
@@ -942,17 +945,19 @@ def writeEnergyTOUSummaryToGsheet(date):
 # author: mjhwa@yahoo.com
 ##
 def main():
-  writeEnergyDetailToDB(datetime.today() - timedelta(1))
-  writeEnergySummaryToDB(datetime.today() - timedelta(1))
-  writeBatteryChargeToDB(datetime.today() - timedelta(1))
-  writeEnergyTOUSummaryToDB(datetime.today() - timedelta(1))
-  writeEnergyTOUSummaryToGsheet(datetime.today() - timedelta(1))
-
+  for i in range(1, 7):
+    writeEnergyDetailToDB(datetime.today() - timedelta(i))
+    writeEnergySummaryToDB(datetime.today() - timedelta(i))
+    writeBatteryChargeToDB(datetime.today() - timedelta(i))
+    writeEnergyTOUSummaryToDB(datetime.today() - timedelta(i))
+    writeEnergyTOUSummaryToGsheet(datetime.today() - timedelta(i))
+  """
   # send email notification
   message = ('Energy telemetry successfully logged on '
              + datetime.today().strftime('%B %d, %Y %H:%M:%S')
              + '.')
   sendEmail(EMAIL_1, 'Energy Telemetry Logged', message, '', '')
+  """
 
 if __name__ == "__main__":
   main()

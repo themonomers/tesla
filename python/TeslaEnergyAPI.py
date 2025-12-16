@@ -108,7 +108,7 @@ def getSiteHistory(period, date):
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID 
-           + '/history'
+           + '/calendar_history'
            + '?kind=energy'
            + '&end_date=' 
            + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')

@@ -1,6 +1,8 @@
 package energy
 
 import (
+	//	"encoding/json"
+	//	"fmt"
 	"strconv"
 	"time"
 
@@ -130,33 +132,44 @@ func WriteEnergySummaryToDB(date time.Time) {
 
 	// get solar data
 	data = GetSiteHistory("day", date)
-	d, err := time.Parse("2006-01-02T15:04:05-07:00", data["response"].(map[string]any)["time_series"].([]any)[0].(map[string]any)["timestamp"].(string))
-	common.LogError("WriteEnergySummaryToDB(): time.Parse", err)
+	//	json, _ := json.MarshalIndent(data, "", "  ")
+	//	println(string(json))
 
 	// write solar data
-	if d.Year() == date.Year() &&
-		d.Month() == date.Month() &&
-		d.Day() == date.Day() {
-		for key, val := range data["response"].(map[string]any)["time_series"].([]any)[0].(map[string]any) {
-			if key != "timestamp" &&
-				key != "grid_services_energy_exported" &&
-				key != "grid_services_energy_imported" &&
-				key != "generator_energy_exported" {
-				tags = map[string]string{"source": key}
-				fields = map[string]any{
-					"value": val.(float64),
+	cumulative_data := make(map[string]float64)
+	for _, items := range data["response"].(map[string]any)["time_series"].([]any) {
+		d, err := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
+		common.LogError("WriteEnergySummaryToDB(): time.Parse", err)
+
+		if d.Year() == date.Year() &&
+			d.Month() == date.Month() &&
+			d.Day() == date.Day() {
+			for key, value := range items.(map[string]any) {
+				if (key != "timestamp") &&
+					(key != "raw_timestamp") &&
+					(key != "grid_services_energy_exported") &&
+					(key != "grid_services_energy_imported") &&
+					(key != "generator_energy_exported") {
+					cumulative_data[key] += value.(float64)
 				}
-				pt, err = client.NewPoint("energy_summary", tags, fields, d)
-				common.LogError("WriteEnergySummaryToDB(): client.NewPoint", err)
-				bp.AddPoint(pt)
 			}
 		}
+	}
+	//	fmt.Println("Cumulative Data:", cumulative_data)
+	for key, val := range cumulative_data {
+		tags = map[string]string{"source": key}
+		fields = map[string]any{
+			"value": val,
+		}
+		pt, err = client.NewPoint("energy_summary", tags, fields, date)
+		common.LogError("WriteEnergySummaryToDB(): client.NewPoint", err)
+		bp.AddPoint(pt)
 	}
 
 	// get solar value
 	data = GetSavingsForecast("day", date)
 	for _, j := range data["response"].([]any) {
-		d, err = time.Parse("2006-01-02T15:04:05-07:00", j.(map[string]any)["timestamp"].(string))
+		d, err := time.Parse(time.RFC3339, j.(map[string]any)["timestamp"].(string))
 		common.LogError("WriteEnergySummaryToDB(): time.Parse", err)
 
 		// timestamp in data is in UTC, convert to local time
@@ -227,6 +240,7 @@ func WriteBatteryChargeToDB(date time.Time) {
 func WriteEnergyTOUSummaryToDB(date time.Time) {
 	// get solar data for all day
 	data := GetSiteHistory("day", date)
+	date = time.Date(date.Year(), date.Month(), date.Day(), date.Hour(), date.Minute(), date.Second(), date.Nanosecond(), time.Local)
 
 	// write solar data for all day
 	c := common.GetDBClient()
@@ -238,23 +252,29 @@ func WriteEnergyTOUSummaryToDB(date time.Time) {
 	})
 	common.LogError("WriteEnergyTOUSummaryToDB(): client.NewBatchPoints", err)
 
-	d, err := time.Parse("2006-01-02T15:04:05-07:00", data["response"].(map[string]any)["time_series"].([]any)[0].(map[string]any)["timestamp"].(string))
-	common.LogError("WriteEnergyTOUSummaryToDB(): time.Parse", err)
+	cumulative_data := make(map[string]float64)
+	for _, items := range data["response"].(map[string]any)["time_series"].([]any) {
+		d, err := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
+		common.LogError("WriteEnergyTOUSummaryToDB(): time.Parse", err)
 
-	if d.Year() == date.Year() &&
-		d.Month() == date.Month() &&
-		d.Day() == date.Day() {
-		for key, val := range data["response"].(map[string]any)["time_series"].([]any)[0].(map[string]any) {
-			if key != "timestamp" {
-				tags := map[string]string{"source": key}
-				fields := map[string]any{
-					"value": val.(float64),
+		if d.Year() == date.Year() &&
+			d.Month() == date.Month() &&
+			d.Day() == date.Day() {
+			for key, value := range items.(map[string]any) {
+				if (key != "timestamp") && (key != "raw_timestamp") {
+					cumulative_data[key] += value.(float64)
 				}
-				pt, err := client.NewPoint("all_day", tags, fields, d)
-				common.LogError("WriteEnergyTOUSummaryToDB(): client.NewPoint", err)
-				bp.AddPoint(pt)
 			}
 		}
+	}
+	for key, val := range cumulative_data {
+		tags := map[string]string{"source": key}
+		fields := map[string]any{
+			"value": val,
+		}
+		pt, err := client.NewPoint("all_day", tags, fields, date)
+		common.LogError("WriteEnergyTOUSummaryToDB(): client.NewPoint", err)
+		bp.AddPoint(pt)
 	}
 
 	// get solar data for TOU
@@ -271,7 +291,7 @@ func WriteEnergyTOUSummaryToDB(date time.Time) {
 					fields := map[string]any{
 						"value": val_2.(float64),
 					}
-					pt, err := client.NewPoint(key_1, tags, fields, d)
+					pt, err := client.NewPoint(key_1, tags, fields, date)
 					common.LogError("WriteEnergyTOUSummaryToDB(): client.NewPoint", err)
 					bp.AddPoint(pt)
 				}

@@ -107,7 +107,7 @@ func GetSiteHistory(period string, date time.Time) map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
-		"/history" +
+		"/calendar_history" +
 		"?kind=energy" +
 		"&end_date=" + date.UTC().Format("2006-01-02T15:04:05Z") +
 		"&period=" + period
