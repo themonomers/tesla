@@ -945,19 +945,18 @@ def writeEnergyTOUSummaryToGsheet(date):
 # author: mjhwa@yahoo.com
 ##
 def main():
-  for i in range(1, 7):
-    writeEnergyDetailToDB(datetime.today() - timedelta(i))
-    writeEnergySummaryToDB(datetime.today() - timedelta(i))
-    writeBatteryChargeToDB(datetime.today() - timedelta(i))
-    writeEnergyTOUSummaryToDB(datetime.today() - timedelta(i))
-    writeEnergyTOUSummaryToGsheet(datetime.today() - timedelta(i))
-  """
+  writeEnergyDetailToDB(datetime.today() - timedelta(1))
+  writeEnergySummaryToDB(datetime.today() - timedelta(1))
+  writeBatteryChargeToDB(datetime.today() - timedelta(1))
+  writeEnergyTOUSummaryToDB(datetime.today() - timedelta(1))
+  writeEnergyTOUSummaryToGsheet(datetime.today() - timedelta(1))
+
   # send email notification
   message = ('Energy telemetry successfully logged on '
              + datetime.today().strftime('%B %d, %Y %H:%M:%S')
              + '.')
   sendEmail(EMAIL_1, 'Energy Telemetry Logged', message, '', '')
-  """
+
 
 if __name__ == "__main__":
   main()
