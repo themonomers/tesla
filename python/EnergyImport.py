@@ -2,7 +2,7 @@ import pytz
 import zoneinfo
 
 from TeslaEnergyAPI import getBatteryBackupHistory
-from EnergyTelemetry import writeEnergySummaryToDB, writeEnergyTOUSummaryToGsheet, writeEnergyTOUSummaryToDB, writeEnergyDetailToDB, writeBatteryChargeToDB
+from EnergyTelemetry import writeEnergySummaryToDB, writeEnergyDataToGsheet, writeEnergyTOUSummaryToDB, writeEnergyDetailToDB, writeBatteryChargeToDB
 from Influxdb import getDBClient
 from GoogleAPI import getGoogleSheetService
 from Utilities import getConfig
@@ -14,6 +14,179 @@ ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
 
 TIME_ZONE = config['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
+
+
+##
+# Import missing dates for Tesla Energy data for InfluxDB.  This
+# has 5 minute increments of Home, Solar, Powerall, and Grid to/from
+# data.
+#
+# author: mjhwa@yahoo.com
+##
+def importEnergyDetailToDB(date):
+  try:
+    print(date)
+
+    insert = input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeEnergyDetailToDB(date)
+  except Exception as e:
+    logError('importEnergyDetailToDB(): ' + str(e))
+
+
+##
+# Import missing dates for Tesla Energy data for InfluxDB.  This
+# has daily totals of Home, Solar, Powerall, and Grid to/from
+# data.
+#
+# author: mjhwa@yahoo.com
+##
+def importEnergySummaryToDB(date):
+  try:
+    print(date)
+
+    insert = input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeEnergySummaryToDB(date)
+  except Exception as e:
+    logError('importEnergySummaryToDB(): ' + str(e))
+
+
+##
+# Import missing dates for Tesla Energy Impact data for InfluxDB.
+# This includes TOU (off peak, partial peak, and peak) breakdowns
+# of Solar, Powerall, Grid, etc., Energy Value, and Solar Offset.
+#
+# author: mjhwa@yahoo.com
+##
+def importEnergyTOUSummaryToDB(date):
+  try:
+    print(date)
+
+    insert = input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeEnergyTOUSummaryToDB(date)
+  except Exception as e:
+    logError('importEnergyTOUSummaryToDB(): ' + str(e))
+
+
+##
+# Import missing dates for Tesla Energy Impact data for Google Sheet.
+# This includes TOU (off peak, partial peak, and peak) breakdowns
+# of Solar, Powerall, Grid, etc., Energy Value, and Solar Offset.
+#
+# author: mjhwa@yahoo.com
+##
+def importEnergyDataToGsheet(date):
+  try:
+    print(date)
+
+    insert = input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeEnergyDataToGsheet(date)
+  except Exception as e:
+    logError('importEnergyTOUSummaryToGsheet(): ' + str(e))
+
+
+##
+# Import Tesla battery charge state history into an InfluxDB for 
+# Grafana visualization.  These are in 15 minute increments.
+#
+# author: mjhwa@yahoo.com
+##
+def importBatteryChargeToDB(date):
+  try:
+    print(date)
+
+    insert = input('import (y/n): ')
+    if insert != 'y':
+      return
+
+    writeBatteryChargeToDB(date)
+  except Exception as e:
+    logError('importBatteryChargeToDB(): ' + str(e))
+
+
+##
+# Import Tesla system backup history/grid outages into an InfluxDB for
+# Grafana visualization.
+#
+# author: mjhwa@yahoo.com
+##
+def importOutageToDB():
+  try:
+    # get battery backup history data
+    data = getBatteryBackupHistory()
+
+    json_body = []
+    insert = ''
+
+    for i in range(len(data['response']['events'])):
+      print(str(i))
+      duration = -1
+      start = ''
+
+      for key, value in data['response']['events'][i].items():
+        if (key == 'duration'):
+          duration = float(value) / 1000 / 60 / 60
+          print('  ' + key + ' = ' + str(duration) + ' hours')
+
+        if (key == 'timestamp'):
+          local = pytz.timezone(TIME_ZONE)
+
+          start = value[0:len(value) - 6:1]
+          start = local.localize(
+                    datetime.strptime(start, '%Y-%m-%dT%H:%M:%S')
+                  , is_dst=None)
+          print('  ' + key + ' = '
+                + datetime.strftime(start, '%Y-%m-%d %I:%M:%S %p'))
+
+        if ((duration != -1) and (start != '')):
+          end = start + timedelta(hours=duration)
+          print('  end = '
+                + datetime.strftime(end, '%Y-%m-%d %I:%M:%S %p'))
+
+          insert = input('import (y/n): ')
+          if insert != 'y':
+            break
+
+          json_body.append({
+            'measurement': 'backup',
+            'tags': {
+              'source': 'event'
+            },
+            'time': str(start.astimezone(pytz.utc)),
+            'fields': {
+              'value': duration
+            }
+          })
+
+          json_body.append({
+            'measurement': 'backup',
+            'tags': {
+              'source': 'event'
+            },
+            'time': str(end.astimezone(pytz.utc)),
+            'fields': {
+              'value': duration
+            }
+          })
+
+    # Write to Influxdb
+    client = getDBClient()
+    client.switch_database('outage')
+    client.write_points(json_body)
+    client.close()
+  except Exception as e:
+    logError('importOutageToDB(): ' + str(e))
 
 
 ##
@@ -142,179 +315,6 @@ def importEnergySummaryFromGsheetToDB():
 
 
 ##
-# Import Tesla battery charge state history into an InfluxDB for 
-# Grafana visualization.  These are in 15 minute increments.
-#
-# author: mjhwa@yahoo.com
-##
-def importBatteryChargeToDB(date):
-  try:
-    print(date)
-
-    insert = input('import (y/n): ')
-    if insert != 'y':
-      return
-
-    writeBatteryChargeToDB(date)
-  except Exception as e:
-    logError('importBatteryChargeToDB(): ' + str(e))
-
-
-##
-# Import Tesla system backup history/grid outages into an InfluxDB for
-# Grafana visualization.
-#
-# author: mjhwa@yahoo.com
-##
-def importOutageToDB():
-  try:
-    # get battery backup history data
-    data = getBatteryBackupHistory()
-
-    json_body = []
-    insert = ''
-
-    for i in range(len(data['response']['events'])):
-      print(str(i))
-      duration = -1
-      start = ''
-
-      for key, value in data['response']['events'][i].items():
-        if (key == 'duration'):
-          duration = float(value) / 1000 / 60 / 60
-          print('  ' + key + ' = ' + str(duration) + ' hours')
-
-        if (key == 'timestamp'):
-          local = pytz.timezone(TIME_ZONE)
-
-          start = value[0:len(value) - 6:1]
-          start = local.localize(
-                    datetime.strptime(start, '%Y-%m-%dT%H:%M:%S')
-                  , is_dst=None)
-          print('  ' + key + ' = '
-                + datetime.strftime(start, '%Y-%m-%d %I:%M:%S %p'))
-
-        if ((duration != -1) and (start != '')):
-          end = start + timedelta(hours=duration)
-          print('  end = '
-                + datetime.strftime(end, '%Y-%m-%d %I:%M:%S %p'))
-
-          insert = input('import (y/n): ')
-          if insert != 'y':
-            break
-
-          json_body.append({
-            'measurement': 'backup',
-            'tags': {
-              'source': 'event'
-            },
-            'time': str(start.astimezone(pytz.utc)),
-            'fields': {
-              'value': duration
-            }
-          })
-
-          json_body.append({
-            'measurement': 'backup',
-            'tags': {
-              'source': 'event'
-            },
-            'time': str(end.astimezone(pytz.utc)),
-            'fields': {
-              'value': duration
-            }
-          })
-
-    # Write to Influxdb
-    client = getDBClient()
-    client.switch_database('outage')
-    client.write_points(json_body)
-    client.close()
-  except Exception as e:
-    logError('importOutageToDB(): ' + str(e))
-
-
-##
-# Import missing dates for Tesla Energy data for InfluxDB.  This
-# has 5 minute increments of Home, Solar, Powerall, and Grid to/from
-# data.
-#
-# author: mjhwa@yahoo.com
-##
-def importEnergyDetailToDB(date):
-  try:
-    print(date)
-
-    insert = input('import (y/n): ')
-    if insert != 'y':
-      return
-
-    writeEnergyDetailToDB(date)
-  except Exception as e:
-    logError('importEnergyDetailToDB(): ' + str(e))
-
-
-##
-# Import missing dates for Tesla Energy data for InfluxDB.  This
-# has daily totals of Home, Solar, Powerall, and Grid to/from
-# data.
-#
-# author: mjhwa@yahoo.com
-##
-def importEnergySummaryToDB(date):
-  try:
-    print(date)
-
-    insert = input('import (y/n): ')
-    if insert != 'y':
-      return
-
-    writeEnergySummaryToDB(date)
-  except Exception as e:
-    logError('importEnergySummaryToDB(): ' + str(e))
-
-
-##
-# Import missing dates for Tesla Energy Impact data for Google Sheet.
-# This includes TOU (off peak, partial peak, and peak) breakdowns
-# of Solar, Powerall, Grid, etc., Energy Value, and Solar Offset.
-#
-# author: mjhwa@yahoo.com
-##
-def importEnergyTOUSummaryToGsheet(date):
-  try:
-    print(date)
-
-    insert = input('import (y/n): ')
-    if insert != 'y':
-      return
-
-    writeEnergyTOUSummaryToGsheet(date)
-  except Exception as e:
-    logError('importEnergyTOUSummaryToGsheet(): ' + str(e))
-
-
-##
-# Import missing dates for Tesla Energy Impact data for InfluxDB.
-# This includes TOU (off peak, partial peak, and peak) breakdowns
-# of Solar, Powerall, Grid, etc., Energy Value, and Solar Offset.
-#
-# author: mjhwa@yahoo.com
-##
-def importEnergyTOUSummaryToDB(date):
-  try:
-    print(date)
-
-    insert = input('import (y/n): ')
-    if insert != 'y':
-      return
-
-    writeEnergyTOUSummaryToDB(date)
-  except Exception as e:
-    logError('importEnergyTOUSummaryToDB(): ' + str(e))
-
-
-##
 # Collection of data import functions run from CLI python 
 # to manually run automated data collection routines that 
 # failed.
@@ -322,45 +322,45 @@ def importEnergyTOUSummaryToDB(date):
 # author: mjhwa@yahoo.com
 ##
 def main():
-  print('[1] importEnergyDetailFromGsheetToDB()')
-  print('[2] importEnergySummaryFromGsheetToDB()')
-  print('[3] importBatteryChargeToDB()')
-  print('[4] importOutageToDB()')
-  print('[5] importEnergyDetailToDB()')
-  print('[6] importEnergySummaryToDB()')
-  print('[7] importEnergyTOUSummaryToGsheet()')
-  print('[8] importEnergyTOUSummaryToDB()')
+  print('[1] importEnergyDetailToDB()')
+  print('[2] importEnergySummaryToDB()')
+  print('[3] importEnergyTOUSummaryToDB()')
+  print('[4] importEnergyDataToGsheet()')
+  print('[5] importBatteryChargeToDB()')
+  print('[6] importOutageToDB()')
+#  print('[7] importEnergyDetailFromGsheetToDB()')
+#  print('[8] importEnergySummaryFromGsheetToDB()')
   try:
     choice = int(input('selection: '))
   except ValueError:
     return
 
   if choice == 1:
-    importEnergyDetailFromGsheetToDB()
-  elif choice == 2:
-    importEnergySummaryFromGsheetToDB()
-  elif choice == 3:
-    date = input('date(m/d/yyyy): ')
-    date = datetime.strptime(date, '%m/%d/%Y')
-    importBatteryChargeToDB(date)
-  elif choice == 4:
-    importOutageToDB()
-  elif choice == 5:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     importEnergyDetailToDB(date)
-  elif choice == 6:
+  elif choice == 2:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     importEnergySummaryToDB(date)
-  elif choice == 7:
-    date = input('date(m/d/yyyy): ')
-    date = datetime.strptime(date, '%m/%d/%Y')
-    importEnergyTOUSummaryToGsheet(date)
-  elif choice == 8:
+  elif choice == 3:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
     importEnergyTOUSummaryToDB(date)
+  elif choice == 4:
+    date = input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    importEnergyDataToGsheet(date)
+  elif choice == 5:
+    date = input('date(m/d/yyyy): ')
+    date = datetime.strptime(date, '%m/%d/%Y')
+    importBatteryChargeToDB(date)
+  elif choice == 6:
+    importOutageToDB()
+#  elif choice == 7:
+#    importEnergyDetailFromGsheetToDB()
+#  elif choice == 8:
+#    importEnergySummaryFromGsheetToDB()
 
 
 if __name__ == "__main__":

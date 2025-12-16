@@ -364,7 +364,7 @@ def writeEnergyTOUSummaryToDB(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def writeEnergyTOUSummaryToGsheet(date):
+def writeEnergyDataToGsheet(date):
   try:
     # get local battery data
     data = getLocalSystemStatus()
@@ -416,102 +416,105 @@ def writeEnergyTOUSummaryToGsheet(date):
     data = getSiteHistory('day', date)
 
     # write solar data for all day
-    for key_1, value_1 in data['response'].items():
-      if (isinstance(value_1, list) == True):
-        for i in range(len(data['response'][key_1])):
-          d = datetime.strptime(
-            data['response'][key_1][i]['timestamp'].split('T',1)[0],
-            '%Y-%m-%d'
-          )
+    cumulative_data = {}
 
-          if (d.year == date.year
-              and d.month == date.month
-              and d.day == date.day):
+    for items in data['response']['time_series']:
+      d = datetime.strptime(
+        items['timestamp'].split('T',1)[0], 
+        '%Y-%m-%d'
+      )
 
-            inputs.append({
-              'range': 'Telemetry-Summary!F' + str(open_row),
-              'values': [[datetime.strftime(d, '%B %d, %Y')]]
-            })
+      if (d.year == date.year
+          and d.month == date.month
+          and d.day == date.day):
+        for key, value in items.items():
+          if (key != 'timestamp') and (key != 'raw_timestamp'):
+            cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
 
-            inputs.append({
-              'range': 'Telemetry-Summary!H' + str(open_row),
-              'values': [[data['response'][key_1][i]['consumer_energy_imported_from_solar']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!F' + str(open_row),
+      'values': [[datetime.strftime(d, '%B %d, %Y')]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!I' + str(open_row),
-              'values': [[data['response'][key_1][i]['consumer_energy_imported_from_battery']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!H' + str(open_row),
+      'values': [[cumulative_data.get('consumer_energy_imported_from_solar', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!J' + str(open_row),
-              'values': [[data['response'][key_1][i]['consumer_energy_imported_from_grid']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!I' + str(open_row),
+      'values': [[cumulative_data.get('consumer_energy_imported_from_battery', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!K' + str(open_row),
-              'values': [[data['response'][key_1][i]['consumer_energy_imported_from_generator']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!J' + str(open_row),
+      'values': [[cumulative_data.get('consumer_energy_imported_from_grid', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!L' + str(open_row),
-              'values': [[data['response'][key_1][i]['solar_energy_exported']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!K' + str(open_row),
+      'values': [[cumulative_data.get('consumer_energy_imported_from_generator', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!M' + str(open_row),
-              'values': [[data['response'][key_1][i]['battery_energy_exported']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!L' + str(open_row),
+      'values': [[cumulative_data.get('solar_energy_exported', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!N' + str(open_row),
-              'values': [[data['response'][key_1][i]['battery_energy_imported_from_solar']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!M' + str(open_row),
+      'values': [[cumulative_data.get('battery_energy_exported', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!O' + str(open_row),
-              'values': [[data['response'][key_1][i]['battery_energy_imported_from_grid']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!N' + str(open_row),
+      'values': [[cumulative_data.get('battery_energy_imported_from_solar', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!P' + str(open_row),
-              'values': [[data['response'][key_1][i]['battery_energy_imported_from_generator']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!O' + str(open_row),
+      'values': [[cumulative_data.get('battery_energy_imported_from_grid', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!Q' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_energy_imported']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!P' + str(open_row),
+      'values': [[cumulative_data.get('battery_energy_imported_from_generator', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!R' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_energy_exported_from_solar']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!Q' + str(open_row),
+      'values': [[cumulative_data.get('grid_energy_imported', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!S' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_energy_exported_from_battery']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!R' + str(open_row),
+      'values': [[cumulative_data.get('grid_energy_exported_from_solar', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!T' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_energy_exported_from_generator']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!S' + str(open_row),
+      'values': [[cumulative_data.get('grid_energy_exported_from_battery', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!U' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_services_energy_exported']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!T' + str(open_row),
+      'values': [[cumulative_data.get('grid_energy_exported_from_generator', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!V' + str(open_row),
-              'values': [[data['response'][key_1][i]['grid_services_energy_imported']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!U' + str(open_row),
+      'values': [[cumulative_data.get('grid_services_energy_exported', 0)]]
+    })
 
-            inputs.append({
-              'range': 'Telemetry-Summary!W' + str(open_row),
-              'values': [[data['response'][key_1][i]['generator_energy_exported']]]
-            })
+    inputs.append({
+      'range': 'Telemetry-Summary!V' + str(open_row),
+      'values': [[cumulative_data.get('grid_services_energy_imported', 0)]]
+    })
+
+    inputs.append({
+      'range': 'Telemetry-Summary!W' + str(open_row),
+      'values': [[cumulative_data.get('generator_energy_exported', 0)]]
+    })
 
     # copy formulas down: column X to AC
     requests.append({
@@ -653,7 +656,6 @@ def writeEnergyTOUSummaryToGsheet(date):
                   'pasteType': 'PASTE_NORMAL'
                 }
               })
-
         elif (key_1 == 'partial_peak'):
           for i in range(len(data['response'][key_1]['time_series'])):
             d = datetime.strptime(
@@ -765,7 +767,6 @@ def writeEnergyTOUSummaryToGsheet(date):
                   'pasteType': 'PASTE_NORMAL'
                 }
               })
-
         elif (key_1 == 'peak'):
           for i in range(len(data['response'][key_1]['time_series'])):
             d = datetime.strptime(
@@ -935,7 +936,7 @@ def writeEnergyTOUSummaryToGsheet(date):
     ).execute()
     service.close()
   except Exception as e:
-    logError('writeEnergyTOUSummaryToGsheet(): ' + str(e))
+    logError('writeEnergyDataToGsheet(): ' + str(e))
 
 
 ##
@@ -949,7 +950,7 @@ def main():
   writeEnergySummaryToDB(datetime.today() - timedelta(1))
   writeBatteryChargeToDB(datetime.today() - timedelta(1))
   writeEnergyTOUSummaryToDB(datetime.today() - timedelta(1))
-  writeEnergyTOUSummaryToGsheet(datetime.today() - timedelta(1))
+  writeEnergyDataToGsheet(datetime.today() - timedelta(1))
 
   # send email notification
   message = ('Energy telemetry successfully logged on '

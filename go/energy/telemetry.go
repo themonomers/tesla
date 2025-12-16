@@ -38,7 +38,7 @@ func WriteEnergyTelemetry() {
 	WriteEnergySummaryToDB(yest)
 	WriteBatteryChargeToDB(yest)
 	WriteEnergyTOUSummaryToDB(yest)
-	WriteEnergyTOUSummaryToGsheet(yest)
+	WriteEnergyDataToGsheet(yest)
 
 	// send email notification
 	message := ("Energy telemetry successfully logged on " +
@@ -310,7 +310,7 @@ func WriteEnergyTOUSummaryToDB(date time.Time) {
 // Contains functions to read/write the solar and powerwall data, separated
 // by peak/partial peak/off peak, into a Google Sheet for tracking, analysis,
 // and graphs.  The data is a summary level down to the day.
-func WriteEnergyTOUSummaryToGsheet(date time.Time) {
+func WriteEnergyDataToGsheet(date time.Time) {
 	// get local battery data
 	data := getLocalSystemStatus()
 
@@ -362,101 +362,107 @@ func WriteEnergyTOUSummaryToGsheet(date time.Time) {
 	// get solar data for all day
 	data = GetSiteHistory("day", date)
 
-	// write solar data for all day
-	d, err := time.Parse("2006-01-02T15:04:05-07:00", data["response"].(map[string]any)["time_series"].([]any)[0].(map[string]any)["timestamp"].(string))
-	common.LogError("WriteEnergySummaryToDB(): time.Parse", err)
+	cumulative_data := make(map[string]float64)
+	for _, items := range data["response"].(map[string]any)["time_series"].([]any) {
+		d, err := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
+		common.LogError("WriteEnergyDataToGsheet(): time.Parse", err)
 
-	// write solar data
-	if d.Year() == date.Year() &&
-		d.Month() == date.Month() &&
-		d.Day() == date.Day() {
-		for _, val := range data["response"].(map[string]any)["time_series"].([]any) {
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!F" + strconv.Itoa(open_row),
-				Values: [][]any{{d.Format("January 02, 2006")}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!H" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["consumer_energy_imported_from_solar"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!I" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["consumer_energy_imported_from_battery"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!J" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["consumer_energy_imported_from_grid"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!K" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["consumer_energy_imported_from_generator"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!L" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["solar_energy_exported"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!M" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["battery_energy_exported"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!N" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["battery_energy_imported_from_solar"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!O" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["battery_energy_imported_from_grid"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!P" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["battery_energy_imported_from_generator"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!Q" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["grid_energy_imported"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!R" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["grid_energy_exported_from_solar"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!S" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["grid_energy_exported_from_battery"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!T" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["grid_energy_exported_from_generator"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!U" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["grid_services_energy_exported"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!V" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["grid_services_energy_imported"].(float64)}},
-			})
-
-			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Telemetry-Summary!W" + strconv.Itoa(open_row),
-				Values: [][]any{{val.(map[string]any)["generator_energy_exported"].(float64)}},
-			})
+		if d.Year() == date.Year() &&
+			d.Month() == date.Month() &&
+			d.Day() == date.Day() {
+			for key, value := range items.(map[string]any) {
+				if (key != "timestamp") && (key != "raw_timestamp") {
+					cumulative_data[key] += value.(float64)
+				}
+			}
 		}
 	}
+
+	// write solar data for all day
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!F" + strconv.Itoa(open_row),
+		Values: [][]any{{date.Format("January 02, 2006")}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!H" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["consumer_energy_imported_from_solar"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!I" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["consumer_energy_imported_from_battery"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!J" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["consumer_energy_imported_from_grid"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!K" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["consumer_energy_imported_from_generator"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!L" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["solar_energy_exported"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!M" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["battery_energy_exported"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!N" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["battery_energy_imported_from_solar"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!O" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["battery_energy_imported_from_grid"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!P" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["battery_energy_imported_from_generator"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!Q" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["grid_energy_imported"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!R" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["grid_energy_exported_from_solar"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!S" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["grid_energy_exported_from_battery"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!T" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["grid_energy_exported_from_generator"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!U" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["grid_services_energy_exported"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!V" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["grid_services_energy_imported"]}},
+	})
+
+	inputs.Data = append(inputs.Data, &sheets.ValueRange{
+		Range:  "Telemetry-Summary!W" + strconv.Itoa(open_row),
+		Values: [][]any{{cumulative_data["generator_energy_exported"]}},
+	})
 
 	// copy formulas down: column X to AC
 	copy_paste_requests = &sheets.CopyPasteRequest{
@@ -487,7 +493,7 @@ func WriteEnergyTOUSummaryToGsheet(date time.Time) {
 			switch key_1 {
 			case "off_peak": // write solar data for off peak
 				for _, val_2 := range data["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
-					d, _ = time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
+					d, _ := time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
 
 					if d.Year() == date.Year() &&
 						d.Month() == date.Month() &&
@@ -595,7 +601,7 @@ func WriteEnergyTOUSummaryToGsheet(date time.Time) {
 				}
 			case "partial_peak": // write solar data for partial peak
 				for _, val_2 := range data["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
-					d, _ = time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
+					d, _ := time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
 
 					if d.Year() == date.Year() &&
 						d.Month() == date.Month() &&
@@ -703,7 +709,7 @@ func WriteEnergyTOUSummaryToGsheet(date time.Time) {
 				}
 			case "peak": // write solar data for peak
 				for _, val_2 := range data["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
-					d, _ = time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
+					d, _ := time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
 
 					if d.Year() == date.Year() &&
 						d.Month() == date.Month() &&
@@ -856,8 +862,8 @@ func WriteEnergyTOUSummaryToGsheet(date time.Time) {
 
 	// batch write data and formula copies to sheet
 	srv := common.GetGoogleSheetService()
-	_, err = srv.Spreadsheets.Values.BatchUpdate(ENERGY_SPREADSHEET_ID, inputs).Do()
-	common.LogError("WriteM3Telemetry(): srv.Spreadsheets.Values.BatchUpdate", err)
+	_, err := srv.Spreadsheets.Values.BatchUpdate(ENERGY_SPREADSHEET_ID, inputs).Do()
+	common.LogError("WriteEnergyDataToGsheet(): srv.Spreadsheets.Values.BatchUpdate", err)
 	_, err = srv.Spreadsheets.BatchUpdate(ENERGY_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
-	common.LogError("WriteM3Telemetry(): srv.Spreadsheets.BatchUpdate", err)
+	common.LogError("WriteEnergyDataToGsheet(): srv.Spreadsheets.BatchUpdate", err)
 }

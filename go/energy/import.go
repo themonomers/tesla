@@ -11,19 +11,33 @@ import (
 	"github.com/themonomers/tesla/go/common"
 )
 
-/*
-// Import Tesla energy export from the mobile app pasted into a Google Sheet
-// into an InfluxDB for Grafana visualization.
-func ImportEnergyDetailFromGsheetToDB() {
-
+// Import missing dates for Tesla Energy data for InfluxDB.  This
+// has 5 minute increments of Home, Solar, Powerall, and Grid to/from
+// data.
+func ImportEnergyDetailToDB() {
+	WriteEnergyDetailToDB(getDateInput())
 }
 
-// Import Tesla summary energy data from the a Google Sheet into an InfluxDB
-// for Grafana visualization.
-func ImportEnergySummaryFromGsheetToDB() {
-
+// Import missing dates for Tesla Energy data for InfluxDB.  This
+// has daily totals of Home, Solar, Powerall, and Grid to/from
+// data.
+func ImportEnergySummaryToDB() {
+	WriteEnergySummaryToDB(getDateInput())
 }
-*/
+
+// Import missing dates for Tesla Energy Impact data for InfluxDB.
+// This includes TOU (off peak, partial peak, and peak) breakdowns
+// of Solar, Powerall, Grid, etc., Energy Value, and Solar Offset.
+func ImportEnergyTOUSummaryToDB() {
+	WriteEnergyTOUSummaryToDB(getDateInput())
+}
+
+// Import missing dates for Tesla Energy Impact data for Google Sheet.
+// This includes TOU (off peak, partial peak, and peak) breakdowns
+// of Solar, Powerall, Grid, etc., Energy Value, and Solar Offset.
+func ImportEnergyDataToGsheet() {
+	WriteEnergyDataToGsheet(getDateInput())
+}
 
 // Import Tesla battery charge state history into an InfluxDB for
 // Grafana visualization.  These are in 15 minute increments.
@@ -97,33 +111,19 @@ func ImportOutageToDB() {
 	c.Close()
 }
 
-// Import missing dates for Tesla Energy data for InfluxDB.  This
-// has 5 minute increments of Home, Solar, Powerall, and Grid to/from
-// data.
-func ImportEnergyDetailToDB() {
-	WriteEnergyDetailToDB(getDateInput())
+/*
+// Import Tesla energy export from the mobile app pasted into a Google Sheet
+// into an InfluxDB for Grafana visualization.
+func ImportEnergyDetailFromGsheetToDB() {
+
 }
 
-// Import missing dates for Tesla Energy data for InfluxDB.  This
-// has daily totals of Home, Solar, Powerall, and Grid to/from
-// data.
-func ImportEnergySummaryToDB() {
-	WriteEnergySummaryToDB(getDateInput())
-}
+// Import Tesla summary energy data from the a Google Sheet into an InfluxDB
+// for Grafana visualization.
+func ImportEnergySummaryFromGsheetToDB() {
 
-// Import missing dates for Tesla Energy Impact data for Google Sheet.
-// This includes TOU (off peak, partial peak, and peak) breakdowns
-// of Solar, Powerall, Grid, etc., Energy Value, and Solar Offset.
-func ImportEnergyTOUSummaryToGsheet() {
-	WriteEnergyTOUSummaryToGsheet(getDateInput())
 }
-
-// Import missing dates for Tesla Energy Impact data for InfluxDB.
-// This includes TOU (off peak, partial peak, and peak) breakdowns
-// of Solar, Powerall, Grid, etc., Energy Value, and Solar Offset.
-func ImportEnergyTOUSummaryToDB() {
-	WriteEnergyTOUSummaryToDB(getDateInput())
-}
+*/
 
 // Prompts for a date input from standard in.
 func getDateInput() time.Time {

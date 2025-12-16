@@ -34,18 +34,18 @@ func main() {
 			energy.WriteEnergyTelemetry()
 		case "-setenergymodebasedonweather":
 			energy.SetEnergyModeBasedOnWeather()
-		case "-importbatterychargetodb":
-			energy.ImportBatteryChargeToDB()
-		case "-importoutagetodb":
-			energy.ImportOutageToDB()
 		case "-importenergydetailtodb":
 			energy.ImportEnergyDetailToDB()
 		case "-importenergysummarytodb":
 			energy.ImportEnergySummaryToDB()
-		case "-importenergytousummarytogsheet":
-			energy.ImportEnergyTOUSummaryToGsheet()
 		case "-importenergytousummarytodb":
 			energy.ImportEnergyTOUSummaryToDB()
+		case "-importenergydatatogsheet":
+			energy.ImportEnergyDataToGsheet()
+		case "-importbatterychargetodb":
+			energy.ImportBatteryChargeToDB()
+		case "-importoutagetodb":
+			energy.ImportOutageToDB()
 		// maintenance
 		case "-truncateemail":
 			common.TruncateEmail()
@@ -73,12 +73,12 @@ func printUsage() {
 	fmt.Println("-writelivesitetelemetry")
 	fmt.Println("-writeenergytelemetry")
 	fmt.Println("-setenergymodebasedonweather")
-	fmt.Println("-importbatterychargetodb")
-	fmt.Println("-importoutagetodb")
 	fmt.Println("-importenergydetailtodb")
 	fmt.Println("-importenergysummarytodb")
-	fmt.Println("-importenergytousummarytogsheet")
 	fmt.Println("-importenergytousummarytodb")
+	fmt.Println("-importenergydatatogsheet")
+	fmt.Println("-importbatterychargetodb")
+	fmt.Println("-importoutagetodb")
 	fmt.Println("\n## Maintenance ##") // maintenance
 	fmt.Println("-truncateemail")
 	fmt.Println("-truncatelog")
