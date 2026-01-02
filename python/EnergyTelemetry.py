@@ -2,7 +2,7 @@ import pytz
 import zoneinfo
 
 from Influxdb import getDBClient
-from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast, getBatteryChargeHistory
+from TeslaEnergyAPI import getSiteStatus, getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast, getBatteryChargeHistory, getBatteryBackupHistory
 from EnergyLocalLiveTelemetry import getLocalSystemStatus
 from GoogleAPI import getGoogleSheetService, findOpenRow
 from Email import sendEmail
@@ -940,6 +940,67 @@ def writeEnergyDataToGsheet(date):
 
 
 ##
+# Compares the list of backup events already stored in the DB vs. the list
+# from the Tesla and inserts any missing events.
+#
+# author: mjhwa@yahoo.com
+##
+def writeBatteryBackupHistoryToDB():
+  try:
+    # get battery backup history data
+    data = getBatteryBackupHistory()
+
+    json_body = []
+    local = pytz.timezone(TIME_ZONE)
+
+    # get existing list of backup events saved to DB
+    client = getDBClient()
+    client.switch_database('outage')
+    db = client.query(query='SELECT * FROM "backup"')
+
+    for i in range(len(data['response']['events'])):
+      duration = -1
+      start = ''
+      skip = False
+
+      for key, value in data['response']['events'][i].items():
+        if (key == 'duration'):
+          duration = float(value) / 1000 / 60 / 60
+
+        if (key == 'timestamp'):
+          start = value[0:len(value) - 6:1]
+          start = local.localize(
+                  datetime.strptime(start, '%Y-%m-%dT%H:%M:%S')
+                  , is_dst=None)
+
+        for item in db:
+          for j in range(len(item)):
+            dt = datetime.strptime(item[j]['time'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.utc)
+            dt = dt.astimezone(pytz.timezone('US/Pacific'))
+
+            if start == dt:
+              skip = True  # event already in DB, skip
+
+        if ((duration != -1) and (start != '')) and skip != True:
+          json_body.append({
+            'measurement': 'backup',
+            'tags': {
+              'source': 'event'
+            },
+            'time': str(start),
+            'fields': {
+              'value': float(duration)
+            }
+          })
+
+    # Write to Influxdb
+    client.write_points(json_body)
+    client.close()
+  except Exception as e:
+    logError('writeBatteryBackupHistoryToDB(): ' + str(e))
+
+
+##
 # Write the data for the previous day based on a cron job that runs just after
 # midnight to ensure we get a full day's worth of data.
 #
@@ -951,6 +1012,7 @@ def main():
   writeBatteryChargeToDB(datetime.today() - timedelta(1))
   writeEnergyTOUSummaryToDB(datetime.today() - timedelta(1))
   writeEnergyDataToGsheet(datetime.today() - timedelta(1))
+  writeBatteryBackupHistoryToDB()
 
   # send email notification
   message = ('Energy telemetry successfully logged on '

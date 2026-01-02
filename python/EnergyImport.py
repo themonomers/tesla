@@ -150,10 +150,6 @@ def importOutageToDB():
                 + datetime.strftime(start, '%Y-%m-%d %I:%M:%S %p'))
 
         if ((duration != -1) and (start != '')):
-          end = start + timedelta(hours=duration)
-          print('  end = '
-                + datetime.strftime(end, '%Y-%m-%d %I:%M:%S %p'))
-
           insert = input('import (y/n): ')
           if insert != 'y':
             break
@@ -163,20 +159,9 @@ def importOutageToDB():
             'tags': {
               'source': 'event'
             },
-            'time': str(start.astimezone(pytz.utc)),
+            'time': start,
             'fields': {
-              'value': duration
-            }
-          })
-
-          json_body.append({
-            'measurement': 'backup',
-            'tags': {
-              'source': 'event'
-            },
-            'time': str(end.astimezone(pytz.utc)),
-            'fields': {
-              'value': duration
+              'value': float(duration)
             }
           })
 

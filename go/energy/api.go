@@ -131,7 +131,7 @@ func GetBatteryBackupHistory() map[string]any {
 	url := BASE_OWNER_URL +
 		"/energy_sites/" +
 		SITE_ID +
-		"/history?kind=backup"
+		"/calendar_history?kind=backup"
 
 	req, err := http.NewRequest("GET", url, nil)
 	common.LogError("GetBatteryPowerHistory(): http.NewRequest", err)

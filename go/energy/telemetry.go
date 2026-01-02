@@ -39,6 +39,7 @@ func WriteEnergyTelemetry() {
 	WriteBatteryChargeToDB(yest)
 	WriteEnergyTOUSummaryToDB(yest)
 	WriteEnergyDataToGsheet(yest)
+	WriteBatteryBackupHistoryToDB()
 
 	// send email notification
 	message := ("Energy telemetry successfully logged on " +
@@ -866,4 +867,63 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	common.LogError("WriteEnergyDataToGsheet(): srv.Spreadsheets.Values.BatchUpdate", err)
 	_, err = srv.Spreadsheets.BatchUpdate(ENERGY_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
 	common.LogError("WriteEnergyDataToGsheet(): srv.Spreadsheets.BatchUpdate", err)
+}
+
+// Compares the list of backup events already stored in the DB vs. the list
+// from the Tesla and inserts any missing events.
+func WriteBatteryBackupHistoryToDB() {
+	// get battery backup history data
+	data := GetBatteryBackupHistory()
+
+	c := common.GetDBClient()
+	defer c.Close()
+
+	// get existing list of backup events saved to DB
+	q := client.NewQuery("SELECT * FROM backup", "outage", "")
+	db, err := c.Query(q)
+	common.LogError("WriteBatteryBackupHistoryToDB(): c.Query", err)
+
+	// Create a new point batch
+	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+		Database: "outage",
+	})
+	common.LogError("ImportOutageToDB(): client.NewBatchPoints", err)
+
+	for _, val := range data["response"].(map[string]any)["events"].([]any) {
+		var skip bool = false
+		var dt time.Time
+
+		// convert duration to hours
+		duration := val.(map[string]any)["duration"].(float64) / 1000 / 60 / 60
+		start, _ := time.Parse("2006-01-02T15:04:05-07:00", val.(map[string]any)["timestamp"].(string))
+
+		if len(db.Results[0].Series) > 0 {
+			for _, item := range db.Results[0].Series[0].Values {
+				loc, _ := time.LoadLocation("America/Los_Angeles")
+				dt, _ = time.Parse("2006-01-02T15:04:05Z", item[0].(string))
+				dt = dt.In(loc)
+
+				if start.Equal(dt) {
+					skip = true
+				}
+			}
+		}
+
+		if !skip {
+			tags := map[string]string{"source": "event"}
+			fields := map[string]any{
+				"value": duration,
+			}
+			pt, err := client.NewPoint("backup", tags, fields, start)
+			common.LogError("ImportOutageToDB(): client.NewPoint", err)
+			bp.AddPoint(pt)
+		}
+	}
+
+	// Write the batch
+	err = c.Write(bp)
+	common.LogError("ImportOutageToDB(): c.Write", err)
+
+	// Close client resources
+	c.Close()
 }

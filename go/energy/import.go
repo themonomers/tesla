@@ -70,10 +70,6 @@ func ImportOutageToDB() {
 		fmt.Print("  start = ")
 		fmt.Println(start.Format("2006-01-02 03:04:05 PM"))
 
-		end := start.Add(time.Duration(duration * float64(time.Hour)))
-		fmt.Print("  end   = ")
-		fmt.Println(end.Format("2006-01-02 03:04:05 PM"))
-
 		fmt.Print("  duration = ")
 		fmt.Printf("%.2f", duration)
 		fmt.Println(" hours")
@@ -91,14 +87,6 @@ func ImportOutageToDB() {
 			"value": duration,
 		}
 		pt, err := client.NewPoint("backup", tags, fields, start)
-		common.LogError("ImportOutageToDB(): client.NewPoint", err)
-		bp.AddPoint(pt)
-
-		tags = map[string]string{"source": "event"}
-		fields = map[string]any{
-			"value": duration,
-		}
-		pt, err = client.NewPoint("backup", tags, fields, end)
 		common.LogError("ImportOutageToDB(): client.NewPoint", err)
 		bp.AddPoint(pt)
 	}

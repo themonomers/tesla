@@ -136,7 +136,7 @@ def getBatteryBackupHistory():
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
            + SITE_ID 
-           + '/history?kind=backup')
+           + '/calendar_history?kind=backup')
 
     response = json.loads(
       requests.get(
