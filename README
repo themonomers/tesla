@@ -2,7 +2,7 @@ As of January 22, 2024 communicating with Tesla Vehicles by directly using the e
 
 Alternatively, using a modified tesla-http-proxy (https://github.com/lotharbach/tesla-command-proxy) which forwards API requests to the Owner API, allows reuse of the existing code.  Pre-2021 Model X and S still need to use the existing Owner API, except for the wake_up endpoint for some reason.
 
-Before running the modified tesla-http-proxy, you need to follow instructions to generate a private key in your system keyring and save the public key to a file (https://github.com/teslamotors/vehicle-command/blob/main/cmd/tesla-control/README.md).  Then you need to pair your public key with your Tesla by getting in your car, enabling bluetooth on your device running these Tesla command-line tools, and using your NFC card.
+Before running the modified tesla-http-proxy, you need to follow instructions to generate a private key in your system keyring and save the public key to a file (https://github.com/teslamotors/vehicle-command/blob/main/cmd/tesla-control/README.md).  Then you need to pair your public key with your Tesla by getting in your car, enabling bluetooth on your device running these Tesla command-line tools, and using your NFC card.  It seems you only need to generate the private and public key once.  Any Tesla vehicle you have can be paired with that same public key.  On some of the vehicle models, there's no visualization on screen informing you to tap your NFC card which can be confusing.
 
 
 /python
