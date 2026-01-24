@@ -97,22 +97,25 @@ func NotifyIsTeslaPluggedIn() {
 		}
 	}
 
-	// set cars for scheduled charging
+	// set cars for scheduled charging by daily charge time preference
 	day_of_week := time.Now().AddDate(0, 0, 1).Format("Monday")
 	dow_index := common.FindStringIn2DArray(charge_config.Values, day_of_week)
 	m3_target_finish_time := common.GetTomorrowTime(charge_config.Values[dow_index[0]][1].(string))
 	mx_target_finish_time := common.GetTomorrowTime(charge_config.Values[dow_index[0]][2].(string))
-
-	dow_index = common.FindStringIn2DArray(climate_config.Values, day_of_week)
-	m3_climate_start_time := common.GetTomorrowTime(climate_config.Values[dow_index[0]][8].(string))
-	mx_climate_start_time := common.GetTomorrowTime(climate_config.Values[dow_index[0]][14].(string))
-
 	scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 	scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
-	// set cabin preconditioning the next morning
-	SetM3Precondition(m3_data, climate_config.Values[19][1].(string), m3_climate_start_time)
-	SetMXPrecondition(mx_data, climate_config.Values[19][10].(string), mx_climate_start_time)
+	// set cabin preconditioning the next morning and check that it's not
+	// "skip"
+	dow_index = common.FindStringIn2DArray(climate_config.Values, day_of_week)
+	if climate_config.Values[dow_index[0]][8].(string) != "skip" {
+		m3_climate_start_time := common.GetTomorrowTime(climate_config.Values[dow_index[0]][8].(string))
+		SetM3Precondition(m3_data, climate_config.Values[19][1].(string), m3_climate_start_time)
+	}
+	if climate_config.Values[dow_index[0]][14].(string) != "skip" {
+		mx_climate_start_time := common.GetTomorrowTime(climate_config.Values[dow_index[0]][14].(string))
+		SetMXPrecondition(mx_data, climate_config.Values[19][10].(string), mx_climate_start_time)
+	}
 }
 
 // Called by a crontab to read vehicle range and expected charge

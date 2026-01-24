@@ -422,17 +422,18 @@ def notifyIsTeslaPluggedIn():
     dow_index = [index for index, element in enumerate(charge_config) if day_of_week in element]
     m3_target_finish_time = getTomorrowTime(charge_config[dow_index[0]][1])
     mx_target_finish_time = getTomorrowTime(charge_config[dow_index[0]][2])
-
-    dow_index = [index for index, element in enumerate(climate_config) if day_of_week in element]
-    m3_climate_start_time = getTomorrowTime(climate_config[dow_index[0]][8])
-    mx_climate_start_time = getTomorrowTime(climate_config[dow_index[0]][14])
-
     scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
     scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
-    # set cabin preconditioning the next morning
-    setM3Precondition(m3_data, climate_config[19][1], m3_climate_start_time)
-    setMXPrecondition(mx_data, climate_config[19][10], mx_climate_start_time)
+    # set cabin preconditioning the next morning and check that it's not 
+    # "skip"
+    dow_index = [index for index, element in enumerate(climate_config) if day_of_week in element]
+    if (climate_config[dow_index[0]][8] != 'skip'):
+      m3_climate_start_time = getTomorrowTime(climate_config[dow_index[0]][8])
+      setM3Precondition(m3_data, climate_config[19][1], m3_climate_start_time)
+    if (climate_config[dow_index[0]][14] != 'skip'):
+      mx_climate_start_time = getTomorrowTime(climate_config[dow_index[0]][14])
+      setMXPrecondition(mx_data, climate_config[19][10], mx_climate_start_time)
   except Exception as e:
     logError('notifyIsTeslaPluggedIn(): ' + str(e))
 
