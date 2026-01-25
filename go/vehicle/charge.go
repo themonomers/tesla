@@ -102,26 +102,68 @@ func NotifyIsTeslaPluggedIn() {
 	dow_index := common.FindStringIn2DArray(charge_config.Values, day_of_week)
 	m3_target_finish_time := common.GetTomorrowTime(charge_config.Values[dow_index[0]][1].(string))
 	mx_target_finish_time := common.GetTomorrowTime(charge_config.Values[dow_index[0]][2].(string))
-	scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
-	scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
+	m3_charge_start_time := scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
+	mx_charge_start_time := scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
 	// set cabin preconditioning the next morning and check that it's not
 	// "skip"
+	var m3_climate_start_time time.Time
+	var mx_climate_start_time time.Time
 	dow_index = common.FindStringIn2DArray(climate_config.Values, day_of_week)
 	if climate_config.Values[dow_index[0]][8].(string) != "skip" {
-		m3_climate_start_time := common.GetTomorrowTime(climate_config.Values[dow_index[0]][8].(string))
-		SetM3Precondition(m3_data, climate_config.Values[19][1].(string), m3_climate_start_time)
+		m3_climate_start_time = common.GetTomorrowTime(climate_config.Values[dow_index[0]][8].(string))
+		m3_climate_start_time = SetM3Precondition(m3_data, climate_config.Values[19][1].(string), m3_climate_start_time)
 	}
 	if climate_config.Values[dow_index[0]][14].(string) != "skip" {
 		mx_climate_start_time := common.GetTomorrowTime(climate_config.Values[dow_index[0]][14].(string))
-		SetMXPrecondition(mx_data, climate_config.Values[19][10].(string), mx_climate_start_time)
+		mx_climate_start_time = SetMXPrecondition(mx_data, climate_config.Values[19][10].(string), mx_climate_start_time)
+	}
+
+	// send email notification if either charging or preconditioning is scheduled
+	var subject string
+	if !m3_charge_start_time.IsZero() || !m3_climate_start_time.IsZero() {
+		if !m3_charge_start_time.IsZero() && !m3_climate_start_time.IsZero() {
+			subject = "Model 3 Set to Charge and Precondition"
+		} else if !m3_charge_start_time.IsZero() && m3_climate_start_time.IsZero() {
+			subject = "Model 3 Set to Charge"
+		} else if m3_charge_start_time.IsZero() && !m3_climate_start_time.IsZero() {
+			subject = "Model 3 Set to Precondition"
+		}
+
+		common.SendEmail(EMAIL_1,
+			subject,
+			getScheduledChargeMessage("Model 3",
+				m3_data,
+				m3_charge_start_time,
+				m3_target_finish_time,
+				m3_climate_start_time),
+			"")
+	}
+
+	if !mx_charge_start_time.IsZero() || !mx_climate_start_time.IsZero() {
+		if !mx_charge_start_time.IsZero() && !mx_climate_start_time.IsZero() {
+			subject = "Model X Set to Charge and Precondition"
+		} else if !mx_charge_start_time.IsZero() && mx_climate_start_time.IsZero() {
+			subject = "Model X Set to Charge"
+		} else if mx_charge_start_time.IsZero() && !mx_climate_start_time.IsZero() {
+			subject = "Model X Set to Precondition"
+		}
+
+		common.SendEmail(EMAIL_1,
+			subject,
+			getScheduledChargeMessage("Model X",
+				mx_data,
+				mx_charge_start_time,
+				mx_target_finish_time,
+				mx_climate_start_time),
+			"")
 	}
 }
 
 // Called by a crontab to read vehicle range and expected charge
 // finish time from a Google Sheet, then call the API to set a time
 // for scheduled charging in the vehicle.
-func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_target_finish_time time.Time, mx_target_finish_time time.Time) {
+func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_target_finish_time time.Time, mx_target_finish_time time.Time) time.Time {
 	var start_time time.Time
 
 	if m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" {
@@ -147,7 +189,7 @@ func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_targe
 				m3_target_finish_time,
 				mx_target_finish_time)
 		} else {
-			return
+			return time.Time{}
 		}
 
 		//		fmt.Println(start_time)
@@ -161,15 +203,13 @@ func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_targe
 		AddChargeSchedule(M3_VIN, m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(M3_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
-		// send email notification
-		common.SendEmail(EMAIL_1,
-			"Model 3 Set to Charge",
-			getScheduledChargeMessage("Model 3", m3_data, start_time, m3_target_finish_time),
-			"")
+		return start_time
+	} else {
+		return time.Time{}
 	}
 }
 
-func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_target_finish_time time.Time, mx_target_finish_time time.Time) {
+func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_target_finish_time time.Time, mx_target_finish_time time.Time) time.Time {
 	var start_time time.Time
 
 	if mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" {
@@ -195,7 +235,7 @@ func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_targe
 				m3_target_finish_time,
 				mx_target_finish_time)
 		} else {
-			return
+			return time.Time{}
 		}
 
 		//		fmt.Println(start_time)
@@ -206,11 +246,9 @@ func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_targe
 		AddChargeSchedule(MX_VIN, mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(MX_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
-		// send email notification
-		common.SendEmail(EMAIL_1,
-			"Model X Set to Charge",
-			getScheduledChargeMessage("Model X", mx_data, start_time, mx_target_finish_time),
-			"")
+		return start_time
+	} else {
+		return time.Time{}
 	}
 }
 
@@ -459,18 +497,25 @@ func earliestTime(t1, t2 time.Time) time.Time {
 	return t2
 }
 
-func getScheduledChargeMessage(vehicle string, data map[string]any, start_time time.Time, finish_time time.Time) string {
-	message := "The " + vehicle + " is set to charge at " +
-		start_time.Format("January 2, 2006 15:04") +
-		" to " +
-		strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64), 'f', -1, 64) + "%" +
-		" by " + finish_time.Format("15:04") + ", " +
-		strconv.FormatFloat((data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)/
-			data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64)*
-			data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range.  " +
-		"The Model 3 is currently at " +
-		strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64), 'f', 0, 64) + "%, " +
-		strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range."
+func getScheduledChargeMessage(vehicle string, data map[string]any, charge_start_time time.Time, finish_time time.Time, climate_start_time time.Time) string {
+	message := ""
+	if !charge_start_time.IsZero() {
+		message = "The " + vehicle + " is set to charge at " +
+			charge_start_time.Format("January 2, 2006 15:04") +
+			" to " +
+			strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64), 'f', -1, 64) + "%" +
+			" by " + finish_time.Format("15:04") + ", " +
+			strconv.FormatFloat((data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)/
+				data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64)*
+				data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range.  " +
+			"The Model 3 is currently at " +
+			strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64), 'f', 0, 64) + "%, " +
+			strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range.  "
+	}
+
+	if !climate_start_time.IsZero() {
+		message += "Preconditioning is set to start at " + climate_start_time.Format("January 2, 2006 15:04") + "."
+	}
 
 	return message
 }

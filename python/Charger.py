@@ -53,7 +53,7 @@ def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
                                                 m3_target_finish_time, 
                                                 mx_target_finish_time)
       else:
-        return
+        return None
 
       total_minutes = (start_time.hour * 60) + start_time.minute
 
@@ -64,12 +64,9 @@ def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       addChargeSchedule(M3_VIN, m3_data['response']['drive_state']['latitude'], m3_data['response']['drive_state']['longitude'], total_minutes, 1)
       stopChargeVehicle(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
-      # send email notification
-      sendEmail(EMAIL_1, 
-                'Model 3 Set to Charge', 
-                getScheduledChargeMessage('Model 3', m3_data, start_time, m3_target_finish_time), 
-                '', 
-                '')
+      return start_time
+    else:
+      return None
   except Exception as e:
     logError('scheduleM3Charging(): ' + str(e))
 
@@ -99,7 +96,7 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
                                                 m3_target_finish_time, 
                                                 mx_target_finish_time)
       else:
-        return
+        return None
 
       total_minutes = (start_time.hour * 60) + start_time.minute
 
@@ -107,12 +104,9 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       addChargeSchedule(MX_VIN, mx_data['response']['drive_state']['latitude'], mx_data['response']['drive_state']['longitude'], total_minutes, 1)
       stopChargeVehicle(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
-      # send email notification
-      sendEmail(EMAIL_1, 
-                'Model X Set to Charge', 
-                getScheduledChargeMessage('Model X', mx_data, start_time, mx_target_finish_time), 
-                '', 
-                '')
+      return start_time
+    else:
+      return None
   except Exception as e:
     logError('scheduleMXCharging(): ' + str(e))
 
@@ -338,18 +332,23 @@ def getPluggedInMessage(vehicle, battery_level, battery_range):
   return message
 
 
-def getScheduledChargeMessage(vehicle, data, start_time, finish_time):
-  message = ('The ' + vehicle + ' is set to charge at ' 
-              + start_time.strftime('%B %d, %Y %H:%M')
-              + ' to '
-              + str(data['response']['charge_state']['charge_limit_soc']) + '%'
-              + ' by ' + finish_time.strftime('%H:%M') + ', ' 
-              + str(round(data['response']['charge_state']['battery_range']
-                    / data['response']['charge_state']['battery_level']
-                    * data['response']['charge_state']['charge_limit_soc']))  + ' miles of estimated range.  '
-              + 'The ' + vehicle + ' is currently at '
-              + str(data['response']['charge_state']['battery_level']) + '%, '
-              + str(round(data['response']['charge_state']['battery_range'])) + ' miles of estimated range.')
+def getScheduledChargeMessage(vehicle, data, charge_start_time, finish_time, climate_start_time):
+  message = ''
+  if charge_start_time != None:
+    message = ('The ' + vehicle + ' is set to charge at ' 
+                + charge_start_time.strftime('%B %d, %Y %H:%M')
+                + ' to '
+                + str(data['response']['charge_state']['charge_limit_soc']) + '%'
+                + ' by ' + finish_time.strftime('%H:%M') + ', ' 
+                + str(round(data['response']['charge_state']['battery_range']
+                      / data['response']['charge_state']['battery_level']
+                      * data['response']['charge_state']['charge_limit_soc']))  + ' miles of estimated range.  '
+                + 'The ' + vehicle + ' is currently at '
+                + str(data['response']['charge_state']['battery_level']) + '%, '
+                + str(round(data['response']['charge_state']['battery_range'])) + ' miles of estimated range.  ')
+  
+  if climate_start_time != None:
+    message += ('Preconditioning is set to start at ' + climate_start_time.strftime('%B %d, %Y %H:%M') + '.')
   
   return message
 
@@ -422,18 +421,56 @@ def notifyIsTeslaPluggedIn():
     dow_index = [index for index, element in enumerate(charge_config) if day_of_week in element]
     m3_target_finish_time = getTomorrowTime(charge_config[dow_index[0]][1])
     mx_target_finish_time = getTomorrowTime(charge_config[dow_index[0]][2])
-    scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
-    scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
+    m3_charge_start_time = scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
+    mx_charge_start_time = scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
     # set cabin preconditioning the next morning and check that it's not 
     # "skip"
     dow_index = [index for index, element in enumerate(climate_config) if day_of_week in element]
     if (climate_config[dow_index[0]][8] != 'skip'):
       m3_climate_start_time = getTomorrowTime(climate_config[dow_index[0]][8])
-      setM3Precondition(m3_data, climate_config[19][1], m3_climate_start_time)
+      m3_climate_start_time = setM3Precondition(m3_data, climate_config[19][1], m3_climate_start_time)
     if (climate_config[dow_index[0]][14] != 'skip'):
       mx_climate_start_time = getTomorrowTime(climate_config[dow_index[0]][14])
-      setMXPrecondition(mx_data, climate_config[19][10], mx_climate_start_time)
+      mx_climate_start_time = setMXPrecondition(mx_data, climate_config[19][10], mx_climate_start_time)
+
+    # send email notification if either charging or preconditioning is scheduled
+    subject = ''
+    if m3_charge_start_time != None or m3_climate_start_time != None:
+      if m3_charge_start_time != None and m3_climate_start_time != None:
+        subject = 'Model 3 Set to Charge and Precondition'
+      elif m3_charge_start_time != None and m3_climate_start_time == None:
+        subject = 'Model 3 Set to Charge'
+      elif m3_charge_start_time == None and m3_climate_start_time != None:
+        subject = 'Model 3 Set to Precondition'
+
+      sendEmail(EMAIL_1, 
+                subject, 
+                getScheduledChargeMessage('Model 3', 
+                                          m3_data, 
+                                          m3_charge_start_time, 
+                                          m3_target_finish_time, 
+                                          m3_climate_start_time), 
+                '', 
+                '')
+      
+    if mx_charge_start_time != None or mx_climate_start_time != None:
+      if mx_charge_start_time != None and mx_climate_start_time != None:
+        subject = 'Model X Set to Charge and Precondition'
+      elif mx_charge_start_time != None and mx_climate_start_time == None:
+        subject = 'Model X Set to Charge'
+      elif mx_charge_start_time == None and mx_climate_start_time != None:
+        subject = 'Model X Set to Precondition'
+
+      sendEmail(EMAIL_1, 
+                subject, 
+                getScheduledChargeMessage('Model X', 
+                                          mx_data, 
+                                          mx_charge_start_time, 
+                                          mx_target_finish_time, 
+                                          mx_climate_start_time), 
+                '', 
+                '')
   except Exception as e:
     logError('notifyIsTeslaPluggedIn(): ' + str(e))
 

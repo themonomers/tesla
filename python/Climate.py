@@ -28,6 +28,9 @@ def setM3Precondition(data, eco_mode, start_time):
                       start_time.day, 
                       start_time.hour, 
                       start_time.minute)
+        
+        return start_time
+    return None
   except Exception as e:
     logError('setM3Precondition(): ' + str(e))
 
@@ -46,5 +49,8 @@ def setMXPrecondition(data, eco_mode, start_time):
                       start_time.day, 
                       start_time.hour, 
                       start_time.minute)
+        
+        return start_time
+    return None
   except Exception as e:
     logError('setMXPrecondition(): ' + str(e))
