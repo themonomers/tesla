@@ -120,44 +120,16 @@ func NotifyIsTeslaPluggedIn() {
 	}
 
 	// send email notification if either charging or preconditioning is scheduled
-	var subject string
-	if !m3_charge_start_time.IsZero() || !m3_climate_start_time.IsZero() {
-		if !m3_charge_start_time.IsZero() && !m3_climate_start_time.IsZero() {
-			subject = "Model 3 Set to Charge and Precondition"
-		} else if !m3_charge_start_time.IsZero() && m3_climate_start_time.IsZero() {
-			subject = "Model 3 Set to Charge"
-		} else if m3_charge_start_time.IsZero() && !m3_climate_start_time.IsZero() {
-			subject = "Model 3 Set to Precondition"
-		}
-
-		common.SendEmail(EMAIL_1,
-			subject,
-			getScheduledChargeMessage("Model 3",
-				m3_data,
-				m3_charge_start_time,
-				m3_target_finish_time,
-				m3_climate_start_time),
-			"")
-	}
-
-	if !mx_charge_start_time.IsZero() || !mx_climate_start_time.IsZero() {
-		if !mx_charge_start_time.IsZero() && !mx_climate_start_time.IsZero() {
-			subject = "Model X Set to Charge and Precondition"
-		} else if !mx_charge_start_time.IsZero() && mx_climate_start_time.IsZero() {
-			subject = "Model X Set to Charge"
-		} else if mx_charge_start_time.IsZero() && !mx_climate_start_time.IsZero() {
-			subject = "Model X Set to Precondition"
-		}
-
-		common.SendEmail(EMAIL_1,
-			subject,
-			getScheduledChargeMessage("Model X",
-				mx_data,
-				mx_charge_start_time,
-				mx_target_finish_time,
-				mx_climate_start_time),
-			"")
-	}
+	sendScheduledChargeMessage("Model 3",
+		m3_data,
+		m3_charge_start_time,
+		m3_target_finish_time,
+		m3_climate_start_time)
+	sendScheduledChargeMessage("Model X",
+		mx_data,
+		mx_charge_start_time,
+		mx_target_finish_time,
+		mx_climate_start_time)
 }
 
 // Called by a crontab to read vehicle range and expected charge
@@ -497,8 +469,10 @@ func earliestTime(t1, t2 time.Time) time.Time {
 	return t2
 }
 
-func getScheduledChargeMessage(vehicle string, data map[string]any, charge_start_time time.Time, finish_time time.Time, climate_start_time time.Time) string {
-	message := ""
+func sendScheduledChargeMessage(vehicle string, data map[string]any, charge_start_time time.Time, finish_time time.Time, climate_start_time time.Time) {
+	var message string
+	var subject string
+
 	if !charge_start_time.IsZero() {
 		message = "The " + vehicle + " is set to charge at " +
 			charge_start_time.Format("January 2, 2006 15:04") +
@@ -517,7 +491,20 @@ func getScheduledChargeMessage(vehicle string, data map[string]any, charge_start
 		message += "Preconditioning is set to start at " + climate_start_time.Format("January 2, 2006 15:04") + "."
 	}
 
-	return message
+	if !charge_start_time.IsZero() || !climate_start_time.IsZero() {
+		if !charge_start_time.IsZero() && !climate_start_time.IsZero() {
+			subject = vehicle + " Set to Charge and Precondition"
+		} else if !charge_start_time.IsZero() && climate_start_time.IsZero() {
+			subject = vehicle + " Set to Charge"
+		} else if charge_start_time.IsZero() && !climate_start_time.IsZero() {
+			subject = vehicle + " Set to Precondition"
+		}
+
+		common.SendEmail(EMAIL_1,
+			subject,
+			message,
+			"")
+	}
 }
 
 func getPluggedInMessage(vehicle string, battery_level float64, battery_range float64) string {

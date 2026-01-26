@@ -332,8 +332,10 @@ def getPluggedInMessage(vehicle, battery_level, battery_range):
   return message
 
 
-def getScheduledChargeMessage(vehicle, data, charge_start_time, finish_time, climate_start_time):
+def sendScheduledChargeMessage(vehicle, data, charge_start_time, finish_time, climate_start_time):
   message = ''
+  subject = ''
+
   if charge_start_time != None:
     message = ('The ' + vehicle + ' is set to charge at ' 
                 + charge_start_time.strftime('%B %d, %Y %H:%M')
@@ -349,8 +351,20 @@ def getScheduledChargeMessage(vehicle, data, charge_start_time, finish_time, cli
   
   if climate_start_time != None:
     message += ('Preconditioning is set to start at ' + climate_start_time.strftime('%B %d, %Y %H:%M') + '.')
-  
-  return message
+
+  if charge_start_time != None or climate_start_time != None:
+    if charge_start_time != None and climate_start_time != None:
+      subject = vehicle + ' Set to Charge and Precondition'
+    elif charge_start_time != None and climate_start_time == None:
+      subject = vehicle + ' Set to Charge'
+    elif charge_start_time == None and climate_start_time != None:
+      subject = vehicle + ' Set to Precondition'
+
+    sendEmail(EMAIL_1, 
+              subject, 
+              message, 
+              '', 
+              '')
 
 
 ##
@@ -435,42 +449,16 @@ def notifyIsTeslaPluggedIn():
       mx_climate_start_time = setMXPrecondition(mx_data, climate_config[19][10], mx_climate_start_time)
 
     # send email notification if either charging or preconditioning is scheduled
-    subject = ''
-    if m3_charge_start_time != None or m3_climate_start_time != None:
-      if m3_charge_start_time != None and m3_climate_start_time != None:
-        subject = 'Model 3 Set to Charge and Precondition'
-      elif m3_charge_start_time != None and m3_climate_start_time == None:
-        subject = 'Model 3 Set to Charge'
-      elif m3_charge_start_time == None and m3_climate_start_time != None:
-        subject = 'Model 3 Set to Precondition'
-
-      sendEmail(EMAIL_1, 
-                subject, 
-                getScheduledChargeMessage('Model 3', 
-                                          m3_data, 
-                                          m3_charge_start_time, 
-                                          m3_target_finish_time, 
-                                          m3_climate_start_time), 
-                '', 
-                '')
-      
-    if mx_charge_start_time != None or mx_climate_start_time != None:
-      if mx_charge_start_time != None and mx_climate_start_time != None:
-        subject = 'Model X Set to Charge and Precondition'
-      elif mx_charge_start_time != None and mx_climate_start_time == None:
-        subject = 'Model X Set to Charge'
-      elif mx_charge_start_time == None and mx_climate_start_time != None:
-        subject = 'Model X Set to Precondition'
-
-      sendEmail(EMAIL_1, 
-                subject, 
-                getScheduledChargeMessage('Model X', 
-                                          mx_data, 
-                                          mx_charge_start_time, 
-                                          mx_target_finish_time, 
-                                          mx_climate_start_time), 
-                '', 
-                '')
+    sendScheduledChargeMessage('Model 3',
+                               m3_data,
+                               m3_charge_start_time,
+                               m3_target_finish_time,
+                               m3_climate_start_time)
+    sendScheduledChargeMessage('Model X',
+                               mx_data,
+                               mx_charge_start_time,
+                               mx_target_finish_time,
+                               mx_climate_start_time)
   except Exception as e:
     logError('notifyIsTeslaPluggedIn(): ' + str(e))
 
