@@ -57,11 +57,6 @@ func NotifyIsTeslaPluggedIn() {
 	m3_data := GetVehicleData(M3_VIN)
 	mx_data := GetVehicleData(MX_VIN)
 
-	// get car info
-	charge_port_door_open := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool)
-	battery_level := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64)
-	battery_range := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
-
 	// get charging configuration info
 	srv := common.GetGoogleSheetService()
 	charge_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Charger!A3:C11").Do()
@@ -71,31 +66,24 @@ func NotifyIsTeslaPluggedIn() {
 	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Climate!A3:P22").Do()
 	common.LogError("NotifyIsTeslaPluggedIn(): srv.Spreadsheets.Values.Get", err)
 
-	// check if email notification is set to "on" first
-	if charge_config.Values[8][1] == "on" {
-		// send an email if the charge port door is not open, i.e. not plugged in
-		if !charge_port_door_open {
-			common.SendEmail(EMAIL_1,
-				"Please Plug In Your Model 3",
-				getPluggedInMessage("Model 3", battery_level, battery_range),
-				"")
-		}
-	}
+	// send email notification if the car is not plugged in
+	charge_port_door_open := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool)
+	battery_level := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64)
+	battery_range := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
+	sendPluggedInMessage("Model 3",
+		battery_level,
+		battery_range,
+		charge_port_door_open,
+		charge_config.Values[8][1])
 
 	charge_port_door_open = mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool)
 	battery_level = mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64)
 	battery_range = mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
-
-	// check if email notification is set to "on" first
-	if charge_config.Values[8][2] == "on" {
-		// send an email if the charge port door is not open, i.e. not plugged in
-		if !charge_port_door_open {
-			common.SendEmail(EMAIL_2,
-				"Please Plug In Your Model X",
-				getPluggedInMessage("Model X", battery_level, battery_range),
-				EMAIL_1)
-		}
-	}
+	sendPluggedInMessage("Model X",
+		battery_level,
+		battery_range,
+		charge_port_door_open,
+		charge_config.Values[8][2])
 
 	// set cars for scheduled charging by daily charge time preference
 	day_of_week := time.Now().AddDate(0, 0, 1).Format("Monday")
@@ -507,12 +495,20 @@ func sendScheduledChargeMessage(vehicle string, data map[string]any, charge_star
 	}
 }
 
-func getPluggedInMessage(vehicle string, battery_level float64, battery_range float64) string {
-	message := "Your car is not plugged in.  \n\nCurrent battery level is " +
-		strconv.FormatFloat(battery_level, 'f', -1, 64) +
-		"%, " +
-		strconv.FormatFloat(battery_range, 'f', -1, 64) +
-		" estimated miles.  \n\n-Your " + vehicle
-
-	return message
+func sendPluggedInMessage(vehicle string, battery_level float64, battery_range float64, charge_port_door_open bool, notify any) {
+	// check if email notification is set to "on" first
+	if notify == "on" {
+		// send an email if the charge port door is not open, i.e. not plugged in
+		if !charge_port_door_open {
+			message := "Your car is not plugged in.  \n\nCurrent battery level is " +
+				strconv.FormatFloat(battery_level, 'f', -1, 64) +
+				"%, " +
+				strconv.FormatFloat(battery_range, 'f', -1, 64) +
+				" estimated miles.  \n\n-Your " + vehicle
+			common.SendEmail(EMAIL_1,
+				"Please Plug In Your "+vehicle,
+				message,
+				"")
+		}
+	}
 }

@@ -322,14 +322,22 @@ def calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time
     logError('calcuateScheduledCharging(' + scenario + '): ' + str(e))
 
 
-def getPluggedInMessage(vehicle, battery_level, battery_range):
-  message = ('Your car is not plugged in.  \n\nCurrent battery level is '
-              + str(battery_level) 
-              + '%, '
-              + str(battery_range) 
-              + ' estimated miles.  \n\n-Your ' + vehicle)
-  
-  return message
+def sendPluggedInMessage(vehicle, battery_level, battery_range, charge_port_door_open, notify):
+  # check if email notification is set to "on" first 
+  if (notify == 'on'):
+    # send an email if the charge port door is not open, i.e. not plugged in
+    if (charge_port_door_open == False):
+      message = ('Your car is not plugged in.  \n\nCurrent battery level is '
+                  + str(battery_level) 
+                  + '%, '
+                  + str(battery_range) 
+                  + ' estimated miles.  \n\n-Your ' + vehicle)
+      sendEmail(EMAIL_1, 
+                'Please Plug In Your ' + vehicle, 
+                message, 
+                '', 
+                '')
+      #print('send email: ' + message)
 
 
 def sendScheduledChargeMessage(vehicle, data, charge_start_time, finish_time, climate_start_time):
@@ -385,11 +393,6 @@ def notifyIsTeslaPluggedIn():
     m3_data = getVehicleData(M3_VIN)
     mx_data = getVehicleData(MX_VIN)
 
-    # get car info
-    charge_port_door_open = m3_data['response']['charge_state']['charge_port_door_open']
-    battery_level = m3_data['response']['charge_state']['battery_level']
-    battery_range = m3_data['response']['charge_state']['battery_range']
-
     # get charging configuration info
     service = getGoogleSheetService()
     charge_config = service.spreadsheets().values().get(
@@ -404,31 +407,24 @@ def notifyIsTeslaPluggedIn():
     ).execute().get('values', [])
     service.close()
 
-    # check if email notification is set to "on" first 
-    if (charge_config[8][1] == 'on'):
-      # send an email if the charge port door is not open, i.e. not plugged in
-      if (charge_port_door_open == False):
-        sendEmail(EMAIL_1, 
-                  'Please Plug In Your Model 3', 
-                  getPluggedInMessage('Model 3', battery_level, battery_range), 
-                  '', 
-                  '')
-        #print('send email: ' + message)
+    # send email notification if the car is not plugged in
+    charge_port_door_open = m3_data['response']['charge_state']['charge_port_door_open']
+    battery_level = m3_data['response']['charge_state']['battery_level']
+    battery_range = m3_data['response']['charge_state']['battery_range']
+    sendPluggedInMessage('Model 3', 
+                         battery_level, 
+                         battery_range, 
+                         charge_port_door_open, 
+                         charge_config[8][1]) 
 
     charge_port_door_open = mx_data['response']['charge_state']['charge_port_door_open']
     battery_level = mx_data['response']['charge_state']['battery_level']
     battery_range = mx_data['response']['charge_state']['battery_range']
-
-    # check if email notification is set to "on" first
-    if (charge_config[8][2] == 'on'):
-      # send an email if the charge port door is not open, i.e. not plugged in
-      if (charge_port_door_open == False):
-        sendEmail(EMAIL_2, 
-                  'Please Plug In Your Model X', 
-                  getPluggedInMessage('Model X', battery_level, battery_range), 
-                  EMAIL_1, 
-                  '')
-        #print('send email: ' + message)
+    sendPluggedInMessage('Model X', 
+                         battery_level, 
+                         battery_range, 
+                         charge_port_door_open, 
+                         charge_config[8][2]) 
 
     # set cars for scheduled charging by daily charge time preference
     day_of_week = (datetime.today() + timedelta(1)).strftime('%A')
