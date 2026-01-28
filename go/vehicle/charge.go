@@ -99,8 +99,8 @@ func NotifyIsTeslaPluggedIn() {
 
 	// set cabin preconditioning the next morning and check that it's not
 	// "skip"
-	var m3_climate_start_time time.Time
-	var mx_climate_start_time time.Time
+	m3_climate_start_time := time.Time{}
+	mx_climate_start_time := time.Time{}
 	dow_index = common.FindStringIn2DArray(climate_config.Values, day_of_week)
 	if climate_config.Values[dow_index[0]][8].(string) != "skip" {
 		m3_climate_start_time = common.GetTomorrowTime(climate_config.Values[dow_index[0]][8].(string))
