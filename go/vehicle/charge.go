@@ -74,7 +74,9 @@ func NotifyIsTeslaPluggedIn() {
 		battery_level,
 		battery_range,
 		charge_port_door_open,
-		charge_config.Values[8][1])
+		charge_config.Values[8][1],
+		EMAIL_1,
+		"")
 
 	charge_port_door_open = mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool)
 	battery_level = mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64)
@@ -83,7 +85,9 @@ func NotifyIsTeslaPluggedIn() {
 		battery_level,
 		battery_range,
 		charge_port_door_open,
-		charge_config.Values[8][2])
+		charge_config.Values[8][2],
+		EMAIL_2,
+		EMAIL_1)
 
 	// set cars for scheduled charging by daily charge time preference
 	day_of_week := time.Now().AddDate(0, 0, 1).Format("Monday")
@@ -112,12 +116,16 @@ func NotifyIsTeslaPluggedIn() {
 		m3_data,
 		m3_charge_start_time,
 		m3_target_finish_time,
-		m3_climate_start_time)
+		m3_climate_start_time,
+		EMAIL_1,
+		"")
 	sendScheduledChargeMessage("Model X",
 		mx_data,
 		mx_charge_start_time,
 		mx_target_finish_time,
-		mx_climate_start_time)
+		mx_climate_start_time,
+		EMAIL_1,
+		"")
 }
 
 // Called by a crontab to read vehicle range and expected charge
@@ -457,7 +465,7 @@ func earliestTime(t1, t2 time.Time) time.Time {
 	return t2
 }
 
-func sendScheduledChargeMessage(vehicle string, data map[string]any, charge_start_time time.Time, finish_time time.Time, climate_start_time time.Time) {
+func sendScheduledChargeMessage(vehicle string, data map[string]any, charge_start_time time.Time, finish_time time.Time, climate_start_time time.Time, to string, cc string) {
 	var message string
 	var subject string
 
@@ -488,14 +496,14 @@ func sendScheduledChargeMessage(vehicle string, data map[string]any, charge_star
 			subject = vehicle + " Set to Precondition"
 		}
 
-		common.SendEmail(EMAIL_1,
+		common.SendEmail(to,
 			subject,
 			message,
-			"")
+			cc)
 	}
 }
 
-func sendPluggedInMessage(vehicle string, battery_level float64, battery_range float64, charge_port_door_open bool, notify any) {
+func sendPluggedInMessage(vehicle string, battery_level float64, battery_range float64, charge_port_door_open bool, notify any, to string, cc string) {
 	// check if email notification is set to "on" first
 	if notify == "on" {
 		// send an email if the charge port door is not open, i.e. not plugged in
@@ -505,10 +513,10 @@ func sendPluggedInMessage(vehicle string, battery_level float64, battery_range f
 				"%, " +
 				strconv.FormatFloat(battery_range, 'f', -1, 64) +
 				" estimated miles.  \n\n-Your " + vehicle
-			common.SendEmail(EMAIL_1,
+			common.SendEmail(to,
 				"Please Plug In Your "+vehicle,
 				message,
-				"")
+				cc)
 		}
 	}
 }
