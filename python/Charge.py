@@ -322,7 +322,7 @@ def calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time
     logError('calcuateScheduledCharging(' + scenario + '): ' + str(e))
 
 
-def sendPluggedInMessage(vehicle, battery_level, battery_range, charge_port_door_open, notify, to, cc):
+def sendPluggedInMessage(vehicle, battery_level, battery_range, charge_port_door_open, notify, to, cc, bcc):
   # check if email notification is set to "on" first 
   if (notify == 'on'):
     # send an email if the charge port door is not open, i.e. not plugged in
@@ -332,15 +332,16 @@ def sendPluggedInMessage(vehicle, battery_level, battery_range, charge_port_door
                   + '%, '
                   + str(battery_range) 
                   + ' estimated miles.  \n\n-Your ' + vehicle)
-      sendEmail(to, 
-                'Please Plug In Your ' + vehicle, 
+      sendEmail('Please Plug In Your ' + vehicle, 
                 message, 
-                cc, 
+                to,
+                cc,
+                bcc, 
                 '')
       #print('send email: ' + message)
 
 
-def sendScheduledChargeMessage(vehicle, data, charge_start_time, finish_time, climate_start_time, to, cc):
+def sendScheduledChargeMessage(vehicle, data, charge_start_time, finish_time, climate_start_time, to, cc, bcc):
   message = ''
   subject = ''
 
@@ -368,10 +369,11 @@ def sendScheduledChargeMessage(vehicle, data, charge_start_time, finish_time, cl
     elif charge_start_time == None and climate_start_time != None:
       subject = vehicle + ' Set to Precondition'
 
-    sendEmail(to, 
-              subject, 
+    sendEmail(subject, 
               message, 
-              cc, 
+              to,
+              cc,
+              bcc, 
               '')
 
 
@@ -417,6 +419,7 @@ def notifyIsTeslaPluggedIn():
                          charge_port_door_open, 
                          charge_config[8][1],
                          EMAIL_1,
+                         '',
                          '') 
 
     charge_port_door_open = mx_data['response']['charge_state']['charge_port_door_open']
@@ -428,6 +431,7 @@ def notifyIsTeslaPluggedIn():
                          charge_port_door_open, 
                          charge_config[8][2],
                          EMAIL_2,
+                         '',
                          EMAIL_1) 
 
     # set cars for scheduled charging by daily charge time preference
@@ -457,6 +461,7 @@ def notifyIsTeslaPluggedIn():
                                m3_target_finish_time,
                                m3_climate_start_time,
                                EMAIL_1,
+                               '',
                                '')
     sendScheduledChargeMessage('Model X',
                                mx_data,
@@ -464,6 +469,7 @@ def notifyIsTeslaPluggedIn():
                                mx_target_finish_time,
                                mx_climate_start_time,
                                EMAIL_1,
+                               '',
                                '')
   except Exception as e:
     logError('notifyIsTeslaPluggedIn(): ' + str(e))

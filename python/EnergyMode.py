@@ -79,10 +79,11 @@ def setEnergyModeBasedOnWeather():
 	  # 100% and send email, otherwise set to normal backup reserve of 35%
     if (msg != ''):
       setBackupReserve(100)
-      sendEmail(EMAIL_1, 
-                'Energy:  Setting Backup Reserve to 100%', 
+      sendEmail('Energy:  Setting Backup Reserve to 100%', 
                 msg, 
+                EMAIL_1,
                 '', 
+                '',
                 '')
     else:
       setBackupReserve(35)

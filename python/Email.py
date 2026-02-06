@@ -3,9 +3,8 @@ import os
 
 from Utilities import getConfig
 from Logger import logError
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
+from email.message import EmailMessage
 
 config = getConfig()
 SENDER_EMAIL = config['notification']['sender_email']
@@ -17,15 +16,18 @@ SENDER_PASSWORD = config['notification']['sender_password']
 #
 # author: mjhwa@yahoo.com
 ##
-def sendEmail(to, subject, message, cc, filename):
+def sendEmail(subject, body, to, cc, bcc, filename):
   try:
-    sender = SENDER_EMAIL
-    cc = [cc]
-    msg = MIMEMultipart()
+    msg = EmailMessage()
+    msg.set_content(body)
     msg['From'] = SENDER_EMAIL
-    msg['To'] = to
     msg['Subject'] = subject
-    msg.attach(MIMEText(message, 'plain'))
+    msg['To'] = to
+
+    if cc:
+      msg['Cc'] = cc
+    if bcc:
+      msg['Bcc'] = bcc
 
     if (filename != ''):
       f = file( # type: ignore
@@ -46,7 +48,7 @@ def sendEmail(to, subject, message, cc, filename):
     server.ehlo()
     server.starttls()
     server.login(SENDER_EMAIL, SENDER_PASSWORD)
-    server.sendmail(SENDER_EMAIL, [to] + cc, msg.as_string()) 
+    server.send_message(msg)
     server.close()
   except Exception as e:
     logError('sendEmail(): ' + str(e))

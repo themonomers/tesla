@@ -203,7 +203,7 @@ def writeM3Telemetry():
     message = ('Model 3 telemetry successfully logged on ' 
                + datetime.today().strftime('%B %d, %Y %H:%M:%S') 
                + '.')
-    sendEmail(EMAIL_1, 'Model 3 Telemetry Logged', message, '', '')
+    sendEmail('Model 3 Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
     logError('writeM3Telemetry(): ' + str(e))
 
@@ -387,7 +387,7 @@ def writeMXTelemetry():
     message = ('Model X telemetry successfully logged on ' 
                + datetime.today().strftime('%B %d, %Y %H:%M:%S') 
                + '.')
-    sendEmail(EMAIL_1, 'Model X Telemetry Logged', message, '', '')
+    sendEmail('Model X Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
     logError('writeMXTelemetry(): ' + str(e))
 
