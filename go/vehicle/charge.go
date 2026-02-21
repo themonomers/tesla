@@ -59,11 +59,11 @@ func NotifyIsTeslaPluggedIn() {
 
 	// get charging configuration info
 	srv := common.GetGoogleSheetService()
-	charge_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Charger!A3:C11").Do()
+	charge_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Charge!A3:C11").Do()
 	common.LogError("NotifyIsTeslaPluggedIn(): srv.Spreadsheets.Values.Get", err)
 
 	// get climate configuration info
-	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Climate!A3:P22").Do()
+	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
 	common.LogError("NotifyIsTeslaPluggedIn(): srv.Spreadsheets.Values.Get", err)
 
 	// send email notification if the car is not plugged in
@@ -480,7 +480,7 @@ func sendScheduledChargeMessage(vehicle string, data map[string]any, charge_star
 				data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64)), 'f', 0, 64) + " miles of estimated range.  " +
 			"The Model 3 is currently at " +
 			strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64), 'f', 0, 64) + "%, " +
-			strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range.  "
+			strconv.FormatFloat(data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64), 'f', 0, 64) + " miles of estimated range.\n\n"
 	}
 
 	if !climate_start_time.IsZero() {

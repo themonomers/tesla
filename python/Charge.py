@@ -356,7 +356,7 @@ def sendScheduledChargeMessage(vehicle, data, charge_start_time, finish_time, cl
                       * data['response']['charge_state']['charge_limit_soc']))  + ' miles of estimated range.  '
                 + 'The ' + vehicle + ' is currently at '
                 + str(data['response']['charge_state']['battery_level']) + '%, '
-                + str(round(data['response']['charge_state']['battery_range'])) + ' miles of estimated range.  ')
+                + str(round(data['response']['charge_state']['battery_range'])) + ' miles of estimated range.\n\n')
   
   if climate_start_time != None:
     message += ('Preconditioning is set to start at ' + climate_start_time.strftime('%B %d, %Y %H:%M') + '.')
@@ -399,13 +399,13 @@ def notifyIsTeslaPluggedIn():
     service = getGoogleSheetService()
     charge_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Charger!A3:C11'
+      range='Charge!A3:C11'
     ).execute().get('values', [])
 
     # get climate configuration info
     climate_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!A3:P22'
+      range='Climate!A3:P22'
     ).execute().get('values', [])
     service.close()
 
