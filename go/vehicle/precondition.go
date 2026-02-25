@@ -42,7 +42,7 @@ func init() {
 func PreconditionM3Start() {
 	// get configuration info
 	srv := common.GetGoogleSheetService()
-	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Climate!A3:P22").Do()
+	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
 	common.LogError("PreconditionM3Start(): srv.Spreadsheets.Values.Get", err)
 
 	// check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
@@ -143,7 +143,7 @@ func PreconditionM3Start() {
 func PreconditionMXStart() {
 	// get configuration info
 	srv := common.GetGoogleSheetService()
-	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Smart Climate!A3:P22").Do()
+	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
 	common.LogError("PreconditionM3Start(): srv.Spreadsheets.Values.Get", err)
 
 	// check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
@@ -253,7 +253,7 @@ func preconditionStop(vin string) {
 	}
 }
 
-// Script to clean up crontabs created for Tesla Smart Climate.  Should be
+// Script to clean up crontabs created for Tesla Climate.  Should be
 // set to run in the middle of the day as all the crontabs are evening or
 // early morning.
 func RemoveTeslaCron() {

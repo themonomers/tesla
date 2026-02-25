@@ -32,7 +32,7 @@ def preconditionM3Start():
     service = getGoogleSheetService()
     climate_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Smart Climate!A3:P22'
+      range='Climate!A3:P22'
     ).execute().get('values', [])
     service.close()
 
