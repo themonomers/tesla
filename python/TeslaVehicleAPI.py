@@ -332,6 +332,18 @@ def setCarSeatHeating(vin, seat, setting):
 
 
 ##
+# Function to set vehicle seat cooler level.
+#
+# author: mjhwa@yahoo.com
+##
+def setCarSeatCooling(vin, seat, setting):
+  try:
+    return TeslaVehicleCommandProxy.setCarSeatCooling(vin, seat, setting)
+  except Exception as e:
+    logError('setCarSeatCooling(' + vin + '): ' + str(e))
+
+
+##
 # Function to start vehicle preconditioning.
 #
 # author: mjhwa@yahoo.com

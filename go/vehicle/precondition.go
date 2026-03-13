@@ -61,6 +61,7 @@ func PreconditionM3Start() {
 	var p_temp float64
 	var seats []int
 	var stop_time time.Time
+	var mode string
 
 	// compare temp readings and threshold to determine heating or cooling temps
 	// to use
@@ -88,6 +89,8 @@ func PreconditionM3Start() {
 		seats = append(seats, seat_set)
 
 		stop_time = common.GetTodayTime(climate_config.Values[dow_index[0]][9].(string))
+
+		mode = "heat"
 	} else if wdata["current"].(map[string]any)["temp"].(float64) > config_temp_hot {
 		// get pre-cool preferences
 		d_temp, err = strconv.ParseFloat(climate_config.Values[dow_index[1]][1].(string), 64)
@@ -109,6 +112,8 @@ func PreconditionM3Start() {
 		seats = append(seats, seat_set)
 
 		stop_time = common.GetTodayTime(climate_config.Values[dow_index[1]][9].(string))
+
+		mode = "cool"
 	} else {
 		return // outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 	}
@@ -127,7 +132,13 @@ func PreconditionM3Start() {
 			if i == 3 {
 				continue // # skip index 3 as it's not assigned in the API
 			}
-			SetCarSeatHeating(M3_VIN, i, seats[i])
+
+			switch mode {
+			case "heat":
+				SetCarSeatHeating(M3_VIN, i, seats[i])
+			case "cool":
+				SetCarSeatCooling(M3_VIN, i, seats[i])
+			}
 		}
 
 		// create crontab to stop preconditioning at preferred time later in the day

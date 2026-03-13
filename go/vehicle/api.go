@@ -361,23 +361,52 @@ func SetCarSeatHeating(vin string, seat int, setting int) map[string]any {
 		return setCarSeatHeating(vin, seat, setting)
 	}
 
+	return setCarSeatTemp(vin, "heat", seat, setting)
+}
+
+// Function to set vehicle seat cooler level.
+func SetCarSeatCooling(vin string, seat int, setting int) map[string]any {
+	if vin == MX_VIN {
+		return nil
+	}
+
+	return setCarSeatTemp(vin, "cool", seat, setting)
+}
+
+// Function to set vehicle seat heater or cooler level.
+func setCarSeatTemp(vin string, mode string, seat int, setting int) map[string]any {
 	var url = BASE_PROXY_URL +
 		"/vehicles/" +
-		vin +
-		"/command/remote_seat_heater_request"
+		vin
 
-	payload, _ := json.Marshal(map[string]any{
-		"seat_position": seat,
-		"level":         setting,
-	})
+	var payload []byte
+
+	switch mode {
+	case "heat":
+		url += "/command/remote_seat_heater_request"
+
+		payload, _ = json.Marshal(map[string]any{
+			"seat_position": seat,
+			"level":         setting,
+		})
+	case "cool":
+		url += "/command/remote_seat_cooler_request"
+
+		payload, _ = json.Marshal(map[string]any{
+			"seat_position":     seat,
+			"seat_cooler_level": setting,
+		})
+	default:
+		return nil
+	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("SetCarSeatHeating(): http.NewRequest", err)
+	common.LogError("SetCarSeatTemp(): http.NewRequest", err)
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
 	resp, err := getHttpsClient().Do(req)
-	common.LogError("SetCarSeatHeating(): getHttpClient", err)
+	common.LogError("SetCarSeatTemp(): getHttpClient", err)
 
 	defer resp.Body.Close()
 	body := map[string]any{}

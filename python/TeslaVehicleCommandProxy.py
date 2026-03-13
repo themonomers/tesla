@@ -237,20 +237,50 @@ def setCarTemp(vin, d_temp, p_temp):
 ##
 def setCarSeatHeating(vin, seat, setting):
   try:
+    setCarSeatTemp(vin, 'heat', seat, setting)
+  except Exception as e:
+    logError('setCarSeatHeating(' + vin + '): ' + str(e))
+
+
+##
+# Function to set vehicle seat cooler level.
+#
+# author: mjhwa@yahoo.com
+##
+def setCarSeatCooling(vin, seat, setting):
+  try:
+    setCarSeatTemp(vin, 'cool', seat, setting)
+  except Exception as e:
+    logError('setCarSeatHeating(' + vin + '): ' + str(e))
+
+
+##
+# Function to set vehicle seat heating or cooling level.
+#
+# author: mjhwa@yahoo.com
+##
+def setCarSeatTemp(vin, mode, seat, setting):
+  try:
     url = (BASE_PROXY_URL
            + '/vehicles/'
-           + vin 
-           + '/command/remote_seat_heater_request')
+           + vin)
+    
+    if mode == 'heat':
+      url += '/command/remote_seat_heater_request'
 
-    payload = {
-      'seat_position': seat,
-      'level': setting
-    }
-#    "payload": JSON.stringify({'heater': '0', 'level': seats[0],
-#                               'heater': '1', 'level': seats[1],
-#                               'heater': '2', 'level': seats[2],
-#                               'heater': '4', 'level': seats[3],
-#                               'heater': '5', 'level': seats[4]})
+      payload = {
+        'seat_position': seat,
+        'level': setting
+      }
+    elif mode == 'cool':
+      url += '/command/remote_seat_cooler_request'
+
+      payload = {
+        'seat_position': seat,
+        'seat_cooler_level': setting
+      }
+    else:
+      raise Exception('No mode given.')
 
     urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 
@@ -261,7 +291,7 @@ def setCarSeatHeating(vin, seat, setting):
       verify=CERT
     )
   except Exception as e:
-    logError('setCarSeatHeating(' + vin + '): ' + str(e))
+    logError('setCarSeatTemp(' + vin + '): ' + str(e))
 
 
 ##

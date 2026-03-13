@@ -1,4 +1,4 @@
-from TeslaVehicleAPI import getVehicleData, setCarTemp, setCarSeatHeating, preconditionCarStart
+from TeslaVehicleAPI import getVehicleData, setCarTemp, setCarSeatHeating, setCarSeatCooling, preconditionCarStart
 from GoogleAPI import getGoogleSheetService
 from Utilities import deleteCronTab, createCronTab, isVehicleAtPrimary, getTodayTime, getCurrentWeather, getConfig
 from Logger import logError
@@ -51,6 +51,7 @@ def preconditionM3Start():
     day_of_week = datetime.today().strftime('%A')
     dow_index = [index for index, element in enumerate(climate_config) if day_of_week in element]
     seats = []
+    mode = ''
     
     # compare temp readings and threshold to determine heating or cooling temps 
     # to use
@@ -70,6 +71,8 @@ def preconditionM3Start():
       seats.append(climate_config[dow_index[0]][7])
 
       stop_time = getTodayTime(climate_config[dow_index[0]][9])
+
+      mode = 'heat'
     elif (wdata['current']['temp'] > float(climate_config[18][1])):
       # get pre-cool preferences
       try:
@@ -86,6 +89,8 @@ def preconditionM3Start():
       seats.append(climate_config[dow_index[1]][7])
 
       stop_time = getTodayTime(climate_config[dow_index[1]][9])
+
+      mode = 'cool'
     else:
       return # outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 
@@ -105,7 +110,7 @@ def preconditionM3Start():
       for index, item in enumerate(seats):
         if (index == 3):
           continue # skip index 3 as it's not assigned in the API
-        setCarSeatHeating(M3_VIN, int(index), int(item))
+        setCarSeatCooling(M3_VIN, int(index), int(item)) if mode == 'cool' else setCarSeatHeating(M3_VIN, int(index), int(item))
 
       # create crontab to stop preconditioning at preferred time later in the day
       deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/PreconditionM3Stop.py >> /home/pi/tesla/python/cron.log 2>&1')
