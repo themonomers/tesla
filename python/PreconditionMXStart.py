@@ -52,7 +52,10 @@ def preconditionMXStart():
       seats.append(climate_config[dow_index[0]][12])
       seats.append(climate_config[dow_index[0]][13])
 
-      stop_time = getTodayTime(climate_config[dow_index[0]][15])
+      if climate_config[dow_index[0]][15] == 'skip':
+        return
+      else:
+        stop_time = getTodayTime(climate_config[dow_index[0]][15])
     elif (wdata['current']['temp'] > float(climate_config[18][10])):
       # get pre-cool preferences
       try:
@@ -64,14 +67,17 @@ def preconditionMXStart():
       seats.append(climate_config[dow_index[1]][12])
       seats.append(climate_config[dow_index[1]][13])
 
-      stop_time = getTodayTime(climate_config[dow_index[1]][15])
+      if climate_config[dow_index[1]][15] == 'skip':
+        return
+      else:
+        stop_time = getTodayTime(climate_config[dow_index[1]][15])
     else:
       return # outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 
     #print('d_temp: ' + str(d_temp))
     #print('p_temp: ' + str(p_temp))
     #print('seats: ' + str(seats))
-    # no need to execute if unsure where the car is or if it's in motion
+    # no need to execute if the car is not at primary location
     data = getVehicleData(MX_VIN)
     if (isVehicleAtPrimary(data)):
       # send command to start auto conditioning

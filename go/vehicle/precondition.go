@@ -88,7 +88,11 @@ func PreconditionM3Start() {
 		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[0]][7].(string))
 		seats = append(seats, seat_set)
 
-		stop_time = common.GetTodayTime(climate_config.Values[dow_index[0]][9].(string))
+		if climate_config.Values[dow_index[0]][9].(string) == "skip" {
+			return
+		} else {
+			stop_time = common.GetTodayTime(climate_config.Values[dow_index[0]][9].(string))
+		}
 
 		mode = "heat"
 	} else if wdata["current"].(map[string]any)["temp"].(float64) > config_temp_hot {
@@ -111,14 +115,18 @@ func PreconditionM3Start() {
 		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][7].(string))
 		seats = append(seats, seat_set)
 
-		stop_time = common.GetTodayTime(climate_config.Values[dow_index[1]][9].(string))
+		if climate_config.Values[dow_index[1]][9].(string) == "skip" {
+			return
+		} else {
+			stop_time = common.GetTodayTime(climate_config.Values[dow_index[1]][9].(string))
+		}
 
 		mode = "cool"
 	} else {
 		return // outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 	}
 
-	// no need to execute if unsure where the car is or if it's in motion
+	// no need to execute the car is not at primary location
 	data := GetVehicleData(M3_VIN)
 	if common.IsVehicleAtPrimary(data) {
 		// send command to start auto conditioning
@@ -192,7 +200,11 @@ func PreconditionMXStart() {
 		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[0]][13].(string))
 		seats = append(seats, seat_set)
 
-		stop_time = common.GetTodayTime(climate_config.Values[dow_index[0]][15].(string))
+		if climate_config.Values[dow_index[0]][15].(string) == "skip" {
+			return
+		} else {
+			stop_time = common.GetTodayTime(climate_config.Values[dow_index[0]][15].(string))
+		}
 	} else if wdata["current"].(map[string]any)["temp"].(float64) > config_temp_hot {
 		// get pre-cool preferences
 		d_temp, err = strconv.ParseFloat(climate_config.Values[dow_index[1]][10].(string), 64)
@@ -206,12 +218,16 @@ func PreconditionMXStart() {
 		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][13].(string))
 		seats = append(seats, seat_set)
 
-		stop_time = common.GetTodayTime(climate_config.Values[dow_index[1]][15].(string))
+		if climate_config.Values[dow_index[1]][15].(string) == "skip" {
+			return
+		} else {
+			stop_time = common.GetTodayTime(climate_config.Values[dow_index[1]][15].(string))
+		}
 	} else {
 		return // outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 	}
 
-	// no need to execute if unsure where the car is or if it's in motion
+	// no need to execute if the car is not at primary location
 	data := GetVehicleData(MX_VIN)
 	if common.IsVehicleAtPrimary(data) {
 		// send command to start auto conditioning

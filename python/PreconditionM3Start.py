@@ -70,7 +70,10 @@ def preconditionM3Start():
       seats.append(climate_config[dow_index[0]][6])
       seats.append(climate_config[dow_index[0]][7])
 
-      stop_time = getTodayTime(climate_config[dow_index[0]][9])
+      if climate_config[dow_index[0]][9] == 'skip':
+        return
+      else:
+        stop_time = getTodayTime(climate_config[dow_index[0]][9])  
 
       mode = 'heat'
     elif (wdata['current']['temp'] > float(climate_config[18][1])):
@@ -88,7 +91,10 @@ def preconditionM3Start():
       seats.append(climate_config[dow_index[1]][6])
       seats.append(climate_config[dow_index[1]][7])
 
-      stop_time = getTodayTime(climate_config[dow_index[1]][9])
+      if climate_config[dow_index[1]][9] == 'skip':
+        return
+      else:
+        stop_time = getTodayTime(climate_config[dow_index[1]][9])
 
       mode = 'cool'
     else:
@@ -97,7 +103,7 @@ def preconditionM3Start():
     #print('d_temp: ' + str(d_temp))
     #print('p_temp: ' + str(p_temp))
     #print('seats: ' + str(seats))
-    # no need to execute if unsure where the car is or if it's in motion
+    # no need to execute if the car is not at primary location
     data = getVehicleData(M3_VIN)
     if (isVehicleAtPrimary(data)):
       # send command to start auto conditioning
