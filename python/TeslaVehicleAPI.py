@@ -61,8 +61,11 @@ def wakeVehicle(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def chargeVehicle(vin):
+def startChargeVehicle(vin):
   try:
+    if vin == M3_VIN:
+      return TeslaVehicleCommandProxy.startChargeVehicle(vin)
+    
     url = (BASE_OWNER_URL
            + '/vehicles/'
            + getVehicleId(vin) 
@@ -73,7 +76,7 @@ def chargeVehicle(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('chargeVehicle(' + vin + '): ' + str(e))
+    logError('startChargeVehicle(' + vin + '): ' + str(e))
 
 
 ##

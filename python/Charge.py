@@ -2,7 +2,7 @@ from TeslaVehicleAPI import getVehicleData, addChargeSchedule, removeChargeSched
 from GoogleAPI import getGoogleSheetService
 from Email import sendEmail
 from Climate import setM3Precondition, setMXPrecondition
-from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime, getConfig
+from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime, getConfig, deleteCronTab, createCronTab
 from Logger import logError
 from datetime import timedelta, datetime
 from collections import namedtuple
@@ -64,6 +64,8 @@ def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       addChargeSchedule(M3_VIN, m3_data['response']['drive_state']['latitude'], m3_data['response']['drive_state']['longitude'], total_minutes, 1)
       stopChargeVehicle(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
+      scheduleBackupCharging(M3_VIN, m3_data, start_time + timedelta(minutes = 10))
+
       return start_time
     else:
       return None
@@ -104,11 +106,40 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
       addChargeSchedule(MX_VIN, mx_data['response']['drive_state']['latitude'], mx_data['response']['drive_state']['longitude'], total_minutes, 1)
       stopChargeVehicle(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
+      scheduleBackupCharging(MX_VIN, mx_data, start_time + timedelta(minutes = 10))
+
       return start_time
     else:
       return None
   except Exception as e:
     logError('scheduleMXCharging(): ' + str(e))
+
+
+##
+# Create a crontab to check if scheduled charging has started.
+#
+# author: mjhwa@yahoo.com
+##
+def scheduleBackupCharging(vin, data, start_time):
+  try:
+    if (isVehicleAtPrimary(data)):
+      # create backup charging start crontab at target time tomorrow
+      if (vin == M3_VIN):
+        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/ChargeCheckM3.py >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/ChargeCheckM3.py >> /home/pi/tesla/python/cron.log 2>&1', 
+                      start_time.month, 
+                      start_time.day, 
+                      start_time.hour, 
+                      start_time.minute)
+      elif (vin == MX_VIN):
+        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/ChargeCheckMX.py >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/ChargeCheckMX.py >> /home/pi/tesla/python/cron.log 2>&1', 
+                      start_time.month, 
+                      start_time.day, 
+                      start_time.hour, 
+                      start_time.minute)
+  except Exception as e:
+    logError('scheduleBackupCharging(' + vin + '): ' + str(e))
 
 
 ##

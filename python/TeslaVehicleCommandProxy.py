@@ -80,6 +80,29 @@ def wakeVehicle(vin):
 
 
 ##
+# Function to send API call to start charging a vehicle.
+#
+# author: mjhwa@yahoo.com
+##
+def startChargeVehicle(vin):
+  try:
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
+           + vin
+           + '/command/charge_start')
+
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
+    return requests.post(
+      url,
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
+    )
+  except Exception as e:
+    logError('startChargeVehicle(' + vin + '): ' + str(e))
+
+
+##
 # Function to send API call to stop charging a vehicle.
 #
 # author: mjhwa@yahoo.com

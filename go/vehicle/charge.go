@@ -171,6 +171,8 @@ func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_targe
 		AddChargeSchedule(M3_VIN, m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(M3_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
+		scheduleBackupCharging(M3_VIN, m3_data, start_time.Add(10*time.Minute))
+
 		return start_time
 	} else {
 		return time.Time{}
@@ -214,9 +216,34 @@ func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_targe
 		AddChargeSchedule(MX_VIN, mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(MX_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
+		scheduleBackupCharging(MX_VIN, mx_data, start_time.Add(10*time.Minute))
+
 		return start_time
 	} else {
 		return time.Time{}
+	}
+}
+
+// Create a crontab to check if scheduled charging has started.
+func scheduleBackupCharging(vin string, data map[string]any, start_time time.Time) {
+	if common.IsVehicleAtPrimary(data) {
+		// create backup charging start crontab at target time tomorrow
+		switch vin {
+		case M3_VIN:
+			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckm3 >> /home/pi/tesla/go/cron.log 2>&1")
+			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckm3 >> /home/pi/tesla/go/cron.log 2>&1",
+				start_time.Minute(),
+				start_time.Hour(),
+				start_time.Day(),
+				int(start_time.Month()))
+		case MX_VIN:
+			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckmx >> /home/pi/tesla/go/cron.log 2>&1")
+			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckmx >> /home/pi/tesla/go/cron.log 2>&1",
+				start_time.Minute(),
+				start_time.Hour(),
+				start_time.Day(),
+				int(start_time.Month()))
+		}
 	}
 }
 

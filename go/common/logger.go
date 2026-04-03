@@ -50,6 +50,20 @@ func logError(msg string, err error) {
 	}
 }
 
+// Log messages into a Google Sheet.
+func LogMessage(msg string) {
+	// write this into an open row in logging Google Sheet
+	var open_row = strconv.Itoa(FindOpenRow(LOG_SPREADSHEET_ID, "message", "A:A"))
+
+	var vr sheets.ValueRange
+	data := []any{time.Now().Format("3:04:05 PM, 1/2/2006"), msg}
+	vr.Values = append(vr.Values, data)
+
+	srv := GetGoogleSheetService()
+	_, err := srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "message!A"+open_row+":"+"B"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
+	logError("LogMessage(): srv.Spreadsheets.Values.Update", err)
+}
+
 // Keeps the error log from getting too long/big; deletes any rows older than
 // 30 days.
 func TruncateLog() {

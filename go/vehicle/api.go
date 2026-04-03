@@ -95,6 +95,51 @@ func WakeVehicle(vin string) map[string]any {
 	return body
 }
 
+// Function to send API call to start charging a vehicle.
+func StartChargeVehicle(vin string) map[string]any {
+	if vin == MX_VIN {
+		return startChargeVehicle(vin)
+	}
+
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
+		vin +
+		"/command/charge_start"
+
+	req, err := http.NewRequest("POST", url, nil)
+	common.LogError("StartChargeVehicle(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := getHttpsClient().Do(req)
+	common.LogError("StartChargeVehicle(): getHttpClient", err)
+
+	defer resp.Body.Close()
+	body := map[string]any{}
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
+}
+
+func startChargeVehicle(vin string) map[string]any {
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
+		getVehicleId(vin) +
+		"/command/charge_start"
+
+	req, err := http.NewRequest("POST", url, nil)
+	common.LogError("startChargeVehicle(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := http.DefaultClient.Do(req)
+	common.LogError("startChargeVehicle(): http.DefaultClient.Do", err)
+
+	defer resp.Body.Close()
+	body := map[string]any{}
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
+}
+
 // Function to send API call to stop charging a vehicle.
 func StopChargeVehicle(vin string) map[string]any {
 	if vin == MX_VIN {
