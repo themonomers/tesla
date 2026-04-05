@@ -1,14 +1,17 @@
 import smtplib
 import os
+import time
 
 from Utilities import getConfig
-from Logger import logError
+from Logger import logErrorRetry
 from email.mime.image import MIMEImage
 from email.message import EmailMessage
 
 config = getConfig()
 SENDER_EMAIL = config['notification']['sender_email']
 SENDER_PASSWORD = config['notification']['sender_password']
+
+WAIT_TIME = 30
 
 
 ##
@@ -51,6 +54,8 @@ def sendEmail(subject, body, to, cc, bcc, filename):
     server.send_message(msg)
     server.close()
   except Exception as e:
-    logError('sendEmail(): ' + str(e))
+    logErrorRetry('sendEmail(): ' + str(e))
+    time.sleep(WAIT_TIME)
+    return sendEmail(subject, body, to, cc, bcc, filename)
 
 

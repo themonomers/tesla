@@ -60,11 +60,19 @@ func NotifyIsTeslaPluggedIn() {
 	// get charging configuration info
 	srv := common.GetGoogleSheetService()
 	charge_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Charge!A3:C11").Do()
-	common.LogError("NotifyIsTeslaPluggedIn(): srv.Spreadsheets.Values.Get", err)
+	if err != nil {
+		common.LogErrorRetry("Get configuration info from Google Sheets:", err)
+		time.Sleep(WAIT_TIME * time.Second)
+		NotifyIsTeslaPluggedIn()
+	}
 
 	// get climate configuration info
 	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
-	common.LogError("NotifyIsTeslaPluggedIn(): srv.Spreadsheets.Values.Get", err)
+	if err != nil {
+		common.LogErrorRetry("Get configuration info from Google Sheets:", err)
+		time.Sleep(WAIT_TIME * time.Second)
+		NotifyIsTeslaPluggedIn()
+	}
 
 	// send email notification if the car is not plugged in
 	charge_port_door_open := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool)

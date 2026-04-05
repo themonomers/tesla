@@ -1,9 +1,11 @@
+import time
+
 from TeslaVehicleAPI import getVehicleData, addChargeSchedule, removeChargeSchedule, stopChargeVehicle
 from GoogleAPI import getGoogleSheetService
 from Email import sendEmail
 from Climate import setM3Precondition, setMXPrecondition
 from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime, getConfig, deleteCronTab, createCronTab
-from Logger import logError
+from Logger import logError, logErrorRetry
 from datetime import timedelta, datetime
 from collections import namedtuple
 
@@ -426,19 +428,25 @@ def notifyIsTeslaPluggedIn():
     m3_data = getVehicleData(M3_VIN)
     mx_data = getVehicleData(MX_VIN)
 
-    # get charging configuration info
-    service = getGoogleSheetService()
-    charge_config = service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Charge!A3:C11'
-    ).execute().get('values', [])
+    try:
+      # get charging configuration info
+      service = getGoogleSheetService()
+      charge_config = service.spreadsheets().values().get(
+        spreadsheetId=EV_SPREADSHEET_ID, 
+        range='Charge!A3:C11'
+      ).execute().get('values', [])
 
-    # get climate configuration info
-    climate_config = service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      range='Climate!A3:P22'
-    ).execute().get('values', [])
-    service.close()
+      # get climate configuration info
+      climate_config = service.spreadsheets().values().get(
+        spreadsheetId=EV_SPREADSHEET_ID, 
+        range='Climate!A3:P22'
+      ).execute().get('values', [])
+      service.close()
+    except Exception as e:
+      logErrorRetry('Get configuration info from Google Sheets: ' + str(e))
+      time.sleep(WAIT_TIME)
+      return notifyIsTeslaPluggedIn()
+
 
     # send email notification if the car is not plugged in
     charge_port_door_open = m3_data['response']['charge_state']['charge_port_door_open']

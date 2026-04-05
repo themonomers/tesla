@@ -7,6 +7,7 @@ LOG_SPREADSHEET_ID = getConfig()['google']['log_spreadsheet_id']
 INFO = 'INFO'
 WARN = 'WARN'
 ERROR = 'ERROR'
+ERROR_RETRY = 'ERROR_RETRY'
 
 ##
 # Logs information into a Google Sheet.
@@ -65,3 +66,7 @@ def logWarn(msg):
  
 def logError(msg):
   log(ERROR, msg)
+
+
+def logErrorRetry(msg):
+  log(ERROR_RETRY, msg)

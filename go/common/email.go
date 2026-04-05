@@ -2,6 +2,7 @@ package common
 
 import (
 	"net/smtp"
+	"time"
 )
 
 var SENDER_EMAIL string
@@ -29,5 +30,9 @@ func SendEmail(to, subject, message, cc string) {
 
 	auth := smtp.PlainAuth("", SENDER_EMAIL, SENDER_PASSWORD, "smtp.gmail.com")
 	err := smtp.SendMail("smtp.gmail.com:587", auth, SENDER_EMAIL, tos, msg)
-	LogError("SendEmail(): smtp.SendMail", err)
+	if err != nil {
+		LogErrorRetry("SendEmail(): smtp.SendMail", err)
+		time.Sleep(WAIT_TIME * time.Second)
+		SendEmail(to, subject, message, cc)
+	}
 }

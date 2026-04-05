@@ -14,6 +14,7 @@ var LOG_SHEET_ID int64
 var INFO = "INFO"
 var WARN = "WARN"
 var ERROR = "ERROR"
+var ERROR_RETRY = "ERROR_RETRY"
 
 func init() {
 	var err error
@@ -61,7 +62,13 @@ func LogWarn(msg string) {
 }
 
 func LogError(msg string, err error) {
-	log(ERROR, msg+" "+err.Error())
+	if err != nil {
+		log(ERROR, msg+" "+err.Error())
+	}
+}
+
+func LogErrorRetry(msg string, err error) {
+	log(ERROR_RETRY, msg+" "+err.Error())
 }
 
 // Keeps the log from getting too long/big; deletes any rows older than
