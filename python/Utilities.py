@@ -6,7 +6,6 @@ import zoneinfo
 import configparser
 import os
 import time
-import Logger
 
 from Crypto import decrypt
 from crontab import CronTab
@@ -43,7 +42,7 @@ def getConfig():
     buffer.close()
     return values
   except Exception as e:
-    Logger.logErrorStdOut('getConfig():', e)
+    logErrorStdOut('getConfig():', e)
 
 config = getConfig()
 PRIMARY_LAT = float(config['vehicle']['primary_lat'])
@@ -82,7 +81,7 @@ def getToken():
     buffer.close()
     return values
   except Exception as e:
-    Logger.logErrorStdOut('getToken():', e)
+    logErrorStdOut('getToken():', e)
 
 
 ##
@@ -97,7 +96,7 @@ def deleteCronTab(command):
     cron.remove(job)
     cron.write()
   except Exception as e:
-    Logger.logErrorStdOut('deleteCronTab():', e)
+    logErrorStdOut('deleteCronTab():', e)
 
 
 ##
@@ -115,7 +114,7 @@ def createCronTab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    Logger.logErrorStdOut('createCronTab():', e)
+    logErrorStdOut('createCronTab():', e)
 
 
 ##
@@ -149,7 +148,7 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    Logger.logErrorStdOut('isVehicleAtLocation():', e)
+    logErrorStdOut('isVehicleAtLocation():', e)
     return False
 
 
@@ -224,7 +223,7 @@ def getCurrentWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    Logger.logErrorStdOut('getCurrentWeather():', e)
+    logErrorStdOut('getCurrentWeather():', e)
     
 
 ##
@@ -252,7 +251,7 @@ def getDailyWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    Logger.logErrorStdOut('getDailyWeather():', e)
+    logErrorStdOut('getDailyWeather():', e)
 
 
 ##
@@ -349,6 +348,15 @@ def main():
   elif (choice == 3):
     data = getDailyWeather(PRIMARY_LAT, PRIMARY_LNG)
     printJson(data, 0)
+
+
+##
+# Log errors to standard output.
+#
+# author: mjhwa@yahoo.com
+##
+def logErrorStdOut(msg, e):
+  print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' ' + msg + ' ' + str(e))
 
 
 if __name__ == "__main__":

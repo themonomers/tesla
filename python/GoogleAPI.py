@@ -37,7 +37,7 @@ def getGoogleSheetService():
     service = discovery.build('sheets', 'v4', credentials=credentials)
     return service
   except Exception as e:
-    Logger.logErrorStdOut('getGoogleSheetService():', e)
+    logErrorStdOut('getGoogleSheetService():', e)
 
 
 ##
@@ -61,7 +61,7 @@ def findOpenRow(sheet_id, sheet_name, range):
 
     return len(values) + 1
   except Exception as e:
-    Logger.logErrorStdOut('findOpenRow():', e)
+    logErrorStdOut('findOpenRow():', e)
     time.sleep(WAIT_TIME)
     return findOpenRow(sheet_id, sheet_name, range)
 
@@ -131,3 +131,10 @@ def getGoogleMailService():
     Logger.logError('getGoogleMailService(): ' + str(e))
 
 
+##
+# Log errors to standard output.
+#
+# author: mjhwa@yahoo.com
+##
+def logErrorStdOut(msg, e):
+  print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' ' + msg + ' ' + str(e))
