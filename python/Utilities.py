@@ -8,6 +8,7 @@ import os
 import time
 
 from Crypto import decrypt
+from Logger import logErrorStdOut
 from crontab import CronTab
 from datetime import datetime, timedelta
 from io import StringIO
@@ -42,7 +43,7 @@ def getConfig():
     buffer.close()
     return values
   except Exception as e:
-    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getConfig(): ' + str(e))
+    logErrorStdOut('getConfig():', e)
 
 config = getConfig()
 PRIMARY_LAT = float(config['vehicle']['primary_lat'])
@@ -81,7 +82,7 @@ def getToken():
     buffer.close()
     return values
   except Exception as e:
-    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getToken(): ' + str(e))
+    logErrorStdOut('getToken():', e)
 
 
 ##
@@ -96,7 +97,7 @@ def deleteCronTab(command):
     cron.remove(job)
     cron.write()
   except Exception as e:
-    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' deleteCronTab(): ' + str(e))
+    logErrorStdOut('deleteCronTab():', e)
 
 
 ##
@@ -114,7 +115,7 @@ def createCronTab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' createCronTab(): ' + str(e))
+    logErrorStdOut('createCronTab():', e)
 
 
 ##
@@ -148,7 +149,7 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' isVehicleAtLocation(): ' + str(e))
+    logErrorStdOut('isVehicleAtLocation():', e)
     return False
 
 
@@ -223,7 +224,7 @@ def getCurrentWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getCurrentWeather(): ' + str(e))
+    logErrorStdOut('getCurrentWeather():', e)
     
 
 ##
@@ -251,7 +252,7 @@ def getDailyWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getDailyWeather(): ' + str(e))
+    logErrorStdOut('getDailyWeather():', e)
 
 
 ##

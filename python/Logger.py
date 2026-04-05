@@ -43,7 +43,16 @@ def log(level, msg):
     if level == ERROR:
       exit(1)
   except Exception as e:
-    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' log(): ' + str(e))
+    logErrorStdOut('log():', e)
+
+
+##
+# Log errors to standard output.
+#
+# author: mjhwa@yahoo.com
+##
+def logErrorStdOut(msg, e):
+  print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' ' + msg + ' ' + str(e))
 
 
 def logInfo(msg):
