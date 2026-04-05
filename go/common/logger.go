@@ -33,21 +33,11 @@ func log(level string, msg string) {
 	var open_row = strconv.Itoa(FindOpenRow(LOG_SPREADSHEET_ID, "log", "A:A"))
 
 	var vr sheets.ValueRange
-	data := []any{level}
+	data := []any{level, time.Now().Format("2006-01-02 15:04:05"), msg}
+	vr.Values = append(vr.Values, data)
 	srv := GetGoogleSheetService()
-	_, err := srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "log!A"+open_row+":"+"A"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
+	_, err := srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "log!A"+open_row+":"+"C"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
 	logError("log(): srv.Spreadsheets.Values.Update", err)
-	vr.Values = append(vr.Values, data)
-
-	data = []any{time.Now().Format("2006-01-02 15:04:05")}
-	_, err = srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "log!B"+open_row+":"+"B"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
-	logError("log(): srv.Spreadsheets.Values.Update", err)
-	vr.Values = append(vr.Values, data)
-
-	data = []any{msg}
-	_, err = srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "log!C"+open_row+":"+"C"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
-	logError("log(): srv.Spreadsheets.Values.Update", err)
-	vr.Values = append(vr.Values, data)
 
 	if level == ERROR {
 		os.Exit(1)
