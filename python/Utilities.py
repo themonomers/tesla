@@ -42,7 +42,7 @@ def getConfig():
     buffer.close()
     return values
   except Exception as e:
-    logErrorStdOut('getConfig():', e)
+    Logger.logErrorStdOut('getConfig():', e)
 
 config = getConfig()
 PRIMARY_LAT = float(config['vehicle']['primary_lat'])
@@ -81,7 +81,7 @@ def getToken():
     buffer.close()
     return values
   except Exception as e:
-    logErrorStdOut('getToken():', e)
+    Logger.logErrorStdOut('getToken():', e)
 
 
 ##
@@ -96,7 +96,7 @@ def deleteCronTab(command):
     cron.remove(job)
     cron.write()
   except Exception as e:
-    logErrorStdOut('deleteCronTab():', e)
+    Logger.logErrorStdOut('deleteCronTab():', e)
 
 
 ##
@@ -114,7 +114,7 @@ def createCronTab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    logErrorStdOut('createCronTab():', e)
+    Logger.logErrorStdOut('createCronTab():', e)
 
 
 ##
@@ -148,7 +148,7 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    logErrorStdOut('isVehicleAtLocation():', e)
+    Logger.logErrorStdOut('isVehicleAtLocation():', e)
     return False
 
 
@@ -223,7 +223,7 @@ def getCurrentWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    logErrorStdOut('getCurrentWeather():', e)
+    Logger.logErrorStdOut('getCurrentWeather():', e)
     
 
 ##
@@ -251,7 +251,7 @@ def getDailyWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    logErrorStdOut('getDailyWeather():', e)
+    Logger.logErrorStdOut('getDailyWeather():', e)
 
 
 ##
@@ -350,14 +350,7 @@ def main():
     printJson(data, 0)
 
 
-##
-# Log errors to standard output.
-#
-# author: mjhwa@yahoo.com
-##
-def logErrorStdOut(msg, e):
-  print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' ' + msg + ' ' + str(e))
-
-
 if __name__ == "__main__":
   main()
+
+import Logger

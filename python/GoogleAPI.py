@@ -10,7 +10,6 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-from datetime import datetime
 
 WAIT_TIME = 30
 
@@ -37,7 +36,7 @@ def getGoogleSheetService():
     service = discovery.build('sheets', 'v4', credentials=credentials)
     return service
   except Exception as e:
-    logErrorStdOut('getGoogleSheetService():', e)
+    Logger.logErrorStdOut('getGoogleSheetService():', e)
 
 
 ##
@@ -61,7 +60,7 @@ def findOpenRow(sheet_id, sheet_name, range):
 
     return len(values) + 1
   except Exception as e:
-    logErrorStdOut('findOpenRow():', e)
+    Logger.logErrorStdOut('findOpenRow():', e)
     time.sleep(WAIT_TIME)
     return findOpenRow(sheet_id, sheet_name, range)
 
@@ -129,12 +128,3 @@ def getGoogleMailService():
     return build('gmail', 'v1', credentials=creds)
   except Exception as e:
     Logger.logError('getGoogleMailService(): ' + str(e))
-
-
-##
-# Log errors to standard output.
-#
-# author: mjhwa@yahoo.com
-##
-def logErrorStdOut(msg, e):
-  print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' ' + msg + ' ' + str(e))
