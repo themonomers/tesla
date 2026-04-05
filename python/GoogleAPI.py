@@ -36,7 +36,7 @@ def getGoogleSheetService():
     service = discovery.build('sheets', 'v4', credentials=credentials)
     return service
   except Exception as e:
-    Logger.logErrorStdOut('getGoogleSheetService():', e)
+    Logger.logError('getGoogleSheetService():', e)
 
 
 ##

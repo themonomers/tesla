@@ -73,7 +73,7 @@ func getConfigFile(read_fn string) *config.Config {
 	env := config.NewStatic(iniFile)
 	c := config.NewConfig([]config.Provider{env})
 	err := c.Load()
-	LogError("getConfigFile(): c.Load()", err)
+	LogErrorStdOut("getConfigFile(): c.Load()", err)
 
 	return c
 }

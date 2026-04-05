@@ -21,10 +21,10 @@ func init() {
 
 	var c = GetConfig()
 	LOG_SPREADSHEET_ID, err = c.String("google.log_spreadsheet_id")
-	logErrorStdOut("init(): load log spreadsheet id", err)
+	LogErrorStdOut("init(): load log spreadsheet id", err)
 
 	e_id, err := c.Int("google.log_sheet_id")
-	logErrorStdOut("init(): load log sheet id", err)
+	LogErrorStdOut("init(): load log sheet id", err)
 	LOG_SHEET_ID = int64(e_id)
 }
 
@@ -38,7 +38,7 @@ func log(level string, msg string) {
 	vr.Values = append(vr.Values, data)
 	srv := GetGoogleSheetService()
 	_, err := srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "log!A"+open_row+":"+"C"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
-	logErrorStdOut("log(): srv.Spreadsheets.Values.Update", err)
+	LogErrorStdOut("log(): srv.Spreadsheets.Values.Update", err)
 
 	if level == ERROR {
 		os.Exit(1)
@@ -46,7 +46,7 @@ func log(level string, msg string) {
 }
 
 // Log errors to standard output.
-func logErrorStdOut(msg string, err error) {
+func LogErrorStdOut(msg string, err error) {
 	if err != nil {
 		fmt.Println("[ERROR] " + time.Now().Format("2006-01-02 15:04:05") + " " + msg + " " + err.Error())
 		//		os.Exit(1)
@@ -77,7 +77,7 @@ func TruncateLog() {
 	// get time stamps from each log entry
 	service := GetGoogleSheetService()
 	values, err := service.Spreadsheets.Values.Get(LOG_SPREADSHEET_ID, "log!B2:B").Do()
-	logErrorStdOut("TruncateLog(): service.Spreadsheets.Values.Get", err)
+	LogError("TruncateLog(): service.Spreadsheets.Values.Get", err)
 
 	if len(values.Values) == 0 {
 		return
@@ -90,7 +90,7 @@ func TruncateLog() {
 	for i := len(values.Values) - 1; i >= 0; i-- {
 		// convert time stamp to Date object
 		log_date, err := time.Parse("2006-01-02 15:04:05", values.Values[i][0].(string))
-		logErrorStdOut("TruncateLog(): time.Parse", err)
+		LogError("TruncateLog(): time.Parse", err)
 
 		// if the log item is older than 30 days, delete the row and any before it
 		// and stop execution
@@ -121,7 +121,7 @@ func TruncateLog() {
 			request = append(request, &sheets.Request{InsertDimension: insert_requests})
 
 			_, err = srv.Spreadsheets.BatchUpdate(LOG_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
-			logErrorStdOut("TruncateLog(): srv.Spreadsheets.BatchUpdate", err)
+			LogError("TruncateLog(): srv.Spreadsheets.BatchUpdate", err)
 
 			return
 		}
