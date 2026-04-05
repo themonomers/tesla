@@ -40,7 +40,7 @@ Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, 
       PreconditionMXStart.py
       PreconditionMXStop.py
       VehicleTelemetry.py - Write all vehicle data from previous day in Google Sheet
-      Charger.py - Calculates and sets charging times to complete at a departure time for 2 EV's
+      Charge.py - Calculates and sets charging times to complete at a departure time for 2 EV's
       Climate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
 
 Vehicle functions read/write to a Google Sheet like this example:  https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing

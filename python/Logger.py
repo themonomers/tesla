@@ -4,69 +4,55 @@ from Utilities import getConfig
 from datetime import datetime
 
 LOG_SPREADSHEET_ID = getConfig()['google']['log_spreadsheet_id']
-
+INFO = 'INFO'
+WARN = 'WARN'
+ERROR = 'ERROR'
 
 ##
-# Logs errors from try/catch blocks into a Google Sheet.
+# Logs information into a Google Sheet.
 #
 # author: mjhwa@yahoo.com
 ##
+def log(level, msg):
+  try:
+    # write this into an open row in logging Google Sheet
+    open_row = GoogleAPI.findOpenRow(LOG_SPREADSHEET_ID, 'log', 'A:A')
+  
+    inputs = []
+    inputs.append({
+      'range': 'log!A' + str(open_row),
+      'values': [[level]]
+    })
+    inputs.append({
+      'range': 'log!B' + str(open_row),
+      'values': [[datetime.today().strftime('%Y-%m-%d %H:%M:%S')]]
+    })
+    inputs.append({
+      'range': 'log!C' + str(open_row),
+      'values': [[msg]]
+    })
+    
+    # batch write data and formula copies to sheet
+    service = GoogleAPI.getGoogleSheetService()
+    service.spreadsheets().values().batchUpdate(
+      spreadsheetId=LOG_SPREADSHEET_ID, 
+      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
+    ).execute()
+    service.close()
+
+    if level == ERROR:
+      exit(1)
+  except Exception as e:
+    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' log(): ' + str(e))
+
+
+def logInfo(msg):
+  log(INFO, msg)
+
+
+def logWarn(msg):
+  log(WARN, msg)
+
+ 
 def logError(msg):
-  try:
-    # write this into an open row in logging Google Sheet
-    open_row = GoogleAPI.findOpenRow(LOG_SPREADSHEET_ID, 'error', 'A:A')
-  
-    inputs = []
-    inputs.append({
-      'range': 'error!A' + str(open_row),
-      'values': [[datetime.today().strftime('%-I:%M:%S %p, %-m/%-d/%Y')]]
-    })
-
-    inputs.append({
-      'range': 'error!B' + str(open_row),
-      'values': [[msg]]
-    })
-    
-    # batch write data and formula copies to sheet
-    service = GoogleAPI.getGoogleSheetService()
-    service.spreadsheets().values().batchUpdate(
-      spreadsheetId=LOG_SPREADSHEET_ID, 
-      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
-    ).execute()
-    service.close()
-
-    exit(1)
-  except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' logError(): ' + str(e))
-
-
-##
-# Logs messages into a Google Sheet.
-#
-# author: mjhwa@yahoo.com
-##
-def logMessage(msg):
-  try:
-    # write this into an open row in logging Google Sheet
-    open_row = GoogleAPI.findOpenRow(LOG_SPREADSHEET_ID, 'message', 'A:A')
-  
-    inputs = []
-    inputs.append({
-      'range': 'message!A' + str(open_row),
-      'values': [[datetime.today().strftime('%-I:%M:%S %p, %-m/%-d/%Y')]]
-    })
-
-    inputs.append({
-      'range': 'message!B' + str(open_row),
-      'values': [[msg]]
-    })
-    
-    # batch write data and formula copies to sheet
-    service = GoogleAPI.getGoogleSheetService()
-    service.spreadsheets().values().batchUpdate(
-      spreadsheetId=LOG_SPREADSHEET_ID, 
-      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
-    ).execute()
-    service.close()
-  except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' logMessage(): ' + str(e))
+  log(ERROR, msg)

@@ -10,7 +10,10 @@ import (
 )
 
 var LOG_SPREADSHEET_ID string
-var ERROR_SHEET_ID int64
+var LOG_SHEET_ID int64
+var INFO = "INFO"
+var WARN = "WARN"
+var ERROR = "ERROR"
 
 func init() {
 	var err error
@@ -19,25 +22,34 @@ func init() {
 	LOG_SPREADSHEET_ID, err = c.String("google.log_spreadsheet_id")
 	logError("init(): load log spreadsheet id", err)
 
-	e_id, err := c.Int("google.error_sheet_id")
-	logError("init(): load error sheet id", err)
-	ERROR_SHEET_ID = int64(e_id)
+	e_id, err := c.Int("google.log_sheet_id")
+	logError("init(): load log sheet id", err)
+	LOG_SHEET_ID = int64(e_id)
 }
 
-// Log errors into a Google Sheet.
-func LogError(msg string, err error) {
-	if err != nil {
-		// write this into an open row in logging Google Sheet
-		var open_row = strconv.Itoa(FindOpenRow(LOG_SPREADSHEET_ID, "error", "A:A"))
+// Logs information into a Google Sheet.
+func log(level string, msg string) {
+	// write this into an open row in logging Google Sheet
+	var open_row = strconv.Itoa(FindOpenRow(LOG_SPREADSHEET_ID, "log", "A:A"))
 
-		var vr sheets.ValueRange
-		data := []any{time.Now().Format("3:04:05 PM, 1/2/2006"), msg + " " + err.Error()}
-		vr.Values = append(vr.Values, data)
+	var vr sheets.ValueRange
+	data := []any{level}
+	srv := GetGoogleSheetService()
+	_, err := srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "log!A"+open_row+":"+"A"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
+	logError("log(): srv.Spreadsheets.Values.Update", err)
+	vr.Values = append(vr.Values, data)
 
-		srv := GetGoogleSheetService()
-		_, err = srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "error!A"+open_row+":"+"B"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
-		logError("LogError(): srv.Spreadsheets.Values.Update", err)
+	data = []any{time.Now().Format("2006-01-02 15:04:05")}
+	_, err = srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "log!B"+open_row+":"+"B"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
+	logError("log(): srv.Spreadsheets.Values.Update", err)
+	vr.Values = append(vr.Values, data)
 
+	data = []any{msg}
+	_, err = srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "log!C"+open_row+":"+"C"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
+	logError("log(): srv.Spreadsheets.Values.Update", err)
+	vr.Values = append(vr.Values, data)
+
+	if level == ERROR {
 		os.Exit(1)
 	}
 }
@@ -45,31 +57,29 @@ func LogError(msg string, err error) {
 // Log errors to standard output.
 func logError(msg string, err error) {
 	if err != nil {
-		fmt.Println(time.Now().Format("2006-01-02 15:04:05") + " " + msg + " " + err.Error())
+		fmt.Println("[ERROR] " + time.Now().Format("2006-01-02 15:04:05") + " " + msg + " " + err.Error())
 		//		os.Exit(1)
 	}
 }
 
-// Log messages into a Google Sheet.
-func LogMessage(msg string) {
-	// write this into an open row in logging Google Sheet
-	var open_row = strconv.Itoa(FindOpenRow(LOG_SPREADSHEET_ID, "message", "A:A"))
-
-	var vr sheets.ValueRange
-	data := []any{time.Now().Format("3:04:05 PM, 1/2/2006"), msg}
-	vr.Values = append(vr.Values, data)
-
-	srv := GetGoogleSheetService()
-	_, err := srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "message!A"+open_row+":"+"B"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
-	logError("LogMessage(): srv.Spreadsheets.Values.Update", err)
+func LogInfo(msg string) {
+	log(INFO, msg)
 }
 
-// Keeps the error log from getting too long/big; deletes any rows older than
+func LogWarn(msg string) {
+	log(WARN, msg)
+}
+
+func LogError(msg string, err error) {
+	log(ERROR, msg+" "+err.Error())
+}
+
+// Keeps the log from getting too long/big; deletes any rows older than
 // 30 days.
 func TruncateLog() {
 	// get time stamps from each log entry
 	service := GetGoogleSheetService()
-	values, err := service.Spreadsheets.Values.Get(LOG_SPREADSHEET_ID, "error!A:A").Do()
+	values, err := service.Spreadsheets.Values.Get(LOG_SPREADSHEET_ID, "log!B2:B").Do()
 	logError("TruncateLog(): service.Spreadsheets.Values.Get", err)
 
 	if len(values.Values) == 0 {
@@ -82,7 +92,7 @@ func TruncateLog() {
 	// loop backwards through each log entry time stamp
 	for i := len(values.Values) - 1; i >= 0; i-- {
 		// convert time stamp to Date object
-		log_date, err := time.Parse("3:04:05 PM, 1/2/2006", values.Values[i][0].(string))
+		log_date, err := time.Parse("2006-01-02 15:04:05", values.Values[i][0].(string))
 		logError("TruncateLog(): time.Parse", err)
 
 		// if the log item is older than 30 days, delete the row and any before it
@@ -90,17 +100,17 @@ func TruncateLog() {
 		if log_date.Before(thirty_days) {
 			delete_requests := &sheets.DeleteDimensionRequest{
 				Range: &sheets.DimensionRange{
-					SheetId:    ERROR_SHEET_ID,
+					SheetId:    LOG_SHEET_ID,
 					Dimension:  "ROWS",
-					StartIndex: 0,
-					EndIndex:   int64(i + 1),
+					StartIndex: 1,
+					EndIndex:   int64(i + 2),
 				},
 			}
 
 			// add same number of rows deleted so it doesn't run out of rows
 			insert_requests := &sheets.InsertDimensionRequest{
 				Range: &sheets.DimensionRange{
-					SheetId:    ERROR_SHEET_ID,
+					SheetId:    LOG_SHEET_ID,
 					Dimension:  "ROWS",
 					StartIndex: int64(len(values.Values) + 1),
 					EndIndex:   int64(len(values.Values) + 1 + i + 1),

@@ -2,7 +2,7 @@ from crontab import CronTab
 
 
 ##
-# Script to clean up crontabs created for Tesla Climate and Backup Charge.  
+# Script to clean up crontabs created for Tesla Climate and Charge Check.  
 # Should be set to run in the middle of the day as all the crontabs are 
 # evening or early morning.
 #

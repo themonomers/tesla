@@ -5,11 +5,11 @@ from datetime import datetime, timedelta
 
 config = getConfig()
 LOG_SPREADSHEET_ID = config['google']['log_spreadsheet_id']
-ERROR_SHEET_ID = config['google']['error_sheet_id']
+LOG_SHEET_ID = config['google']['log_sheet_id']
 
 
 ##
-# Keeps the error log from getting too long/big; deletes any rows older than
+# Keeps the log from getting too long/big; deletes any rows older than
 # 30 days.
 #
 # author: mjhwa@yahoo.com
@@ -20,7 +20,7 @@ def truncateLog():
     service = getGoogleSheetService()
     values = service.spreadsheets().values().get(
       spreadsheetId=LOG_SPREADSHEET_ID,
-      range='error!A:A'
+      range='log!B2:B'
     ).execute().get('values', [])
     #print('values: ' + str(values))
 
@@ -28,28 +28,28 @@ def truncateLog():
 
     # get the date 30 days prior
     thirty_days = datetime.today() - timedelta(30)
-    #print('today: ' + str(datetime.today().strftime('%I:%M:%S %p, %m/%d/%Y')))
+    #print('today: ' + str(datetime.today().strftime('%Y-%m-%d %H:%M:%S')))
     #print('30 days: ' + str(thirty_days))
 
     # loop backwards through each log entry time stamp
     for index, item in reversed(list(enumerate(values))):
       # convert time stamp to Date object
       #print('item: ' + str(item[0]))
-      log_date = datetime.strptime(str(item[0]), '%I:%M:%S %p, %m/%d/%Y')
+      log_date = datetime.strptime(str(item[0]), '%Y-%m-%d %H:%M:%S')
       #print('log date: ' + str(log_date))
 
       # if the log item is older than 30 days, delete the row and any before it
       # and stop execution
       requests = []
       if (log_date < thirty_days):
-        #print('delete rows: ' + 'error!A1:B' + str(index + 1))
+        #print('delete rows: ' + 'log!A2:C' + str(index + 2))
         requests.append({
           'deleteDimension': {
             'range': {
-              'sheetId': ERROR_SHEET_ID,
+              'sheetId': LOG_SHEET_ID,
               'dimension': 'ROWS',
-              'startIndex': 0,
-              'endIndex': (index + 1)
+              'startIndex': 1,
+              'endIndex': (index + 2)
             }
           }
         })
@@ -58,7 +58,7 @@ def truncateLog():
         requests.append({
           'insertDimension': {
             'range': {
-              'sheetId': ERROR_SHEET_ID,
+              'sheetId': LOG_SHEET_ID,
               'dimension': 'ROWS',
               'startIndex': (len(values) + 1),
               'endIndex': (len(values) + 1 + index + 1)

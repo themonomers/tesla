@@ -1,6 +1,6 @@
 from TeslaVehicleAPI import getVehicleData, startChargeVehicle
 from Utilities import getConfig, isVehicleAtPrimary
-from Logger import logError, logMessage
+from Logger import logError, logInfo
 from datetime import datetime
 
 config = getConfig()
@@ -18,7 +18,7 @@ def chargeCheckM3():
 
     if (isVehicleAtPrimary(m3_data) and 
         (m3_data['response']['charge_state']['charging_state'] != 'Charging')):
-      logMessage('chargeCheckM3(): Scheduled charging failed to start.  Starting backup charging.')
+      logInfo('chargeCheckM3(): Scheduled charging failed to start.  Starting backup charging.')
       startChargeVehicle(M3_VIN)
   except Exception as e:
     logError('chargeCheckM3(): ' + str(e))

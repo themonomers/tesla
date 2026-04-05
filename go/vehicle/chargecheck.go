@@ -22,7 +22,7 @@ func ChargeCheckM3() {
 
 	if common.IsVehicleAtPrimary(data) &&
 		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Charging" {
-		common.LogMessage("chargeCheckM3(): Scheduled charging failed to start.  Starting backup charging.")
+		common.LogInfo("chargeCheckM3(): Scheduled charging failed to start.  Starting backup charging.")
 		StartChargeVehicle(M3_VIN)
 	}
 }
@@ -32,7 +32,7 @@ func ChargeCheckMX() {
 
 	if common.IsVehicleAtPrimary(data) &&
 		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Charging" {
-		common.LogMessage("chargeCheckMX(): Scheduled charging failed to start.  Starting backup charging.")
+		common.LogInfo("chargeCheckMX(): Scheduled charging failed to start.  Starting backup charging.")
 		StartChargeVehicle(MX_VIN)
 	}
 }

@@ -42,7 +42,7 @@ def getConfig():
     buffer.close()
     return values
   except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getConfig(): ' + str(e))
+    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getConfig(): ' + str(e))
 
 config = getConfig()
 PRIMARY_LAT = float(config['vehicle']['primary_lat'])
@@ -81,7 +81,7 @@ def getToken():
     buffer.close()
     return values
   except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getToken(): ' + str(e))
+    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getToken(): ' + str(e))
 
 
 ##
@@ -96,7 +96,7 @@ def deleteCronTab(command):
     cron.remove(job)
     cron.write()
   except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' deleteCronTab(' + command + '): ' + str(e))
+    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' deleteCronTab(): ' + str(e))
 
 
 ##
@@ -114,7 +114,7 @@ def createCronTab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' createCronTab(' + command + '): ' + str(e))
+    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' createCronTab(): ' + str(e))
 
 
 ##
@@ -148,7 +148,7 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' isVehicleAtLocation(): ' + str(e))
+    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' isVehicleAtLocation(): ' + str(e))
     return False
 
 
@@ -223,8 +223,8 @@ def getCurrentWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-      print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getCurrentWeather(): ' + str(e))
-
+    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getCurrentWeather(): ' + str(e))
+    
 
 ##
 # Uses a free weather service with API to look up data by latitude and
@@ -251,7 +251,7 @@ def getDailyWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    print(datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getDailyWeather(): ' + str(e))
+    print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' getDailyWeather(): ' + str(e))
 
 
 ##
