@@ -35,7 +35,7 @@ def getSiteStatus():
 
     return response
   except Exception as e:
-    logError('getSiteStatus(): ' + str(e))
+    logError('getSiteStatus():', e)
 
 
 ##
@@ -59,7 +59,7 @@ def getSiteLiveStatus():
 
     return response
   except Exception as e:
-    logError('getSiteLiveStatus(): ' + str(e))
+    logError('getSiteLiveStatus():', e)
 
 
 ##
@@ -83,7 +83,7 @@ def getSiteInfo():
 
     return response
   except Exception as e:
-    logError('getSiteInfo(): ' + str(e))
+    logError('getSiteInfo():', e)
 
 
 ##
@@ -123,7 +123,7 @@ def getSiteHistory(period, date):
 
     return response
   except Exception as e:
-    logError('getSiteHistory(' + period + '): ' + str(e))
+    logError('getSiteHistory(' + period + '):', e)
 
 
 ##
@@ -147,7 +147,7 @@ def getBatteryBackupHistory():
 
     return response
   except Exception as e:
-    logError('getBatteryBackupHistory(): ' + str(e))
+    logError('getBatteryBackupHistory():', e)
 
 
 ##
@@ -204,7 +204,7 @@ def getSiteTOUHistory(period, date):
  
     return response
   except Exception as e:
-    logError('getSiteTOUHistory(): ' + str(e))
+    logError('getSiteTOUHistory():', e)
 
 
 ##
@@ -245,7 +245,7 @@ def getBatteryChargeHistory(period, date):
 
     return response
   except Exception as e:
-    logError('getBatteryChargeHistory(): ' + str(e))
+    logError('getBatteryChargeHistory():', e)
 
 
 ##
@@ -301,7 +301,7 @@ def getPowerHistory(period, date):
 
     return response
   except Exception as e:
-    logError('getPowerHistory(): ' + str(e))
+    logError('getPowerHistory():', e)
 
 
 ##
@@ -324,7 +324,7 @@ def getRateTariffs():
 
     return response
   except Exception as e:
-    logError('getRateTariffs(): ' + str(e))
+    logError('getRateTariffs():', e)
 
 
 ##
@@ -349,7 +349,7 @@ def getSiteTariff():
 
     return response
   except Exception as e:
-    logError('getSiteTariff(): ' + str(e))
+    logError('getSiteTariff():', e)
 
 
 ##
@@ -373,7 +373,7 @@ def getBackupTimeRemaining():
 
     return response
   except Exception as e:
-    logError('getBackupTimeRemaining(): ' + str(e))
+    logError('getBackupTimeRemaining():', e)
 
 
 ##
@@ -431,7 +431,7 @@ def getSavingsForecast(period, date):
 
     return response
   except Exception as e:
-    logError('getSavingsForecast(): ' + str(e))
+    logError('getSavingsForecast():', e)
 
 
 ##
@@ -510,7 +510,7 @@ def setOperationalMode(mode):
 
     return response
   except Exception as e:
-    logError('setOperationalMode(' + mode + '): ' + str(e))
+    logError('setOperationalMode(' + mode + '):', e)
 
 
 ##
@@ -538,7 +538,7 @@ def setGridImportExport(export_rule, disallow_grid_charging):
 
     return response
   except Exception as e:
-    logError('setGridImportExport(' + export_rule + ', ' + disallow_grid_charging + '): ' + str(e))
+    logError('setGridImportExport(' + export_rule + ', ' + disallow_grid_charging + '):', e)
 
 
 ##
@@ -565,7 +565,7 @@ def setBackupReserve(backup_percent):
 
     return response
   except Exception as e:
-    logError('setBackupReserve(' + backup_percent + '): ' + str(e))
+    logError('setBackupReserve(' + backup_percent + '):', e)
 
 
 ##
@@ -593,7 +593,7 @@ def setOffGridVehicleChargingReserve(percent):
 
     return response
   except Exception as e:
-    logError('setOffGridVehicleChargingReserve(' + percent + '): ' + str(e))
+    logError('setOffGridVehicleChargingReserve(' + percent + '):', e)
 
 
 def main():

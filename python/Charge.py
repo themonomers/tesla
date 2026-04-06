@@ -72,7 +72,7 @@ def scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
     else:
       return None
   except Exception as e:
-    logError('scheduleM3Charging(): ' + str(e))
+    logError('scheduleM3Charging():', e)
 
 
 def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time): 
@@ -114,7 +114,7 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
     else:
       return None
   except Exception as e:
-    logError('scheduleMXCharging(): ' + str(e))
+    logError('scheduleMXCharging():', e)
 
 
 ##
@@ -141,7 +141,7 @@ def scheduleBackupCharging(vin, data, start_time):
                       start_time.hour, 
                       start_time.minute)
   except Exception as e:
-    logError('scheduleBackupCharging(' + vin + '): ' + str(e))
+    logError('scheduleBackupCharging(' + vin + '):', e)
 
 
 ##
@@ -352,7 +352,7 @@ def calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time
 
       return m3_start_time
   except Exception as e:
-    logError('calcuateScheduledCharging(' + scenario + '): ' + str(e))
+    logError('calcuateScheduledCharging(' + scenario + '):', e)
 
 
 def sendPluggedInMessage(vehicle, battery_level, battery_range, charge_port_door_open, notify, to, cc, bcc):
@@ -511,7 +511,7 @@ def notifyIsTeslaPluggedIn():
                                '',
                                '')
   except Exception as e:
-    logError('notifyIsTeslaPluggedIn(): ' + str(e))
+    logError('notifyIsTeslaPluggedIn():', e)
 
 
 def main():

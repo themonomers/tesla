@@ -47,15 +47,6 @@ def log(level, msg):
     logErrorStdOut('log():', e)
 
 
-##
-# Log errors to standard output.
-#
-# author: mjhwa@yahoo.com
-##
-def logErrorStdOut(msg, e):
-  print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' ' + msg + ' ' + str(e))
-
-
 def logInfo(msg):
   log(INFO, msg)
 
@@ -64,8 +55,17 @@ def logWarn(msg):
   log(WARN, msg)
 
  
-def logError(msg):
-  log(ERROR, msg)
+def logError(msg, error):
+  log(ERROR, msg + ' ' + str(error))
+
+
+##
+# Log errors to standard output.
+#
+# author: mjhwa@yahoo.com
+##
+def logErrorStdOut(msg, e):
+  print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' ' + msg + ' ' + str(e))
 
 
 def logErrorRetry(msg):

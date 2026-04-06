@@ -23,6 +23,6 @@ def getDBClient():
       password=INFLUX_PASSWORD
     )
   except Exception as e:
-    logError('getDBClient(): ' + str(e))
+    logError('getDBClient():', e)
 
 

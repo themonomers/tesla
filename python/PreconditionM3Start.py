@@ -128,7 +128,7 @@ def preconditionM3Start():
         stop_time.minute
       )
   except Exception as e:
-    logError('preconditionM3Start(): ' + str(e))
+    logError('preconditionM3Start():', e)
 
 
 def main():

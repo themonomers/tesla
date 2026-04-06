@@ -16,7 +16,7 @@ def preconditionMXStop():
         data['response']['drive_state']['shift_state'] != 'N'): # only execute if the car is at primary location and in park
       preconditionCarStop(MX_VIN)
   except Exception as e:
-    logError('preconditionMXStop(): ' + str(e))
+    logError('preconditionMXStop():', e)
 
 
 def main():

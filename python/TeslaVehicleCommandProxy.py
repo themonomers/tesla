@@ -52,7 +52,7 @@ def getVehicleData(vin):
 
     return json.loads(response.text)
   except Exception as e:
-    logError('getVehicleData(' + vin + '): ' + str(e))
+    logError('getVehicleData(' + vin + '):', e)
 
 
 ##
@@ -76,7 +76,7 @@ def wakeVehicle(vin):
       verify=CERT
     )
   except Exception as e:
-    logError('wakeVehicle(' + vin + '): ' + str(e))
+    logError('wakeVehicle(' + vin + '):', e)
 
 
 ##
@@ -99,7 +99,7 @@ def startChargeVehicle(vin):
       verify=CERT
     )
   except Exception as e:
-    logError('startChargeVehicle(' + vin + '): ' + str(e))
+    logError('startChargeVehicle(' + vin + '):', e)
 
 
 ##
@@ -122,7 +122,7 @@ def stopChargeVehicle(vin):
       verify=CERT
     )
   except Exception as e:
-    logError('stopChargeVehicle(' + vin + '): ' + str(e))
+    logError('stopChargeVehicle(' + vin + '):', e)
 
 ##
 # Uses new endpoint to add a schedule for vehicle charging. 
@@ -159,7 +159,7 @@ def addChargeSchedule(vin, lat, lon, start_time, id):
       verify=CERT
     )
   except Exception as e:
-    logError('addChargeSchedule(' + vin + '): ' + str(e))
+    logError('addChargeSchedule(' + vin + '):', e)
 
 
 ##
@@ -187,7 +187,7 @@ def removeChargeSchedule(vin, id):
       verify=CERT
     )
   except Exception as e:
-    logError('removeChargeSchedule(' + vin + '): ' + str(e))
+    logError('removeChargeSchedule(' + vin + '):', e)
   
 
 ##
@@ -221,7 +221,7 @@ def setScheduledCharging(vin, time):
       verify=CERT
     )
   except Exception as e:
-    logError('setScheduledCharging(' + vin + '): ' + str(e))
+    logError('setScheduledCharging(' + vin + '):', e)
 
 
 ##
@@ -250,7 +250,7 @@ def setCarTemp(vin, d_temp, p_temp):
       verify=CERT
     )
   except Exception as e:
-    logError('setCarTemp(' + vin + '): ' + str(e))
+    logError('setCarTemp(' + vin + '):', e)
 
 
 ##
@@ -262,7 +262,7 @@ def setCarSeatHeating(vin, seat, setting):
   try:
     setCarSeatTemp(vin, 'heat', seat, setting)
   except Exception as e:
-    logError('setCarSeatHeating(' + vin + '): ' + str(e))
+    logError('setCarSeatHeating(' + vin + '):', e)
 
 
 ##
@@ -274,7 +274,7 @@ def setCarSeatCooling(vin, seat, setting):
   try:
     setCarSeatTemp(vin, 'cool', seat, setting)
   except Exception as e:
-    logError('setCarSeatHeating(' + vin + '): ' + str(e))
+    logError('setCarSeatCooling(' + vin + '):', e)
 
 
 ##
@@ -314,7 +314,7 @@ def setCarSeatTemp(vin, mode, seat, setting):
       verify=CERT
     )
   except Exception as e:
-    logError('setCarSeatTemp(' + vin + '): ' + str(e))
+    logError('setCarSeatTemp(' + vin + '):', e)
 
 
 ##
@@ -337,7 +337,7 @@ def preconditionCarStart(vin):
       verify=CERT
     )
   except Exception as e:
-    logError('preconditionCarStart(' + vin + '): ' + str(e))
+    logError('preconditionCarStart(' + vin + '):', e)
 
 
 ##
@@ -360,7 +360,7 @@ def preconditionCarStop(vin):
       verify=CERT
     )
   except Exception as e:
-    logError('preconditionCarStop(' + vin + '): ' + str(e))
+    logError('preconditionCarStop(' + vin + '):', e)
 
 ##
 # Loops through all vehicle data and prints to screen.  
@@ -376,7 +376,7 @@ def printAllVehicleData(vin):
 
     printJson(data, 0)
   except Exception as e:
-    logError('printAllVehicleData(' + vin + '): ' + str(e))
+    logError('printAllVehicleData(' + vin + '):', e)
     wakeVehicle(vin)
     printAllVehicleData(vin)
 

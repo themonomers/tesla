@@ -25,7 +25,7 @@ def checkTokenExpiration():
     if (datetime.today() >= refresh_date):
       import TeslaRefreshToken
   except Exception as e:
-    logError('checkTokenExpiration(): ' + str(e))
+    logError('checkTokenExpiration():', e)
 
 
 def main():

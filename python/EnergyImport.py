@@ -33,7 +33,7 @@ def importEnergyDetailToDB(date):
 
     writeEnergyDetailToDB(date)
   except Exception as e:
-    logError('importEnergyDetailToDB(): ' + str(e))
+    logError('importEnergyDetailToDB():', e)
 
 
 ##
@@ -53,7 +53,7 @@ def importEnergySummaryToDB(date):
 
     writeEnergySummaryToDB(date)
   except Exception as e:
-    logError('importEnergySummaryToDB(): ' + str(e))
+    logError('importEnergySummaryToDB():', e)
 
 
 ##
@@ -73,7 +73,7 @@ def importEnergyTOUSummaryToDB(date):
 
     writeEnergyTOUSummaryToDB(date)
   except Exception as e:
-    logError('importEnergyTOUSummaryToDB(): ' + str(e))
+    logError('importEnergyTOUSummaryToDB():', e)
 
 
 ##
@@ -93,7 +93,7 @@ def importEnergyDataToGsheet(date):
 
     writeEnergyDataToGsheet(date)
   except Exception as e:
-    logError('importEnergyTOUSummaryToGsheet(): ' + str(e))
+    logError('importEnergyTOUSummaryToGsheet():', e)
 
 
 ##
@@ -112,7 +112,7 @@ def importBatteryChargeToDB(date):
 
     writeBatteryChargeToDB(date)
   except Exception as e:
-    logError('importBatteryChargeToDB(): ' + str(e))
+    logError('importBatteryChargeToDB():', e)
 
 
 ##
@@ -171,7 +171,7 @@ def importOutageToDB():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importOutageToDB(): ' + str(e))
+    logError('importOutageToDB():', e)
 
 
 ##
@@ -243,7 +243,7 @@ def importEnergyDetailFromGsheetToDB():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importEnergyDetailFromGsheetToDB(): ' + str(e))
+    logError('importEnergyDetailFromGsheetToDB():', e)
 
 
 ##
@@ -296,7 +296,7 @@ def importEnergySummaryFromGsheetToDB():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importEnergySummaryFromGsheetToDB(): ' + str(e))
+    logError('importEnergySummaryFromGsheetToDB():', e)
 
 
 ##

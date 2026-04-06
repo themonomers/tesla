@@ -205,7 +205,7 @@ def writeM3Telemetry():
                + '.')
     sendEmail('Model 3 Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
-    logError('writeM3Telemetry(): ' + str(e))
+    logError('writeM3Telemetry():', e)
 
 
 def writeMXTelemetry():
@@ -389,7 +389,7 @@ def writeMXTelemetry():
                + '.')
     sendEmail('Model X Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
-    logError('writeMXTelemetry(): ' + str(e))
+    logError('writeMXTelemetry():', e)
 
 
 ##

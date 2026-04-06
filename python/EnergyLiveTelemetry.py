@@ -75,7 +75,7 @@ def writeLiveSiteTelemetry():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeLiveSiteTelemetry(): ' + str(e))
+    logError('writeLiveSiteTelemetry():', e)
 
 
 ##

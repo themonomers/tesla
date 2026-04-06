@@ -21,7 +21,7 @@ def chargeCheckM3():
       logInfo('chargeCheckM3(): Scheduled charging failed to start.  Starting backup charging.')
       startChargeVehicle(M3_VIN)
   except Exception as e:
-    logError('chargeCheckM3(): ' + str(e))
+    logError('chargeCheckM3():', e)
 
 def main():
   chargeCheckM3()

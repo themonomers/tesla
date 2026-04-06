@@ -76,7 +76,7 @@ def writeEnergyDetailToDB(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeEnergyDetailToDB(): ' + str(e))
+    logError('writeEnergyDetailToDB():', e)
 
 
 ##
@@ -216,7 +216,7 @@ def writeEnergySummaryToDB(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeEnergySummaryToDB(): ' + str(e))
+    logError('writeEnergySummaryToDB():', e)
 
 
 ##
@@ -257,7 +257,7 @@ def writeBatteryChargeToDB(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeBatteryChargeToDB(): ' + str(e))
+    logError('writeBatteryChargeToDB():', e)
 
 
 ##
@@ -354,7 +354,7 @@ def writeEnergyTOUSummaryToDB(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeEnergyTOUSummaryToDB(): ' + str(e))
+    logError('writeEnergyTOUSummaryToDB():', e)
 
 
 ##
@@ -936,7 +936,7 @@ def writeEnergyDataToGsheet(date):
     ).execute()
     service.close()
   except Exception as e:
-    logError('writeEnergyDataToGsheet(): ' + str(e))
+    logError('writeEnergyDataToGsheet():', e)
 
 
 ##
@@ -997,7 +997,7 @@ def writeBatteryBackupHistoryToDB():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeBatteryBackupHistoryToDB(): ' + str(e))
+    logError('writeBatteryBackupHistoryToDB():', e)
 
 
 ##

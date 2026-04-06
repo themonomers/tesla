@@ -45,7 +45,7 @@ def getLocalConfig():
     buffer.close()
     return values
   except Exception as e:
-    logError('getLocalConfig(): ' + str(e))
+    logError('getLocalConfig():', e)
 
 
 config = getLocalConfig()
@@ -127,7 +127,7 @@ def writeLocalLiveSiteTelemetry():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeLocalLiveSiteTelemetry(): ' + str(e))
+    logError('writeLocalLiveSiteTelemetry():', e)
 
 
 ##
@@ -161,7 +161,7 @@ def getLocalMetersAggregates():
 
     return resp
   except Exception as e:
-    logError('getLocalMetersAggregates(): ' + str(e))
+    logError('getLocalMetersAggregates():', e)
 
 
 ##
@@ -195,7 +195,7 @@ def getLocalSystemStatusSOE():
 
     return resp
   except Exception as e:
-    logError('getLocalSystemStatusSOE(): ' + str(e))
+    logError('getLocalSystemStatusSOE():', e)
 
 
 ##
@@ -228,7 +228,7 @@ def getLocalSystemStatus():
 
     return resp
   except Exception as e:
-    logError('getLocalSystemStatus(): ' + str(e))
+    logError('getLocalSystemStatus():', e)
 
 
 ##
@@ -291,7 +291,7 @@ def authLocalToken():
       )
     )
   except Exception as e:
-    logError('authLocalToken(): ' + str(e))
+    logError('authLocalToken():', e)
 
 
 ##
@@ -330,7 +330,7 @@ def getLocalToken():
     buffer.close()
     return values
   except Exception as e:
-    logError('getLocalToken(): ' + str(e))
+    logError('getLocalToken():', e)
 
 
 ##

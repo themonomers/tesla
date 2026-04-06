@@ -88,7 +88,7 @@ def setEnergyModeBasedOnWeather():
     else:
       setBackupReserve(35)
   except Exception as e:
-    logError('setEnergyModeBasedOnWeather(): ' + str(e))
+    logError('setEnergyModeBasedOnWeather():', e)
 
 
 def main():

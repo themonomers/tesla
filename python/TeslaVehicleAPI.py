@@ -27,7 +27,7 @@ def getVehicleId(vin):
 
     return data['response']['id_s']
   except Exception as e:
-    logError('getVehicleId(' + vin + '): ' + str(e))
+    logError('getVehicleId(' + vin + '):', e)
 
 
 ##
@@ -40,7 +40,7 @@ def getVehicleData(vin):
   try:
     return TeslaVehicleCommandProxy.getVehicleData(vin)
   except Exception as e:
-    logError('getVehicleData(' + vin + '): ' + str(e))
+    logError('getVehicleData(' + vin + '):', e)
 
 
 ##
@@ -53,7 +53,7 @@ def wakeVehicle(vin):
   try:
     return TeslaVehicleCommandProxy.wakeVehicle(vin)
   except Exception as e:
-    logError('wakeVehicle(' + vin + '): ' + str(e))
+    logError('wakeVehicle(' + vin + '):', e)
 
 
 ##
@@ -76,7 +76,7 @@ def startChargeVehicle(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('startChargeVehicle(' + vin + '): ' + str(e))
+    logError('startChargeVehicle(' + vin + '):', e)
 
 
 ##
@@ -99,7 +99,7 @@ def stopChargeVehicle(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('stopChargeVehicle(' + vin + '): ' + str(e))
+    logError('stopChargeVehicle(' + vin + '):', e)
 
 
 ##
@@ -137,7 +137,7 @@ def addChargeSchedule(vin, lat, lon, start_time, id):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('addChargeSchedule(' + vin + '): ' + str(e))
+    logError('addChargeSchedule(' + vin + '):', e)
 
 
 ##
@@ -165,7 +165,7 @@ def removeChargeSchedule(vin, id):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('removeChargeSchedule(' + vin + '): ' + str(e))
+    logError('removeChargeSchedule(' + vin + '):', e)
   
 
 ##
@@ -199,7 +199,7 @@ def setScheduledCharging(vin, time):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setScheduledCharging(' + vin + '): ' + str(e))
+    logError('setScheduledCharging(' + vin + '):', e)
 
 
 ##
@@ -243,7 +243,7 @@ def setScheduledDeparture(
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setScheduledDeparture(' + vin + '): ' + str(e))
+    logError('setScheduledDeparture(' + vin + '):', e)
 
 
 ##
@@ -268,7 +268,7 @@ def setChargingAmps(vin, amps):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setChargingAmps(' + vin + '): ' + str(e))
+    logError('setChargingAmps(' + vin + '):', e)
 
 
 ##
@@ -297,7 +297,7 @@ def setCarTemp(vin, d_temp, p_temp):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setCarTemp(' + vin + '): ' + str(e))
+    logError('setCarTemp(' + vin + '):', e)
 
 
 ##
@@ -331,7 +331,7 @@ def setCarSeatHeating(vin, seat, setting):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setCarSeatHeating(' + vin + '): ' + str(e))
+    logError('setCarSeatHeating(' + vin + '):', e)
 
 
 ##
@@ -343,7 +343,7 @@ def setCarSeatCooling(vin, seat, setting):
   try:
     return TeslaVehicleCommandProxy.setCarSeatCooling(vin, seat, setting)
   except Exception as e:
-    logError('setCarSeatCooling(' + vin + '): ' + str(e))
+    logError('setCarSeatCooling(' + vin + '):', e)
 
 
 ##
@@ -366,7 +366,7 @@ def preconditionCarStart(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('preconditionCarStart(' + vin + '): ' + str(e))
+    logError('preconditionCarStart(' + vin + '):', e)
 
 
 ##
@@ -389,7 +389,7 @@ def preconditionCarStop(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('preconditionCarStop(' + vin + '): ' + str(e))
+    logError('preconditionCarStop(' + vin + '):', e)
 
 ##
 # Loops through all vehicle data and prints to screen.  
@@ -405,7 +405,7 @@ def printAllVehicleData(vin):
 
     printJson(data, 0)
   except Exception as e:
-    logError('printAllVehicleData(' + vin + '): ' + str(e))
+    logError('printAllVehicleData(' + vin + '):', e)
     wakeVehicle(vin)
     printAllVehicleData(vin)
 

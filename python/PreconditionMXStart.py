@@ -100,7 +100,7 @@ def preconditionMXStart():
         stop_time.minute
       )
   except Exception as e: 
-    logError('preconditionMXStart(): ' + str(e))
+    logError('preconditionMXStart():', e)
 
 
 def main():

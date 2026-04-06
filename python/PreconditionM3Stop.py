@@ -24,7 +24,7 @@ def preconditionM3Stop():
         data['response']['drive_state']['shift_state'] != 'N'): # only execute if the car is at primary location and in park
       preconditionCarStop(M3_VIN)
   except Exception as e:
-    logError('preconditionM3Stop(): ' + str(e))
+    logError('preconditionM3Stop():', e)
 
 
 def main():

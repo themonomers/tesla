@@ -127,4 +127,4 @@ def getGoogleMailService():
 
     return build('gmail', 'v1', credentials=creds)
   except Exception as e:
-    Logger.logError('getGoogleMailService(): ' + str(e))
+    Logger.logError('getGoogleMailService():', e)
