@@ -148,23 +148,25 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    Logger.logWarn('isVehicleAtLocation():', e)
+    Logger.logWarn('isVehicleAtLocation():' + str(e))
     return False
 
 
 def getDistance(car_lat, car_lng, x_lat, x_lng):
-  diff_lat = toRad(car_lat - x_lat)
-  diff_lng = toRad(car_lng - x_lng)  
-  
-  a = ((math.sin(diff_lat/2) * math.sin(diff_lat/2)) 
-        + math.cos(x_lat) 
-        * math.cos(car_lat) 
-        * (math.sin(diff_lng/2) * math.sin(diff_lng/2)))
-  c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-  d = R * c
-  
-  return d
-
+  try:
+    diff_lat = toRad(car_lat - x_lat)
+    diff_lng = toRad(car_lng - x_lng)  
+    
+    a = ((math.sin(diff_lat/2) * math.sin(diff_lat/2)) 
+          + math.cos(x_lat) 
+          * math.cos(car_lat) 
+          * (math.sin(diff_lng/2) * math.sin(diff_lng/2)))
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    d = R * c
+    
+    return d
+  except Exception as e:
+    Logger.logError('getDistance():', e)
 
 def toRad(x):
   return x * math.pi/180
@@ -176,6 +178,7 @@ def toRad(x):
 # author: mjhwa@yahoo.com
 ##
 def getTomorrowTime(time):
+  try:
     return datetime.strptime(
         str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).year)
       + '-'
@@ -185,9 +188,12 @@ def getTomorrowTime(time):
       + 'T'
       + time, '%Y-%m-%dT%H:%M'
     ).replace(tzinfo=PAC)
+  except Exception as e:
+    Logger.logError('getTomorrowTime():', e)
 
 
 def getTodayTime(time):
+  try:
     return datetime.strptime(
         str(datetime.now().replace(tzinfo=PAC).year)
       + '-'
@@ -197,6 +203,8 @@ def getTodayTime(time):
       + 'T'
       + time, '%Y-%m-%dT%H:%M'
     ).replace(tzinfo=PAC)
+  except Exception as e:
+    Logger.logError('getTodayTime():', e)
 
 
 ##
