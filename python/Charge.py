@@ -445,7 +445,7 @@ def notifyIsTeslaPluggedIn():
     except Exception as e:
       logErrorRetry('Get configuration info from Google Sheets: ' + str(e))
       time.sleep(WAIT_TIME)
-      return notifyIsTeslaPluggedIn()
+      notifyIsTeslaPluggedIn()
 
 
     # send email notification if the car is not plugged in

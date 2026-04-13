@@ -56,6 +56,6 @@ def sendEmail(subject, body, to, cc, bcc, filename):
   except Exception as e:
     logErrorRetry('sendEmail(): ' + str(e))
     time.sleep(WAIT_TIME)
-    return sendEmail(subject, body, to, cc, bcc, filename)
+    sendEmail(subject, body, to, cc, bcc, filename)
 
 
