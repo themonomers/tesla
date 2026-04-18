@@ -29,7 +29,7 @@ func init() {
 }
 
 // Logs information into a Google Sheet.
-func log(level string, msg string) {
+func log(level, msg string) {
 	// write this into an open row in logging Google Sheet
 	var open_row = strconv.Itoa(FindOpenRow(LOG_SPREADSHEET_ID, "log", "A:A"))
 
@@ -59,16 +59,36 @@ func LogError(msg string, err error) {
 	}
 }
 
+func LogErrorRetry(msg string, err error) {
+	log(ERROR_RETRY, msg+" "+err.Error())
+}
+
 // Log errors to standard output.
+func logStdOut(level, msg string) {
+	fmt.Println("[" + level + "] " + time.Now().Format("2006-01-02 15:04:05") + " " + msg)
+
+	if level == ERROR {
+		os.Exit(1)
+	}
+}
+
+func LogInfoStdOut(msg string) {
+	logStdOut(INFO, msg)
+}
+
+func LogWarnStdOut(msg string) {
+	logStdOut(WARN, msg)
+}
+
 func LogErrorStdOut(msg string, err error) {
 	if err != nil {
-		fmt.Println("[ERROR] " + time.Now().Format("2006-01-02 15:04:05") + " " + msg + " " + err.Error())
+		logStdOut(ERROR, msg+" "+err.Error())
 		//		os.Exit(1)
 	}
 }
 
-func LogErrorRetry(msg string, err error) {
-	log(ERROR_RETRY, msg+" "+err.Error())
+func LogErrorRetryStdOut(msg string) {
+	logStdOut(ERROR_RETRY, msg)
 }
 
 // Keeps the log from getting too long/big; deletes any rows older than

@@ -60,7 +60,7 @@ def findOpenRow(sheet_id, sheet_name, range):
 
     return len(values) + 1
   except Exception as e:
-    Logger.logErrorStdOut('findOpenRow():', e)
+    Logger.logErrorRetryStdOut('findOpenRow(): ' + str(e))
     time.sleep(WAIT_TIME)
     return findOpenRow(sheet_id, sheet_name, range)
 

@@ -34,7 +34,7 @@ func FindOpenRow(sheet_id, sheet_name, rng string) int {
 	rng = sheet_name + "!" + rng
 	resp, err := service.Spreadsheets.Values.Get(sheet_id, rng).Do()
 	if err != nil {
-		LogErrorStdOut("FindOpenRow(): service.Spreadsheets.Values.Get", err)
+		LogErrorRetryStdOut("FindOpenRow(): service.Spreadsheets.Values.Get  " + err.Error())
 		time.Sleep(WAIT_TIME * time.Second)
 		return FindOpenRow(sheet_id, sheet_name, rng)
 	}

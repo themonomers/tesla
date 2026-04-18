@@ -59,14 +59,33 @@ def logError(msg, error):
   log(ERROR, msg + ' ' + str(error))
 
 
+def logErrorRetry(msg):
+  log(ERROR_RETRY, msg)
+
+
 ##
 # Log errors to standard output.
 #
 # author: mjhwa@yahoo.com
 ##
-def logErrorStdOut(msg, e):
-  print('[ERROR] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' ' + msg + ' ' + str(e))
+def logStdOut(level, msg):
+  print('[' + level + '] ' + datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ' ' + msg)
+
+  if level == ERROR:
+    exit(1)
 
 
-def logErrorRetry(msg):
-  log(ERROR_RETRY, msg)
+def logInfoStdOut(msg):
+  logStdOut(INFO, msg)
+
+
+def logWarnStdOut(msg):
+  logStdOut(WARN, msg)
+
+
+def logErrorStdOut(msg, error):
+  logStdOut(ERROR, msg + ' ' + str(error))
+
+
+def logErrorRetryStdOut(msg):
+  logStdOut(ERROR_RETRY, msg)
