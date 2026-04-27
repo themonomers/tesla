@@ -13,8 +13,10 @@ func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		// vehicle
-		case "-setchargingtime":
+		case "-notify":
 			vehicle.NotifyIsTeslaPluggedIn()
+		case "-earliest":
+			vehicle.ChargeEarliest()
 		case "-writevehicletelemetry":
 			vehicle.WriteVehicleTelemetry()
 		case "-preconditionm3start":

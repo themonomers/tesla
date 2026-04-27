@@ -1,11 +1,12 @@
 import time
+import getopt, sys
 
-from TeslaVehicleAPI import getVehicleData, addChargeSchedule, removeChargeSchedule, stopChargeVehicle
+from TeslaVehicleAPI import getVehicleData, addChargeSchedule, removeChargeSchedule, startChargeVehicle, stopChargeVehicle
 from GoogleAPI import getGoogleSheetService
 from Email import sendEmail
 from Climate import setM3Precondition, setMXPrecondition
 from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime, getConfig, deleteCronTab, createCronTab
-from Logger import logError, logErrorRetry
+from Logger import logInfo, logError, logErrorRetry, logErrorStdOut
 from datetime import timedelta, datetime
 from collections import namedtuple
 
@@ -20,6 +21,7 @@ MX_FULL_CHARGE_RATE_AT_PRIMARY = 25  # (mi/hr)
 M3_FULL_CHARGE_RATE_AT_PRIMARY = 37  # (mi/hr)
 MX_FULL_CHARGE_RATE_AT_SECONDARY = 20  # (mi/hr)
 M3_FULL_CHARGE_RATE_AT_SECONDARY = 30  # (mi/hr)
+EARLIEST_CHARGING_START_TIME = '00:00'
 WAIT_TIME = 30 
 
 
@@ -118,6 +120,106 @@ def scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish
 
 
 ##
+# Schedule charging based on earliest time for off-peak rates.
+#
+# author: mjhwa@yahoo.com
+##
+def scheduleEarliestCharging(data, vin): 
+  try:
+    if (data['response']['charge_state']['charging_state'] != 'Complete' and 
+      isVehicleAtPrimary(data) == True):
+      start_time = getTomorrowTime(EARLIEST_CHARGING_START_TIME)
+      total_minutes = (start_time.hour * 60) + start_time.minute
+
+      # Remove any previous scheduled charging by this program, temporarily set to
+      # id=1, until I can figure out how to view the list of charge schedules and
+      # their corresponding ID's.
+      removeChargeSchedule(vin, 1)
+      addChargeSchedule(vin, data['response']['drive_state']['latitude'], data['response']['drive_state']['longitude'], total_minutes, 1)
+      stopChargeVehicle(vin) # for some reason charging starts sometimes after scheduled charging API is called
+
+      scheduleBackupCharging(vin, data, start_time + timedelta(minutes = 10))
+
+      return start_time
+    else:
+      return None
+  except Exception as e:
+    logErrorStdOut('scheduleEarliestCharging():', e)
+
+
+##
+# Additional scheduled charging check run on crontab.  If it failed to start, this
+# will attempt to start it at the target time.
+#
+# author: mjhwa@yahoo.com
+def chargeCheck(vin):
+  try:
+    data = getVehicleData(vin)
+
+    if (isVehicleAtPrimary(data) and 
+        (data['response']['charge_state']['charging_state'] != 'Charging')):
+      logInfo('chargeCheck(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
+      startChargeVehicle(vin)
+  except Exception as e:
+    logError('chargeCheck(' + vin + '):', e)
+
+
+##
+# Schedule vehicle charging based on start time.  Assumes
+# the crontab scheduled charging based on finish time has 
+# already run and preconditioning does not need to be set 
+# again.
+#
+# author: mjhwa@yahoo.com
+##
+def chargeEarliest():
+  try:
+    # get all vehicle data to avoid repeat API calls
+    m3_data = getVehicleData(M3_VIN)
+    mx_data = getVehicleData(MX_VIN)
+
+    finish_times = calculateFinishTime(m3_data, mx_data)
+    m3_finish_time = finish_times['m3_finish_time']
+    mx_finish_time = finish_times['mx_finish_time']
+
+    print('Charging at earliest off-peak time')
+    print('==================================')
+    print('Start time:  12:00 AM')
+    print('Model 3 estimated finish time:  ' + m3_finish_time.strftime('%B %d, %Y %H:%M'))
+    print('Model X estimated finish time:  ' + mx_finish_time.strftime('%B %d, %Y %H:%M'))
+    confirm = input('\nDo you want to override scheduled departure to scheduled start at earliest off-peak time (y/N)?: ')
+    if confirm == 'y':
+      # set cars for scheduled charging at the earliest off-peak time
+      m3_start_time = scheduleEarliestCharging(m3_data, M3_VIN)
+      mx_start_time = scheduleEarliestCharging(mx_data, MX_VIN)
+
+      confirm = input('\nDo you want email confirmation (y/N])?: ')
+      if confirm == 'y':
+        sendScheduledChargeMessage('Model 3',
+                                  m3_data,
+                                  m3_start_time,
+                                  m3_finish_time,
+                                  None,
+                                  EMAIL_1,
+                                  '',
+                                  '')
+        sendScheduledChargeMessage('Model X',
+                                  mx_data,
+                                  mx_start_time,
+                                  mx_finish_time,
+                                  None,
+                                  EMAIL_1,
+                                  '',
+                                '')
+      else:
+        print('\nNo email confirmation')
+    else:
+      print('\nScheduled start canceled')
+  except Exception as e:
+    logErrorStdOut('chargeEarliest():', e)
+
+
+##
 # Create a crontab to check if scheduled charging has started.
 #
 # author: mjhwa@yahoo.com
@@ -127,15 +229,15 @@ def scheduleBackupCharging(vin, data, start_time):
     if (isVehicleAtPrimary(data)):
       # create backup charging start crontab at target time tomorrow
       if (vin == M3_VIN):
-        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/ChargeCheckM3.py >> /home/pi/tesla/python/cron.log 2>&1')
-        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/ChargeCheckM3.py >> /home/pi/tesla/python/cron.log 2>&1', 
+        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Charge.py --check=m3 >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Charge.py --check=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
                       start_time.minute)
       elif (vin == MX_VIN):
-        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/ChargeCheckMX.py >> /home/pi/tesla/python/cron.log 2>&1')
-        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/ChargeCheckMX.py >> /home/pi/tesla/python/cron.log 2>&1', 
+        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Charge.py --check=mx >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Charge.py --check=mx >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
@@ -152,26 +254,9 @@ def scheduleBackupCharging(vin, data, start_time):
 ##
 def calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time, mx_target_finish_time):
   try:
-    # Calculate how many miles are needed for charging based on 
-    # current range and charging % target
-    mx_current_range = mx_data['response']['charge_state']['battery_range']
-    m3_current_range = m3_data['response']['charge_state']['battery_range']
-
-    mx_max_range = (   mx_data['response']['charge_state']['battery_range'] 
-                    / (mx_data['response']['charge_state']['battery_level'] / 100.0))
-    m3_max_range = (   m3_data['response']['charge_state']['battery_range'] 
-                    / (m3_data['response']['charge_state']['battery_level'] / 100.0))
-
-    mx_charge_limit = mx_data['response']['charge_state']['charge_limit_soc'] / 100.0
-    m3_charge_limit = m3_data['response']['charge_state']['charge_limit_soc'] / 100.0
-
-    mx_target_range = mx_max_range * mx_charge_limit
-    m3_target_range = m3_max_range * m3_charge_limit
-
-    mx_miles_needed = 0
-    if (mx_target_range - mx_current_range) > 0: mx_miles_needed = mx_target_range - mx_current_range
-    m3_miles_needed = 0
-    if (m3_target_range - m3_current_range) > 0: m3_miles_needed = m3_target_range - m3_current_range
+    miles_needed = calculateMilesNeeded(m3_data, mx_data)
+    mx_miles_needed = miles_needed['mx_miles_needed']
+    m3_miles_needed = miles_needed['m3_miles_needed']
 
     # Calculate scheduled charging time based on location of cars
     if ((scenario == 'mx_primary_shared_charging') or (scenario == 'm3_primary_shared_charging')):
@@ -355,6 +440,81 @@ def calculateScheduledCharging(scenario, m3_data, mx_data, m3_target_finish_time
     logError('calcuateScheduledCharging(' + scenario + '):', e)
 
 
+##
+# Calculates the finish time based on earlist off-peak start time.
+#
+# author: mjhwa@yahoo.com
+##
+def calculateFinishTime(m3_data, mx_data):
+  try:
+    miles_needed = calculateMilesNeeded(m3_data, mx_data)
+
+    # Calculate how long charging will take based on miles needed
+    mx_charging_time_at_full_rate = miles_needed['mx_miles_needed'] / MX_FULL_CHARGE_RATE_AT_PRIMARY
+    m3_charging_time_at_full_rate = miles_needed['m3_miles_needed'] / M3_FULL_CHARGE_RATE_AT_PRIMARY
+
+    leftover_time = 0
+    mx_charging_time = 0
+    m3_charging_time = 0 
+    if mx_charging_time_at_full_rate > m3_charging_time_at_full_rate:
+      leftover_time = mx_charging_time_at_full_rate - m3_charging_time_at_full_rate
+
+      mx_charging_time = (m3_charging_time_at_full_rate * 2) + leftover_time
+      m3_charging_time = m3_charging_time_at_full_rate * 2
+    elif mx_charging_time_at_full_rate < m3_charging_time_at_full_rate:
+      leftover_time = m3_charging_time_at_full_rate - mx_charging_time_at_full_rate
+
+      mx_charging_time = mx_charging_time_at_full_rate * 2
+      m3_charging_time = (mx_charging_time_at_full_rate * 2) + leftover_time
+
+    mx_finish_time = getTomorrowTime(EARLIEST_CHARGING_START_TIME) + timedelta(hours = mx_charging_time)
+    m3_finish_time = getTomorrowTime(EARLIEST_CHARGING_START_TIME) + timedelta(hours = m3_charging_time)
+
+    finish_times = {
+        "mx_finish_time": mx_finish_time,
+        "m3_finish_time": m3_finish_time
+    }
+    return finish_times
+  except Exception as e:
+    logErrorStdOut('calculateFinishTime():', e)
+
+
+##
+# Calculate how many miles are needed for charging based on 
+# current range and charging % target.
+#
+# author: mjhwa@yahoo.com
+##
+def calculateMilesNeeded(m3_data, mx_data):
+  try:
+    mx_current_range = mx_data['response']['charge_state']['battery_range']
+    m3_current_range = m3_data['response']['charge_state']['battery_range']
+
+    mx_max_range = (   mx_data['response']['charge_state']['battery_range'] 
+                    / (mx_data['response']['charge_state']['battery_level'] / 100.0))
+    m3_max_range = (   m3_data['response']['charge_state']['battery_range'] 
+                    / (m3_data['response']['charge_state']['battery_level'] / 100.0))
+
+    mx_charge_limit = mx_data['response']['charge_state']['charge_limit_soc'] / 100.0
+    m3_charge_limit = m3_data['response']['charge_state']['charge_limit_soc'] / 100.0
+
+    mx_target_range = mx_max_range * mx_charge_limit
+    m3_target_range = m3_max_range * m3_charge_limit
+
+    mx_miles_needed = 0
+    if (mx_target_range - mx_current_range) > 0: mx_miles_needed = mx_target_range - mx_current_range
+    m3_miles_needed = 0
+    if (m3_target_range - m3_current_range) > 0: m3_miles_needed = m3_target_range - m3_current_range
+
+    miles_needed = {
+        "mx_miles_needed": mx_miles_needed,
+        "m3_miles_needed": m3_miles_needed
+    }
+    return miles_needed
+  except Exception as e:
+    logError('calculateMilesNeeded():', e)
+
+
 def sendPluggedInMessage(vehicle, battery_level, battery_range, charge_port_door_open, notify, to, cc, bcc):
   # check if email notification is set to "on" first 
   if (notify == 'on'):
@@ -514,9 +674,43 @@ def notifyIsTeslaPluggedIn():
     logError('notifyIsTeslaPluggedIn():', e)
 
 
+def printHelp():
+  print('Usage: python Charge.py [OPTION...]')
+  print('')
+  print('--help                 prints the usage and options')
+  print('--notify               checks if vehicles are plugged in, ')
+  print('                         schedules charging and preconditioning')
+  print('--check=m3|mx          backup charging for each vehicle')
+  print('--earliest             schedule charging at 12:00 AM')
+
+
 def main():
-  notifyIsTeslaPluggedIn()
+  args = sys.argv[1:]
+  options = ''
+  long_options = ['help', 'notify', 'check=', 'earliest']
+
+  try:
+    arguments, values = getopt.getopt(args, options, long_options)
+
+    if len(arguments) < 1: printHelp()
+
+    for currentArg, currentVal in arguments:
+      if currentArg in ('--help'):
+        printHelp()
+      elif currentArg in ('--notify'):
+        notifyIsTeslaPluggedIn()
+      elif currentArg in ('--check'):
+        if currentVal == 'm3':
+          chargeCheck(M3_VIN)
+        elif currentVal == 'mx':
+          chargeCheck(MX_VIN)
+        else:
+          printHelp()
+      elif currentArg in ('--earliest'):
+        chargeEarliest()
+  except getopt.error as e:
+    printHelp()
+
 
 if __name__ == "__main__":
   main()
-

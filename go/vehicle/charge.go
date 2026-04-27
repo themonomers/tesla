@@ -1,8 +1,12 @@
 package vehicle
 
 import (
+	"bufio"
+	"fmt"
 	"math"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/themonomers/tesla/go/common"
@@ -23,6 +27,7 @@ var MX_FULL_CHARGE_RATE_AT_PRIMARY float64 = 25   // (mi/hr)
 var M3_FULL_CHARGE_RATE_AT_PRIMARY float64 = 37   // (mi/hr)
 var MX_FULL_CHARGE_RATE_AT_SECONDARY float64 = 20 // (mi/hr)
 var M3_FULL_CHARGE_RATE_AT_SECONDARY float64 = 30 // (mi/hr)
+var EARLIEST_CHARGING_START_TIME string = "00:00"
 
 func init() {
 	var err error
@@ -136,6 +141,62 @@ func NotifyIsTeslaPluggedIn() {
 		"")
 }
 
+// Schedule vehicle charging based on start time.  Assumes
+// the crontab scheduled charging based on finish time has
+// already run and preconditioning does not need to be set
+// again.
+func ChargeEarliest() {
+	// get all vehicle data to avoid repeat API calls
+	m3_data := GetVehicleData(M3_VIN)
+	mx_data := GetVehicleData(MX_VIN)
+
+	finish_times := calculateFinishTime(m3_data, mx_data)
+	m3_finish_time := finish_times["m3_finish_time"]
+	mx_finish_time := finish_times["mx_finish_time"]
+
+	fmt.Println("Charging at earliest off-peak time")
+	fmt.Println("==================================")
+	fmt.Println("Start time:  12:00 AM")
+	fmt.Println("Model 3 estimated finish time:  " + m3_finish_time.Format("January 2, 2006 15:04"))
+	fmt.Println("Model X estimated finish time:  " + mx_finish_time.Format("January 2, 2006 15:04"))
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("\nDo you want to override scheduled departure to scheduled start at earliest off-peak time (y/N])?: ")
+	confirm, err := reader.ReadString('\n')
+	common.LogErrorStdOut("Error reading input", err)
+	confirm = strings.TrimSuffix(confirm, "\n")
+	if confirm == "y" {
+		// set cars for scheduled charging at the earliest off-peak time
+		m3_start_time := scheduleEarliestCharging(m3_data, M3_VIN)
+		mx_start_time := scheduleEarliestCharging(mx_data, MX_VIN)
+
+		fmt.Println("\nDo you want email confirmation (y/N])?: ")
+		confirm, err = reader.ReadString('\n')
+		common.LogErrorStdOut("Error reading input", err)
+		confirm = strings.TrimSuffix(confirm, "\n")
+		if confirm == "y" {
+			sendScheduledChargeMessage("Model 3",
+				m3_data,
+				m3_start_time,
+				m3_finish_time,
+				time.Time{},
+				EMAIL_1,
+				"")
+			sendScheduledChargeMessage("Model X",
+				mx_data,
+				mx_start_time,
+				mx_finish_time,
+				time.Time{},
+				EMAIL_1,
+				"")
+		} else {
+			fmt.Println("No email confirmation")
+		}
+	} else {
+		fmt.Println("Scheduled start canceled")
+	}
+}
+
 // Called by a crontab to read vehicle range and expected charge
 // finish time from a Google Sheet, then call the API to set a time
 // for scheduled charging in the vehicle.
@@ -232,6 +293,50 @@ func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_targe
 	}
 }
 
+// Schedule charging based on earliest time for off-peak rates.
+func scheduleEarliestCharging(data map[string]any, vin string) time.Time {
+	var start_time time.Time
+
+	if data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" &&
+		common.IsVehicleAtPrimary(data) {
+		start_time = common.GetTomorrowTime(EARLIEST_CHARGING_START_TIME)
+		total_minutes := (start_time.Hour() * 60) + start_time.Minute()
+
+		// Remove any previous scheduled charging by this program, temporarily set to
+		// id=1, until I can figure out how to view the list of charge schedules and
+		// their corresponding ID's.
+		RemoveChargeSchedule(vin, 1)
+		AddChargeSchedule(vin, data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
+		StopChargeVehicle(vin) // for some reason charging starts sometimes after scheduled charging API is called
+
+		scheduleBackupCharging(vin, data, start_time.Add(10*time.Minute))
+
+		return start_time
+	} else {
+		return time.Time{}
+	}
+}
+
+// Additional scheduled charging check run on crontab.  If it failed to start, this
+// will attempt to start it at the target time.
+func ChargeCheckM3() {
+	chargeCheck(M3_VIN)
+}
+
+func ChargeCheckMX() {
+	chargeCheck(MX_VIN)
+}
+
+func chargeCheck(vin string) {
+	data := GetVehicleData(vin)
+
+	if common.IsVehicleAtPrimary(data) &&
+		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Charging" {
+		common.LogInfo("chargeCheck(" + vin + "): Scheduled charging failed to start.  Starting backup charging.")
+		StartChargeVehicle(vin)
+	}
+}
+
 // Create a crontab to check if scheduled charging has started.
 func scheduleBackupCharging(vin string, data map[string]any, start_time time.Time) {
 	if common.IsVehicleAtPrimary(data) {
@@ -261,30 +366,9 @@ func calculateScheduledCharging(scenario string, m3_data map[string]any, mx_data
 	var m3_start_time time.Time
 	var mx_start_time time.Time
 
-	// Calculate how many miles are needed for charging based on
-	// current range and charging % target
-	mx_current_range := mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
-	m3_current_range := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
-
-	mx_max_range := (mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64) /
-		(mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) / 100.0))
-	m3_max_range := (m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64) /
-		(m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) / 100.0))
-
-	mx_charge_limit := mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64) / 100.0
-	m3_charge_limit := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64) / 100.0
-
-	mx_target_range := mx_max_range * mx_charge_limit
-	m3_target_range := m3_max_range * m3_charge_limit
-
-	mx_miles_needed := 0.0
-	if (mx_target_range - mx_current_range) > 0 {
-		mx_miles_needed = mx_target_range - mx_current_range
-	}
-	m3_miles_needed := 0.0
-	if (m3_target_range - m3_current_range) > 0 {
-		m3_miles_needed = m3_target_range - m3_current_range
-	}
+	miles_needed := calculateMilesNeeded(m3_data, mx_data)
+	mx_miles_needed := miles_needed["mx_miles_needed"]
+	m3_miles_needed := miles_needed["m3_miles_needed"]
 
 	// Calculate scheduled charging time based on location of cars
 	switch scenario {
@@ -498,6 +582,67 @@ func earliestTime(t1, t2 time.Time) time.Time {
 		return t1
 	}
 	return t2
+}
+
+// Calculates the finish time based on earlist off-peak start time.
+func calculateFinishTime(m3_data, mx_data map[string]any) map[string]time.Time {
+	miles_needed := calculateMilesNeeded(m3_data, mx_data)
+
+	// Calculate how long charging will take based on miles needed
+	mx_charging_time_at_full_rate := miles_needed["mx_miles_needed"] / MX_FULL_CHARGE_RATE_AT_PRIMARY
+	m3_charging_time_at_full_rate := miles_needed["m3_miles_needed"] / M3_FULL_CHARGE_RATE_AT_PRIMARY
+
+	leftover_time := 0.00
+	mx_charging_time := 0.00
+	m3_charging_time := 0.00
+
+	if mx_charging_time_at_full_rate > m3_charging_time_at_full_rate {
+		leftover_time = mx_charging_time_at_full_rate - m3_charging_time_at_full_rate
+
+		mx_charging_time = (m3_charging_time_at_full_rate * 2) + leftover_time
+		m3_charging_time = m3_charging_time_at_full_rate * 2
+	} else if mx_charging_time_at_full_rate < m3_charging_time_at_full_rate {
+		leftover_time = m3_charging_time_at_full_rate - mx_charging_time_at_full_rate
+
+		mx_charging_time = mx_charging_time_at_full_rate * 2
+		m3_charging_time = (mx_charging_time_at_full_rate * 2) + leftover_time
+	}
+
+	mx_finish_time := common.GetTomorrowTime(EARLIEST_CHARGING_START_TIME).Add(time.Duration(mx_charging_time * float64(time.Hour)))
+	m3_finish_time := common.GetTomorrowTime(EARLIEST_CHARGING_START_TIME).Add(time.Duration(m3_charging_time * float64(time.Hour)))
+
+	finish_times := map[string]time.Time{"mx_finish_time": mx_finish_time, "m3_finish_time": m3_finish_time}
+	return finish_times
+}
+
+// Calculate how many miles are needed for charging based on
+// current range and charging % target
+func calculateMilesNeeded(m3_data, mx_data map[string]any) map[string]float64 {
+	mx_current_range := mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
+	m3_current_range := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64)
+
+	mx_max_range := (mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64) /
+		(mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) / 100.0))
+	m3_max_range := (m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_range"].(float64) /
+		(m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) / 100.0))
+
+	mx_charge_limit := mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64) / 100.0
+	m3_charge_limit := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64) / 100.0
+
+	mx_target_range := mx_max_range * mx_charge_limit
+	m3_target_range := m3_max_range * m3_charge_limit
+
+	mx_miles_needed := 0.00
+	if (mx_target_range - mx_current_range) > 0 {
+		mx_miles_needed = mx_target_range - mx_current_range
+	}
+	m3_miles_needed := 0.00
+	if (m3_target_range - m3_current_range) > 0 {
+		m3_miles_needed = m3_target_range - m3_current_range
+	}
+
+	miles_needed := map[string]float64{"mx_miles_needed": mx_miles_needed, "m3_miles_needed": m3_miles_needed}
+	return miles_needed
 }
 
 func sendScheduledChargeMessage(vehicle string, data map[string]any, charge_start_time time.Time, finish_time time.Time, climate_start_time time.Time, to string, cc string) {

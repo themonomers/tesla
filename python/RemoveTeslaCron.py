@@ -10,24 +10,24 @@ from crontab import CronTab
 ##
 def main():
   cron = CronTab(user='pi')
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/PreconditionM3Start.py >> /home/pi/tesla/python/cron.log 2>&1')
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1')
   cron.remove(job)
   cron.write()
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/PreconditionM3Stop.py >> /home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
-
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/PreconditionMXStart.py >> /home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/PreconditionMXStop.py >> /home/pi/tesla/python/cron.log 2>&1')
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --stop=m3 >> /home/pi/tesla/python/cron.log 2>&1')
   cron.remove(job)
   cron.write()
 
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/ChargeCheckM3.py >> /home/pi/tesla/python/cron.log 2>&1')
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1')
   cron.remove(job)
   cron.write()
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/ChargeCheckMX.py >> /home/pi/tesla/python/cron.log 2>&1')
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --stop=mx >> /home/pi/tesla/python/cron.log 2>&1')
+  cron.remove(job)
+  cron.write()
+
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Charge.py --check=m3 >> /home/pi/tesla/python/cron.log 2>&1')
+  cron.remove(job)
+  cron.write()
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Charge.py --check=mx >> /home/pi/tesla/python/cron.log 2>&1')
   cron.remove(job)
   cron.write()
 
