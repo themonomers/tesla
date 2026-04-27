@@ -68,7 +68,8 @@ func main() {
 func printUsage() {
 	fmt.Println("Usage:  ")
 	fmt.Println("\n## Vehicle ##") // vehicle
-	fmt.Println("-setchargingtime")
+	fmt.Println("-notify")
+	fmt.Println("-earliest")
 	fmt.Println("-writevehicletelemetry")
 	fmt.Println("-preconditionm3start")
 	fmt.Println("-preconditionmxstart")
