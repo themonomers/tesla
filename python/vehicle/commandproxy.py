@@ -4,8 +4,8 @@ import time
 import urllib.parse
 import urllib3
 
-from Logger import logError
-from Utilities import printJson, getToken, getConfig
+from common.utilities import printJson, getToken, getConfig
+from common.logger import logError
 
 ACCESS_TOKEN = getToken()['tesla']['access_token']
 config = getConfig()

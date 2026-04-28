@@ -1,9 +1,9 @@
 import getopt, sys
 
-from TeslaVehicleAPI import getVehicleData, setCarTemp, setCarSeatHeating, setCarSeatCooling, preconditionCarStart, preconditionCarStop
-from GoogleAPI import getGoogleSheetService
-from Utilities import deleteCronTab, createCronTab, isVehicleAtPrimary, getTodayTime, getCurrentWeather, getConfig
-from Logger import logError
+from vehicle.api import getVehicleData, setCarTemp, setCarSeatHeating, setCarSeatCooling, preconditionCarStart, preconditionCarStop
+from common.googleutil import getGoogleSheetService
+from common.utilities import deleteCronTab, createCronTab, isVehicleAtPrimary, getTodayTime, getCurrentWeather, getConfig
+from common.logger import logError
 from datetime import datetime
 
 config = getConfig()
@@ -36,8 +36,8 @@ def setM3Precondition(data, eco_mode, start_time):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
         # create precondition start crontab at preferred time tomorrow
-        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1')
-        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
+        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
@@ -57,8 +57,8 @@ def setMXPrecondition(data, eco_mode, start_time):
       # check if the car is with 0.25 miles of the primary location
       if (isVehicleAtPrimary(data)):
         # create precondition start crontab at preferred time tomorrow
-        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1')
-        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1', 
+        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
@@ -176,9 +176,9 @@ def preconditionM3Start():
         setCarSeatCooling(M3_VIN, int(index), int(item)) if mode == 'cool' else setCarSeatHeating(M3_VIN, int(index), int(item))
 
       # create crontab to stop preconditioning at preferred time later in the day
-      deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --stop=m3 >> /home/pi/tesla/python/cron.log 2>&1')
+      deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> /home/pi/tesla/python/cron.log 2>&1')
       createCronTab(
-        '/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --stop=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
+        '/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
         stop_time.month, 
         stop_time.day, 
         stop_time.hour, 
@@ -266,9 +266,9 @@ def preconditionMXStart():
         setCarSeatHeating(MX_VIN, int(index), int(item))
       
       # create crontab to stop preconditioning at preferred time later in the day
-      deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --stop=mx >> /home/pi/tesla/python/cron.log 2>&1')
+      deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=mx >> /home/pi/tesla/python/cron.log 2>&1')
       createCronTab(
-        '/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Climate.py --stop=mx >> /home/pi/tesla/python/cron.log 2>&1', 
+        '/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=mx >> /home/pi/tesla/python/cron.log 2>&1', 
         stop_time.month, 
         stop_time.day, 
         stop_time.hour, 
@@ -305,7 +305,7 @@ def preconditionStop(vin):
 
 
 def printHelp():
-  print('Usage: python Climate.py [OPTION...]')
+  print('Usage: python climate.py [OPTION...]')
   print('')
   print('--help                 prints the usage and options')
   print('--start=m3|mx          starts preconditioning for a vehicle')

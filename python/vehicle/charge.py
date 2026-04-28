@@ -1,12 +1,12 @@
 import time
 import getopt, sys
 
-from TeslaVehicleAPI import getVehicleData, addChargeSchedule, removeChargeSchedule, startChargeVehicle, stopChargeVehicle
-from GoogleAPI import getGoogleSheetService
-from Email import sendEmail
-from Climate import setM3Precondition, setMXPrecondition
-from Utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime, getConfig, deleteCronTab, createCronTab
-from Logger import logInfo, logError, logErrorRetry, logErrorStdOut
+from vehicle.api import getVehicleData, addChargeSchedule, removeChargeSchedule, startChargeVehicle, stopChargeVehicle
+from vehicle.climate import setM3Precondition, setMXPrecondition
+from common.googleutil import getGoogleSheetService
+from common.emailutil import sendEmail
+from common.utilities import isVehicleAtPrimary, isVehicleAtSecondary, getTomorrowTime, getConfig, deleteCronTab, createCronTab
+from common.logger import logInfo, logError, logErrorRetry, logErrorStdOut
 from datetime import timedelta, datetime
 from collections import namedtuple
 
@@ -229,15 +229,15 @@ def scheduleBackupCharging(vin, data, start_time):
     if (isVehicleAtPrimary(data)):
       # create backup charging start crontab at target time tomorrow
       if (vin == M3_VIN):
-        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Charge.py --check=m3 >> /home/pi/tesla/python/cron.log 2>&1')
-        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Charge.py --check=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
+        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
                       start_time.minute)
       elif (vin == MX_VIN):
-        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Charge.py --check=mx >> /home/pi/tesla/python/cron.log 2>&1')
-        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/Charge.py --check=mx >> /home/pi/tesla/python/cron.log 2>&1', 
+        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> /home/pi/tesla/python/cron.log 2>&1')
+        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> /home/pi/tesla/python/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
@@ -675,7 +675,7 @@ def notifyIsTeslaPluggedIn():
 
 
 def printHelp():
-  print('Usage: python Charge.py [OPTION...]')
+  print('Usage: python charge.py [OPTION...]')
   print('')
   print('--help                 prints the usage and options')
   print('--notify               checks if vehicles are plugged in, ')

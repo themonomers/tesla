@@ -1,6 +1,7 @@
 *.pyc
 *.json
 *.xor
+*_test*
 *Test*
 *.log
 *.pem

@@ -1,5 +1,5 @@
-from Utilities import getConfig
-from Logger import logError
+from common.utilities import getConfig
+from common.logger import logError
 from influxdb import InfluxDBClient
 
 config = getConfig()

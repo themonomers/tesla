@@ -7,7 +7,7 @@ import configparser
 import os
 import time
 
-from Crypto import decrypt
+from common.crypto import decrypt
 from crontab import CronTab
 from datetime import datetime, timedelta
 from io import StringIO
@@ -42,7 +42,7 @@ def getConfig():
     buffer.close()
     return values
   except Exception as e:
-    Logger.logErrorStdOut('getConfig():', e)
+    logger.logErrorStdOut('getConfig():', e)
 
 config = getConfig()
 PRIMARY_LAT = float(config['vehicle']['primary_lat'])
@@ -81,7 +81,7 @@ def getToken():
     buffer.close()
     return values
   except Exception as e:
-    Logger.logError('getToken():', e)
+    logger.logError('getToken():', e)
 
 
 ##
@@ -96,7 +96,7 @@ def deleteCronTab(command):
     cron.remove(job)
     cron.write()
   except Exception as e:
-    Logger.logError('deleteCronTab():', e)
+    logger.logError('deleteCronTab():', e)
 
 
 ##
@@ -114,7 +114,7 @@ def createCronTab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    Logger.logError('createCronTab():', e)
+    logger.logError('createCronTab():', e)
 
 
 ##
@@ -148,7 +148,7 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    Logger.logWarn('isVehicleAtLocation():' + str(e))
+    logger.logWarn('isVehicleAtLocation():' + str(e))
     return False
 
 
@@ -166,7 +166,8 @@ def getDistance(car_lat, car_lng, x_lat, x_lng):
     
     return d
   except Exception as e:
-    Logger.logError('getDistance():', e)
+    logger.logError('getDistance():', e)
+
 
 def toRad(x):
   return x * math.pi/180
@@ -189,7 +190,7 @@ def getTomorrowTime(time):
       + time, '%Y-%m-%dT%H:%M'
     ).replace(tzinfo=PAC)
   except Exception as e:
-    Logger.logError('getTomorrowTime():', e)
+    logger.logError('getTomorrowTime():', e)
 
 
 def getTodayTime(time):
@@ -204,7 +205,7 @@ def getTodayTime(time):
       + time, '%Y-%m-%dT%H:%M'
     ).replace(tzinfo=PAC)
   except Exception as e:
-    Logger.logError('getTodayTime():', e)
+    logger.logError('getTodayTime():', e)
 
 
 ##
@@ -231,7 +232,7 @@ def getCurrentWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    Logger.logError('getCurrentWeather():', e)
+    logger.logError('getCurrentWeather():', e)
     
 
 ##
@@ -259,7 +260,7 @@ def getDailyWeather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    Logger.logError('getDailyWeather():', e)
+    logger.logError('getDailyWeather():', e)
 
 
 ##
@@ -361,4 +362,5 @@ def main():
 if __name__ == "__main__":
   main()
 
-import Logger
+
+import common.logger as logger

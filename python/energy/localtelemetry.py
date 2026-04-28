@@ -6,10 +6,10 @@ import zoneinfo
 import urllib3
 import time
 
-from Crypto import encrypt, decrypt
-from Influxdb import getDBClient
-from Logger import logError
-from Utilities import getConfig
+from common.crypto import encrypt, decrypt
+from common.utilities import getConfig
+from common.influxdb import getDBClient
+from common.logger import logError
 from datetime import datetime
 from io import StringIO
 
@@ -34,7 +34,7 @@ def getLocalConfig():
         ),
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          'tesla_private_key.pem'
+          '../common/tesla_private_key.pem'
         )
       )
     )
@@ -287,7 +287,7 @@ def authLocalToken():
       ),
       os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        'tesla_private_key.pem'
+        '../common/tesla_private_key.pem'
       )
     )
   except Exception as e:
@@ -319,7 +319,7 @@ def getLocalToken():
         ),
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          'tesla_private_key.pem'
+          '../common/tesla_private_key.pem'
         )
       )
     )

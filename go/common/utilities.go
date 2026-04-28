@@ -51,20 +51,20 @@ func init() {
 
 // Retrieves dictionary of configuration values.
 func GetConfig() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/config.xor")
+	return getConfigFile("/home/pi/tesla/python/common/config.xor")
 }
 
 func GetLocalEnergyConfig() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/local_config.xor")
+	return getConfigFile("/home/pi/tesla/python/energy/local_config.xor")
 }
 
 // Retrievies dictionary of access token values.
 func GetToken() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/token.xor")
+	return getConfigFile("/home/pi/tesla/python/common/token.xor")
 }
 
 func GetLocalEnergyToken() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/local_token.xor")
+	return getConfigFile("/home/pi/tesla/python/energy/local_token.xor")
 }
 
 // Golang ini configuration loader from a filename.

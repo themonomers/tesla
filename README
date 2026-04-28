@@ -8,36 +8,29 @@ Before running the modified tesla-http-proxy, you need to follow instructions to
 /python
 Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB. 
 
-1.  Core functions:
-      TeslaEnergyAPI.py - API calls for Tesla Energy products
-      TeslaVehicleAPI.py - API calls for Tesla Vehicles (Pre-2021 Model X and S)
-      TeslaVehicleCommandProxy.py - API calls to modified tesla-http-proxy running on localhost 
-      TeslaToken.py - API call for the Tesla authentication flow to retrieve new access and refresh tokens
-      TeslaRefreshToken.py - API call to refresh new access and refresh tokens
-      GoogleAPI.py - API calls for Google products and services
-      Influxdb.py - Access to InfluxDB
+/common
+      crypto.py - Encryption and decryption functions for sensitve files
+      emailutil.py - Service to send and truncate emails
+      googleutil.py - API calls for Google services and utilities
+      influxdb.py - Access to InfluxDB
+      logger.py - Central logging service 
+      tokenutil.py - API call for the Tesla authentication flow to retrieve new access and refresh tokens, check expiration and refresh if needed
+      utilities.py - Commonly used and helpful tools
 
-2.  Utility functions:
-      Utilities.py - Commonly used and helpful tools
-      Email.py - Service to send emails
-      Logger.py - Central logging service 
-      Crypto.py - Encryption and decryption functions for sensitve files
-      TeslaTokenExpiration.py - Retrieves new Tesla tokens based on expiration date/time
-      RemoveTeslaCron.py - Cleans up crontabs that are meant to exist for each specific day
-      TruncateEmail.py - Helper function to keep email sent folder from growing
-      TruncateLog.py - Helper function to keep central logging from growing
+/energy
+      api.py - API calls for Tesla Energy products
+      import.py - Imports data manually when automated processes fail
+      localtelemetry.py - Option to write real time energy data using Tesla Gateway API
+      mode.py - Customizes energy site behavior based on weather
+      telemetry.py - Writes all energy data from previous day for Grafana
 
-3.  Energy functions:
-      EnergyImport.py - Imports data manually when automated processes fail
-      EnergyTelemetry.py - Writes all energy data from previous day for Grafana
-      EnergyLiveTelemetry.py - Option to write real time energy data for Grafana using Tesla API
-      EnergyLocalLiveTelemetry.py - Option to write real time energy data using Tesla Gateway API
-      EnergyMode.py - Customizes energy site behavior based on weather
-
-4.  Vehicle functions:
-      Charge.py - Calculates and sets charging times to complete at a departure time for 2 EV's
-      Climate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
-      VehicleTelemetry.py - Write all vehicle data from previous day in Google Sheet
+/vehicle
+      api.py - API calls for Tesla Vehicles (Pre-2021 Model X and S)
+      charge.py - Calculates and sets charging times to complete at a departure time for 2 EV's
+      climate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
+      commandproxy.py - API calls to modified tesla-http-proxy running on localhost 
+      removecron.py - Cleans up crontabs that are meant to exist for each specific day
+      telemetry.py - Write all vehicle data from previous day in Google Sheet
 
 Vehicle functions read/write to a Google Sheet like this example:  https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing
 

@@ -1,8 +1,8 @@
 import requests
-import TeslaVehicleCommandProxy
+import vehicle.commandproxy as commandproxy
 
-from Logger import logError
-from Utilities import printJson, getToken, getConfig
+from common.utilities import printJson, getToken, getConfig
+from common.logger import logError
 
 ACCESS_TOKEN = getToken()['tesla']['access_token']
 config = getConfig()
@@ -20,10 +20,10 @@ BASE_OWNER_URL = config['tesla']['base_owner_url']
 def getVehicleId(vin):
   try:
     if vin == M3_VIN:
-      data = TeslaVehicleCommandProxy.getVehicleData(M3_VIN)
+      data = commandproxy.getVehicleData(M3_VIN)
 
     if vin == MX_VIN:
-      data = TeslaVehicleCommandProxy.getVehicleData(MX_VIN)
+      data = commandproxy.getVehicleData(MX_VIN)
 
     return data['response']['id_s']
   except Exception as e:
@@ -38,7 +38,7 @@ def getVehicleId(vin):
 ##
 def getVehicleData(vin):
   try:
-    return TeslaVehicleCommandProxy.getVehicleData(vin)
+    return commandproxy.getVehicleData(vin)
   except Exception as e:
     logError('getVehicleData(' + vin + '):', e)
 
@@ -51,7 +51,7 @@ def getVehicleData(vin):
 ##
 def wakeVehicle(vin):
   try:
-    return TeslaVehicleCommandProxy.wakeVehicle(vin)
+    return commandproxy.wakeVehicle(vin)
   except Exception as e:
     logError('wakeVehicle(' + vin + '):', e)
 
@@ -64,7 +64,7 @@ def wakeVehicle(vin):
 def startChargeVehicle(vin):
   try:
     if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.startChargeVehicle(vin)
+      return commandproxy.startChargeVehicle(vin)
     
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -87,7 +87,7 @@ def startChargeVehicle(vin):
 def stopChargeVehicle(vin):
   try:
     if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.stopChargeVehicle(vin)
+      return commandproxy.stopChargeVehicle(vin)
   
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -112,7 +112,7 @@ def stopChargeVehicle(vin):
 def addChargeSchedule(vin, lat, lon, start_time, id):
   try:
     if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.addChargeSchedule(vin, lat, lon, start_time, id)
+      return commandproxy.addChargeSchedule(vin, lat, lon, start_time, id)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -148,7 +148,7 @@ def addChargeSchedule(vin, lat, lon, start_time, id):
 def removeChargeSchedule(vin, id):
   try:
     if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.removeChargeSchedule(vin, id)
+      return commandproxy.removeChargeSchedule(vin, id)
     
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -181,7 +181,7 @@ def removeChargeSchedule(vin, id):
 def setScheduledCharging(vin, time):
   try:
     if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.setScheduledCharging(vin, time)
+      return commandproxy.setScheduledCharging(vin, time)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -279,7 +279,7 @@ def setChargingAmps(vin, amps):
 def setCarTemp(vin, d_temp, p_temp):
   try:
     if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.setCarTemp(vin, d_temp, p_temp)
+      return commandproxy.setCarTemp(vin, d_temp, p_temp)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -308,7 +308,7 @@ def setCarTemp(vin, d_temp, p_temp):
 def setCarSeatHeating(vin, seat, setting):
   try:
     if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.setCarSeatHeating(vin, seat, setting)
+      return commandproxy.setCarSeatHeating(vin, seat, setting)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -341,7 +341,7 @@ def setCarSeatHeating(vin, seat, setting):
 ##
 def setCarSeatCooling(vin, seat, setting):
   try:
-    return TeslaVehicleCommandProxy.setCarSeatCooling(vin, seat, setting)
+    return commandproxy.setCarSeatCooling(vin, seat, setting)
   except Exception as e:
     logError('setCarSeatCooling(' + vin + '):', e)
 
@@ -354,7 +354,7 @@ def setCarSeatCooling(vin, seat, setting):
 def preconditionCarStart(vin):
   try:  
     if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.preconditionCarStart(vin)
+      return commandproxy.preconditionCarStart(vin)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -377,7 +377,7 @@ def preconditionCarStart(vin):
 def preconditionCarStop(vin):
   try:
     if vin == M3_VIN:
-      return TeslaVehicleCommandProxy.preconditionCarStop(vin)
+      return commandproxy.preconditionCarStop(vin)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'

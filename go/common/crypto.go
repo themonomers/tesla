@@ -11,7 +11,7 @@ func Decrypt(read_fn string) []byte {
 	LogError("Decrypt(): os.ReadFile encrypted file", err)
 
 	// read key
-	key, err := os.ReadFile("/home/pi/tesla/python/tesla_private_key.pem")
+	key, err := os.ReadFile("/home/pi/tesla/python/common/tesla_private_key.pem")
 	LogError("Decrypt(): os.ReadFile key", err)
 
 	// decrypt with key

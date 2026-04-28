@@ -2,8 +2,8 @@ import requests
 import json
 import pytz
 
-from Logger import logError
-from Utilities import printJson, getConfig, getToken
+from common.utilities import printJson, getConfig, getToken
+from common.logger import logError
 from datetime import datetime
 
 ACCESS_TOKEN = getToken()['tesla']['access_token']
