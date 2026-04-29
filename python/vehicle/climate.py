@@ -308,8 +308,12 @@ def print_help():
   print('Usage: python climate.py [OPTION...]')
   print('')
   print('--help                 prints the usage and options')
-  print('--start=m3|mx          starts preconditioning for a vehicle')
-  print('--stop=m3|mx           stops preconditioning for a vehicle')
+  print('')
+  print('--start[=VEHICLE]      starts pre-conditioning for a vehicle;')
+  print('                       VEHICLE can be \'m3\' or \'mx\'')
+  print('')
+  print('--stop[=VEHICLE]       stops pre-conditioning for a vehicle;')
+  print('                       VEHICLE can be \'m3\' or \'mx\'')
 
 
 def main():
@@ -341,6 +345,7 @@ def main():
           print_help()
   except getopt.error as e:
     print_help()
+
 
 if __name__ == "__main__":
   main()

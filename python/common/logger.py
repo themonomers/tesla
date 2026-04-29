@@ -169,7 +169,9 @@ def print_help():
   print('Usage: python logger.py [OPTION...]')
   print('')
   print('--help                 prints the usage and options')
-  print('--truncate             deletes log entries older than a configured threshold')
+  print('')
+  print('--truncate             deletes log entries older than a configured ')
+  print('                       threshold')
 
 
 def main():

@@ -390,15 +390,10 @@ def write_mx_telemetry():
     log_error('write_mx_telemetry():', e)
 
 
-##
-# 
-#
-# author: mjhwa@yahoo.com
-##
 def main():
   write_m3_telemetry()
   write_mx_telemetry()
 
+
 if __name__ == "__main__":
   main()
-

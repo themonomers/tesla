@@ -94,6 +94,6 @@ def set_energy_mode_based_on_weather():
 def main():
   set_energy_mode_based_on_weather()
 
+
 if __name__ == "__main__":
   main()
-

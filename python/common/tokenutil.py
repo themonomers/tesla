@@ -118,9 +118,16 @@ def print_help():
   print('Usage: python tokenutil.py [OPTION...]')
   print('')
   print('--help                 prints the usage and options')
-  print('--new                  prints a new access and refresh token')
-  print('--refresh              gets new tokens and saves to file')
-  print('--check                checks to see if tokens are expiring and refreshes')
+  print('')
+  print('--new                  prints a new access and refresh token using')
+  print('                       web login credentials')
+  print('')
+  print('--refresh              gets new tokens using the refresh token and ')
+  print('                       saves them to an encrypted file')
+  print('')
+  print('--check                checks to see if tokens are expiring and ')
+  print('                       refreshes them and saves them to an encrypted')
+  print('                       file')
 
 
 def main():

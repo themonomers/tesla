@@ -678,10 +678,16 @@ def print_help():
   print('Usage: python charge.py [OPTION...]')
   print('')
   print('--help                 prints the usage and options')
-  print('--notify               checks if vehicles are plugged in, ')
-  print('                         schedules charging and preconditioning')
-  print('--check=m3|mx          backup charging for each vehicle')
-  print('--earliest             schedule charging at 12:00 AM')
+  print('')
+  print('--notify               checks if vehicles are plugged in and ')
+  print('                       schedules charging and preconditioning')
+  print('')
+  print('--check[=VEHICLE]      backup charging if a vehicle isn\'t charging ')
+  print('                       that\'s supposed to be; VEHICLE can be \'m3\' ')
+  print('                       or \'mx\'')
+  print('')
+  print('--earliest             schedule charging at the earliest off-peak ')
+  print('                       time')
 
 
 def main():

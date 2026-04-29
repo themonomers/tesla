@@ -9,7 +9,7 @@ Before running the modified tesla-http-proxy, you need to follow instructions to
 Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB. 
 
 /common
-      crypto.py - Encryption and decryption functions for sensitve files
+      crypto.py - Encryption and decryption functions for sensitive files
       emailutil.py - Service to send and truncate emails
       googleutil.py - API calls for Google services and utilities
       influxdb.py - Access to InfluxDB
@@ -20,7 +20,7 @@ Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, 
 /energy
       api.py - API calls for Tesla Energy products
       import.py - Imports data manually when automated processes fail
-      localtelemetry.py - Option to write real time energy data using Tesla Gateway API
+      localtelemetry.py - Write real time energy data using Tesla Gateway API
       mode.py - Customizes energy site behavior based on weather
       telemetry.py - Writes all energy data from previous day for Grafana
 

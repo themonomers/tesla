@@ -115,7 +115,9 @@ def print_help():
   print('Usage: python emailutil.py [OPTION...]')
   print('')
   print('--help                 prints the usage and options')
-  print('--truncate             deletes filtered emails older than a configured threshold')
+  print('')
+  print('--truncate             deletes emails matching a pattern and ')
+  print('                       older than a configured threshold')
 
 
 def main():
