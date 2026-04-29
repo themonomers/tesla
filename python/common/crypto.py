@@ -6,7 +6,7 @@ from itertools import cycle
 #
 # author: mjhwa@yahoo.com
 ##
-def encryptFile(read_fn, write_fn, token_fn):
+def encrypt_file(read_fn, write_fn, token_fn):
   # Check to see that the filenames are different
   if (read_fn == write_fn):
     raise Exception('Read and write filenames cannot be the same')
@@ -78,7 +78,7 @@ def main():
     token_fn = input('token filename: ')
  
     # Encrypt with simple key
-    encryptFile(read_fn, write_fn, token_fn)
+    encrypt_file(read_fn, write_fn, token_fn)
   elif choice == 2:
     filename = input('decrypt filename: ')
     token_fn = input('token filename: ')

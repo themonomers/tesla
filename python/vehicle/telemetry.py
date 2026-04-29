@@ -1,11 +1,11 @@
-from vehicle.api import getVehicleData
-from common.googleutil import getGoogleSheetService, findOpenRow
-from common.emailutil import sendEmail
-from common.utilities import getConfig
-from common.logger import logError
+from vehicle.api import get_vehicle_data
+from common.googleutil import get_google_sheet_service, find_open_row
+from common.emailutil import send_email
+from common.utilities import get_config
+from common.logger import log_error
 from datetime import datetime
 
-config = getConfig()
+config = get_config()
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
@@ -21,14 +21,14 @@ WAIT_TIME = 30
 #
 # author: mjhwa@yahoo.com
 ##
-def writeM3Telemetry():
+def write_m3_telemetry():
   try:
     # get rollup of vehicle data
-    data = getVehicleData(M3_VIN)  
+    data = get_vehicle_data(M3_VIN)  
     
     inputs = []
     # write odometer value
-    open_row = findOpenRow(EV_SPREADSHEET_ID, 'Telemetry','A:A')
+    open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry','A:A')
     inputs.append({
       'range': 'Telemetry!A' + str(open_row),
       'values': [[data['response']['vehicle_state']['odometer']]]
@@ -186,7 +186,7 @@ def writeM3Telemetry():
     })
 
     # batch write data and formula copies to sheet
-    service = getGoogleSheetService()
+    service = get_google_sheet_service()
     service.spreadsheets().values().batchUpdate(
       spreadsheetId=EV_SPREADSHEET_ID, 
       body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
@@ -201,19 +201,19 @@ def writeM3Telemetry():
     message = ('Model 3 telemetry successfully logged on ' 
                + datetime.today().strftime('%B %d, %Y %H:%M:%S') 
                + '.')
-    sendEmail('Model 3 Telemetry Logged', message, EMAIL_1, '', '', '')
+    send_email('Model 3 Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
-    logError('writeM3Telemetry():', e)
+    log_error('write_m3_telemetry():', e)
 
 
-def writeMXTelemetry():
+def write_mx_telemetry():
   try:
     # get rollup of vehicle data
-    data = getVehicleData(MX_VIN)  
+    data = get_vehicle_data(MX_VIN)  
     
     inputs = []
     # write odometer value
-    open_row = findOpenRow(EV_SPREADSHEET_ID, 'Telemetry','V:V')
+    open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry','V:V')
     inputs.append({
       'range': 'Telemetry!V' + str(open_row),
       'values': [[data['response']['vehicle_state']['odometer']]]
@@ -370,7 +370,7 @@ def writeMXTelemetry():
     })
 
     # batch write data and formula copies to sheet
-    service = getGoogleSheetService()
+    service = get_google_sheet_service()
     service.spreadsheets().values().batchUpdate(
       spreadsheetId=EV_SPREADSHEET_ID, 
       body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
@@ -385,9 +385,9 @@ def writeMXTelemetry():
     message = ('Model X telemetry successfully logged on ' 
                + datetime.today().strftime('%B %d, %Y %H:%M:%S') 
                + '.')
-    sendEmail('Model X Telemetry Logged', message, EMAIL_1, '', '', '')
+    send_email('Model X Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
-    logError('writeMXTelemetry():', e)
+    log_error('write_mx_telemetry():', e)
 
 
 ##
@@ -396,8 +396,8 @@ def writeMXTelemetry():
 # author: mjhwa@yahoo.com
 ##
 def main():
-  writeM3Telemetry()
-  writeMXTelemetry()
+  write_m3_telemetry()
+  write_mx_telemetry()
 
 if __name__ == "__main__":
   main()

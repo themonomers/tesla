@@ -3,14 +3,14 @@ import os
 import time
 import getopt, sys
 
-from common.googleutil import getGoogleMailService
-from common.utilities import getConfig
-from common.logger import logError, logErrorRetry
+from common.googleutil import get_google_mail_service
+from common.utilities import get_config
+from common.logger import log_error, log_error_retry
 from email.mime.image import MIMEImage
 from email.message import EmailMessage
 from datetime import datetime, timedelta
 
-config = getConfig()
+config = get_config()
 SENDER_EMAIL = config['notification']['sender_email']
 SENDER_PASSWORD = config['notification']['sender_password']
 QUERIES = config['query']
@@ -24,7 +24,7 @@ DELETE_THRESHOLD = 30
 #
 # author: mjhwa@yahoo.com
 ##
-def sendEmail(subject, body, to, cc, bcc, filename):
+def send_email(subject, body, to, cc, bcc, filename):
   try:
     msg = EmailMessage()
     msg.set_content(body)
@@ -59,9 +59,9 @@ def sendEmail(subject, body, to, cc, bcc, filename):
     server.send_message(msg)
     server.close()
   except Exception as e:
-    logErrorRetry('sendEmail(): ' + str(e))
+    log_error_retry('send_email(): ' + str(e))
     time.sleep(WAIT_TIME)
-    sendEmail(subject, body, to, cc, bcc, filename)
+    send_email(subject, body, to, cc, bcc, filename)
 
 
 ##
@@ -70,14 +70,14 @@ def sendEmail(subject, body, to, cc, bcc, filename):
 #
 # author: mjhwa@yahoo.com
 ##
-def truncateEmail(query):
+def truncate_email(query):
   try:
     # get the date for the threshold (days prior)
     delete_date = datetime.today() - timedelta(DELETE_THRESHOLD)
     #print('threshold: ' + str(delete_date))
 
     # Call the Gmail API and get the messages based on query
-    service = getGoogleMailService()
+    service = get_google_mail_service()
     messages = service.users().messages().list(
                  userId='me',
                  q=query
@@ -106,12 +106,12 @@ def truncateEmail(query):
                     id=item['id']
                   ).execute() 
   except Exception as e:
-    logError('truncateEmail():', e)
+    log_error('truncate_email():', e)
   finally:
     service.close()
 
 
-def printHelp():
+def print_help():
   print('Usage: python emailutil.py [OPTION...]')
   print('')
   print('--help                 prints the usage and options')
@@ -126,16 +126,16 @@ def main():
   try:
     arguments, values = getopt.getopt(args, options, long_options)
 
-    if len(arguments) < 1: printHelp()
+    if len(arguments) < 1: print_help()
 
     for currentArg, currentVal in arguments:
       if currentArg in ('--help'):
-        printHelp()
+        print_help()
       elif currentArg in ('--truncate'):
         for key in QUERIES:
-          truncateEmail(QUERIES[key])
+          truncate_email(QUERIES[key])
   except getopt.error as e:
-    printHelp()
+    print_help()
 
 
 if __name__ == "__main__":

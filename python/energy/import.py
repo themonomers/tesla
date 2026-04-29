@@ -1,15 +1,15 @@
 import pytz
 import zoneinfo
 
-from energy.api import getBatteryBackupHistory
-from energy.telemetry import writeEnergySummaryToDB, writeEnergyDataToGsheet, writeEnergyTOUSummaryToDB, writeEnergyDetailToDB, writeBatteryChargeToDB
-from common.googleutil import getGoogleSheetService
-from common.utilities import getConfig
-from common.influxdb import getDBClient
-from common.logger import logError
+from energy.api import get_battery_backup_history
+from energy.telemetry import write_energy_summary_to_db, write_energy_data_to_gsheet, write_energy_tou_summary_to_db, write_energy_detail_to_db, write_battery_charge_to_db
+from common.googleutil import get_google_sheet_service
+from common.utilities import get_config
+from common.influxdb import get_db_client
+from common.logger import log_error
 from datetime import datetime
 
-config = getConfig()
+config = get_config()
 ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
 
 TIME_ZONE = config['general']['timezone']
@@ -23,17 +23,17 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 #
 # author: mjhwa@yahoo.com
 ##
-def importEnergyDetailToDB(date):
+def import_energy_detail_to_db(date):
   try:
     print(date)
 
-    insert = input('import (y/n): ')
+    insert = input('import (y/N): ')
     if insert != 'y':
       return
 
-    writeEnergyDetailToDB(date)
+    write_energy_detail_to_db(date)
   except Exception as e:
-    logError('importEnergyDetailToDB():', e)
+    log_error('import_energy_detail_to_db():', e)
 
 
 ##
@@ -43,17 +43,17 @@ def importEnergyDetailToDB(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def importEnergySummaryToDB(date):
+def import_energy_summary_to_db(date):
   try:
     print(date)
 
-    insert = input('import (y/n): ')
+    insert = input('import (y/N): ')
     if insert != 'y':
       return
 
-    writeEnergySummaryToDB(date)
+    write_energy_summary_to_db(date)
   except Exception as e:
-    logError('importEnergySummaryToDB():', e)
+    log_error('import_energy_summary_to_db():', e)
 
 
 ##
@@ -63,17 +63,17 @@ def importEnergySummaryToDB(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def importEnergyTOUSummaryToDB(date):
+def import_energy_tou_summary_to_db(date):
   try:
     print(date)
 
-    insert = input('import (y/n): ')
+    insert = input('import (y/N): ')
     if insert != 'y':
       return
 
-    writeEnergyTOUSummaryToDB(date)
+    write_energy_tou_summary_to_db(date)
   except Exception as e:
-    logError('importEnergyTOUSummaryToDB():', e)
+    log_error('import_energy_tou_summary_to_db():', e)
 
 
 ##
@@ -83,17 +83,17 @@ def importEnergyTOUSummaryToDB(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def importEnergyDataToGsheet(date):
+def import_energy_data_to_gsheet(date):
   try:
     print(date)
 
-    insert = input('import (y/n): ')
+    insert = input('import (y/N): ')
     if insert != 'y':
       return
 
-    writeEnergyDataToGsheet(date)
+    write_energy_data_to_gsheet(date)
   except Exception as e:
-    logError('importEnergyTOUSummaryToGsheet():', e)
+    log_error('import_energy_data_to_gsheet():', e)
 
 
 ##
@@ -102,17 +102,17 @@ def importEnergyDataToGsheet(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def importBatteryChargeToDB(date):
+def import_battery_charge_to_db(date):
   try:
     print(date)
 
-    insert = input('import (y/n): ')
+    insert = input('import (y/N): ')
     if insert != 'y':
       return
 
-    writeBatteryChargeToDB(date)
+    write_battery_charge_to_db(date)
   except Exception as e:
-    logError('importBatteryChargeToDB():', e)
+    log_error('import_battery_charge_to_db():', e)
 
 
 ##
@@ -121,10 +121,10 @@ def importBatteryChargeToDB(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def importOutageToDB():
+def import_outage_to_db():
   try:
     # get battery backup history data
-    data = getBatteryBackupHistory()
+    data = get_battery_backup_history()
 
     json_body = []
     insert = ''
@@ -150,7 +150,7 @@ def importOutageToDB():
                 + datetime.strftime(start, '%Y-%m-%d %I:%M:%S %p'))
 
         if ((duration != -1) and (start != '')):
-          insert = input('import (y/n): ')
+          insert = input('import (y/N): ')
           if insert != 'y':
             break
 
@@ -166,12 +166,12 @@ def importOutageToDB():
           })
 
     # Write to Influxdb
-    client = getDBClient()
+    client = get_db_client()
     client.switch_database('outage')
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importOutageToDB():', e)
+    log_error('import_outage_to_db():', e)
 
 
 ##
@@ -180,10 +180,10 @@ def importOutageToDB():
 #
 # author: mjhwa@yahoo.com
 ##
-def importEnergyDetailFromGsheetToDB():
+def import_energy_detail_from_gsheet_to_db():
   try:
     # get time series data
-    service = getGoogleSheetService()
+    service = get_google_sheet_service()
     data = service.spreadsheets().values().get(
       spreadsheetId=ENERGY_SPREADSHEET_ID,
       range='import!A:E'
@@ -238,12 +238,12 @@ def importEnergyDetailFromGsheetToDB():
         })
 
     # Write to Influxdb
-    client = getDBClient()
+    client = get_db_client()
     client.switch_database('energy')
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importEnergyDetailFromGsheetToDB():', e)
+    log_error('import_energy_detail_from_gsheet_to_db():', e)
 
 
 ##
@@ -252,10 +252,10 @@ def importEnergyDetailFromGsheetToDB():
 #
 # author: mjhwa@yahoo.com
 ##
-def importEnergySummaryFromGsheetToDB():
+def import_energy_summary_from_gsheet_to_db():
   try:
     # get time series data
-    service = getGoogleSheetService()
+    service = get_google_sheet_service()
     data = service.spreadsheets().values().get(
       spreadsheetId=ENERGY_SPREADSHEET_ID,
       range='Telemetry-Summary!A:V'
@@ -291,12 +291,12 @@ def importEnergySummaryFromGsheetToDB():
             })
 
     # Write to Influxdb
-    client = getDBClient()
+    client = get_db_client()
     client.switch_database('energy')
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('importEnergySummaryFromGsheetToDB():', e)
+    log_error('import_energy_summary_from_gsheet_to_db():', e)
 
 
 ##
@@ -307,14 +307,14 @@ def importEnergySummaryFromGsheetToDB():
 # author: mjhwa@yahoo.com
 ##
 def main():
-  print('[1] importEnergyDetailToDB()')
-  print('[2] importEnergySummaryToDB()')
-  print('[3] importEnergyTOUSummaryToDB()')
-  print('[4] importEnergyDataToGsheet()')
-  print('[5] importBatteryChargeToDB()')
-  print('[6] importOutageToDB()')
-#  print('[7] importEnergyDetailFromGsheetToDB()')
-#  print('[8] importEnergySummaryFromGsheetToDB()')
+  print('[1] import_energy_detail_to_db()')
+  print('[2] import_energy_summary_to_db()')
+  print('[3] import_energy_tou_summary_to_db()')
+  print('[4] import_energy_data_to_gsheet()')
+  print('[5] import_battery_charge_to_db()')
+  print('[6] import_outage_to_db()')
+#  print('[7] import_energy_detail_from_gsheet_to_db()')
+#  print('[8] import_energy_summary_from_gsheet_to_db()')
   try:
     choice = int(input('selection: '))
   except ValueError:
@@ -323,29 +323,29 @@ def main():
   if choice == 1:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    importEnergyDetailToDB(date)
+    import_energy_detail_to_db(date)
   elif choice == 2:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    importEnergySummaryToDB(date)
+    import_energy_summary_to_db(date)
   elif choice == 3:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    importEnergyTOUSummaryToDB(date)
+    import_energy_tou_summary_to_db(date)
   elif choice == 4:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    importEnergyDataToGsheet(date)
+    import_energy_data_to_gsheet(date)
   elif choice == 5:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    importBatteryChargeToDB(date)
+    import_battery_charge_to_db(date)
   elif choice == 6:
-    importOutageToDB()
+    import_outage_to_db()
 #  elif choice == 7:
-#    importEnergyDetailFromGsheetToDB()
+#    import_energy_detail_from_gsheet_to_db()
 #  elif choice == 8:
-#    importEnergySummaryFromGsheetToDB()
+#    import_energy_summary_from_gsheet_to_db()
 
 
 if __name__ == "__main__":

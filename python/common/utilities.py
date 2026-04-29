@@ -21,7 +21,7 @@ WAIT_TIME = 30  # seconds
 #
 # author: mjhwa@yahoo.com
 ##
-def getConfig():
+def get_config():
   try:
     buffer = StringIO(
       decrypt(
@@ -42,9 +42,9 @@ def getConfig():
     buffer.close()
     return values
   except Exception as e:
-    logger.logErrorStdOut('getConfig():', e)
+    logger.log_error_std_out('get_config():', e)
 
-config = getConfig()
+config = get_config()
 PRIMARY_LAT = float(config['vehicle']['primary_lat'])
 PRIMARY_LNG = float(config['vehicle']['primary_lng'])
 SECONDARY_LAT = float(config['vehicle']['secondary_lat'])
@@ -60,7 +60,7 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 #
 # author: mjhwa@yahoo.com
 ##
-def getToken():
+def get_token():
   try:
     buffer = StringIO(
       decrypt(
@@ -81,7 +81,7 @@ def getToken():
     buffer.close()
     return values
   except Exception as e:
-    logger.logError('getToken():', e)
+    logger.log_error('get_token():', e)
 
 
 ##
@@ -89,14 +89,14 @@ def getToken():
 #
 # author: mjhwa@yahoo.com
 ##
-def deleteCronTab(command):
+def delete_cron_tab(command):
   try: 
     cron = CronTab(user='pi')
     job = cron.find_command(command)
     cron.remove(job)
     cron.write()
   except Exception as e:
-    logger.logError('deleteCronTab():', e)
+    logger.log_error('delete_cron_tab():', e)
 
 
 ##
@@ -104,7 +104,7 @@ def deleteCronTab(command):
 #
 # author: mjhwa@yahoo.com
 ##
-def createCronTab(command, month, day, hour, minute):
+def create_cron_tab(command, month, day, hour, minute):
   try:
     cron = CronTab(user='pi')
     job = cron.new(command=command)
@@ -114,7 +114,7 @@ def createCronTab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    logger.logError('createCronTab():', e)
+    logger.log_error('create_cron_tab():', e)
 
 
 ##
@@ -128,19 +128,19 @@ def createCronTab(command, month, day, hour, minute):
 #
 # author: mjhwa@yahoo.com
 ##
-def isVehicleAtPrimary(data):
-  return isVehicleAtLocation(data, PRIMARY_LAT, PRIMARY_LNG)
+def is_vehicle_at_primary(data):
+  return is_vehicle_at_location(data, PRIMARY_LAT, PRIMARY_LNG)
 
 
-def isVehicleAtSecondary(data):
-  return isVehicleAtLocation(data, SECONDARY_LAT, SECONDARY_LNG)
+def is_vehicle_at_secondary(data):
+  return is_vehicle_at_location(data, SECONDARY_LAT, SECONDARY_LNG)
 
 
-def isVehicleAtLocation(data, lat, lng):
+def is_vehicle_at_location(data, lat, lng):
   try:
-    d = getDistance(data['response']['drive_state']['latitude'], 
-                    data['response']['drive_state']['longitude'], 
-                    lat, lng)
+    d = get_distance(data['response']['drive_state']['latitude'], 
+                     data['response']['drive_state']['longitude'], 
+                     lat, lng)
   
     # check if the car is more than a quarter of a mile away 
     if (d < 0.25):
@@ -148,14 +148,14 @@ def isVehicleAtLocation(data, lat, lng):
     else:
       return False
   except Exception as e:
-    logger.logWarn('isVehicleAtLocation():' + str(e))
+    logger.log_warn('is_vehicle_at_location():' + str(e))
     return False
 
 
-def getDistance(car_lat, car_lng, x_lat, x_lng):
+def get_distance(car_lat, car_lng, x_lat, x_lng):
   try:
-    diff_lat = toRad(car_lat - x_lat)
-    diff_lng = toRad(car_lng - x_lng)  
+    diff_lat = to_rad(car_lat - x_lat)
+    diff_lng = to_rad(car_lng - x_lng)  
     
     a = ((math.sin(diff_lat/2) * math.sin(diff_lat/2)) 
           + math.cos(x_lat) 
@@ -166,10 +166,10 @@ def getDistance(car_lat, car_lng, x_lat, x_lng):
     
     return d
   except Exception as e:
-    logger.logError('getDistance():', e)
+    logger.log_error('get_distance():', e)
 
 
-def toRad(x):
+def to_rad(x):
   return x * math.pi/180
 
 
@@ -178,7 +178,7 @@ def toRad(x):
 #
 # author: mjhwa@yahoo.com
 ##
-def getTomorrowTime(time):
+def get_tomorrow_time(time):
   try:
     return datetime.strptime(
         str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).year)
@@ -190,10 +190,10 @@ def getTomorrowTime(time):
       + time, '%Y-%m-%dT%H:%M'
     ).replace(tzinfo=PAC)
   except Exception as e:
-    logger.logError('getTomorrowTime():', e)
+    logger.log_error('get_tomorrow_time():', e)
 
 
-def getTodayTime(time):
+def get_today_time(time):
   try:
     return datetime.strptime(
         str(datetime.now().replace(tzinfo=PAC).year)
@@ -205,7 +205,7 @@ def getTodayTime(time):
       + time, '%Y-%m-%dT%H:%M'
     ).replace(tzinfo=PAC)
   except Exception as e:
-    logger.logError('getTodayTime():', e)
+    logger.log_error('get_today_time():', e)
 
 
 ##
@@ -214,7 +214,7 @@ def getTodayTime(time):
 #
 # author: mjhwa@yahoo.com
 ##
-def getCurrentWeather(lat, lng):
+def get_current_weather(lat, lng):
   try:
     url = (BASE_WEATHER_URL
            + '/onecall'
@@ -228,11 +228,11 @@ def getCurrentWeather(lat, lng):
 
     if (response.status_code != 200):
       time.sleep(WAIT_TIME)
-      return getCurrentWeather(lat, lng)
+      return get_current_weather(lat, lng)
 
     return json.loads(response.text)
   except Exception as e:
-    logger.logError('getCurrentWeather():', e)
+    logger.log_error('get_current_weather():', e)
     
 
 ##
@@ -242,7 +242,7 @@ def getCurrentWeather(lat, lng):
 #
 # author: mjhwa@yahoo.com
 ##
-def getDailyWeather(lat, lng):
+def get_daily_weather(lat, lng):
   try:
     url = (BASE_WEATHER_URL
            + '/onecall'
@@ -256,11 +256,11 @@ def getDailyWeather(lat, lng):
 
     if (response.status_code != 200):
       time.sleep(WAIT_TIME)
-      return getDailyWeather(lat, lng)
+      return get_daily_weather(lat, lng)
 
     return json.loads(response.text)
   except Exception as e:
-    logger.logError('getDailyWeather():', e)
+    logger.log_error('get_daily_weather():', e)
 
 
 ##
@@ -269,7 +269,7 @@ def getDailyWeather(lat, lng):
 #
 # author: mjhwa@yahoo.com
 ##
-def outputFahrenheit(key, value, indent):
+def output_fahrenheit(key, value, indent):
   return output(key, str((value * 9 / 5) + 32) + ' (F)', indent)
 
 
@@ -279,7 +279,7 @@ def outputFahrenheit(key, value, indent):
 #
 # author: mjhwa@yahoo.com
 ##
-def outputDate(key, value, indent):
+def output_date(key, value, indent):
   return output(key, datetime.datetime.fromtimestamp(value), indent)
 
 
@@ -301,7 +301,7 @@ def output(key, value, indent):
 #
 # author: mjhwa@yahoo.com
 ##
-def printJson(json_obj, level):
+def print_json(json_obj, level):
   offset = ''
   offset += '  ' * level
 
@@ -311,7 +311,7 @@ def printJson(json_obj, level):
       value = json_obj[key]
       if ((isinstance(value, dict) == True) or (isinstance(value, list) == True)):
         print(offset + key)
-        printJson(value, level + 1)
+        print_json(value, level + 1)
       else:
         print (offset + key + ' = ' + str(value))
   elif (isinstance(json_obj, list) == True):
@@ -320,17 +320,17 @@ def printJson(json_obj, level):
       if (isinstance(x, list) == True):
         for key, value in x.items():
           print(offset + key)
-          printJson(value, level + 1)
+          print_json(value, level + 1)
       else:
-        printJson(x, level)
+        print_json(x, level)
   else:
     print (offset + str(json_obj))
 
 
 def main():
-  print('[1] getDistance()')
-  print('[2] getCurrentWeather()')
-  print('[3] getDailyWeather()')
+  print('[1] get_distance()')
+  print('[2] get_current_weather()')
+  print('[3] get_daily_weather()')
 
   try:
     choice = int(input('selection: '))
@@ -343,7 +343,7 @@ def main():
     print(
       'distance from primary location: ' 
       + str(
-        getDistance(
+        get_distance(
           lat, 
           lng, 
           PRIMARY_LAT,
@@ -352,11 +352,11 @@ def main():
       )
     )
   elif (choice == 2):
-    data = getCurrentWeather(PRIMARY_LAT, PRIMARY_LNG)
-    printJson(data, 0)
+    data = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
+    print_json(data, 0)
   elif (choice == 3):
-    data = getDailyWeather(PRIMARY_LAT, PRIMARY_LNG)
-    printJson(data, 0)
+    data = get_daily_weather(PRIMARY_LAT, PRIMARY_LNG)
+    print_json(data, 0)
 
 
 if __name__ == "__main__":

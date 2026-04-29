@@ -1,16 +1,16 @@
 import pytz
 import zoneinfo
 
-from energy.api import getSiteStatus, getSiteHistory, getSiteTOUHistory, getPowerHistory, getSavingsForecast, getBatteryChargeHistory, getBatteryBackupHistory
-from energy.localtelemetry import getLocalSystemStatus
-from common.googleutil import getGoogleSheetService, findOpenRow
-from common.emailutil import sendEmail
-from common.utilities import getConfig
-from common.influxdb import getDBClient
-from common.logger import logError
+from energy.api import get_site_status, get_site_history, get_site_tou_history, get_power_history, get_savings_forecast, get_battery_charge_history, get_battery_backup_history
+from energy.localtelemetry import get_local_system_status
+from common.googleutil import get_google_sheet_service, find_open_row
+from common.emailutil import send_email
+from common.utilities import get_config
+from common.influxdb import get_db_client
+from common.logger import log_error
 from datetime import datetime, timedelta
 
-config = getConfig()
+config = get_config()
 ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
 SUMMARY_SHEET_ID = config['google']['summary_sheet_id']
 EMAIL_1 = config['notification']['email_1']
@@ -26,10 +26,10 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 #
 # author: mjhwa@yahoo.com
 ##
-def writeEnergyDetailToDB(date):
+def write_energy_detail_to_db(date):
   try:
     # get time series data
-    data = getPowerHistory('day', date)
+    data = get_power_history('day', date)
 
     json_body = []
     for x in data['response']['time_series']:
@@ -71,12 +71,12 @@ def writeEnergyDetailToDB(date):
         })
 
     # Write to Influxdb
-    client = getDBClient()
+    client = get_db_client()
     client.switch_database('energy')
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeEnergyDetailToDB():', e)
+    log_error('write_energy_detail_to_db():', e)
 
 
 ##
@@ -86,10 +86,10 @@ def writeEnergyDetailToDB(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def writeEnergySummaryToDB(date):
+def write_energy_summary_to_db(date):
   try:
     # get local battery data
-    data = getLocalSystemStatus()  
+    data = get_local_system_status()  
     
     json_body = []
     # write battery data
@@ -113,7 +113,7 @@ def writeEnergySummaryToDB(date):
     })
 
     # get battery data
-    data = getSiteStatus()  
+    data = get_site_status()  
 
     json_body.append({
       'measurement': 'energy_summary',
@@ -135,7 +135,7 @@ def writeEnergySummaryToDB(date):
     })
 
     # get solar data
-    data = getSiteHistory('day', date)
+    data = get_site_history('day', date)
 
     # write solar data
     cumulative_data = {}
@@ -180,7 +180,7 @@ def writeEnergySummaryToDB(date):
       })
 
     # get solar value 
-    data = getSavingsForecast('day', date)
+    data = get_savings_forecast('day', date)
 
     for i in range(len(data['response'])):
       d = datetime.strptime(
@@ -211,12 +211,12 @@ def writeEnergySummaryToDB(date):
         })
 
     # Write to Influxdb
-    client = getDBClient()
+    client = get_db_client()
     client.switch_database('energy')
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeEnergySummaryToDB():', e)
+    log_error('write_energy_summary_to_db():', e)
 
 
 ##
@@ -225,10 +225,10 @@ def writeEnergySummaryToDB(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def writeBatteryChargeToDB(date):
+def write_battery_charge_to_db(date):
   try:
     # get battery charge history data
-    data = getBatteryChargeHistory('day', date)
+    data = get_battery_charge_history('day', date)
 
     json_body = []
     dt = ''
@@ -252,12 +252,12 @@ def writeBatteryChargeToDB(date):
           })
 
     # Write to Influxdb
-    client = getDBClient()
+    client = get_db_client()
     client.switch_database('energy')
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeBatteryChargeToDB():', e)
+    log_error('write_battery_charge_to_db():', e)
 
 
 ##
@@ -267,12 +267,12 @@ def writeBatteryChargeToDB(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def writeEnergyTOUSummaryToDB(date):
+def write_energy_tou_summary_to_db(date):
   try:
     json_body = []
 
     # get solar data for all day
-    data = getSiteHistory('day', date)
+    data = get_site_history('day', date)
 
     # write solar data for all day
     cumulative_data = {}
@@ -311,7 +311,7 @@ def writeEnergyTOUSummaryToDB(date):
       })
 
     # get solar data for TOU
-    data = getSiteTOUHistory('day', date)
+    data = get_site_tou_history('day', date)
 
     # write solar data for TOU
     for key_1, value_1 in data['response'].items():
@@ -349,12 +349,12 @@ def writeEnergyTOUSummaryToDB(date):
                 })
 
     # Write to Influxdb
-    client = getDBClient()
+    client = get_db_client()
     client.switch_database('summary')
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeEnergyTOUSummaryToDB():', e)
+    log_error('write_energy_tou_summary_to_db():', e)
 
 
 ##
@@ -364,14 +364,14 @@ def writeEnergyTOUSummaryToDB(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def writeEnergyDataToGsheet(date):
+def write_energy_data_to_gsheet(date):
   try:
     # get local battery data
-    data = getLocalSystemStatus()
+    data = get_local_system_status()
 
     inputs = []
     # write total pack energy value
-    open_row = findOpenRow(ENERGY_SPREADSHEET_ID, 'Telemetry-Summary','A:A')
+    open_row = find_open_row(ENERGY_SPREADSHEET_ID, 'Telemetry-Summary','A:A')
     inputs.append({
       'range': 'Telemetry-Summary!A' + str(open_row),
       'values': [[(datetime.today() - timedelta(1)).strftime('%B %d, %Y')]]
@@ -383,7 +383,7 @@ def writeEnergyDataToGsheet(date):
     })
 
     # get battery data
-    data = getSiteStatus()
+    data = get_site_status()
 
     inputs.append({
       'range': 'Telemetry-Summary!C' + str(open_row),
@@ -413,7 +413,7 @@ def writeEnergyDataToGsheet(date):
     })
 
     # get solar data for all day
-    data = getSiteHistory('day', date)
+    data = get_site_history('day', date)
 
     # write solar data for all day
     cumulative_data = {}
@@ -538,7 +538,7 @@ def writeEnergyDataToGsheet(date):
     })
 
     # get solar data for TOU
-    data = getSiteTOUHistory('day', date)
+    data = get_site_tou_history('day', date)
 
     # skip if system set to self-powered
     if (data['response'] != ''):
@@ -923,7 +923,7 @@ def writeEnergyDataToGsheet(date):
     })
 
     # batch write data to sheet
-    service = getGoogleSheetService()
+    service = get_google_sheet_service()
     service.spreadsheets().values().batchUpdate(
       spreadsheetId=ENERGY_SPREADSHEET_ID,
       body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
@@ -936,7 +936,7 @@ def writeEnergyDataToGsheet(date):
     ).execute()
     service.close()
   except Exception as e:
-    logError('writeEnergyDataToGsheet():', e)
+    log_error('write_energy_data_to_gsheet():', e)
 
 
 ##
@@ -945,16 +945,16 @@ def writeEnergyDataToGsheet(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def writeBatteryBackupHistoryToDB():
+def write_battery_backup_history_to_db():
   try:
     # get battery backup history data
-    data = getBatteryBackupHistory()
+    data = get_battery_backup_history()
 
     json_body = []
     local = pytz.timezone(TIME_ZONE)
 
     # get existing list of backup events saved to DB
-    client = getDBClient()
+    client = get_db_client()
     client.switch_database('outage')
     db = client.query(query='SELECT * FROM "backup"')
 
@@ -997,7 +997,7 @@ def writeBatteryBackupHistoryToDB():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    logError('writeBatteryBackupHistoryToDB():', e)
+    log_error('write_battery_backup_history_to_db():', e)
 
 
 ##
@@ -1007,18 +1007,18 @@ def writeBatteryBackupHistoryToDB():
 # author: mjhwa@yahoo.com
 ##
 def main():
-  writeEnergyDetailToDB(datetime.today() - timedelta(1))
-  writeEnergySummaryToDB(datetime.today() - timedelta(1))
-  writeBatteryChargeToDB(datetime.today() - timedelta(1))
-  writeEnergyTOUSummaryToDB(datetime.today() - timedelta(1))
-  writeEnergyDataToGsheet(datetime.today() - timedelta(1))
-  writeBatteryBackupHistoryToDB()
+  write_energy_detail_to_db(datetime.today() - timedelta(1))
+  write_energy_summary_to_db(datetime.today() - timedelta(1))
+  write_battery_charge_to_db(datetime.today() - timedelta(1))
+  write_energy_tou_summary_to_db(datetime.today() - timedelta(1))
+  write_energy_data_to_gsheet(datetime.today() - timedelta(1))
+  write_battery_backup_history_to_db()
 
   # send email notification
   message = ('Energy telemetry successfully logged on '
              + datetime.today().strftime('%B %d, %Y %H:%M:%S')
              + '.')
-  sendEmail('Energy Telemetry Logged', message, EMAIL_1, '', '', '')
+  send_email('Energy Telemetry Logged', message, EMAIL_1, '', '', '')
 
 
 if __name__ == "__main__":

@@ -1,10 +1,10 @@
-from energy.api import setBackupReserve
-from common.emailutil import sendEmail
-from common.utilities import getDailyWeather, getConfig
-from common.logger import logError
+from energy.api import set_backup_reserve
+from common.emailutil import send_email
+from common.utilities import get_daily_weather, get_config
+from common.logger import log_error
 from datetime import datetime, date, timedelta
 
-config = getConfig()
+config = get_config()
 PRIMARY_LAT = float(config['vehicle']['primary_lat'])
 PRIMARY_LNG = float(config['vehicle']['primary_lng'])
 EMAIL_1 = config['notification']['email_1']
@@ -23,10 +23,10 @@ PCT_THRESHOLD = 0.5
 #
 # author: mjhwa@yahoo.com
 ##
-def setEnergyModeBasedOnWeather():
+def set_energy_mode_based_on_weather():
   try:
     # get weather forecast
-    wdata = getDailyWeather(PRIMARY_LAT, PRIMARY_LNG)
+    wdata = get_daily_weather(PRIMARY_LAT, PRIMARY_LNG)
     check_dates = [date.today(), (date.today() + timedelta(1))]
     msg = ''
 
@@ -78,21 +78,21 @@ def setEnergyModeBasedOnWeather():
 	  # is greater than a specified percentage, set backup reserve to
 	  # 100% and send email, otherwise set to normal backup reserve of 35%
     if (msg != ''):
-      setBackupReserve(100)
-      sendEmail('Energy:  Setting Backup Reserve to 100%', 
-                msg, 
-                EMAIL_1,
-                '', 
-                '',
-                '')
+      set_backup_reserve(100)
+      send_email('Energy:  Setting Backup Reserve to 100%', 
+                 msg, 
+                 EMAIL_1,
+                 '', 
+                 '',
+                 '')
     else:
-      setBackupReserve(35)
+      set_backup_reserve(35)
   except Exception as e:
-    logError('setEnergyModeBasedOnWeather():', e)
+    log_error('set_energy_mode_based_on_weather():', e)
 
 
 def main():
-  setEnergyModeBasedOnWeather()
+  set_energy_mode_based_on_weather()
 
 if __name__ == "__main__":
   main()

@@ -2,12 +2,12 @@ import requests
 import json
 import pytz
 
-from common.utilities import printJson, getConfig, getToken
-from common.logger import logError
+from common.utilities import print_json, get_config, get_token
+from common.logger import log_error
 from datetime import datetime
 
-ACCESS_TOKEN = getToken()['tesla']['access_token']
-config = getConfig()
+ACCESS_TOKEN = get_token()['tesla']['access_token']
+config = get_config()
 SITE_ID = config['energy']['site_id']
 BATTERY_ID = config['energy']['battery_id']
 BASE_OWNER_URL = config['tesla']['base_owner_url']
@@ -19,7 +19,7 @@ TIME_ZONE = config['general']['timezone']
 #
 # author: mjhwa@yahoo.com
 ##
-def getSiteStatus():
+def get_site_status():
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -35,7 +35,7 @@ def getSiteStatus():
 
     return response
   except Exception as e:
-    logError('getSiteStatus():', e)
+    log_error('get_site_status():', e)
 
 
 ##
@@ -43,7 +43,7 @@ def getSiteStatus():
 #
 # author: mjhwa@yahoo.com
 ##
-def getSiteLiveStatus():
+def get_site_live_status():
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -59,7 +59,7 @@ def getSiteLiveStatus():
 
     return response
   except Exception as e:
-    logError('getSiteLiveStatus():', e)
+    log_error('get_site_live_status():', e)
 
 
 ##
@@ -67,7 +67,7 @@ def getSiteLiveStatus():
 #
 # author: mjhwa@yahoo.com
 ##
-def getSiteInfo():
+def get_site_info():
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -83,7 +83,7 @@ def getSiteInfo():
 
     return response
   except Exception as e:
-    logError('getSiteInfo():', e)
+    log_error('get_site_info():', e)
 
 
 ##
@@ -92,7 +92,7 @@ def getSiteInfo():
 #
 # author: mjhwa@yahoo.com
 ##
-def getSiteHistory(period, date):
+def get_site_history(period, date):
   try:
     local = pytz.timezone(TIME_ZONE)
     date = local.localize(datetime(
@@ -123,7 +123,7 @@ def getSiteHistory(period, date):
 
     return response
   except Exception as e:
-    logError('getSiteHistory(' + period + '):', e)
+    log_error('get_site_history(' + period + '):', e)
 
 
 ##
@@ -131,7 +131,7 @@ def getSiteHistory(period, date):
 #
 # author: mjhwa@yahoo.com
 ##
-def getBatteryBackupHistory():
+def get_battery_backup_history():
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -147,7 +147,7 @@ def getBatteryBackupHistory():
 
     return response
   except Exception as e:
-    logError('getBatteryBackupHistory():', e)
+    log_error('get_battery_backup_history():', e)
 
 
 ##
@@ -156,7 +156,7 @@ def getBatteryBackupHistory():
 #
 # author: mjhwa@yahoo.com
 ##
-def getSiteTOUHistory(period, date):
+def get_site_tou_history(period, date):
   try:
     local = pytz.timezone(TIME_ZONE)
     s_date = local.localize(datetime(
@@ -204,7 +204,7 @@ def getSiteTOUHistory(period, date):
  
     return response
   except Exception as e:
-    logError('getSiteTOUHistory():', e)
+    log_error('get_site_tou_history():', e)
 
 
 ##
@@ -213,7 +213,7 @@ def getSiteTOUHistory(period, date):
 #
 # author: mjhwa@yahoo.com
 ##
-def getBatteryChargeHistory(period, date):
+def get_battery_charge_history(period, date):
   try:
     local = pytz.timezone(TIME_ZONE)
     date = local.localize(datetime(
@@ -245,7 +245,7 @@ def getBatteryChargeHistory(period, date):
 
     return response
   except Exception as e:
-    logError('getBatteryChargeHistory():', e)
+    log_error('get_battery_charge_history():', e)
 
 
 ##
@@ -254,7 +254,7 @@ def getBatteryChargeHistory(period, date):
 #
 # author: mjhwa@yahoo.com
 ##
-def getPowerHistory(period, date):
+def get_power_history(period, date):
   try:
     local = pytz.timezone(TIME_ZONE)
     s_date = local.localize(datetime(
@@ -301,7 +301,7 @@ def getPowerHistory(period, date):
 
     return response
   except Exception as e:
-    logError('getPowerHistory():', e)
+    log_error('get_power_history():', e)
 
 
 ##
@@ -309,7 +309,7 @@ def getPowerHistory(period, date):
 #
 # author: mjhwa@yahoo.com
 ##
-def getRateTariffs():
+def get_rate_tariffs():
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -324,7 +324,7 @@ def getRateTariffs():
 
     return response
   except Exception as e:
-    logError('getRateTariffs():', e)
+    log_error('get_rate_tariffs():', e)
 
 
 ##
@@ -333,7 +333,7 @@ def getRateTariffs():
 #
 # author: mjhwa@yahoo.com
 ##
-def getSiteTariff():
+def get_site_tariff():
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -349,7 +349,7 @@ def getSiteTariff():
 
     return response
   except Exception as e:
-    logError('getSiteTariff():', e)
+    log_error('get_site_tariff():', e)
 
 
 ##
@@ -357,7 +357,7 @@ def getSiteTariff():
 #
 # author: mjhwa@yahoo.com
 ##
-def getBackupTimeRemaining():
+def get_backup_time_remaining():
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -373,7 +373,7 @@ def getBackupTimeRemaining():
 
     return response
   except Exception as e:
-    logError('getBackupTimeRemaining():', e)
+    log_error('get_backup_time_remaining():', e)
 
 
 ##
@@ -382,7 +382,7 @@ def getBackupTimeRemaining():
 #
 # author: mjhwa@yahoo.com
 ##
-def getSavingsForecast(period, date):
+def get_savings_forecast(period, date):
   try:
     local = pytz.timezone(TIME_ZONE)
     s_date = local.localize(datetime(
@@ -431,7 +431,7 @@ def getSavingsForecast(period, date):
 
     return response
   except Exception as e:
-    logError('getSavingsForecast():', e)
+    log_error('get_savings_forecast():', e)
 
 
 ##
@@ -444,8 +444,8 @@ def getSavingsForecast(period, date):
 #
 # author: mjhwa@yahoo.com
 ##
-def setOperationalModeBackup():
-  return setOperationalMode('backup')
+def set_operational_mode_backup():
+  return set_operational_mode('backup')
 
 
 ##
@@ -453,8 +453,8 @@ def setOperationalModeBackup():
 #
 # author: mjhwa@yahoo.com
 ##
-def setOperationalModeSelfPowered():
-  return setOperationalMode('self_consumption')
+def set_operational_mode_self_powered():
+  return set_operational_mode('self_consumption')
 
 
 ##
@@ -462,28 +462,8 @@ def setOperationalModeSelfPowered():
 #
 # author: mjhwa@yahoo.com
 ##
-def setOperationalModeTimeBasedControl():
-  return setOperationalMode('autonomous')
-
-
-##
-# Changes Energy Exports in the mobile app to "Everything".
-# Defaults Grid Charging setting to "No".
-#
-# author: mjhwa@yahoo.com
-##
-def setEnergyExportsEverything():
-  return setGridImportExport('battery_ok', True)
-
-
-##
-# Changes Energy Exports in the mobile app to "Solar".
-# Defaults Grid Charging setting to "No".
-#
-# author: mjhwa@yahoo.com
-##
-def setEnergyExportsSolar():
-  return setGridImportExport('pv_only', True)
+def set_operational_mode_time_based_control():
+  return set_operational_mode('autonomous')
 
 
 ##
@@ -491,7 +471,7 @@ def setEnergyExportsSolar():
 #
 # author: mjhwa@yahoo.com
 ##
-def setOperationalMode(mode):
+def set_operational_mode(mode):
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -510,7 +490,27 @@ def setOperationalMode(mode):
 
     return response
   except Exception as e:
-    logError('setOperationalMode(' + mode + '):', e)
+    log_error('set_operational_mode(' + mode + '):', e)
+
+
+##
+# Changes Energy Exports in the mobile app to "Everything".
+# Defaults Grid Charging setting to "No".
+#
+# author: mjhwa@yahoo.com
+##
+def set_energy_exports_everything():
+  return set_grid_import_export('battery_ok', True)
+
+
+##
+# Changes Energy Exports in the mobile app to "Solar".
+# Defaults Grid Charging setting to "No".
+#
+# author: mjhwa@yahoo.com
+##
+def set_energy_exports_solar():
+  return set_grid_import_export('pv_only', True)
 
 
 ##
@@ -518,7 +518,7 @@ def setOperationalMode(mode):
 #
 # author: mjhwa@yahoo.com
 ##
-def setGridImportExport(export_rule, disallow_grid_charging):
+def set_grid_import_export(export_rule, disallow_grid_charging):
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -538,7 +538,7 @@ def setGridImportExport(export_rule, disallow_grid_charging):
 
     return response
   except Exception as e:
-    logError('setGridImportExport(' + export_rule + ', ' + disallow_grid_charging + '):', e)
+    log_error('set_grid_import_export(' + export_rule + ', ' + disallow_grid_charging + '):', e)
 
 
 ##
@@ -546,7 +546,7 @@ def setGridImportExport(export_rule, disallow_grid_charging):
 #
 # author: mjhwa@yahoo.com
 ##
-def setBackupReserve(backup_percent):
+def set_backup_reserve(backup_percent):
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -565,7 +565,7 @@ def setBackupReserve(backup_percent):
 
     return response
   except Exception as e:
-    logError('setBackupReserve(' + backup_percent + '):', e)
+    log_error('set_backup_reserve(' + backup_percent + '):', e)
 
 
 ##
@@ -574,7 +574,7 @@ def setBackupReserve(backup_percent):
 #
 # author: mjhwa@yahoo.com
 ##
-def setOffGridVehicleChargingReserve(percent):
+def set_off_grid_vehicle_charging_reserve(percent):
   try:
     url = (BASE_OWNER_URL
            + '/energy_sites/' 
@@ -593,29 +593,29 @@ def setOffGridVehicleChargingReserve(percent):
 
     return response
   except Exception as e:
-    logError('setOffGridVehicleChargingReserve(' + percent + '):', e)
+    log_error('set_off_grid_vehicle_charging_reserve(' + percent + '):', e)
 
 
 def main():
-  print('[1]  getSiteStatus()')
-  print('[2]  getSiteLiveStatus()')
-  print('[3]  getSiteInfo()')
-  print('[4]  getSiteHistory()')
-  print('[5]  getBatteryBackupHistory()')
-  print('[6]  getSiteTOUHistory()')
-  print('[7]  getBatteryChargeHistory()')
-  print('[8]  getPowerHistory()')
-  print('[9]  getRateTariffs()')
-  print('[10] getSiteTariff()')
-  print('[11] getBackupTimeRemaining()')
-  print('[12] getSavingsForecast()')
-  print('[13] setOperationalModeBackup()')
-  print('[14] setOperationalModeSelfPowered()')
-  print('[15] setOperationalModeTimeBasedControl()')
-  print('[16] setEnergyExportsEverything()')
-  print('[17] setEnergyExportsSolar()')
-  print('[18] setBackupReserve()')
-  print('[19] setOffGridVehicleChargingReserve()')
+  print('[1]  get_site_status()')
+  print('[2]  get_site_live_status()')
+  print('[3]  get_site_info()')
+  print('[4]  get_site_history()')
+  print('[5]  get_battery_backup_history()')
+  print('[6]  get_site_tou_history()')
+  print('[7]  get_battery_charge_history()')
+  print('[8]  get_power_history()')
+  print('[9]  get_rate_tariffs()')
+  print('[10] get_site_tariff()')
+  print('[11] get_backup_time_remaining()')
+  print('[12] get_savings_forecast()')
+  print('[13] set_operational_mode_backup()')
+  print('[14] set_operational_mode_self_powered()')
+  print('[15] set_operational_mode_time_based_control()')
+  print('[16] set_energy_exports_everything()')
+  print('[17] set_energy_exports_solar()')
+  print('[18] set_backup_reserve()')
+  print('[19] set_off_grid_vehicle_charging_reserve()')
 
   try:
     choice = int(input('selection: '))
@@ -623,57 +623,57 @@ def main():
     return
 
   if choice == 1:
-    data = getSiteStatus()
+    data = get_site_status()
   elif choice == 2:
-    data = getSiteLiveStatus()
+    data = get_site_live_status()
   elif choice == 3:
-    data = getSiteInfo()
+    data = get_site_info()
   elif choice == 4:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    data = getSiteHistory('day', date)
+    data = get_site_history('day', date)
   elif choice == 5:
-    data = getBatteryBackupHistory()
+    data = get_battery_backup_history()
   elif choice == 6:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    data = getSiteTOUHistory('day', date)
+    data = get_site_tou_history('day', date)
   elif choice == 7:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    data = getBatteryChargeHistory('day', date)
+    data = get_battery_charge_history('day', date)
   elif choice == 8:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    data = getPowerHistory('day', date)
+    data = get_power_history('day', date)
   elif choice == 9:
-    data = getRateTariffs()
+    data = get_rate_tariffs()
   elif choice == 10:
-    data = getSiteTariff()
+    data = get_site_tariff()
   elif choice == 11:
-    data = getBackupTimeRemaining()
+    data = get_backup_time_remaining()
   elif choice == 12:
     date = input('date(m/d/yyyy): ')
     date = datetime.strptime(date, '%m/%d/%Y')
-    data = getSavingsForecast('day', date)
+    data = get_savings_forecast('day', date)
   elif choice == 13:
-    setOperationalModeBackup()
+    set_operational_mode_backup()
   elif choice == 14:
-    setOperationalModeSelfPowered()
+    set_operational_mode_self_powered()
   elif choice == 15:
-    setOperationalModeTimeBasedControl()
+    set_operational_mode_time_based_control()
   elif choice == 16:
-    setEnergyExportsEverything()
+    set_energy_exports_everything()
   elif choice == 17:
-    setEnergyExportsSolar()
+    set_energy_exports_solar()
   elif choice == 18:
     percent = float(input('% for backup use: '))
-    data = setBackupReserve(percent)
+    data = set_backup_reserve(percent)
   elif choice == 19:
     percent = float(input('% save for home use: '))
-    data = setOffGridVehicleChargingReserve(percent)
+    data = set_off_grid_vehicle_charging_reserve(percent)
   
-  printJson(data, 0)
+  print_json(data, 0)
 
 
 if __name__ == "__main__":

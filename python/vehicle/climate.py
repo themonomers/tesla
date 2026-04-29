@@ -1,12 +1,12 @@
 import getopt, sys
 
-from vehicle.api import getVehicleData, setCarTemp, setCarSeatHeating, setCarSeatCooling, preconditionCarStart, preconditionCarStop
-from common.googleutil import getGoogleSheetService
-from common.utilities import deleteCronTab, createCronTab, isVehicleAtPrimary, getTodayTime, getCurrentWeather, getConfig
-from common.logger import logError
+from vehicle.api import get_vehicle_data, set_car_temp, set_car_seat_heating, set_car_seat_cooling, precondition_car_start, precondition_car_stop
+from common.googleutil import get_google_sheet_service
+from common.utilities import delete_cron_tab, create_cron_tab, is_vehicle_at_primary, get_today_time, get_current_weather, get_config
+from common.logger import log_error
 from datetime import datetime
 
-config = getConfig()
+config = get_config()
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
 EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id'] 
@@ -28,46 +28,46 @@ WAIT_TIME = 30
 #
 # author: mjhwa@yahoo.com
 ## 
-def setM3Precondition(data, eco_mode, start_time):
+def set_m3_precondition(data, eco_mode, start_time):
   try: 
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
     if (eco_mode == 'off'):
       # check if the car is with 0.25 miles of the primary location
-      if (isVehicleAtPrimary(data)):
+      if (is_vehicle_at_primary(data)):
         # create precondition start crontab at preferred time tomorrow
-        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1')
-        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
-                      start_time.month, 
-                      start_time.day, 
-                      start_time.hour, 
-                      start_time.minute)
+        delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1')
+        create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
+                        start_time.month, 
+                        start_time.day, 
+                        start_time.hour, 
+                        start_time.minute)
         
         return start_time
     return None
   except Exception as e:
-    logError('setM3Precondition():', e)
+    log_error('set_m3_precondition():', e)
 
 
-def setMXPrecondition(data, eco_mode, start_time):
+def set_mx_precondition(data, eco_mode, start_time):
   try: 
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
     if (eco_mode == 'off'):
       # check if the car is with 0.25 miles of the primary location
-      if (isVehicleAtPrimary(data)):
+      if (is_vehicle_at_primary(data)):
         # create precondition start crontab at preferred time tomorrow
-        deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1')
-        createCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1', 
-                      start_time.month, 
-                      start_time.day, 
-                      start_time.hour, 
-                      start_time.minute)
+        delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1')
+        create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1', 
+                        start_time.month, 
+                        start_time.day, 
+                        start_time.hour, 
+                        start_time.minute)
         
         return start_time
     return None
   except Exception as e:
-    logError('setMXPrecondition():', e)
+    log_error('set_mx_precondition():', e)
 
 
 ##
@@ -83,10 +83,10 @@ def setMXPrecondition(data, eco_mode, start_time):
 #
 # author: mjhwa@yahoo.com
 ##
-def preconditionM3Start():
+def precondition_m3_start():
   try:
     # get configuration info
-    service = getGoogleSheetService()
+    service = get_google_sheet_service()
     climate_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
       range='Climate!A3:P22'
@@ -97,7 +97,7 @@ def preconditionM3Start():
     if (climate_config[19][1] == 'on'): return
     
     # get local weather
-    wdata = getCurrentWeather(PRIMARY_LAT, PRIMARY_LNG)
+    wdata = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
 #    print('temp: ' + str(wdata['current']['temp']))
     
 #    print('cold temp threshold: ' + climate_config[17][1])
@@ -130,7 +130,7 @@ def preconditionM3Start():
       if climate_config[dow_index[0]][9] == 'skip':
         return
       else:
-        stop_time = getTodayTime(climate_config[dow_index[0]][9])  
+        stop_time = get_today_time(climate_config[dow_index[0]][9])  
 
       mode = 'heat'
     elif (wdata['current']['temp'] > float(climate_config[18][1])):
@@ -151,7 +151,7 @@ def preconditionM3Start():
       if climate_config[dow_index[1]][9] == 'skip':
         return
       else:
-        stop_time = getTodayTime(climate_config[dow_index[1]][9])
+        stop_time = get_today_time(climate_config[dow_index[1]][9])
 
       mode = 'cool'
     else:
@@ -161,23 +161,23 @@ def preconditionM3Start():
     #print('p_temp: ' + str(p_temp))
     #print('seats: ' + str(seats))
     # no need to execute if the car is not at primary location
-    data = getVehicleData(M3_VIN)
-    if (isVehicleAtPrimary(data)):
+    data = get_vehicle_data(M3_VIN)
+    if (is_vehicle_at_primary(data)):
       # send command to start auto conditioning
-      preconditionCarStart(M3_VIN)
+      precondition_car_start(M3_VIN)
 
       # set driver and passenger temps
-      setCarTemp(M3_VIN, d_temp, p_temp)
+      set_car_temp(M3_VIN, d_temp, p_temp)
       
       # set seat heater settings
       for index, item in enumerate(seats):
         if (index == 3):
           continue # skip index 3 as it's not assigned in the API
-        setCarSeatCooling(M3_VIN, int(index), int(item)) if mode == 'cool' else setCarSeatHeating(M3_VIN, int(index), int(item))
+        set_car_seat_cooling(M3_VIN, int(index), int(item)) if mode == 'cool' else set_car_seat_heating(M3_VIN, int(index), int(item))
 
       # create crontab to stop preconditioning at preferred time later in the day
-      deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> /home/pi/tesla/python/cron.log 2>&1')
-      createCronTab(
+      delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> /home/pi/tesla/python/cron.log 2>&1')
+      create_cron_tab(
         '/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
         stop_time.month, 
         stop_time.day, 
@@ -185,13 +185,13 @@ def preconditionM3Start():
         stop_time.minute
       )
   except Exception as e:
-    logError('preconditionM3Start():', e)
+    log_error('precondition_m3_start():', e)
 
 
-def preconditionMXStart():
+def precondition_mx_start():
   try:
     # get configuration info
-    service = getGoogleSheetService()
+    service = get_google_sheet_service()
     climate_config = service.spreadsheets().values().get(
       spreadsheetId=EV_SPREADSHEET_ID, 
       range='Climate!A3:P22'
@@ -202,7 +202,7 @@ def preconditionMXStart():
     if (climate_config[19][10] == 'on'): return
     
     # get local weather
-    wdata = getCurrentWeather(PRIMARY_LAT, PRIMARY_LNG)
+    wdata = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
 #    print('temp: ' + str(wdata['current']['temp']))    
 
 #    print('cold temp threshold: ' + climate_config[17][10])
@@ -230,7 +230,7 @@ def preconditionMXStart():
       if climate_config[dow_index[0]][15] == 'skip':
         return
       else:
-        stop_time = getTodayTime(climate_config[dow_index[0]][15])
+        stop_time = get_today_time(climate_config[dow_index[0]][15])
     elif (wdata['current']['temp'] > float(climate_config[18][10])):
       # get pre-cool preferences
       try:
@@ -245,7 +245,7 @@ def preconditionMXStart():
       if climate_config[dow_index[1]][15] == 'skip':
         return
       else:
-        stop_time = getTodayTime(climate_config[dow_index[1]][15])
+        stop_time = get_today_time(climate_config[dow_index[1]][15])
     else:
       return # outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 
@@ -253,21 +253,21 @@ def preconditionMXStart():
     #print('p_temp: ' + str(p_temp))
     #print('seats: ' + str(seats))
     # no need to execute if the car is not at primary location
-    data = getVehicleData(MX_VIN)
-    if (isVehicleAtPrimary(data)):
+    data = get_vehicle_data(MX_VIN)
+    if (is_vehicle_at_primary(data)):
       # send command to start auto conditioning
-      preconditionCarStart(MX_VIN)
+      precondition_car_start(MX_VIN)
 
       # set driver and passenger temps
-      setCarTemp(MX_VIN, d_temp, p_temp)
+      set_car_temp(MX_VIN, d_temp, p_temp)
 
       # set seat heater settings
       for index, item in enumerate(seats):
-        setCarSeatHeating(MX_VIN, int(index), int(item))
+        set_car_seat_heating(MX_VIN, int(index), int(item))
       
       # create crontab to stop preconditioning at preferred time later in the day
-      deleteCronTab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=mx >> /home/pi/tesla/python/cron.log 2>&1')
-      createCronTab(
+      delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=mx >> /home/pi/tesla/python/cron.log 2>&1')
+      create_cron_tab(
         '/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=mx >> /home/pi/tesla/python/cron.log 2>&1', 
         stop_time.month, 
         stop_time.day, 
@@ -275,7 +275,7 @@ def preconditionMXStart():
         stop_time.minute
       )
   except Exception as e: 
-    logError('preconditionMXStart():', e)
+    log_error('precondition_mx_start():', e)
 
 
 ##
@@ -284,27 +284,27 @@ def preconditionMXStart():
 #
 # author: mjhwa@yahoo.com
 ##
-def preconditionM3Stop():
-  preconditionStop(M3_VIN)
+def precondition_m3_stop():
+  precondition_stop(M3_VIN)
 
 
-def preconditionMXStop():
-  preconditionStop(MX_VIN)
+def precondition_mx_stop():
+  precondition_stop(MX_VIN)
 
 
-def preconditionStop(vin):
+def precondition_stop(vin):
   try:
-    data = getVehicleData(vin)
-    if (isVehicleAtPrimary(data) and 
+    data = get_vehicle_data(vin)
+    if (is_vehicle_at_primary(data) and 
         data['response']['drive_state']['shift_state'] != 'D' and
         data['response']['drive_state']['shift_state'] != 'R' and
         data['response']['drive_state']['shift_state'] != 'N'): # only execute if the car is at primary location and in park
-      preconditionCarStop(vin)
+      precondition_car_stop(vin)
   except Exception as e:
-    logError('preconditionStop(' + vin + '):', e)
+    log_error('precondition_stop(' + vin + '):', e)
 
 
-def printHelp():
+def print_help():
   print('Usage: python climate.py [OPTION...]')
   print('')
   print('--help                 prints the usage and options')
@@ -320,27 +320,27 @@ def main():
   try:
     arguments, values = getopt.getopt(args, options, long_options)
 
-    if len(arguments) < 1: printHelp()
+    if len(arguments) < 1: print_help()
 
     for currentArg, currentVal in arguments:
       if currentArg in ('--help'):
-        printHelp()
+        print_help()
       elif currentArg in ('--start'):
         if currentVal == 'm3':
-          preconditionM3Start()
+          precondition_m3_start()
         elif currentVal == 'mx':
-          preconditionMXStart()
+          precondition_mx_start()
         else:
-          printHelp()
+          print_help()
       elif currentArg in ('--stop'):
         if currentVal == 'm3':
-          preconditionM3Stop()
+          precondition_m3_stop()
         elif currentVal == 'mx':
-          preconditionMXStop()
+          precondition_mx_stop()
         else:
-          printHelp()
+          print_help()
   except getopt.error as e:
-    printHelp()
+    print_help()
 
 if __name__ == "__main__":
   main()

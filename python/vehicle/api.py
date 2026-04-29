@@ -1,11 +1,11 @@
 import requests
 import vehicle.commandproxy as commandproxy
 
-from common.utilities import printJson, getToken, getConfig
-from common.logger import logError
+from common.utilities import print_json, get_token, get_config
+from common.logger import log_error
 
-ACCESS_TOKEN = getToken()['tesla']['access_token']
-config = getConfig()
+ACCESS_TOKEN = get_token()['tesla']['access_token']
+config = get_config()
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
 BASE_OWNER_URL = config['tesla']['base_owner_url']
@@ -17,17 +17,17 @@ BASE_OWNER_URL = config['tesla']['base_owner_url']
 # 
 # author: mjhwa@yahoo.com 
 ##
-def getVehicleId(vin):
+def get_vehicle_id(vin):
   try:
     if vin == M3_VIN:
-      data = commandproxy.getVehicleData(M3_VIN)
+      data = commandproxy.get_vehicle_data(M3_VIN)
 
     if vin == MX_VIN:
-      data = commandproxy.getVehicleData(MX_VIN)
+      data = commandproxy.get_vehicle_data(MX_VIN)
 
     return data['response']['id_s']
   except Exception as e:
-    logError('getVehicleId(' + vin + '):', e)
+    log_error('get_vehicle_id(' + vin + '):', e)
 
 
 ##
@@ -36,11 +36,11 @@ def getVehicleId(vin):
 # 
 # author: mjhwa@yahoo.com 
 ##
-def getVehicleData(vin):
+def get_vehicle_data(vin):
   try:
-    return commandproxy.getVehicleData(vin)
+    return commandproxy.get_vehicle_data(vin)
   except Exception as e:
-    logError('getVehicleData(' + vin + '):', e)
+    log_error('get_vehicle_data(' + vin + '):', e)
 
 
 ##
@@ -49,11 +49,11 @@ def getVehicleData(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def wakeVehicle(vin):
+def wake_vehicle(vin):
   try:
-    return commandproxy.wakeVehicle(vin)
+    return commandproxy.wake_vehicle(vin)
   except Exception as e:
-    logError('wakeVehicle(' + vin + '):', e)
+    log_error('wake_vehicle(' + vin + '):', e)
 
 
 ##
@@ -61,14 +61,14 @@ def wakeVehicle(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def startChargeVehicle(vin):
+def start_charge_vehicle(vin):
   try:
     if vin == M3_VIN:
-      return commandproxy.startChargeVehicle(vin)
+      return commandproxy.start_charge_vehicle(vin)
     
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin) 
+           + get_vehicle_id(vin) 
            + '/command/charge_start')
 
     return requests.post(
@@ -76,7 +76,7 @@ def startChargeVehicle(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('startChargeVehicle(' + vin + '):', e)
+    log_error('start_charge_vehicle(' + vin + '):', e)
 
 
 ##
@@ -84,14 +84,14 @@ def startChargeVehicle(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def stopChargeVehicle(vin):
+def stop_charge_vehicle(vin):
   try:
     if vin == M3_VIN:
-      return commandproxy.stopChargeVehicle(vin)
+      return commandproxy.stop_charge_vehicle(vin)
   
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin)
+           + get_vehicle_id(vin)
            + '/command/charge_stop')
 
     return requests.post(
@@ -99,7 +99,7 @@ def stopChargeVehicle(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('stopChargeVehicle(' + vin + '):', e)
+    log_error('stop_charge_vehicle(' + vin + '):', e)
 
 
 ##
@@ -109,14 +109,14 @@ def stopChargeVehicle(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def addChargeSchedule(vin, lat, lon, start_time, id):
+def add_charge_schedule(vin, lat, lon, start_time, id):
   try:
     if vin == M3_VIN:
-      return commandproxy.addChargeSchedule(vin, lat, lon, start_time, id)
+      return commandproxy.add_charge_schedule(vin, lat, lon, start_time, id)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin) 
+           + get_vehicle_id(vin) 
            + '/command/add_charge_schedule')
 
     payload = {
@@ -137,7 +137,7 @@ def addChargeSchedule(vin, lat, lon, start_time, id):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('addChargeSchedule(' + vin + '):', e)
+    log_error('add_charge_schedule(' + vin + '):', e)
 
 
 ##
@@ -145,14 +145,14 @@ def addChargeSchedule(vin, lat, lon, start_time, id):
 #
 # author: mjhwa@yahoo.com
 ##
-def removeChargeSchedule(vin, id):
+def remove_charge_schedule(vin, id):
   try:
     if vin == M3_VIN:
-      return commandproxy.removeChargeSchedule(vin, id)
+      return commandproxy.remove_charge_schedule(vin, id)
     
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin) 
+           + get_vehicle_id(vin) 
            + '/command/remove_charge_schedule')
 
     payload = {
@@ -165,7 +165,7 @@ def removeChargeSchedule(vin, id):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('removeChargeSchedule(' + vin + '):', e)
+    log_error('remove_charge_schedule(' + vin + '):', e)
   
 
 ##
@@ -178,14 +178,14 @@ def removeChargeSchedule(vin, id):
 #
 # author: mjhwa@yahoo.com
 ##
-def setScheduledCharging(vin, time):
+def set_scheduled_charging(vin, time):
   try:
     if vin == M3_VIN:
-      return commandproxy.setScheduledCharging(vin, time)
+      return commandproxy.set_scheduled_charging(vin, time)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin) 
+           + get_vehicle_id(vin) 
            + '/command/set_scheduled_charging')
 
     payload = {
@@ -199,7 +199,7 @@ def setScheduledCharging(vin, time):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setScheduledCharging(' + vin + '):', e)
+    log_error('set_scheduled_charging(' + vin + '):', e)
 
 
 ##
@@ -212,7 +212,7 @@ def setScheduledCharging(vin, time):
 #
 # author: mjhwa@yahoo.com
 ##
-def setScheduledDeparture(
+def set_scheduled_departure(
   vin, 
   depart_time, 
   precondition_enable, 
@@ -224,7 +224,7 @@ def setScheduledDeparture(
   try:
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin)
+           + get_vehicle_id(vin)
            + '/command/set_scheduled_departure')
 
     payload = {
@@ -243,7 +243,7 @@ def setScheduledDeparture(
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setScheduledDeparture(' + vin + '):', e)
+    log_error('set_scheduled_departure(' + vin + '):', e)
 
 
 ##
@@ -251,11 +251,11 @@ def setScheduledDeparture(
 #
 # author: mjhwa@yahoo.com
 ##
-def setChargingAmps(vin, amps):
+def set_charging_amps(vin, amps):
   try:
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin)
+           + get_vehicle_id(vin)
            + '/command/set_charging_amps')
 
     payload = {
@@ -268,7 +268,7 @@ def setChargingAmps(vin, amps):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setChargingAmps(' + vin + '):', e)
+    log_error('set_charging_amps(' + vin + '):', e)
 
 
 ##
@@ -276,14 +276,14 @@ def setChargingAmps(vin, amps):
 #
 # author: mjhwa@yahoo.com
 ##
-def setCarTemp(vin, d_temp, p_temp):
+def set_car_temp(vin, d_temp, p_temp):
   try:
     if vin == M3_VIN:
-      return commandproxy.setCarTemp(vin, d_temp, p_temp)
+      return commandproxy.set_car_temp(vin, d_temp, p_temp)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin) 
+           + get_vehicle_id(vin) 
            + '/command/set_temps')
 
     payload = {
@@ -297,7 +297,7 @@ def setCarTemp(vin, d_temp, p_temp):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setCarTemp(' + vin + '):', e)
+    log_error('set_car_temp(' + vin + '):', e)
 
 
 ##
@@ -305,14 +305,14 @@ def setCarTemp(vin, d_temp, p_temp):
 #
 # author: mjhwa@yahoo.com
 ##
-def setCarSeatHeating(vin, seat, setting):
+def set_car_seat_heating(vin, seat, setting):
   try:
     if vin == M3_VIN:
-      return commandproxy.setCarSeatHeating(vin, seat, setting)
+      return commandproxy.set_car_seat_heating(vin, seat, setting)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin) 
+           + get_vehicle_id(vin) 
            + '/command/remote_seat_heater_request')
 
     payload = {
@@ -331,7 +331,7 @@ def setCarSeatHeating(vin, seat, setting):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('setCarSeatHeating(' + vin + '):', e)
+    log_error('set_car_seat_heating(' + vin + '):', e)
 
 
 ##
@@ -339,11 +339,11 @@ def setCarSeatHeating(vin, seat, setting):
 #
 # author: mjhwa@yahoo.com
 ##
-def setCarSeatCooling(vin, seat, setting):
+def set_car_seat_cooling(vin, seat, setting):
   try:
-    return commandproxy.setCarSeatCooling(vin, seat, setting)
+    return commandproxy.set_car_seat_cooling(vin, seat, setting)
   except Exception as e:
-    logError('setCarSeatCooling(' + vin + '):', e)
+    log_error('set_car_seat_cooling(' + vin + '):', e)
 
 
 ##
@@ -351,14 +351,14 @@ def setCarSeatCooling(vin, seat, setting):
 #
 # author: mjhwa@yahoo.com
 ##
-def preconditionCarStart(vin):
+def precondition_car_start(vin):
   try:  
     if vin == M3_VIN:
-      return commandproxy.preconditionCarStart(vin)
+      return commandproxy.precondition_car_start(vin)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin) 
+           + get_vehicle_id(vin) 
            + '/command/auto_conditioning_start')
 
     return requests.post(
@@ -366,7 +366,7 @@ def preconditionCarStart(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('preconditionCarStart(' + vin + '):', e)
+    log_error('precondition_car_start(' + vin + '):', e)
 
 
 ##
@@ -374,14 +374,14 @@ def preconditionCarStart(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def preconditionCarStop(vin):
+def precondition_car_stop(vin):
   try:
     if vin == M3_VIN:
-      return commandproxy.preconditionCarStop(vin)
+      return commandproxy.precondition_car_stop(vin)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
-           + getVehicleId(vin)
+           + get_vehicle_id(vin)
            + '/command/auto_conditioning_stop')
 
     return requests.post(
@@ -389,30 +389,30 @@ def preconditionCarStop(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    logError('preconditionCarStop(' + vin + '):', e)
+    log_error('precondition_car_stop(' + vin + '):', e)
 
 ##
 # Loops through all vehicle data and prints to screen.  
 #
 # author: mjhwa@yahoo.come
 ##
-def printAllVehicleData(vin):
+def print_all_vehicle_data(vin):
   try:
-    data = getVehicleData(vin)
+    data = get_vehicle_data(vin)
 
     if ('error' in data):
       raise Exception (data['error'])
 
-    printJson(data, 0)
+    print_json(data, 0)
   except Exception as e:
-    logError('printAllVehicleData(' + vin + '):', e)
-    wakeVehicle(vin)
-    printAllVehicleData(vin)
+    log_error('print_all_vehicle_data(' + vin + '):', e)
+    wake_vehicle(vin)
+    print_all_vehicle_data(vin)
 
 
 def main():
-  vin = input('printAllVehicleData VIN: ')
-  printAllVehicleData(vin)
+  vin = input('print_all_vehicle_data VIN: ')
+  print_all_vehicle_data(vin)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
-from common.utilities import getConfig
-from common.logger import logError
+from common.utilities import get_config
+from common.logger import log_error
 from influxdb import InfluxDBClient
 
-config = getConfig()
+config = get_config()
 INFLUX_HOST = config['influxdb']['host']
 INFLUX_PORT = config['influxdb']['port']
 INFLUX_USER = config['influxdb']['user']
@@ -14,7 +14,7 @@ INFLUX_PASSWORD = config['influxdb']['password']
 #
 # author: mjhwa@yahoo.com
 ##
-def getDBClient():
+def get_db_client():
   try:
     return InfluxDBClient(
       host=INFLUX_HOST, 
@@ -23,6 +23,6 @@ def getDBClient():
       password=INFLUX_PASSWORD
     )
   except Exception as e:
-    logError('getDBClient():', e)
+    log_error('get_db_client():', e)
 
 

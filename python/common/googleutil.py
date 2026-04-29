@@ -17,7 +17,7 @@ WAIT_TIME = 30
 #
 # author: mjhwa@yahoo.com
 ##
-def getGoogleSheetService():
+def get_google_sheet_service():
   try:
     scopes = ['https://www.googleapis.com/auth/spreadsheets']
     secret_file = (
@@ -34,7 +34,7 @@ def getGoogleSheetService():
     service = discovery.build('sheets', 'v4', credentials=credentials)
     return service
   except Exception as e:
-    logger.logError('getGoogleSheetService():', e)
+    logger.log_error('get_google_sheet_service():', e)
 
 
 ##
@@ -43,9 +43,9 @@ def getGoogleSheetService():
 #
 # author: mjhwa@yahoo.com
 ##
-def findOpenRow(sheet_id, sheet_name, range):
+def find_open_row(sheet_id, sheet_name, range):
   try:
-    service = getGoogleSheetService()
+    service = get_google_sheet_service()
     range = sheet_name + '!' + range
     values = service.spreadsheets().values().get(
       spreadsheetId=sheet_id,
@@ -58,9 +58,9 @@ def findOpenRow(sheet_id, sheet_name, range):
 
     return len(values) + 1
   except Exception as e:
-    logger.logErrorRetryStdOut('findOpenRow(): ' + str(e))
+    logger.log_error_retry_std_out('find_open_row(): ' + str(e))
     time.sleep(WAIT_TIME)
-    return findOpenRow(sheet_id, sheet_name, range)
+    return find_open_row(sheet_id, sheet_name, range)
 
 
 ##
@@ -68,7 +68,7 @@ def findOpenRow(sheet_id, sheet_name, range):
 #
 # author: mjhwa@yahoo.com
 ##
-def getGoogleMailService():
+def get_google_mail_service():
   try:
     # If modifying these scopes, delete the file gmail_token.json.
     scopes = ['https://www.googleapis.com/auth/gmail.modify']
@@ -125,4 +125,4 @@ def getGoogleMailService():
 
     return build('gmail', 'v1', credentials=creds)
   except Exception as e:
-    logger.logError('getGoogleMailService():', e)
+    logger.log_error('get_google_mail_service():', e)

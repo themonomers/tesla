@@ -6,15 +6,16 @@ import json
 import os
 import getopt, sys
 
-from common.logger import logError
+from common.logger import log_error
 from common.crypto import encrypt
-from common.utilities import getConfig, getToken
+from common.utilities import get_config, get_token
 from datetime import datetime, timedelta
 
-REFRESH_TOKEN = getToken()['tesla']['refresh_token']
-EXPIRES_AT = getToken()['tesla']['expires_at']
+token = get_token()
+REFRESH_TOKEN = token['tesla']['refresh_token']
+EXPIRES_AT = token['tesla']['expires_at']
 
-TIME_ZONE = getConfig()['general']['timezone']
+TIME_ZONE = get_config()['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 ##
@@ -28,7 +29,7 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 #
 # author: mjhwa@yahoo.com 
 ##
-def newToken():
+def new_token():
   try:
     with teslapy.Tesla('elon@tesla.com') as tesla:
         response = tesla.fetch_token()
@@ -42,7 +43,7 @@ def newToken():
     print('created_at=' + datetime.strftime(expires_at - timedelta(seconds = response['expires_in']), '%Y-%m-%d %H:%M:%S'))
     print('expires_at=' + datetime.strftime(expires_at, '%Y-%m-%d %H:%M:%S'))
   except Exception as e:
-    logError('newToken():', e)
+    log_error('new_token():', e)
 
 
 ##
@@ -50,7 +51,7 @@ def newToken():
 #
 # author: mjhwa@yahoo.com 
 ##
-def refreshToken():
+def refresh_token():
   try:
     url = 'https://auth.tesla.com/oauth2/v3/token'
     payload = {
@@ -87,7 +88,7 @@ def refreshToken():
     )
     )
   except Exception as e:
-    logError('refreshToken():', e)
+    log_error('refresh_token():', e)
 
 
 ##
@@ -96,7 +97,7 @@ def refreshToken():
 #
 # author:  mjhwa@yahoo.com
 ##
-def checkTokenExpiration():
+def check_token_expiration():
   try:
     # get token expiration date
     expiration_date = datetime.strptime(EXPIRES_AT, '%Y-%m-%d %H:%M:%S')
@@ -108,12 +109,12 @@ def checkTokenExpiration():
     #print('now: ' + str(datetime.today()))
 
     if (datetime.today() >= refresh_date):
-      refreshToken()
+      refresh_token()
   except Exception as e:
-    logError('checkTokenExpiration():', e)
+    log_error('check_token_expiration():', e)
 
 
-def printHelp():
+def print_help():
   print('Usage: python tokenutil.py [OPTION...]')
   print('')
   print('--help                 prints the usage and options')
@@ -130,19 +131,19 @@ def main():
   try:
     arguments, values = getopt.getopt(args, options, long_options)
 
-    if len(arguments) < 1: printHelp()
+    if len(arguments) < 1: print_help()
 
     for currentArg, currentVal in arguments:
       if currentArg in ('--help'):
-        printHelp()
+        print_help()
       elif currentArg in ('--new'):
-        newToken()
+        new_token()
       elif currentArg in ('--refresh'):
-        refreshToken()
+        refresh_token()
       elif currentArg in ('--check'):
-        checkTokenExpiration()
+        check_token_expiration()
   except getopt.error as e:
-    printHelp()
+    print_help()
 
 
 if __name__ == "__main__":
