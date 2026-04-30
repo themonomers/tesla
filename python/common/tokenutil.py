@@ -4,7 +4,7 @@ import zoneinfo
 import requests
 import json
 import os
-import getopt, sys
+import argparse
 
 from common.logger import log_error
 from common.crypto import encrypt
@@ -114,44 +114,41 @@ def check_token_expiration():
     log_error('check_token_expiration():', e)
 
 
-def print_help():
-  print('Usage: python tokenutil.py [OPTION...]')
-  print('')
-  print('--help                 prints the usage and options')
-  print('')
-  print('--new                  prints a new access and refresh token using')
-  print('                       web login credentials')
-  print('')
-  print('--refresh              gets new tokens using the refresh token and ')
-  print('                       saves them to an encrypted file')
-  print('')
-  print('--check                checks to see if tokens are expiring and ')
-  print('                       refreshes them and saves them to an encrypted')
-  print('                       file')
+def main(parser):
+  args = parser.parse_args()
 
-
-def main():
-  args = sys.argv[1:]
-  options = ''
-  long_options = ['help', 'new', 'refresh', 'check']
-
-  try:
-    arguments, values = getopt.getopt(args, options, long_options)
-
-    if len(arguments) < 1: print_help()
-
-    for currentArg, currentVal in arguments:
-      if currentArg in ('--help'):
-        print_help()
-      elif currentArg in ('--new'):
-        new_token()
-      elif currentArg in ('--refresh'):
-        refresh_token()
-      elif currentArg in ('--check'):
-        check_token_expiration()
-  except getopt.error as e:
-    print_help()
+  if (args.new):
+    new_token()
+  elif (args.refresh):
+    refresh_token()
+  elif (args.check):
+    check_token_expiration()
+  else:
+    parser.print_help()
 
 
 if __name__ == "__main__":
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='tokenutil.py',
+                    description='API call for the Tesla authentication flow to retrieve new access and refresh tokens, check expiration and refresh if needed.')
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument(
+                      '-n', 
+                      '--new', 
+                      help='prints a new access and refresh token using web login credentials',
+                      action='store_true'
+                    )
+  group.add_argument(
+                      '-r', 
+                      '--refresh', 
+                      help='gets new tokens using the refresh token and saves them to an encrypted file',
+                      action='store_true'
+                    )
+  group.add_argument(
+                      '-c', 
+                      '--check', 
+                      help='checks to see if tokens are expiring and refreshes them and saves them to an encrypted file',
+                      action='store_true'
+                    )
+
+  main(parser)

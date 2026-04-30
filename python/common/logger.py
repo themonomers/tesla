@@ -1,4 +1,4 @@
-import getopt, sys
+import argparse
 import common.googleutil as googleutil
 
 from common.utilities import get_config
@@ -165,33 +165,24 @@ def truncate_log():
     service.close()
 
 
-def print_help():
-  print('Usage: python logger.py [OPTION...]')
-  print('')
-  print('--help                 prints the usage and options')
-  print('')
-  print('--truncate             deletes log entries older than a configured ')
-  print('                       threshold')
+def main(parser):
+  args = parser.parse_args()
 
-
-def main():
-  args = sys.argv[1:]
-  options = ''
-  long_options = ['help', 'truncate']
-
-  try:
-    arguments, values = getopt.getopt(args, options, long_options)
-
-    if len(arguments) < 1: print_help()
-
-    for currentArg, currentVal in arguments:
-      if currentArg in ('--help'):
-        print_help()
-      elif currentArg in ('--truncate'):
-        truncate_log()
-  except getopt.error as e:
-    print_help()
+  if (args.truncate):
+    truncate_log()
+  else:
+    parser.print_help()
 
 
 if __name__ == "__main__":
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='logger.py',
+                    description='Central logging service.')
+  parser.add_argument(
+                      '-t', 
+                      '--truncate', 
+                      help='deletes log entries older than a configured threshold',
+                      action='store_true'
+                     )
+
+  main(parser)

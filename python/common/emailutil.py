@@ -1,7 +1,7 @@
 import smtplib
 import os
 import time
-import getopt, sys
+import argparse
 
 from common.googleutil import get_google_mail_service
 from common.utilities import get_config
@@ -111,34 +111,25 @@ def truncate_email(query):
     service.close()
 
 
-def print_help():
-  print('Usage: python emailutil.py [OPTION...]')
-  print('')
-  print('--help                 prints the usage and options')
-  print('')
-  print('--truncate             deletes emails matching a pattern and ')
-  print('                       older than a configured threshold')
+def main(parser):
+  args = parser.parse_args()
 
-
-def main():
-  args = sys.argv[1:]
-  options = ''
-  long_options = ['help', 'truncate']
-
-  try:
-    arguments, values = getopt.getopt(args, options, long_options)
-
-    if len(arguments) < 1: print_help()
-
-    for currentArg, currentVal in arguments:
-      if currentArg in ('--help'):
-        print_help()
-      elif currentArg in ('--truncate'):
-        for key in QUERIES:
-          truncate_email(QUERIES[key])
-  except getopt.error as e:
-    print_help()
+  if (args.truncate):
+    for key in QUERIES:
+      truncate_email(QUERIES[key])
+  else:
+    parser.print_help()
 
 
 if __name__ == "__main__":
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='emailutil.py',
+                    description='Service to send and truncate emails.')
+  parser.add_argument(
+                      '-t', 
+                      '--truncate', 
+                      help='deletes emails matching a pattern and older than a configured threshold',
+                      action='store_true'
+                     )
+
+  main(parser)

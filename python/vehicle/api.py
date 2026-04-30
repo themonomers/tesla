@@ -1,4 +1,5 @@
 import requests
+import argparse
 import vehicle.commandproxy as commandproxy
 
 from common.utilities import print_json, get_token, get_config
@@ -410,10 +411,25 @@ def print_all_vehicle_data(vin):
     print_all_vehicle_data(vin)
 
 
-def main():
-  vin = input('print_all_vehicle_data VIN: ')
-  print_all_vehicle_data(vin)
+def main(parser):
+  args = parser.parse_args()
+
+  if (args.print):
+    print_all_vehicle_data(args.print[0])
+  else:
+    parser.print_help()
 
 
 if __name__ == "__main__":
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='api.py',
+                    description='API calls for Tesla Vehicles (Pre-2021 Model X and S).')
+  parser.add_argument(
+#                      '-p', 
+                      '--print', 
+                      help='prints all the vehicle data; VIN is the Vehicle Identification Number you can find on the car or in the mobile app',
+                      nargs=1,
+                      metavar='VIN'
+                     )
+
+  main(parser)

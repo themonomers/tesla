@@ -1,5 +1,5 @@
 import time
-import getopt, sys
+import argparse
 
 from vehicle.api import get_vehicle_data, add_charge_schedule, remove_charge_schedule, start_charge_vehicle, stop_charge_vehicle
 from vehicle.climate import set_m3_precondition, set_mx_precondition
@@ -674,49 +674,47 @@ def notify_is_tesla_plugged_in():
     log_error('notify_is_tesla_plugged_in():', e)
 
 
-def print_help():
-  print('Usage: python charge.py [OPTION...]')
-  print('')
-  print('--help                 prints the usage and options')
-  print('')
-  print('--notify               checks if vehicles are plugged in and ')
-  print('                       schedules charging and preconditioning')
-  print('')
-  print('--check[=VEHICLE]      backup charging if a vehicle isn\'t charging ')
-  print('                       that\'s supposed to be; VEHICLE can be \'m3\' ')
-  print('                       or \'mx\'')
-  print('')
-  print('--earliest             schedule charging at the earliest off-peak ')
-  print('                       time')
+def main(parser):
+  args = parser.parse_args()
 
-
-def main():
-  args = sys.argv[1:]
-  options = ''
-  long_options = ['help', 'notify', 'check=', 'earliest']
-
-  try:
-    arguments, values = getopt.getopt(args, options, long_options)
-
-    if len(arguments) < 1: print_help()
-
-    for currentArg, currentVal in arguments:
-      if currentArg in ('--help'):
-        print_help()
-      elif currentArg in ('--notify'):
-        notify_is_tesla_plugged_in()
-      elif currentArg in ('--check'):
-        if currentVal == 'm3':
-          charge_check(M3_VIN)
-        elif currentVal == 'mx':
-          charge_check(MX_VIN)
-        else:
-          print_help()
-      elif currentArg in ('--earliest'):
-        charge_earliest()
-  except getopt.error as e:
-    print_help()
+  if (args.notify):
+    notify_is_tesla_plugged_in()
+  elif (args.check):
+    if args.check[0] == 'm3':
+      charge_check(M3_VIN)
+    elif args.check[0] == 'mx':
+      charge_check(MX_VIN)
+    else:
+      parser.error('invalid VEHICLE type')
+  elif (args.earliest):
+    charge_earliest()
+  else:
+    parser.print_help()
 
 
 if __name__ == "__main__":
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='charge.py',
+                    description='Calculates and sets charging times to complete at a departure time for 2 EV\'s.')
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument(
+                      '-n', 
+                      '--notify', 
+                      help='checks if vehicles are plugged in and schedules charging and preconditioning',
+                      action='store_true'
+                    )
+  group.add_argument(
+#                      '-c', 
+                      '--check', 
+                      help='backup charging if a vehicle isn\'t charging that\'s supposed to be; VEHICLE can be \'m3\' or \'mx\'',
+                      nargs=1,
+                      metavar='VEHICLE'
+                    )
+  group.add_argument(
+                      '-e', 
+                      '--earliest', 
+                      help='schedule charging at the earliest off-peak time',
+                      action='store_true'
+                    )
+
+  main(parser)

@@ -1,3 +1,5 @@
+import argparse
+
 from itertools import cycle
 
 
@@ -64,27 +66,41 @@ def decrypt(read_fn, token_fn):
   return ''.join(chr(ord(chr(c))^ord(chr(k))) for c,k in zip(message, cycle(key)))
 
 
-def main():
-  print('[1] encrypt')
-  print('[2] decrypt')
-  try:
-    choice = int(input('selection: ')) # type: ignore
-  except ValueError:
-    return
+def main(parser):
+  args = parser.parse_args()
 
-  if choice == 1:
-    read_fn = input('read filename to encrypt: ')
-    write_fn = input('write encrypted filename: ')
-    token_fn = input('token filename: ')
- 
-    # Encrypt with simple key
-    encrypt_file(read_fn, write_fn, token_fn)
-  elif choice == 2:
-    filename = input('decrypt filename: ')
-    token_fn = input('token filename: ')
+  if (args.decrypt):
+    token_fn = args.decrypt[0]
+    source_fn = args.decrypt[1]
+    decrypt(source_fn, token_fn)
+    print(decrypt(source_fn, token_fn))
+  elif (args.encrypt):
+    token_fn = args.encrypt[0]
+    input_fn = args.encrypt[1]
+    target_fn = args.encrypt[2]
+    encrypt_file(input_fn, target_fn, token_fn)
+  else:
+    parser.print_help()
 
-    # Decrypt with simple key
-    print(decrypt(filename, token_fn))
 
 if __name__ == "__main__":
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='crypto.py',
+                    description='Encryption and decryption functions for sensitive files.')
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument(
+#                     '-d', 
+                     '--decrypt', 
+                     help='decrypt file and print contents', 
+                     nargs=2,
+                     metavar=('token_file', 'source_file')
+                    )
+  group.add_argument(
+#                     '-e', 
+                     '--encrypt', 
+                     help='read a file and encrypt its contents in a new file', 
+                     nargs=3,
+                     metavar=('token_file', 'input_file', 'target_file')
+                    )
+
+  main(parser)

@@ -1,4 +1,4 @@
-import getopt, sys
+import argparse
 
 from vehicle.api import get_vehicle_data, set_car_temp, set_car_seat_heating, set_car_seat_cooling, precondition_car_start, precondition_car_stop
 from common.googleutil import get_google_sheet_service
@@ -304,48 +304,45 @@ def precondition_stop(vin):
     log_error('precondition_stop(' + vin + '):', e)
 
 
-def print_help():
-  print('Usage: python climate.py [OPTION...]')
-  print('')
-  print('--help                 prints the usage and options')
-  print('')
-  print('--start[=VEHICLE]      starts pre-conditioning for a vehicle;')
-  print('                       VEHICLE can be \'m3\' or \'mx\'')
-  print('')
-  print('--stop[=VEHICLE]       stops pre-conditioning for a vehicle;')
-  print('                       VEHICLE can be \'m3\' or \'mx\'')
+def main(parser):
+  args = parser.parse_args()
 
-
-def main():
-  args = sys.argv[1:]
-  options = ''
-  long_options = ['help', 'start=', 'stop=']
-
-  try:
-    arguments, values = getopt.getopt(args, options, long_options)
-
-    if len(arguments) < 1: print_help()
-
-    for currentArg, currentVal in arguments:
-      if currentArg in ('--help'):
-        print_help()
-      elif currentArg in ('--start'):
-        if currentVal == 'm3':
-          precondition_m3_start()
-        elif currentVal == 'mx':
-          precondition_mx_start()
-        else:
-          print_help()
-      elif currentArg in ('--stop'):
-        if currentVal == 'm3':
-          precondition_m3_stop()
-        elif currentVal == 'mx':
-          precondition_mx_stop()
-        else:
-          print_help()
-  except getopt.error as e:
-    print_help()
+  if (args.start):
+    if args.start[0] == 'm3':
+      precondition_m3_start()
+    elif args.start[0] == 'mx':
+      precondition_mx_start()
+    else:
+      parser.error('invalid VEHICLE type')
+  elif (args.stop):
+    if args.stop[0] == 'm3':
+      precondition_m3_stop()
+    elif args.stop[0] == 'mx':
+      precondition_mx_stop()
+    else:
+      parser.error('invalid VEHICLE type')
+  else:
+    parser.print_help()
 
 
 if __name__ == "__main__":
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='climate.py',
+                    description='Sets up crontab for starting the car HVAC based on references stored in a Google Sheet.')
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument(
+#                      '-t', 
+                      '--start', 
+                      help='starts pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
+                      nargs=1,
+                      metavar='VEHICLE'
+                    )
+  group.add_argument(
+#                      '-p', 
+                      '--stop', 
+                      help='stops pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
+                      nargs=1,
+                      metavar='VEHICLE'
+                    )
+
+  main(parser)
