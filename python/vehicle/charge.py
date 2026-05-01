@@ -1,11 +1,25 @@
 import time
 import argparse
 
-from vehicle.api import get_vehicle_data, add_charge_schedule, remove_charge_schedule, start_charge_vehicle, stop_charge_vehicle
+from vehicle.api import (
+  get_vehicle_data, 
+  add_charge_schedule, 
+  remove_charge_schedule, 
+  start_charge_vehicle, 
+  stop_charge_vehicle
+)
 from vehicle.climate import set_m3_precondition, set_mx_precondition
 from common.googleutil import get_google_sheet_service
 from common.emailutil import send_email
-from common.utilities import is_vehicle_at_primary, is_vehicle_at_secondary, get_tomorrow_time, get_config, delete_cron_tab, create_cron_tab
+from common.utilities import (
+  is_vehicle_at_primary, 
+  is_vehicle_at_secondary, 
+  get_tomorrow_time, 
+  get_config, 
+  delete_cron_tab, 
+  create_cron_tab, 
+  NewlineFormatter
+)
 from common.logger import log_info, log_error, log_error_retry, log_error_std_out
 from datetime import timedelta, datetime
 from collections import namedtuple
@@ -695,7 +709,11 @@ def main(parser):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='charge.py',
-                    description='Calculates and sets charging times to complete at a departure time for 2 EV\'s.')
+                    description='Calculates and sets charging times to complete at a departure time for 2 EV\'s.',
+                    formatter_class=lambda prog: NewlineFormatter(prog, 
+                                                                  indent_increment=2, 
+                                                                  max_help_position=30, 
+                                                                  width=80))
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                       '-n', 

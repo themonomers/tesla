@@ -83,10 +83,17 @@ def main(parser):
     parser.print_help()
 
 
+import common.utilities as utilities
+
+
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='crypto.py',
-                    description='Encryption and decryption functions for sensitive files.')
+                    description='Encryption and decryption functions for sensitive files.',
+                    formatter_class=lambda prog: utilities.NewlineFormatter(prog, 
+                                                                            indent_increment=2, 
+                                                                            max_help_position=30, 
+                                                                            width=80))
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
 #                     '-d', 

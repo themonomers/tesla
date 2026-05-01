@@ -1,7 +1,15 @@
 import pytz
 import zoneinfo
 
-from energy.api import get_site_status, get_site_history, get_site_tou_history, get_power_history, get_savings_forecast, get_battery_charge_history, get_battery_backup_history
+from energy.api import (
+  get_site_status, 
+  get_site_history, 
+  get_site_tou_history, 
+  get_power_history, 
+  get_savings_forecast, 
+  get_battery_charge_history, 
+  get_battery_backup_history
+)
 from energy.localtelemetry import get_local_system_status
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email

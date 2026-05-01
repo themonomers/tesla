@@ -3,7 +3,7 @@ import json
 import pytz
 import argparse
 
-from common.utilities import print_json, get_config, get_token
+from common.utilities import print_json, get_config, get_token, NewlineFormatter
 from common.logger import log_error
 from datetime import datetime
 
@@ -645,7 +645,11 @@ def main(parser):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='api.py',
-                    description='API calls for Tesla Energy products.')
+                    description='API calls for Tesla Energy products.',
+                    formatter_class=lambda prog: NewlineFormatter(prog, 
+                                                                  indent_increment=2, 
+                                                                  max_help_position=30, 
+                                                                  width=80))
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                       '-s', 

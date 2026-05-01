@@ -1,8 +1,23 @@
 import argparse
 
-from vehicle.api import get_vehicle_data, set_car_temp, set_car_seat_heating, set_car_seat_cooling, precondition_car_start, precondition_car_stop
+from vehicle.api import (
+  get_vehicle_data, 
+  set_car_temp, 
+  set_car_seat_heating, 
+  set_car_seat_cooling, 
+  precondition_car_start, 
+  precondition_car_stop
+)
 from common.googleutil import get_google_sheet_service
-from common.utilities import delete_cron_tab, create_cron_tab, is_vehicle_at_primary, get_today_time, get_current_weather, get_config
+from common.utilities import (
+  delete_cron_tab, 
+  create_cron_tab, 
+  is_vehicle_at_primary, 
+  get_today_time, 
+  get_current_weather, 
+  get_config, 
+  NewlineFormatter
+)
 from common.logger import log_error
 from datetime import datetime
 
@@ -328,7 +343,11 @@ def main(parser):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='climate.py',
-                    description='Sets up crontab for starting the car HVAC based on references stored in a Google Sheet.')
+                    description='Sets up crontab for starting the car HVAC based on references stored in a Google Sheet.',
+                    formatter_class=lambda prog: NewlineFormatter(prog, 
+                                                                  indent_increment=2, 
+                                                                  max_help_position=30, 
+                                                                  width=80))
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
 #                      '-t', 

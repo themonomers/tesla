@@ -3,9 +3,14 @@ import zoneinfo
 import argparse
 
 from energy.api import get_battery_backup_history
-from energy.telemetry import write_energy_summary_to_db, write_energy_data_to_gsheet, write_energy_tou_summary_to_db, write_energy_detail_to_db, write_battery_charge_to_db
-from common.googleutil import get_google_sheet_service
-from common.utilities import get_config
+from energy.telemetry import (
+  write_energy_summary_to_db, 
+  write_energy_data_to_gsheet, 
+  write_energy_tou_summary_to_db, 
+  write_energy_detail_to_db, 
+  write_battery_charge_to_db
+)
+from common.utilities import get_config, NewlineFormatter
 from common.influxdb import get_db_client
 from common.logger import log_error
 from datetime import datetime
@@ -224,7 +229,11 @@ def main(parser):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='import.py',
-                    description='Imports data manually when automated processes fail.')
+                    description='Imports data manually when automated processes fail.',
+                    formatter_class=lambda prog: NewlineFormatter(prog, 
+                                                                  indent_increment=2, 
+                                                                  max_help_position=30, 
+                                                                  width=80))
   parser.add_argument(
 #                      '-e', 
                       '--detail_to_db', 

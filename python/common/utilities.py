@@ -328,6 +328,13 @@ def print_json(json_obj, level):
     print (offset + str(json_obj))
 
 
+class NewlineFormatter(argparse.HelpFormatter):
+    def _split_lines(self, text, width):
+        # Adds a newline after every help text line
+        return super()._split_lines(text, width) + ['']
+
+
+
 def main(parser):
   args = parser.parse_args()
 
@@ -356,7 +363,11 @@ def main(parser):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='utilities.py',
-                    description='Commonly used and helpful tools.')
+                    description='Commonly used and helpful tools.',
+                    formatter_class=lambda prog: NewlineFormatter(prog, 
+                                                                  indent_increment=2, 
+                                                                  max_help_position=30, 
+                                                                  width=80))
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                       '-c', 

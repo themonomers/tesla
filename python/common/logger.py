@@ -1,7 +1,7 @@
 import argparse
 import common.googleutil as googleutil
 
-from common.utilities import get_config
+from common.utilities import get_config, NewlineFormatter
 from datetime import datetime, timedelta
 
 config = get_config()
@@ -177,7 +177,11 @@ def main(parser):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='logger.py',
-                    description='Central logging service.')
+                    description='Central logging service.',
+                    formatter_class=lambda prog: NewlineFormatter(prog, 
+                                                                  indent_increment=2, 
+                                                                  max_help_position=30, 
+                                                                  width=80))
   parser.add_argument(
                       '-t', 
                       '--truncate', 

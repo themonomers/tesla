@@ -10,24 +10,30 @@ from crontab import CronTab
 ##
 def main():
   cron = CronTab(user='pi')
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1')
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> '
+                          '/home/pi/tesla/python/cron.log 2>&1')
   cron.remove(job)
   cron.write()
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> /home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
-
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=mx >> /home/pi/tesla/python/cron.log 2>&1')
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> '
+                          '/home/pi/tesla/python/cron.log 2>&1')
   cron.remove(job)
   cron.write()
 
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> /home/pi/tesla/python/cron.log 2>&1')
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> '
+                          '/home/pi/tesla/python/cron.log 2>&1')
   cron.remove(job)
   cron.write()
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> /home/pi/tesla/python/cron.log 2>&1')
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=mx >> '
+                          '/home/pi/tesla/python/cron.log 2>&1')
+  cron.remove(job)
+  cron.write()
+
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> '
+                          '/home/pi/tesla/python/cron.log 2>&1')
+  cron.remove(job)
+  cron.write()
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> '
+                          '/home/pi/tesla/python/cron.log 2>&1')
   cron.remove(job)
   cron.write()
 

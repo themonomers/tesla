@@ -2,7 +2,7 @@ import requests
 import argparse
 import vehicle.commandproxy as commandproxy
 
-from common.utilities import print_json, get_token, get_config
+from common.utilities import print_json, get_token, get_config, NewlineFormatter
 from common.logger import log_error
 
 ACCESS_TOKEN = get_token()['tesla']['access_token']
@@ -423,7 +423,11 @@ def main(parser):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='api.py',
-                    description='API calls for Tesla Vehicles (Pre-2021 Model X and S).')
+                    description='API calls for Tesla Vehicles (Pre-2021 Model X and S).',
+                    formatter_class=lambda prog: NewlineFormatter(prog, 
+                                                                  indent_increment=2, 
+                                                                  max_help_position=30, 
+                                                                  width=80))
   parser.add_argument(
 #                      '-p', 
                       '--print', 

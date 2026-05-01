@@ -5,7 +5,7 @@ import urllib.parse
 import urllib3
 import argparse
 
-from common.utilities import print_json, get_token, get_config
+from common.utilities import print_json, get_token, get_config, NewlineFormatter
 from common.logger import log_error
 
 ACCESS_TOKEN = get_token()['tesla']['access_token']
@@ -394,7 +394,11 @@ def main(parser):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='commandproxy.py',
-                    description='API calls to modified tesla-http-proxy running on localhost.')
+                    description='API calls to modified tesla-http-proxy running on localhost.',
+                    formatter_class=lambda prog: NewlineFormatter(prog, 
+                                                                  indent_increment=2, 
+                                                                  max_help_position=30, 
+                                                                  width=80))
   parser.add_argument(
 #                      '-p', 
                       '--print', 
