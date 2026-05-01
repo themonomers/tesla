@@ -344,10 +344,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='climate.py',
                     description='Sets up crontab for starting the car HVAC based on references stored in a Google Sheet.',
-                    formatter_class=lambda prog: NewlineFormatter(prog, 
-                                                                  indent_increment=2, 
-                                                                  max_help_position=30, 
-                                                                  width=80))
+                    formatter_class=NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
 #                      '-t', 

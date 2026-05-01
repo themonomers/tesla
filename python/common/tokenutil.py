@@ -132,10 +132,7 @@ if __name__ == "__main__":
                     prog='tokenutil.py',
                     description='API call for the Tesla authentication flow to retrieve new access and refresh tokens, '
                                 'check expiration and refresh if needed.',
-                    formatter_class=lambda prog: NewlineFormatter(prog, 
-                                                                  indent_increment=2, 
-                                                                  max_help_position=30, 
-                                                                  width=80))
+                    formatter_class=NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                       '-n', 

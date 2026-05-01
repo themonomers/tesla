@@ -90,27 +90,24 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='crypto.py',
                     description='Encryption and decryption functions for sensitive files.',
-                    formatter_class=lambda prog: utilities.NewlineFormatter(prog, 
-                                                                            indent_increment=2, 
-                                                                            max_help_position=30, 
-                                                                            width=80))
+                    formatter_class=utilities.NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
 #                     '-d', 
                      '--decrypt', 
-                     help='decrypt file and print contents; token_file is the location and filename of the encryption '
-                          'key, source_file is the location and filename to decrypt', 
+                     help='decrypt file and print contents; TOKEN_FILE is the location and filename of the encryption '
+                          'key, SOURCE_FILE is the location and filename to decrypt', 
                      nargs=2,
-                     metavar=('token_file', 'source_file')
+                     metavar=('TOKEN_FILE', 'SOURCE_FILE')
                     )
   group.add_argument(
 #                     '-e', 
                      '--encrypt', 
-                     help='read a file and encrypt its contents in a new file; token_file is the location and filename '
-                          'of the encryption key, input_file is the location and filename of the un-encrypted file to '
-                          'read from, target_file is the location and filename of the encrypted file to write to', 
+                     help='read a file and encrypt its contents in a new file; TOKEN_FILE is the location and filename '
+                          'of the encryption key, INPUT_FILE is the location and filename of the un-encrypted file to '
+                          'read from, TARGET_FILE is the location and filename of the encrypted file to write to', 
                      nargs=3,
-                     metavar=('token_file', 'input_file', 'target_file')
+                     metavar=('TOKEN_FILE', 'INPUT_FILE', 'TARGET_FILE')
                     )
 
   main(parser)

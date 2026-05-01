@@ -710,10 +710,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='charge.py',
                     description='Calculates and sets charging times to complete at a departure time for 2 EV\'s.',
-                    formatter_class=lambda prog: NewlineFormatter(prog, 
-                                                                  indent_increment=2, 
-                                                                  max_help_position=30, 
-                                                                  width=80))
+                    formatter_class=NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                       '-n', 

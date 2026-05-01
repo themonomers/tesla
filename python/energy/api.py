@@ -646,10 +646,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='api.py',
                     description='API calls for Tesla Energy products.',
-                    formatter_class=lambda prog: NewlineFormatter(prog, 
-                                                                  indent_increment=2, 
-                                                                  max_help_position=30, 
-                                                                  width=80))
+                    formatter_class=NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                       '-s', 
@@ -722,10 +719,10 @@ if __name__ == "__main__":
   parser.add_argument(
 #                      '-d', 
                       '--date', 
-                      help='date of data lookup in m/d/yyyy format',
+                      help='DATE of data lookup in m/d/yyyy format',
                       type=lambda d: datetime.strptime(d, '%m/%d/%Y'),
                       nargs=1,
-                      metavar='date'
+                      metavar='DATE'
                      )
 
   main(parser)

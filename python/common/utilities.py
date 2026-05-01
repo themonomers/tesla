@@ -334,7 +334,6 @@ class NewlineFormatter(argparse.HelpFormatter):
         return super()._split_lines(text, width) + ['']
 
 
-
 def main(parser):
   args = parser.parse_args()
 
@@ -364,10 +363,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='utilities.py',
                     description='Commonly used and helpful tools.',
-                    formatter_class=lambda prog: NewlineFormatter(prog, 
-                                                                  indent_increment=2, 
-                                                                  max_help_position=30, 
-                                                                  width=80))
+                    formatter_class=NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                       '-c', 
@@ -385,11 +381,11 @@ if __name__ == "__main__":
   group.add_argument(
 #                      '-D', 
                       '--distance', 
-                      help='calculates distance from a configured primary location; latitude and longitude is a location '
+                      help='calculates distance from a configured primary location; LATITUDE and LONGITUDE is a location '
                            'in decimal degrees',
                       type=float,
                       nargs=2,
-                      metavar=('latitude', 'longitude')
+                      metavar=('LATITUDE', 'LONGITUDE')
                     )
 
   main(parser)

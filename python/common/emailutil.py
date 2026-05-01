@@ -126,10 +126,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='emailutil.py',
                     description='Service to send and truncate emails.',
-                    formatter_class=lambda prog: NewlineFormatter(prog, 
-                                                                  indent_increment=2, 
-                                                                  max_help_position=30, 
-                                                                  width=80))
+                    formatter_class=NewlineFormatter)
   parser.add_argument(
                       '-t', 
                       '--truncate', 

@@ -424,10 +424,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='api.py',
                     description='API calls for Tesla Vehicles (Pre-2021 Model X and S).',
-                    formatter_class=lambda prog: NewlineFormatter(prog, 
-                                                                  indent_increment=2, 
-                                                                  max_help_position=30, 
-                                                                  width=80))
+                    formatter_class=NewlineFormatter)
   parser.add_argument(
 #                      '-p', 
                       '--print', 
