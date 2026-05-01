@@ -130,7 +130,8 @@ def main(parser):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='tokenutil.py',
-                    description='API call for the Tesla authentication flow to retrieve new access and refresh tokens, check expiration and refresh if needed.')
+                    description='API call for the Tesla authentication flow to retrieve new access and refresh tokens, '
+                                'check expiration and refresh if needed.')
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                       '-n', 

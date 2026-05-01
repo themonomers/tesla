@@ -1,6 +1,7 @@
 import requests
 import json
 import pytz
+import argparse
 
 from common.utilities import print_json, get_config, get_token
 from common.logger import log_error
@@ -596,85 +597,131 @@ def set_off_grid_vehicle_charging_reserve(percent):
     log_error('set_off_grid_vehicle_charging_reserve(' + percent + '):', e)
 
 
-def main():
-  print('[1]  get_site_status()')
-  print('[2]  get_site_live_status()')
-  print('[3]  get_site_info()')
-  print('[4]  get_site_history()')
-  print('[5]  get_battery_backup_history()')
-  print('[6]  get_site_tou_history()')
-  print('[7]  get_battery_charge_history()')
-  print('[8]  get_power_history()')
-  print('[9]  get_rate_tariffs()')
-  print('[10] get_site_tariff()')
-  print('[11] get_backup_time_remaining()')
-  print('[12] get_savings_forecast()')
-  print('[13] set_operational_mode_backup()')
-  print('[14] set_operational_mode_self_powered()')
-  print('[15] set_operational_mode_time_based_control()')
-  print('[16] set_energy_exports_everything()')
-  print('[17] set_energy_exports_solar()')
-  print('[18] set_backup_reserve()')
-  print('[19] set_off_grid_vehicle_charging_reserve()')
+def main(parser):
+  args = parser.parse_args()
 
-  try:
-    choice = int(input('selection: '))
-  except ValueError:
-    return
+  if ((args.site_history or 
+       args.site_tou_history or
+       args.battery_charge_history or
+       args.power_history or
+       args.savings_forecast) and 
+       not args.date):
+    parser.error('--date (m/d/yyyy) is required when --site_history, --site_tou_history, --battery_charge_history, '
+                 '--power_history, or --savings_forecast is used')
 
-  if choice == 1:
+  date = None
+  if (args.date):
+    date = datetime.strptime(args.date[0].strftime('%m/%d/%Y'), '%m/%d/%Y') 
+
+  data = {}
+  if (args.site_status):
     data = get_site_status()
-  elif choice == 2:
+  elif (args.site_live_status):
     data = get_site_live_status()
-  elif choice == 3:
+  elif (args.site_info):
     data = get_site_info()
-  elif choice == 4:
-    date = input('date(m/d/yyyy): ')
-    date = datetime.strptime(date, '%m/%d/%Y')
-    data = get_site_history('day', date)
-  elif choice == 5:
+  elif (args.battery_backup_history):
     data = get_battery_backup_history()
-  elif choice == 6:
-    date = input('date(m/d/yyyy): ')
-    date = datetime.strptime(date, '%m/%d/%Y')
-    data = get_site_tou_history('day', date)
-  elif choice == 7:
-    date = input('date(m/d/yyyy): ')
-    date = datetime.strptime(date, '%m/%d/%Y')
-    data = get_battery_charge_history('day', date)
-  elif choice == 8:
-    date = input('date(m/d/yyyy): ')
-    date = datetime.strptime(date, '%m/%d/%Y')
-    data = get_power_history('day', date)
-  elif choice == 9:
-    data = get_rate_tariffs()
-  elif choice == 10:
-    data = get_site_tariff()
-  elif choice == 11:
+  elif (args.backup_time_remaining):
     data = get_backup_time_remaining()
-  elif choice == 12:
-    date = input('date(m/d/yyyy): ')
-    date = datetime.strptime(date, '%m/%d/%Y')
+  elif (args.site_tariff):
+    data = get_site_tariff()
+  elif (args.site_history):
+    data = get_site_history('day', date)
+  elif (args.site_tou_history):
+    data = get_site_tou_history('day', date)
+  elif (args.battery_charge_history):
+    data = get_battery_charge_history('day', date)
+  elif (args.power_history):
+    data = get_power_history('day', date)
+  elif (args.savings_forecast):
     data = get_savings_forecast('day', date)
-  elif choice == 13:
-    set_operational_mode_backup()
-  elif choice == 14:
-    set_operational_mode_self_powered()
-  elif choice == 15:
-    set_operational_mode_time_based_control()
-  elif choice == 16:
-    set_energy_exports_everything()
-  elif choice == 17:
-    set_energy_exports_solar()
-  elif choice == 18:
-    percent = float(input('% for backup use: '))
-    data = set_backup_reserve(percent)
-  elif choice == 19:
-    percent = float(input('% save for home use: '))
-    data = set_off_grid_vehicle_charging_reserve(percent)
-  
+  else:
+    parser.print_help()
+
   print_json(data, 0)
 
 
 if __name__ == "__main__":
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='api.py',
+                    description='API calls for Tesla Energy products.')
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument(
+                      '-s', 
+                      '--site_status', 
+                      help='prints site summary information, e.g. Gateway ID',
+                      action='store_true'
+                    )
+  group.add_argument(
+                      '-l', 
+                      '--site_live_status', 
+                      help='prints live data of load, grid, solar, battery, etc.',
+                      action='store_true'
+                    )
+  group.add_argument(
+                      '-i', 
+                      '--site_info', 
+                      help='prints site configuration and setting details',
+                      action='store_true'
+                    )
+  group.add_argument(
+                      '-b', 
+                      '--battery_backup_history', 
+                      help='prints grid outage/battery backup events',
+                      action='store_true'
+                    )
+  group.add_argument(
+                      '-r', 
+                      '--backup_time_remaining', 
+                      help='prints estimated hours of battery backup left',
+                      action='store_true'
+                    )
+  group.add_argument(
+                      '-t', 
+                      '--site_tariff', 
+                      help='lists the utility provider\'s rate plan (tariff) selected for your site in the mobile app '
+                           'along with published rates, TOU schedules, etc.',
+                      action='store_true'
+                    )
+  group.add_argument(
+#                     '-', 
+                     '--site_history', 
+                     help='prints summary level information about energy imports and exports down to the day',
+                     action='store_true'
+                    )
+  group.add_argument(
+#                     '-', 
+                     '--site_tou_history', 
+                     help='prints summary level information about energy imports and exports down to the day, separated '
+                          'by time of use (peak, partial peak, and off peak)',
+                     action='store_true'
+                    )
+  group.add_argument(
+#                     '-', 
+                     '--battery_charge_history', 
+                     help='prints battery charge level history in 15 minute increments shown on the mobile app',
+                     action='store_true'
+                    )
+  group.add_argument(
+#                     '-', 
+                     '--power_history', 
+                     help='prints energy information in 5 minute increments',
+                     action='store_true'
+                    )
+  group.add_argument(
+#                     '-', 
+                     '--savings_forecast', 
+                     help='prints data for Solar Value (estimated cost savings)',
+                     action='store_true'
+                    )
+  parser.add_argument(
+#                      '-d', 
+                      '--date', 
+                      help='date of data lookup in m/d/yyyy format',
+                      type=lambda d: datetime.strptime(d, '%m/%d/%Y'),
+                      nargs=1,
+                      metavar='date'
+                     )
+
+  main(parser)

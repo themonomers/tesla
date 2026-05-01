@@ -91,14 +91,17 @@ if __name__ == "__main__":
   group.add_argument(
 #                     '-d', 
                      '--decrypt', 
-                     help='decrypt file and print contents', 
+                     help='decrypt file and print contents; token_file is the location and filename of the encryption '
+                          'key, source_file is the location and filename to decrypt', 
                      nargs=2,
                      metavar=('token_file', 'source_file')
                     )
   group.add_argument(
 #                     '-e', 
                      '--encrypt', 
-                     help='read a file and encrypt its contents in a new file', 
+                     help='read a file and encrypt its contents in a new file; token_file is the location and filename '
+                          'of the encryption key, input_file is the location and filename of the un-encrypted file to '
+                          'read from, target_file is the location and filename of the encrypted file to write to', 
                      nargs=3,
                      metavar=('token_file', 'input_file', 'target_file')
                     )

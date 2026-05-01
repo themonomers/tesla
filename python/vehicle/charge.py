@@ -706,7 +706,8 @@ if __name__ == "__main__":
   group.add_argument(
 #                      '-c', 
                       '--check', 
-                      help='backup charging if a vehicle isn\'t charging that\'s supposed to be; VEHICLE can be \'m3\' or \'mx\'',
+                      help='backup charging if a vehicle isn\'t charging that\'s supposed to be; VEHICLE can be \'m3\' '
+                           'or \'mx\'',
                       nargs=1,
                       metavar='VEHICLE'
                     )

@@ -6,6 +6,7 @@ import zoneinfo
 import configparser
 import os
 import time
+import argparse
 
 from common.crypto import decrypt
 from crontab import CronTab
@@ -327,40 +328,60 @@ def print_json(json_obj, level):
     print (offset + str(json_obj))
 
 
-def main():
-  print('[1] get_distance()')
-  print('[2] get_current_weather()')
-  print('[3] get_daily_weather()')
+def main(parser):
+  args = parser.parse_args()
 
-  try:
-    choice = int(input('selection: '))
-  except ValueError:
-    return
-
-  if (choice == 1):
-    lat = float(input('latitude: '))
-    lng = float(input('longitude: '))
+  if (args.current):
+    data = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
+    print_json(data, 0)
+  elif (args.daily):
+    data = get_daily_weather(PRIMARY_LAT, PRIMARY_LNG)
+    print_json(data, 0)
+  elif (args.distance):
     print(
-      'distance from primary location: ' 
+      'distance from primary location (mi): ' 
       + str(
         get_distance(
-          lat, 
-          lng, 
+          args.distance[0], 
+          args.distance[1], 
           PRIMARY_LAT,
           PRIMARY_LNG
         )
       )
     )
-  elif (choice == 2):
-    data = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
-    print_json(data, 0)
-  elif (choice == 3):
-    data = get_daily_weather(PRIMARY_LAT, PRIMARY_LNG)
-    print_json(data, 0)
+  else:
+    parser.print_help()
 
 
 if __name__ == "__main__":
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='utilities.py',
+                    description='Commonly used and helpful tools.')
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument(
+                      '-c', 
+                      '--current', 
+                      help='prints current weather conditions at a configured primary location',
+                      action='store_true'
+                    )
+  group.add_argument(
+                      '-d', 
+                      '--daily', 
+                      help='prints weather conditions for today + 7 days, and hourly weather conditions for 48 hours '
+                           'at a configured primary location',
+                      action='store_true'
+                    )
+  group.add_argument(
+#                      '-D', 
+                      '--distance', 
+                      help='calculates distance from a configured primary location; latitude and longitude is a location '
+                           'in decimal degrees',
+                      type=float,
+                      nargs=2,
+                      metavar=('latitude', 'longitude')
+                    )
+
+  main(parser)
 
 
 import common.logger as logger

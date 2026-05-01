@@ -398,7 +398,8 @@ if __name__ == "__main__":
   parser.add_argument(
 #                      '-p', 
                       '--print', 
-                      help='prints all the vehicle data; VIN is the Vehicle Identification Number you can find on the car or in the mobile app',
+                      help='prints all the vehicle data; VIN is the Vehicle Identification Number you can find on the '
+                           'car or in the mobile app',
                       nargs=1,
                       metavar='VIN'
                      )
