@@ -117,11 +117,11 @@ func NotifyIsTeslaPluggedIn() {
 	dow_index = common.FindStringIn2DArray(climate_config.Values, day_of_week)
 	if climate_config.Values[dow_index[0]][8].(string) != "skip" {
 		m3_climate_start_time = common.GetTomorrowTime(climate_config.Values[dow_index[0]][8].(string))
-		m3_climate_start_time = SetM3Precondition(m3_data, climate_config.Values[19][1].(string), m3_climate_start_time)
+		m3_climate_start_time = SetPrecondition(m3_data, climate_config.Values[19][1].(string), m3_climate_start_time)
 	}
 	if climate_config.Values[dow_index[0]][14].(string) != "skip" {
 		mx_climate_start_time := common.GetTomorrowTime(climate_config.Values[dow_index[0]][14].(string))
-		mx_climate_start_time = SetMXPrecondition(mx_data, climate_config.Values[19][10].(string), mx_climate_start_time)
+		mx_climate_start_time = SetPrecondition(mx_data, climate_config.Values[19][10].(string), mx_climate_start_time)
 	}
 
 	// send email notification if either charging or preconditioning is scheduled
@@ -167,8 +167,8 @@ func ChargeEarliest() {
 	confirm = strings.TrimSuffix(confirm, "\n")
 	if confirm == "y" {
 		// set cars for scheduled charging at the earliest off-peak time
-		m3_start_time := scheduleEarliestCharging(m3_data, M3_VIN)
-		mx_start_time := scheduleEarliestCharging(mx_data, MX_VIN)
+		m3_start_time := scheduleEarliestCharging(m3_data)
+		mx_start_time := scheduleEarliestCharging(mx_data)
 
 		fmt.Println("\nDo you want email confirmation (y/N])?: ")
 		confirm, err = reader.ReadString('\n')
@@ -240,7 +240,7 @@ func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_targe
 		AddChargeSchedule(M3_VIN, m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(M3_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
-		scheduleBackupCharging(M3_VIN, m3_data, start_time.Add(10*time.Minute))
+		scheduleBackupCharging(m3_data, start_time.Add(10*time.Minute))
 
 		return start_time
 	} else {
@@ -285,7 +285,7 @@ func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_targe
 		AddChargeSchedule(MX_VIN, mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(MX_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
-		scheduleBackupCharging(MX_VIN, mx_data, start_time.Add(10*time.Minute))
+		scheduleBackupCharging(mx_data, start_time.Add(10*time.Minute))
 
 		return start_time
 	} else {
@@ -294,8 +294,10 @@ func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_targe
 }
 
 // Schedule charging based on earliest time for off-peak rates.
-func scheduleEarliestCharging(data map[string]any, vin string) time.Time {
+func scheduleEarliestCharging(data map[string]any) time.Time {
 	var start_time time.Time
+
+	vin := data["response"].(map[string]any)["vin"].(string)
 
 	if data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" &&
 		common.IsVehicleAtPrimary(data) {
@@ -309,7 +311,7 @@ func scheduleEarliestCharging(data map[string]any, vin string) time.Time {
 		AddChargeSchedule(vin, data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
 		StopChargeVehicle(vin) // for some reason charging starts sometimes after scheduled charging API is called
 
-		scheduleBackupCharging(vin, data, start_time.Add(10*time.Minute))
+		scheduleBackupCharging(data, start_time.Add(10*time.Minute))
 
 		return start_time
 	} else {
@@ -338,20 +340,26 @@ func chargeCheck(vin string) {
 }
 
 // Create a crontab to check if scheduled charging has started.
-func scheduleBackupCharging(vin string, data map[string]any, start_time time.Time) {
+func scheduleBackupCharging(data map[string]any, start_time time.Time) {
+	vin := data["response"].(map[string]any)["vin"].(string)
+
 	if common.IsVehicleAtPrimary(data) {
 		// create backup charging start crontab at target time tomorrow
 		switch vin {
 		case M3_VIN:
-			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckm3 >> /home/pi/tesla/go/cron.log 2>&1")
-			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckm3 >> /home/pi/tesla/go/cron.log 2>&1",
+			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckm3 >> " +
+				"/home/pi/tesla/go/cron.log 2>&1")
+			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckm3 >> "+
+				"/home/pi/tesla/go/cron.log 2>&1",
 				start_time.Minute(),
 				start_time.Hour(),
 				start_time.Day(),
 				int(start_time.Month()))
 		case MX_VIN:
-			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckmx >> /home/pi/tesla/go/cron.log 2>&1")
-			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckmx >> /home/pi/tesla/go/cron.log 2>&1",
+			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckmx >> " +
+				"/home/pi/tesla/go/cron.log 2>&1")
+			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckmx >> "+
+				"/home/pi/tesla/go/cron.log 2>&1",
 				start_time.Minute(),
 				start_time.Hour(),
 				start_time.Day(),

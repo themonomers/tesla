@@ -1,7 +1,7 @@
+/python/test
+/go/test
 *.pyc
 *.json
 *.xor
-*_test*
-*Test*
 *.log
 *.pem

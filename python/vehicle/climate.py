@@ -43,46 +43,38 @@ WAIT_TIME = 30
 #
 # author: mjhwa@yahoo.com
 ## 
-def set_m3_precondition(data, eco_mode, start_time):
+def set_precondition(data, eco_mode, start_time):
   try: 
+    vin = data['response']['vin']
+
     # check if eco mode is off first so we don't have to even call the 
     # Tesla API if we don't have to
     if (eco_mode == 'off'):
       # check if the car is with 0.25 miles of the primary location
       if (is_vehicle_at_primary(data)):
         # create precondition start crontab at preferred time tomorrow
-        delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1')
-        create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
-                        start_time.month, 
-                        start_time.day, 
-                        start_time.hour, 
-                        start_time.minute)
-        
+        if (vin == M3_VIN):
+          delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> '
+                          '/home/pi/tesla/python/cron.log 2>&1')
+          create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> '
+                          '/home/pi/tesla/python/cron.log 2>&1', 
+                          start_time.month, 
+                          start_time.day, 
+                          start_time.hour, 
+                          start_time.minute)
+        elif (vin == MX_VIN):
+          delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> '
+                          '/home/pi/tesla/python/cron.log 2>&1')
+          create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> '
+                          '/home/pi/tesla/python/cron.log 2>&1', 
+                          start_time.month, 
+                          start_time.day, 
+                          start_time.hour, 
+                          start_time.minute)
         return start_time
     return None
   except Exception as e:
-    log_error('set_m3_precondition():', e)
-
-
-def set_mx_precondition(data, eco_mode, start_time):
-  try: 
-    # check if eco mode is off first so we don't have to even call the 
-    # Tesla API if we don't have to
-    if (eco_mode == 'off'):
-      # check if the car is with 0.25 miles of the primary location
-      if (is_vehicle_at_primary(data)):
-        # create precondition start crontab at preferred time tomorrow
-        delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1')
-        create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> /home/pi/tesla/python/cron.log 2>&1', 
-                        start_time.month, 
-                        start_time.day, 
-                        start_time.hour, 
-                        start_time.minute)
-        
-        return start_time
-    return None
-  except Exception as e:
-    log_error('set_mx_precondition():', e)
+    log_error('set_precondition(' + vin + '):', e)
 
 
 ##
@@ -299,14 +291,6 @@ def precondition_mx_start():
 #
 # author: mjhwa@yahoo.com
 ##
-def precondition_m3_stop():
-  precondition_stop(M3_VIN)
-
-
-def precondition_mx_stop():
-  precondition_stop(MX_VIN)
-
-
 def precondition_stop(vin):
   try:
     data = get_vehicle_data(vin)
@@ -331,9 +315,9 @@ def main(parser):
       parser.error('invalid VEHICLE type')
   elif (args.stop):
     if args.stop[0] == 'm3':
-      precondition_m3_stop()
+      precondition_stop(M3_VIN)
     elif args.stop[0] == 'mx':
-      precondition_mx_stop()
+      precondition_stop(MX_VIN)
     else:
       parser.error('invalid VEHICLE type')
   else:

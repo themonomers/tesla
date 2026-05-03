@@ -8,7 +8,7 @@ from vehicle.api import (
   start_charge_vehicle, 
   stop_charge_vehicle
 )
-from vehicle.climate import set_m3_precondition, set_mx_precondition
+from vehicle.climate import set_precondition
 from common.googleutil import get_google_sheet_service
 from common.emailutil import send_email
 from common.utilities import (
@@ -82,7 +82,7 @@ def schedule_m3_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
       add_charge_schedule(M3_VIN, m3_data['response']['drive_state']['latitude'], m3_data['response']['drive_state']['longitude'], total_minutes, 1)
       stop_charge_vehicle(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
-      schedule_backup_charging(M3_VIN, m3_data, start_time + timedelta(minutes = 10))
+      schedule_backup_charging(m3_data, start_time + timedelta(minutes = 10))
 
       return start_time
     else:
@@ -124,7 +124,7 @@ def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
       add_charge_schedule(MX_VIN, mx_data['response']['drive_state']['latitude'], mx_data['response']['drive_state']['longitude'], total_minutes, 1)
       stop_charge_vehicle(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
-      schedule_backup_charging(MX_VIN, mx_data, start_time + timedelta(minutes = 10))
+      schedule_backup_charging(mx_data, start_time + timedelta(minutes = 10))
 
       return start_time
     else:
@@ -138,8 +138,10 @@ def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
 #
 # author: mjhwa@yahoo.com
 ##
-def schedule_earliest_charging(data, vin): 
+def schedule_earliest_charging(data): 
   try:
+    vin = data['response']['vin']
+
     if (data['response']['charge_state']['charging_state'] != 'Complete' and 
       is_vehicle_at_primary(data) == True):
       start_time = get_tomorrow_time(EARLIEST_CHARGING_START_TIME)
@@ -152,13 +154,13 @@ def schedule_earliest_charging(data, vin):
       add_charge_schedule(vin, data['response']['drive_state']['latitude'], data['response']['drive_state']['longitude'], total_minutes, 1)
       stop_charge_vehicle(vin) # for some reason charging starts sometimes after scheduled charging API is called
 
-      schedule_backup_charging(vin, data, start_time + timedelta(minutes = 10))
+      schedule_backup_charging(data, start_time + timedelta(minutes = 10))
 
       return start_time
     else:
       return None
   except Exception as e:
-    log_error_std_out('schedule_earliest_charging():', e)
+    log_error_std_out('schedule_earliest_charging(' + vin + '):', e)
 
 
 ##
@@ -204,8 +206,8 @@ def charge_earliest():
     confirm = input('\nDo you want to override scheduled departure to scheduled start at earliest off-peak time (y/N)?: ')
     if confirm == 'y':
       # set cars for scheduled charging at the earliest off-peak time
-      m3_start_time = schedule_earliest_charging(m3_data, M3_VIN)
-      mx_start_time = schedule_earliest_charging(mx_data, MX_VIN)
+      m3_start_time = schedule_earliest_charging(m3_data)
+      mx_start_time = schedule_earliest_charging(mx_data)
 
       confirm = input('\nDo you want email confirmation (y/N])?: ')
       if confirm == 'y':
@@ -238,20 +240,26 @@ def charge_earliest():
 #
 # author: mjhwa@yahoo.com
 ##
-def schedule_backup_charging(vin, data, start_time):
+def schedule_backup_charging(data, start_time):
   try:
+    vin = data['response']['vin']
+
     if (is_vehicle_at_primary(data)):
       # create backup charging start crontab at target time tomorrow
       if (vin == M3_VIN):
-        delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> /home/pi/tesla/python/cron.log 2>&1')
-        create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
+        delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> '
+                        '/home/pi/tesla/python/cron.log 2>&1')
+        create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> '
+                        '/home/pi/tesla/python/cron.log 2>&1', 
                         start_time.month, 
                         start_time.day, 
                         start_time.hour, 
                         start_time.minute)
       elif (vin == MX_VIN):
-        delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> /home/pi/tesla/python/cron.log 2>&1')
-        create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> /home/pi/tesla/python/cron.log 2>&1', 
+        delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> '
+                        '/home/pi/tesla/python/cron.log 2>&1')
+        create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> '
+                        '/home/pi/tesla/python/cron.log 2>&1', 
                         start_time.month, 
                         start_time.day, 
                         start_time.hour, 
@@ -662,10 +670,10 @@ def notify_is_tesla_plugged_in():
     dow_index = [index for index, element in enumerate(climate_config) if day_of_week in element]
     if (climate_config[dow_index[0]][8] != 'skip'):
       m3_climate_start_time = get_tomorrow_time(climate_config[dow_index[0]][8])
-      m3_climate_start_time = set_m3_precondition(m3_data, climate_config[19][1], m3_climate_start_time)
+      m3_climate_start_time = set_precondition(m3_data, climate_config[19][1], m3_climate_start_time)
     if (climate_config[dow_index[0]][14] != 'skip'):
       mx_climate_start_time = get_tomorrow_time(climate_config[dow_index[0]][14])
-      mx_climate_start_time = set_mx_precondition(mx_data, climate_config[19][10], mx_climate_start_time)
+      mx_climate_start_time = set_precondition(mx_data, climate_config[19][10], mx_climate_start_time)
 
     # send email notification if either charging or preconditioning is scheduled
     send_scheduled_charge_message('Model 3',
