@@ -143,13 +143,6 @@ func StartM3Precondition() {
 		seats = append(seats, seat_set)
 		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][4].(string))
 		seats = append(seats, seat_set)
-		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][5].(string))
-		seats = append(seats, seat_set)
-		seats = append(seats, -1) // placeholder for index 3 as it's not assigned in the API
-		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][6].(string))
-		seats = append(seats, seat_set)
-		seat_set, _ = strconv.Atoi(climate_config.Values[dow_index[1]][7].(string))
-		seats = append(seats, seat_set)
 
 		if climate_config.Values[dow_index[1]][9].(string) == "skip" {
 			return
@@ -181,7 +174,7 @@ func StartM3Precondition() {
 			case "heat":
 				SetSeatHeating(M3_VIN, i, seats[i])
 			case "cool":
-				SetSeatCooling(M3_VIN, i, seats[i])
+				SetSeatCooling(M3_VIN, i+1, seats[i])
 			}
 		}
 

@@ -149,10 +149,6 @@ def start_m3_precondition():
 
       seats.append(climate_config[dow_index[1]][3])
       seats.append(climate_config[dow_index[1]][4])
-      seats.append(climate_config[dow_index[1]][5])
-      seats.append(-1) # placeholder for index 3 as it's not assigned in the API
-      seats.append(climate_config[dow_index[1]][6])
-      seats.append(climate_config[dow_index[1]][7])
 
       if climate_config[dow_index[1]][9] == 'skip':
         return
@@ -179,7 +175,7 @@ def start_m3_precondition():
       for index, item in enumerate(seats):
         if (index == 3):
           continue # skip index 3 as it's not assigned in the API
-        set_seat_cooling(M3_VIN, int(index), int(item)) if mode == 'cool' else set_seat_heating(M3_VIN, int(index), int(item))
+        set_seat_cooling(M3_VIN, int(index + 1), int(item)) if mode == 'cool' else set_seat_heating(M3_VIN, int(index), int(item))
 
       # create crontab to stop preconditioning at preferred time later in the day
       delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> '

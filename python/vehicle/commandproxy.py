@@ -340,6 +340,38 @@ def set_seat_climate_auto(vin, enable, seat):
 
 
 ##
+# Sets steering wheel heating on/off. For vehicles that do not 
+# support auto steering wheel heat. Requires preconditioning or 
+# climate keeper to be on.
+#
+# enable:  True/False (on/off)
+#
+# author: mjhwa@yahoo.com
+##
+def set_steering_wheel_heating(vin, enable):
+  try:  
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
+           + vin 
+           + '/command/remote_steering_wheel_heater_request')
+
+    payload = {
+      'on': enable
+    }
+
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
+    return requests.post(
+      url, 
+      json=payload, 
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
+    )
+  except Exception as e:
+    log_error('set_steering_wheel_heating(' + vin + '):', e)
+
+
+##
 # Function to start vehicle preconditioning.
 #
 # author: mjhwa@yahoo.com

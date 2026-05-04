@@ -463,8 +463,58 @@ func setSeatTemp(vin string, mode string, seat int, setting int) map[string]any 
 //
 //	1: front left
 //	2: front right
-func SetSeatClimateAuto() {
+func SetSeatClimateAuto(vin string, enable bool, seat int) map[string]any {
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
+		getVehicleId(vin) +
+		"/command/remote_auto_seat_climate_request"
 
+	payload, _ := json.Marshal(map[string]any{
+		"auto_climate_on":    enable,
+		"auto_seat_position": seat,
+	})
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	common.LogError("SetSeatClimateAuto(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := http.DefaultClient.Do(req)
+	common.LogError("SetSeatClimateAuto(): http.DefaultClient.Do", err)
+
+	defer resp.Body.Close()
+	body := map[string]any{}
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
+}
+
+// Sets steering wheel heating on/off. For vehicles that do not
+// support auto steering wheel heat. Requires preconditioning or
+// climate keeper to be on.
+//
+// enable:  True/False (on/off)
+func SetSteeringWheelHeating(vin string, enable bool) map[string]any {
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
+		getVehicleId(vin) +
+		"/command/remote_steering_wheel_heater_request"
+
+	payload, _ := json.Marshal(map[string]any{
+		"on": enable,
+	})
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	common.LogError("SetSteeringWheelHeating(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := http.DefaultClient.Do(req)
+	common.LogError("SetSteeringWheelHeating(): http.DefaultClient.Do", err)
+
+	defer resp.Body.Close()
+	body := map[string]any{}
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
 }
 
 // Function to start vehicle preconditioning.
