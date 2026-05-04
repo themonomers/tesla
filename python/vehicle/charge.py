@@ -707,7 +707,7 @@ def main(parser):
     elif args.check[0] == 'mx':
       charge_check(MX_VIN)
     else:
-      parser.error('invalid VEHICLE type')
+      parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   elif (args.earliest):
     charge_earliest()
   else:

@@ -312,14 +312,14 @@ def main(parser):
     elif args.start[0] == 'mx':
       precondition_mx_start()
     else:
-      parser.error('invalid VEHICLE type')
+      parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   elif (args.stop):
     if args.stop[0] == 'm3':
       precondition_stop(M3_VIN)
     elif args.stop[0] == 'mx':
       precondition_stop(MX_VIN)
     else:
-      parser.error('invalid VEHICLE type')
+      parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   else:
     parser.print_help()
 

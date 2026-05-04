@@ -1,6 +1,5 @@
-/python/test
-/go/test
-*.pyc
+**/test
+**/__pycache__
 *.json
 *.xor
 *.log
