@@ -5,8 +5,8 @@ from vehicle.api import (
   get_vehicle_data, 
   add_charge_schedule, 
   remove_charge_schedule, 
-  start_charge_vehicle, 
-  stop_charge_vehicle
+  start_charge, 
+  stop_charge
 )
 from vehicle.climate import set_precondition
 from common.googleutil import get_google_sheet_service
@@ -80,7 +80,7 @@ def schedule_m3_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
       # their corresponding ID's.
       remove_charge_schedule(M3_VIN, 1)
       add_charge_schedule(M3_VIN, m3_data['response']['drive_state']['latitude'], m3_data['response']['drive_state']['longitude'], total_minutes, 1)
-      stop_charge_vehicle(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
+      stop_charge(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
       schedule_backup_charging(m3_data, start_time + timedelta(minutes = 10))
 
@@ -122,7 +122,7 @@ def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
 
       remove_charge_schedule(MX_VIN, 1)
       add_charge_schedule(MX_VIN, mx_data['response']['drive_state']['latitude'], mx_data['response']['drive_state']['longitude'], total_minutes, 1)
-      stop_charge_vehicle(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
+      stop_charge(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
       schedule_backup_charging(mx_data, start_time + timedelta(minutes = 10))
 
@@ -152,7 +152,7 @@ def schedule_earliest_charging(data):
       # their corresponding ID's.
       remove_charge_schedule(vin, 1)
       add_charge_schedule(vin, data['response']['drive_state']['latitude'], data['response']['drive_state']['longitude'], total_minutes, 1)
-      stop_charge_vehicle(vin) # for some reason charging starts sometimes after scheduled charging API is called
+      stop_charge(vin) # for some reason charging starts sometimes after scheduled charging API is called
 
       schedule_backup_charging(data, start_time + timedelta(minutes = 10))
 
@@ -168,16 +168,16 @@ def schedule_earliest_charging(data):
 # will attempt to start it at the target time.
 #
 # author: mjhwa@yahoo.com
-def charge_check(vin):
+def check_charge(vin):
   try:
     data = get_vehicle_data(vin)
 
     if (is_vehicle_at_primary(data) and 
         (data['response']['charge_state']['charging_state'] != 'Charging')):
-      log_info('charge_check(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
-      start_charge_vehicle(vin)
+      log_info('check_charge(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
+      start_charge(vin)
   except Exception as e:
-    log_error('charge_check(' + vin + '):', e)
+    log_error('check_charge(' + vin + '):', e)
 
 
 ##
@@ -703,9 +703,9 @@ def main(parser):
     notify_is_tesla_plugged_in()
   elif (args.check):
     if args.check[0] == 'm3':
-      charge_check(M3_VIN)
+      check_charge(M3_VIN)
     elif args.check[0] == 'mx':
-      charge_check(MX_VIN)
+      check_charge(MX_VIN)
     else:
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   elif (args.earliest):

@@ -41,18 +41,18 @@ func SetPrecondition(data map[string]any, eco_mode string, start_time time.Time)
 			switch vin {
 			case M3_VIN:
 				common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go " +
-					"-preconditionm3start >> /home/pi/tesla/go/cron.log 2>&1")
+					"-startm3precondition >> /home/pi/tesla/go/cron.log 2>&1")
 				common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go "+
-					"-preconditionm3start >> /home/pi/tesla/go/cron.log 2>&1",
+					"-startm3precondition >> /home/pi/tesla/go/cron.log 2>&1",
 					start_time.Minute(),
 					start_time.Hour(),
 					start_time.Day(),
 					int(start_time.Month()))
 			case MX_VIN:
 				common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go " +
-					"-preconditionmxstart >> /home/pi/tesla/go/cron.log 2>&1")
+					"-startmxprecondition >> /home/pi/tesla/go/cron.log 2>&1")
 				common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go "+
-					"-preconditionmxstart >> /home/pi/tesla/go/cron.log 2>&1",
+					"-startmxprecondition >> /home/pi/tesla/go/cron.log 2>&1",
 					start_time.Minute(),
 					start_time.Hour(),
 					start_time.Day(),
@@ -75,11 +75,11 @@ func SetPrecondition(data map[string]any, eco_mode string, start_time time.Time)
 // Trying to use a weather API instead of the inside or outside temp data from
 // the cars.  The temp data from the cars don't seem to be accurate enough
 // and not representative of passenger comfort of when to pre-heat/cool.
-func PreconditionM3Start() {
+func StartM3Precondition() {
 	// get configuration info
 	srv := common.GetGoogleSheetService()
 	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
-	common.LogError("PreconditionM3Start(): srv.Spreadsheets.Values.Get", err)
+	common.LogError("StartM3Precondition(): srv.Spreadsheets.Values.Get", err)
 
 	// check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
 	if climate_config.Values[19][1] == "on" {
@@ -166,10 +166,10 @@ func PreconditionM3Start() {
 	data := GetVehicleData(M3_VIN)
 	if common.IsVehicleAtPrimary(data) {
 		// send command to start auto conditioning
-		PreconditionCarStart(M3_VIN)
+		StartPrecondition(M3_VIN)
 
 		// set driver and passenger temps
-		SetCarTemp(M3_VIN, d_temp, p_temp)
+		SetTemp(M3_VIN, d_temp, p_temp)
 
 		// set seat heater settings
 		for i := 0; i < len(seats); i++ {
@@ -179,16 +179,16 @@ func PreconditionM3Start() {
 
 			switch mode {
 			case "heat":
-				SetCarSeatHeating(M3_VIN, i, seats[i])
+				SetSeatHeating(M3_VIN, i, seats[i])
 			case "cool":
-				SetCarSeatCooling(M3_VIN, i, seats[i])
+				SetSeatCooling(M3_VIN, i, seats[i])
 			}
 		}
 
 		// create crontab to stop preconditioning at preferred time later in the day
-		common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionm3stop >> " +
+		common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopm3precondition >> " +
 			"/home/pi/tesla/go/cron.log 2>&1")
-		common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionm3stop >> "+
+		common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopm3precondition >> "+
 			"/home/pi/tesla/go/cron.log 2>&1",
 			stop_time.Minute(),
 			stop_time.Hour(),
@@ -197,11 +197,11 @@ func PreconditionM3Start() {
 	}
 }
 
-func PreconditionMXStart() {
+func StartMXPrecondition() {
 	// get configuration info
 	srv := common.GetGoogleSheetService()
 	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
-	common.LogError("PreconditionM3Start(): srv.Spreadsheets.Values.Get", err)
+	common.LogError("StartMXPrecondition(): srv.Spreadsheets.Values.Get", err)
 
 	// check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
 	if climate_config.Values[19][10] == "on" {
@@ -269,23 +269,23 @@ func PreconditionMXStart() {
 	data := GetVehicleData(MX_VIN)
 	if common.IsVehicleAtPrimary(data) {
 		// send command to start auto conditioning
-		PreconditionCarStart(MX_VIN)
+		StartPrecondition(MX_VIN)
 
 		// set driver and passenger temps
-		SetCarTemp(MX_VIN, d_temp, p_temp)
+		SetTemp(MX_VIN, d_temp, p_temp)
 
 		// set seat heater settings
 		for i := 0; i < len(seats); i++ {
 			if i == 3 {
 				continue // # skip index 3 as it's not assigned in the API
 			}
-			SetCarSeatHeating(MX_VIN, i, seats[i])
+			SetSeatHeating(MX_VIN, i, seats[i])
 		}
 
 		// create crontab to stop preconditioning at preferred time later in the day
-		common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionmxstop >> " +
+		common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopmxprecondition >> " +
 			"/home/pi/tesla/go/cron.log 2>&1")
-		common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionmxstop >> "+
+		common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopmxprecondition >> "+
 			"/home/pi/tesla/go/cron.log 2>&1",
 			stop_time.Minute(),
 			stop_time.Hour(),
@@ -296,15 +296,15 @@ func PreconditionMXStart() {
 
 // Sends command to stop vehicle preconditioning based on a previously scheduled
 // crontab configured in a Google Sheet.
-func PreconditionM3Stop() {
-	preconditionStop(M3_VIN)
+func StopM3Precondition() {
+	stopPreconditionCheck(M3_VIN)
 }
 
-func PreconditionMXStop() {
-	preconditionStop(MX_VIN)
+func StopMXPrecondition() {
+	stopPreconditionCheck(MX_VIN)
 }
 
-func preconditionStop(vin string) {
+func stopPreconditionCheck(vin string) {
 	data := GetVehicleData(vin)
 
 	if common.IsVehicleAtPrimary(data) {
@@ -312,10 +312,10 @@ func preconditionStop(vin string) {
 			if data["response"].(map[string]any)["drive_state"].(map[string]any)["shift_state"].(string) != "D" &&
 				data["response"].(map[string]any)["drive_state"].(map[string]any)["shift_state"].(string) != "R" &&
 				data["response"].(map[string]any)["drive_state"].(map[string]any)["shift_state"].(string) != "N" { // only execute if the car is at primary location and in park
-				PreconditionCarStop(vin)
+				StopPrecondition(vin)
 			}
 		} else {
-			PreconditionCarStop(vin) // for some cars the shift_state is nil while in park
+			StopPrecondition(vin) // for some cars the shift_state is nil while in park
 		}
 	}
 }

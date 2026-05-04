@@ -238,7 +238,7 @@ func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_targe
 		// their corresponding ID's.
 		RemoveChargeSchedule(M3_VIN, 1)
 		AddChargeSchedule(M3_VIN, m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
-		StopChargeVehicle(M3_VIN) // for some reason charging starts sometimes after scheduled charging API is called
+		StopCharge(M3_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
 		scheduleBackupCharging(m3_data, start_time.Add(10*time.Minute))
 
@@ -283,7 +283,7 @@ func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_targe
 
 		RemoveChargeSchedule(MX_VIN, 1)
 		AddChargeSchedule(MX_VIN, mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
-		StopChargeVehicle(MX_VIN) // for some reason charging starts sometimes after scheduled charging API is called
+		StopCharge(MX_VIN) // for some reason charging starts sometimes after scheduled charging API is called
 
 		scheduleBackupCharging(mx_data, start_time.Add(10*time.Minute))
 
@@ -309,7 +309,7 @@ func scheduleEarliestCharging(data map[string]any) time.Time {
 		// their corresponding ID's.
 		RemoveChargeSchedule(vin, 1)
 		AddChargeSchedule(vin, data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
-		StopChargeVehicle(vin) // for some reason charging starts sometimes after scheduled charging API is called
+		StopCharge(vin) // for some reason charging starts sometimes after scheduled charging API is called
 
 		scheduleBackupCharging(data, start_time.Add(10*time.Minute))
 
@@ -321,21 +321,21 @@ func scheduleEarliestCharging(data map[string]any) time.Time {
 
 // Additional scheduled charging check run on crontab.  If it failed to start, this
 // will attempt to start it at the target time.
-func ChargeCheckM3() {
-	chargeCheck(M3_VIN)
+func CheckM3Charge() {
+	checkCharge(M3_VIN)
 }
 
-func ChargeCheckMX() {
-	chargeCheck(MX_VIN)
+func CheckMXCharge() {
+	checkCharge(MX_VIN)
 }
 
-func chargeCheck(vin string) {
+func checkCharge(vin string) {
 	data := GetVehicleData(vin)
 
 	if common.IsVehicleAtPrimary(data) &&
 		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Charging" {
-		common.LogInfo("chargeCheck(" + vin + "): Scheduled charging failed to start.  Starting backup charging.")
-		StartChargeVehicle(vin)
+		common.LogInfo("checkCharge(" + vin + "): Scheduled charging failed to start.  Starting backup charging.")
+		StartCharge(vin)
 	}
 }
 
@@ -347,18 +347,18 @@ func scheduleBackupCharging(data map[string]any, start_time time.Time) {
 		// create backup charging start crontab at target time tomorrow
 		switch vin {
 		case M3_VIN:
-			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckm3 >> " +
+			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkm3charge >> " +
 				"/home/pi/tesla/go/cron.log 2>&1")
-			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckm3 >> "+
+			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkm3charge >> "+
 				"/home/pi/tesla/go/cron.log 2>&1",
 				start_time.Minute(),
 				start_time.Hour(),
 				start_time.Day(),
 				int(start_time.Month()))
 		case MX_VIN:
-			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckmx >> " +
+			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkmxcharge >> " +
 				"/home/pi/tesla/go/cron.log 2>&1")
-			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckmx >> "+
+			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkmxcharge >> "+
 				"/home/pi/tesla/go/cron.log 2>&1",
 				start_time.Minute(),
 				start_time.Hour(),

@@ -8,16 +8,16 @@ import (
 // Should be set to run in the middle of the day as all the crontabs are
 // evening or early morning.
 func RemoveTeslaCron() {
-	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionm3start >> " +
+	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -startm3precondition >> " +
 		"/home/pi/tesla/go/cron.log 2>&1")
-	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionm3stop >> " +
+	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopm3precondition >> " +
 		"/home/pi/tesla/go/cron.log 2>&1")
-	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionmxstart >> " +
+	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -startmxprecondition >> " +
 		"/home/pi/tesla/go/cron.log 2>&1")
-	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -preconditionmxstop >> " +
+	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopmxprecondition >> " +
 		"/home/pi/tesla/go/cron.log 2>&1")
-	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckm3 >> " +
+	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkm3charge >> " +
 		"/home/pi/tesla/go/cron.log 2>&1")
-	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -chargecheckmx >> " +
+	common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkmxcharge >> " +
 		"/home/pi/tesla/go/cron.log 2>&1")
 }

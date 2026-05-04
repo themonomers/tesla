@@ -62,10 +62,10 @@ def wake_vehicle(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def start_charge_vehicle(vin):
+def start_charge(vin):
   try:
     if vin == M3_VIN:
-      return commandproxy.start_charge_vehicle(vin)
+      return commandproxy.start_charge(vin)
     
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -77,7 +77,7 @@ def start_charge_vehicle(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    log_error('start_charge_vehicle(' + vin + '):', e)
+    log_error('start_charge(' + vin + '):', e)
 
 
 ##
@@ -85,10 +85,10 @@ def start_charge_vehicle(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def stop_charge_vehicle(vin):
+def stop_charge(vin):
   try:
     if vin == M3_VIN:
-      return commandproxy.stop_charge_vehicle(vin)
+      return commandproxy.stop_charge(vin)
   
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -100,7 +100,7 @@ def stop_charge_vehicle(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    log_error('stop_charge_vehicle(' + vin + '):', e)
+    log_error('stop_charge(' + vin + '):', e)
 
 
 ##
@@ -170,84 +170,6 @@ def remove_charge_schedule(vin, id):
   
 
 ##
-# Per Tesla (https://developer.tesla.com/docs/fleet-api/endpoints/vehicle-commands#set-scheduled-charging):  
-# This endpoint is not recommended beginning with firmware version 2024.26.
-#
-# Sends command and parameter to set a specific vehicle to charge
-# at a scheduled time.  Scheduled Time is in minutes, e.g. 7:30 AM = 
-# (7 * 60) + 30 = 450
-#
-# author: mjhwa@yahoo.com
-##
-def set_scheduled_charging(vin, time):
-  try:
-    if vin == M3_VIN:
-      return commandproxy.set_scheduled_charging(vin, time)
-
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin) 
-           + '/command/set_scheduled_charging')
-
-    payload = {
-      'enable': 'True',
-      'time': time
-    }
-
-    return requests.post(
-      url, 
-      json=payload, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
-  except Exception as e:
-    log_error('set_scheduled_charging(' + vin + '):', e)
-
-
-##
-# Per Tesla (https://developer.tesla.com/docs/fleet-api/endpoints/vehicle-commands#set-scheduled-departure):  
-# This endpoint is not recommended beginning with firmware version 2024.26.
-#
-# Sends command and parameters to set a specific vehicle to charge and/or
-# precondition by a departure time.  Departure Time and Off-Peak Charge End 
-# Time are in minutes, e.g. 7:30 AM = (7 * 60) + 30 = 450
-#
-# author: mjhwa@yahoo.com
-##
-def set_scheduled_departure(
-  vin, 
-  depart_time, 
-  precondition_enable, 
-  precondition_weekdays, 
-  off_peak_charging_enable, 
-  off_peak_weekdays, 
-  off_peak_end_time
-):
-  try:
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin)
-           + '/command/set_scheduled_departure')
-
-    payload = {
-      'enable': 'True',
-      'departure_time': depart_time,
-      'preconditioning_enabled': precondition_enable,
-      'preconditioning_weekdays_only': precondition_weekdays,
-      'off_peak_charging_enabled': off_peak_charging_enable,
-      'off_peak_charging_weekdays_only': off_peak_weekdays,
-      'end_off_peak_time': off_peak_end_time
-    }
-
-    return requests.post(
-      url,
-      json=payload,
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
-  except Exception as e:
-    log_error('set_scheduled_departure(' + vin + '):', e)
-
-
-##
 # Sends command to set the charging amps for a specified vehicle.
 #
 # author: mjhwa@yahoo.com
@@ -273,14 +195,18 @@ def set_charging_amps(vin, amps):
 
 
 ##
-# Function to set vehicle temperature.
+# Sets the driver and/or passenger-side cabin temperature 
+# (and other zones if sync is enabled).
+#
+# d_temp:  driver side temperature in C
+# p_temp:  passenger side temperature in C
 #
 # author: mjhwa@yahoo.com
 ##
-def set_car_temp(vin, d_temp, p_temp):
+def set_temp(vin, d_temp, p_temp):
   try:
     if vin == M3_VIN:
-      return commandproxy.set_car_temp(vin, d_temp, p_temp)
+      return commandproxy.set_temp(vin, d_temp, p_temp)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -298,18 +224,28 @@ def set_car_temp(vin, d_temp, p_temp):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    log_error('set_car_temp(' + vin + '):', e)
+    log_error('set_temp(' + vin + '):', e)
 
 
 ##
-# Function to set vehicle seat heater level.
+# Sets seat heating. Requires preconditioning or climate keeper to be on.
+#
+# seat:  0: front left
+#        1: front right
+#        2: rear left
+#        4: rear center
+#        5: rear right
+# setting:  0: off
+#           1: low
+#           2: medium
+#           3: high
 #
 # author: mjhwa@yahoo.com
 ##
-def set_car_seat_heating(vin, seat, setting):
+def set_seat_heating(vin, seat, setting):
   try:
     if vin == M3_VIN:
-      return commandproxy.set_car_seat_heating(vin, seat, setting)
+      return commandproxy.set_seat_heating(vin, seat, setting)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -332,19 +268,26 @@ def set_car_seat_heating(vin, seat, setting):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    log_error('set_car_seat_heating(' + vin + '):', e)
+    log_error('set_seat_heating(' + vin + '):', e)
 
 
 ##
-# Function to set vehicle seat cooler level.
+# Sets seat cooling. Requires preconditioning or climate keeper to be on.
+#
+# seat:  1: front left
+#        2: front right
+# setting:  0: off
+#           1: low
+#           2: medium
+#           3: high
 #
 # author: mjhwa@yahoo.com
 ##
-def set_car_seat_cooling(vin, seat, setting):
+def set_seat_cooling(vin, seat, setting):
   try:
-    return commandproxy.set_car_seat_cooling(vin, seat, setting)
+    return commandproxy.set_seat_cooling(vin, seat, setting)
   except Exception as e:
-    log_error('set_car_seat_cooling(' + vin + '):', e)
+    log_error('set_seat_cooling(' + vin + '):', e)
 
 
 ##
@@ -352,10 +295,10 @@ def set_car_seat_cooling(vin, seat, setting):
 #
 # author: mjhwa@yahoo.com
 ##
-def precondition_car_start(vin):
+def start_precondition(vin):
   try:  
     if vin == M3_VIN:
-      return commandproxy.precondition_car_start(vin)
+      return commandproxy.start_precondition(vin)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -367,7 +310,7 @@ def precondition_car_start(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    log_error('precondition_car_start(' + vin + '):', e)
+    log_error('start_precondition(' + vin + '):', e)
 
 
 ##
@@ -375,10 +318,10 @@ def precondition_car_start(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def precondition_car_stop(vin):
+def stop_precondition(vin):
   try:
     if vin == M3_VIN:
-      return commandproxy.precondition_car_stop(vin)
+      return commandproxy.stop_precondition(vin)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -390,7 +333,7 @@ def precondition_car_stop(vin):
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
   except Exception as e:
-    log_error('precondition_car_stop(' + vin + '):', e)
+    log_error('stop_precondition(' + vin + '):', e)
 
 ##
 # Loops through all vehicle data and prints to screen.  

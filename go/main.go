@@ -19,18 +19,18 @@ func main() {
 			vehicle.ChargeEarliest()
 		case "-writevehicletelemetry":
 			vehicle.WriteVehicleTelemetry()
-		case "-preconditionm3start":
-			vehicle.PreconditionM3Start()
-		case "-preconditionmxstart":
-			vehicle.PreconditionMXStart()
-		case "-preconditionm3stop":
-			vehicle.PreconditionM3Stop()
-		case "-preconditionmxstop":
-			vehicle.PreconditionMXStop()
-		case "-chargecheckm3":
-			vehicle.ChargeCheckM3()
-		case "-chargecheckmx":
-			vehicle.ChargeCheckMX()
+		case "-startm3precondition":
+			vehicle.StartM3Precondition()
+		case "-startmxprecondition":
+			vehicle.StartMXPrecondition()
+		case "-stopm3precondition":
+			vehicle.StopM3Precondition()
+		case "-stopmxprecondition":
+			vehicle.StopMXPrecondition()
+		case "-checkm3charge":
+			vehicle.CheckM3Charge()
+		case "-checkmxcharge":
+			vehicle.CheckMXCharge()
 		case "-removeteslacron":
 			vehicle.RemoveTeslaCron()
 		// energy
@@ -71,12 +71,12 @@ func printUsage() {
 	fmt.Println("-notify")
 	fmt.Println("-earliest")
 	fmt.Println("-writevehicletelemetry")
-	fmt.Println("-preconditionm3start")
-	fmt.Println("-preconditionmxstart")
-	fmt.Println("-preconditionm3stop")
-	fmt.Println("-preconditionmxstop")
-	fmt.Println("-chargecheckm3")
-	fmt.Println("-chargecheckmx")
+	fmt.Println("-startm3precondition")
+	fmt.Println("-startmxprecondition")
+	fmt.Println("-stopm3precondition")
+	fmt.Println("-stopmxprecondition")
+	fmt.Println("-checkm3charge")
+	fmt.Println("-checkmxcharge")
 	fmt.Println("-removeteslacron")
 	fmt.Println("\n## Energy ##") // energy
 	fmt.Println("-writelivesitetelemetry")

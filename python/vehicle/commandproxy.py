@@ -85,7 +85,7 @@ def wake_vehicle(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def start_charge_vehicle(vin):
+def start_charge(vin):
   try:
     url = (BASE_PROXY_URL
            + '/vehicles/'
@@ -100,7 +100,7 @@ def start_charge_vehicle(vin):
       verify=CERT
     )
   except Exception as e:
-    log_error('start_charge_vehicle(' + vin + '):', e)
+    log_error('start_charge(' + vin + '):', e)
 
 
 ##
@@ -108,7 +108,7 @@ def start_charge_vehicle(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def stop_charge_vehicle(vin):
+def stop_charge(vin):
   try:
     url = (BASE_PROXY_URL
            + '/vehicles/'
@@ -123,7 +123,7 @@ def stop_charge_vehicle(vin):
       verify=CERT
     )
   except Exception as e:
-    log_error('stop_charge_vehicle(' + vin + '):', e)
+    log_error('stop_charge(' + vin + '):', e)
 
 ##
 # Uses new endpoint to add a schedule for vehicle charging. 
@@ -192,45 +192,15 @@ def remove_charge_schedule(vin, id):
   
 
 ##
-# Per Tesla (https://developer.tesla.com/docs/fleet-api/endpoints/vehicle-commands#set-scheduled-charging):  
-# This endpoint is not recommended beginning with firmware version 2024.26.
+# Sets the driver and/or passenger-side cabin temperature 
+# (and other zones if sync is enabled).
 #
-# Sends command and parameter to set a specific vehicle to charge
-# at a scheduled time.  Scheduled Time is in minutes, e.g. 7:30 AM = 
-# (7 * 60) + 30 = 450
-#
-# author: mjhwa@yahoo.com
-##
-def set_scheduled_charging(vin, time):
-  try:
-    url = (BASE_PROXY_URL
-           + '/vehicles/'
-           + vin 
-           + '/command/set_scheduled_charging')
-
-    payload = {
-      'enable': True,
-      'time': time
-    }
-
-    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
-
-    return requests.post(
-      url, 
-      json=payload, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
-      verify=CERT
-    )
-  except Exception as e:
-    log_error('set_scheduled_charging(' + vin + '):', e)
-
-
-##
-# Function to set vehicle temperature.
+# d_temp:  driver side temperature in C
+# p_temp:  passenger side temperature in C
 #
 # author: mjhwa@yahoo.com
 ##
-def set_car_temp(vin, d_temp, p_temp):
+def set_temp(vin, d_temp, p_temp):
   try:
     url = (BASE_PROXY_URL
            + '/vehicles/'
@@ -251,31 +221,48 @@ def set_car_temp(vin, d_temp, p_temp):
       verify=CERT
     )
   except Exception as e:
-    log_error('set_car_temp(' + vin + '):', e)
+    log_error('set_temp(' + vin + '):', e)
 
 
 ##
-# Function to set vehicle seat heater level.
+# Sets seat heating. Requires preconditioning or climate keeper to be on.
+#
+# seat:  0: front left
+#        1: front right
+#        2: rear left
+#        4: rear center
+#        5: rear right
+# setting:  0: off
+#           1: low
+#           2: medium
+#           3: high
 #
 # author: mjhwa@yahoo.com
 ##
-def set_car_seat_heating(vin, seat, setting):
+def set_seat_heating(vin, seat, setting):
   try:
-    set_car_seat_temp(vin, 'heat', seat, setting)
+    set_seat_temp(vin, 'heat', seat, setting)
   except Exception as e:
-    log_error('set_car_seat_heating(' + vin + '):', e)
+    log_error('set_seat_heating(' + vin + '):', e)
 
 
 ##
-# Function to set vehicle seat cooler level.
+# Sets seat cooling. Requires preconditioning or climate keeper to be on.
+#
+# seat:  1: front left
+#        2: front right
+# setting:  0: off
+#           1: low
+#           2: medium
+#           3: high
 #
 # author: mjhwa@yahoo.com
 ##
-def set_car_seat_cooling(vin, seat, setting):
+def set_seat_cooling(vin, seat, setting):
   try:
-    set_car_seat_temp(vin, 'cool', seat, setting)
+    set_seat_temp(vin, 'cool', seat, setting)
   except Exception as e:
-    log_error('set_car_seat_cooling(' + vin + '):', e)
+    log_error('set_seat_cooling(' + vin + '):', e)
 
 
 ##
@@ -283,7 +270,7 @@ def set_car_seat_cooling(vin, seat, setting):
 #
 # author: mjhwa@yahoo.com
 ##
-def set_car_seat_temp(vin, mode, seat, setting):
+def set_seat_temp(vin, mode, seat, setting):
   try:
     url = (BASE_PROXY_URL
            + '/vehicles/'
@@ -315,7 +302,41 @@ def set_car_seat_temp(vin, mode, seat, setting):
       verify=CERT
     )
   except Exception as e:
-    log_error('set_car_seat_temp(' + vin + '):', e)
+    log_error('set_seat_temp(' + vin + '):', e)
+
+
+##
+# Sets automatic seat heating and cooling. Requires preconditioning or 
+# climate keeper to be on.
+# 
+# enable:  True/False (on/off)
+# seat:  1: front left
+#        2: front right
+#
+# author: mjhwa@yahoo.com
+##
+def set_seat_climate_auto(vin, enable, seat):
+  try:  
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
+           + vin 
+           + '/command/remote_auto_seat_climate_request')
+
+    payload = {
+      'auto_climate_on': enable,
+      'auto_seat_position': seat
+    }
+
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
+    return requests.post(
+      url, 
+      json=payload, 
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
+    )
+  except Exception as e:
+    log_error('set_seat_climate_auto(' + vin + '):', e)
 
 
 ##
@@ -323,7 +344,7 @@ def set_car_seat_temp(vin, mode, seat, setting):
 #
 # author: mjhwa@yahoo.com
 ##
-def precondition_car_start(vin):
+def start_precondition(vin):
   try:  
     url = (BASE_PROXY_URL
            + '/vehicles/'
@@ -338,7 +359,7 @@ def precondition_car_start(vin):
       verify=CERT
     )
   except Exception as e:
-    log_error('precondition_car_start(' + vin + '):', e)
+    log_error('start_precondition(' + vin + '):', e)
 
 
 ##
@@ -346,7 +367,7 @@ def precondition_car_start(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def precondition_car_stop(vin):
+def stop_precondition(vin):
   try:
     url = (BASE_PROXY_URL
            + '/vehicles/'
@@ -361,7 +382,7 @@ def precondition_car_stop(vin):
       verify=CERT
     )
   except Exception as e:
-    log_error('precondition_car_stop(' + vin + '):', e)
+    log_error('stop_precondition(' + vin + '):', e)
 
 ##
 # Loops through all vehicle data and prints to screen.  

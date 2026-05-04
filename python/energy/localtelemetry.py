@@ -160,7 +160,7 @@ def write_local_live_site_telemetry():
       'tags': {
         'source': 'solar_power'
       },
-      'time': timestamp_split(data['solar']['last_communication_time']),
+      'time': split_timestamp(data['solar']['last_communication_time']),
       'fields': {
         'value': float(data['solar']['instant_power'])
       }
@@ -171,7 +171,7 @@ def write_local_live_site_telemetry():
       'tags': {
         'source': 'battery_power'
       },
-      'time': timestamp_split(data['battery']['last_communication_time']),
+      'time': split_timestamp(data['battery']['last_communication_time']),
       'fields': {
         'value': float(data['battery']['instant_power'])
       }
@@ -182,7 +182,7 @@ def write_local_live_site_telemetry():
       'tags': {
         'source': 'grid_power'
       },
-      'time': timestamp_split(data['site']['last_communication_time']),
+      'time': split_timestamp(data['site']['last_communication_time']),
       'fields': {
         'value': float(data['site']['instant_power'])
       }
@@ -193,7 +193,7 @@ def write_local_live_site_telemetry():
       'tags': {
         'source': 'load_power'
       },
-      'time': timestamp_split(data['load']['last_communication_time']),
+      'time': split_timestamp(data['load']['last_communication_time']),
       'fields': {
         'value': float(data['load']['instant_power'])
       }
@@ -205,7 +205,7 @@ def write_local_live_site_telemetry():
       'tags': {
         'source': 'percentage_charged'
       },
-      'time': timestamp_split(timestamp),  
+      'time': split_timestamp(timestamp),  
       'fields': {
         'value': float(get_local_system_status_soe()['percentage'])
       }
@@ -328,7 +328,7 @@ def get_local_system_status():
 #
 # author: mjhwa@yahoo.com
 ##
-def timestamp_split(timestamp):
+def split_timestamp(timestamp):
   if (timestamp.split('.', 1)[1].find('-') > -1):
     timestamp = timestamp.split('.', 1)[0] + '-' + timestamp.split('.', 1)[1].split('-', 1)[1]
   elif (timestamp.split('.', 1)[1].find('+') > -1):
