@@ -721,24 +721,24 @@ if __name__ == "__main__":
                     formatter_class=NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                      '-n', 
-                      '--notify', 
-                      help='checks if vehicles are plugged in and schedules charging and preconditioning',
-                      action='store_true'
+                     '-n', 
+                     '--notify', 
+                     help='checks if vehicles are plugged in and schedules charging and preconditioning',
+                     action='store_true'
                     )
   group.add_argument(
-#                      '-c', 
-                      '--check', 
-                      help='backup charging if a vehicle isn\'t charging that\'s supposed to be; VEHICLE can be \'m3\' '
-                           'or \'mx\'',
-                      nargs=1,
-                      metavar='VEHICLE'
+#                     '-c', 
+                     '--check', 
+                     help='backup charging if a vehicle isn\'t charging that\'s supposed to be; VEHICLE can be \'m3\' '
+                          'or \'mx\'',
+                     nargs=1,
+                     metavar='VEHICLE'
                     )
   group.add_argument(
-                      '-e', 
-                      '--earliest', 
-                      help='schedule charging at the earliest off-peak time',
-                      action='store_true'
+                     '-e', 
+                     '--earliest', 
+                     help='schedule charging at the earliest off-peak time',
+                     action='store_true'
                     )
 
   main(parser)

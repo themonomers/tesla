@@ -49,30 +49,18 @@ def schedule_update(vin, time):
     log_error('schedule_update(' + vin + '):', e)
 
 
-class SelectiveType:
-    def __init__(self):
-        self.count = 0
-
-    def __call__(self, value):
-        self.count += 1
-        # Enforce time format for the 2nd argument only
-        if self.count == 2:
-            try:
-              return datetime.strptime(value, '%H:%M').strftime('%H:%M')
-            except ValueError:
-              raise argparse.ArgumentTypeError(f"'{value}' is not a valid time (HH:MM)")
-        # Return as string for the 1st argument
-        return value
-
-
 def main(parser):
   args = parser.parse_args()
 
   if (args.schedule_update):
-    time = get_today_time(args.schedule_update[1])
-    
+    try:
+      time_str = datetime.strptime(args.schedule_update[1], '%H:%M').strftime('%H:%M')
+    except ValueError:
+      parser.error(f"'{args.schedule_update[1]}' is not a valid time (HH:MM)")
+
+    time = get_today_time(time_str)
     if (time < datetime.now().replace(tzinfo=PAC)):
-      time = get_tomorrow_time(args.schedule_update[1])
+      time = get_tomorrow_time(time_str)
 
     if args.schedule_update[0] == 'm3':
       schedule_update(M3_VIN, time)
@@ -97,7 +85,6 @@ if __name__ == "__main__":
                           '\'mx\', TIME is in 24-hour format and if it\'s before the current time it will schedule it '
                           'for the following day',
                      nargs=2,
-                     type=SelectiveType(),
                      metavar=('VEHICLE', 'TIME')
                     )
 

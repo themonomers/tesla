@@ -649,41 +649,41 @@ if __name__ == "__main__":
                     formatter_class=NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                      '-s', 
-                      '--site_status', 
-                      help='prints site summary information, e.g. Gateway ID',
-                      action='store_true'
+                     '-s', 
+                     '--site_status', 
+                     help='prints site summary information, e.g. Gateway ID',
+                     action='store_true'
                     )
   group.add_argument(
-                      '-l', 
-                      '--site_live_status', 
-                      help='prints live data of load, grid, solar, battery, etc.',
-                      action='store_true'
+                     '-l', 
+                     '--site_live_status', 
+                     help='prints live data of load, grid, solar, battery, etc.',
+                     action='store_true'
                     )
   group.add_argument(
-                      '-i', 
-                      '--site_info', 
-                      help='prints site configuration and setting details',
-                      action='store_true'
+                     '-i', 
+                     '--site_info', 
+                     help='prints site configuration and setting details',
+                     action='store_true'
                     )
   group.add_argument(
-                      '-b', 
-                      '--battery_backup_history', 
-                      help='prints grid outage/battery backup events',
-                      action='store_true'
+                     '-b', 
+                     '--battery_backup_history', 
+                     help='prints grid outage/battery backup events',
+                     action='store_true'
                     )
   group.add_argument(
-                      '-r', 
-                      '--backup_time_remaining', 
-                      help='prints estimated hours of battery backup left',
-                      action='store_true'
+                     '-r', 
+                     '--backup_time_remaining', 
+                     help='prints estimated hours of battery backup left',
+                     action='store_true'
                     )
   group.add_argument(
-                      '-t', 
-                      '--site_tariff', 
-                      help='lists the utility provider\'s rate plan (tariff) selected for your site in the mobile app '
-                           'along with published rates, TOU schedules, etc.',
-                      action='store_true'
+                     '-t', 
+                     '--site_tariff', 
+                     help='lists the utility provider\'s rate plan (tariff) selected for your site in the mobile app '
+                          'along with published rates, TOU schedules, etc.',
+                     action='store_true'
                     )
   group.add_argument(
 #                     '-', 

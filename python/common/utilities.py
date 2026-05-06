@@ -366,26 +366,26 @@ if __name__ == "__main__":
                     formatter_class=NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                      '-c', 
-                      '--current', 
-                      help='prints current weather conditions at a configured primary location',
-                      action='store_true'
+                     '-c', 
+                     '--current', 
+                     help='prints current weather conditions at a configured primary location',
+                     action='store_true'
                     )
   group.add_argument(
-                      '-d', 
-                      '--daily', 
-                      help='prints weather conditions for today + 7 days, and hourly weather conditions for 48 hours '
-                           'at a configured primary location',
-                      action='store_true'
+                     '-d', 
+                     '--daily', 
+                     help='prints weather conditions for today + 7 days, and hourly weather conditions for 48 hours '
+                          'at a configured primary location',
+                     action='store_true'
                     )
   group.add_argument(
-#                      '-D', 
-                      '--distance', 
-                      help='calculates distance from a configured primary location; LATITUDE and LONGITUDE is a location '
-                           'in decimal degrees',
-                      type=float,
-                      nargs=2,
-                      metavar=('LATITUDE', 'LONGITUDE')
+#                     '-D', 
+                     '--distance', 
+                     help='calculates distance from a configured primary location; LATITUDE and LONGITUDE is a location '
+                          'in decimal degrees',
+                     type=float,
+                     nargs=2,
+                     metavar=('LATITUDE', 'LONGITUDE')
                     )
 
   main(parser)

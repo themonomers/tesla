@@ -135,22 +135,22 @@ if __name__ == "__main__":
                     formatter_class=NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                      '-n', 
-                      '--new', 
-                      help='prints a new access and refresh token using web login credentials',
-                      action='store_true'
+                     '-n', 
+                     '--new', 
+                     help='prints a new access and refresh token using web login credentials',
+                     action='store_true'
                     )
   group.add_argument(
-                      '-r', 
-                      '--refresh', 
-                      help='gets new tokens using the refresh token and saves them to an encrypted file',
-                      action='store_true'
+                     '-r', 
+                     '--refresh', 
+                     help='gets new tokens using the refresh token and saves them to an encrypted file',
+                     action='store_true'
                     )
   group.add_argument(
-                      '-c', 
-                      '--check', 
-                      help='checks to see if tokens are expiring and refreshes them and saves them to an encrypted file',
-                      action='store_true'
+                     '-c', 
+                     '--check', 
+                     help='checks to see if tokens are expiring and refreshes them and saves them to an encrypted file',
+                     action='store_true'
                     )
 
   main(parser)

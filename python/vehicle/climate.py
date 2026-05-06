@@ -328,18 +328,18 @@ if __name__ == "__main__":
                     formatter_class=NewlineFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-#                      '-t', 
-                      '--start', 
-                      help='starts pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
-                      nargs=1,
-                      metavar='VEHICLE'
+#                     '-t', 
+                     '--start', 
+                     help='starts pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
+                     nargs=1,
+                     metavar='VEHICLE'
                     )
   group.add_argument(
-#                      '-p', 
-                      '--stop', 
-                      help='stops pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
-                      nargs=1,
-                      metavar='VEHICLE'
+#                     '-p', 
+                     '--stop', 
+                     help='stops pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
+                     nargs=1,
+                     metavar='VEHICLE'
                     )
 
   main(parser)
