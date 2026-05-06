@@ -18,7 +18,7 @@ from common.utilities import (
   get_config, 
   delete_cron_tab, 
   create_cron_tab, 
-  NewlineFormatter
+  CustomHelpFormatter
 )
 from common.logger import log_info, log_error, log_error_retry, log_error_std_out
 from datetime import timedelta, datetime
@@ -718,7 +718,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='charge.py',
                     description='Calculates and sets charging times to complete at a departure time for 2 EV\'s.',
-                    formatter_class=NewlineFormatter)
+                    formatter_class=CustomHelpFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                      '-n', 
@@ -727,7 +727,7 @@ if __name__ == "__main__":
                      action='store_true'
                     )
   group.add_argument(
-#                     '-c', 
+                     '-c', 
                      '--check', 
                      help='backup charging if a vehicle isn\'t charging that\'s supposed to be; VEHICLE can be \'m3\' '
                           'or \'mx\'',

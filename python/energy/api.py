@@ -3,7 +3,7 @@ import json
 import pytz
 import argparse
 
-from common.utilities import print_json, get_config, get_token, NewlineFormatter
+from common.utilities import print_json, get_config, get_token, CustomHelpFormatter
 from common.logger import log_error
 from datetime import datetime
 
@@ -646,7 +646,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='api.py',
                     description='API calls for Tesla Energy products.',
-                    formatter_class=NewlineFormatter)
+                    formatter_class=CustomHelpFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                      '-s', 
@@ -686,38 +686,38 @@ if __name__ == "__main__":
                      action='store_true'
                     )
   group.add_argument(
-#                     '-', 
+                     '-y', 
                      '--site_history', 
                      help='prints summary level information about energy imports and exports down to the day',
                      action='store_true'
                     )
   group.add_argument(
-#                     '-', 
+                     '-u', 
                      '--site_tou_history', 
                      help='prints summary level information about energy imports and exports down to the day, separated '
                           'by time of use (peak, partial peak, and off peak)',
                      action='store_true'
                     )
   group.add_argument(
-#                     '-', 
+                     '-c', 
                      '--battery_charge_history', 
                      help='prints battery charge level history in 15 minute increments shown on the mobile app',
                      action='store_true'
                     )
   group.add_argument(
-#                     '-', 
+                     '-p', 
                      '--power_history', 
                      help='prints energy information in 5 minute increments',
                      action='store_true'
                     )
   group.add_argument(
-#                     '-', 
+                     '-f', 
                      '--savings_forecast', 
                      help='prints data for Solar Value (estimated cost savings)',
                      action='store_true'
                     )
   parser.add_argument(
-#                      '-d', 
+                      '-d', 
                       '--date', 
                       help='DATE of data lookup in m/d/yyyy format',
                       type=lambda d: datetime.strptime(d, '%m/%d/%Y'),

@@ -15,7 +15,7 @@ from common.utilities import (
   get_today_time, 
   get_current_weather, 
   get_config, 
-  NewlineFormatter
+  CustomHelpFormatter
 )
 from common.logger import log_error
 from datetime import datetime
@@ -325,17 +325,17 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='climate.py',
                     description='Sets up crontab for starting the car HVAC based on references stored in a Google Sheet.',
-                    formatter_class=NewlineFormatter)
+                    formatter_class=CustomHelpFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-#                     '-t', 
+                     '-t', 
                      '--start', 
                      help='starts pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
                      nargs=1,
                      metavar='VEHICLE'
                     )
   group.add_argument(
-#                     '-p', 
+                     '-p', 
                      '--stop', 
                      help='stops pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
                      nargs=1,

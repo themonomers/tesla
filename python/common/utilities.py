@@ -328,10 +328,19 @@ def print_json(json_obj, level):
     print (offset + str(json_obj))
 
 
-class NewlineFormatter(argparse.HelpFormatter):
-    def _split_lines(self, text, width):
-        # Adds a newline after every help text line
-        return super()._split_lines(text, width) + ['']
+class CustomHelpFormatter(argparse.HelpFormatter):
+  # Adds a newline after every help text line
+  def _split_lines(self, text, width):
+    return super()._split_lines(text, width) + ['']
+
+  # Join options (e.g., -f, --file) and append metavar once
+  def _format_action_invocation(self, action):
+    if not action.option_strings or action.nargs == 0:
+      return super()._format_action_invocation(action)
+    
+    default = self._get_default_metavar_for_optional(action)
+    args_string = self._format_args(action, default)
+    return ', '.join(action.option_strings) + ' ' + args_string
 
 
 def main(parser):
@@ -363,7 +372,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='utilities.py',
                     description='Commonly used and helpful tools.',
-                    formatter_class=NewlineFormatter)
+                    formatter_class=CustomHelpFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                      '-c', 
@@ -379,7 +388,7 @@ if __name__ == "__main__":
                      action='store_true'
                     )
   group.add_argument(
-#                     '-D', 
+                     '-D', 
                      '--distance', 
                      help='calculates distance from a configured primary location; LATITUDE and LONGITUDE is a location '
                           'in decimal degrees',

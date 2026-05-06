@@ -2,7 +2,7 @@ import requests
 import argparse
 import vehicle.commandproxy as commandproxy
 
-from common.utilities import print_json, get_token, get_config, NewlineFormatter
+from common.utilities import print_json, get_token, get_config, CustomHelpFormatter
 from common.logger import log_error
 
 ACCESS_TOKEN = get_token()['tesla']['access_token']
@@ -409,10 +409,10 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='api.py',
                     description='API calls for Tesla Vehicles (Pre-2021 Model X and S).',
-                    formatter_class=NewlineFormatter)
+                    formatter_class=CustomHelpFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-#                     '-p', 
+                     '-p', 
                      '--print', 
                      help='prints all the vehicle data; VIN is the Vehicle Identification Number you can find on the '
                           'car or in the mobile app',
@@ -420,7 +420,7 @@ if __name__ == "__main__":
                      metavar='VIN'
                     )
   group.add_argument(
-#                     '-s', 
+                     '-s', 
                      '--schedule_software_update', 
                      help='mimics scheduling a software update from the vehicle interface; VEHICLE can be \'m3\' or '
                           '\'mx\'',

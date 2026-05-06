@@ -10,7 +10,7 @@ from energy.telemetry import (
   write_energy_detail_to_db, 
   write_battery_charge_to_db
 )
-from common.utilities import get_config, NewlineFormatter
+from common.utilities import get_config, CustomHelpFormatter
 from common.influxdb import get_db_client
 from common.logger import log_error
 from datetime import datetime
@@ -230,47 +230,47 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='import.py',
                     description='Imports data manually when automated processes fail.',
-                    formatter_class=NewlineFormatter)
+                    formatter_class=CustomHelpFormatter)
   parser.add_argument(
-#                      '-e', 
+                      '-e', 
                       '--detail_to_db', 
                       help='writes energy data to InfluxDB in 5 minute increments for Home, Solar, Powerall, and Grid',
                       action='store_true'
                      )
   parser.add_argument(
-#                      '-s', 
+                      '-s', 
                       '--summary_to_db', 
                       help='writes energy data to InfluxDB of daily totals for Home, Solar, Powerall, and Grid',
                       action='store_true'
                      )
   parser.add_argument(
-#                      '-t', 
+                      '-t', 
                       '--tou_summary_to_db', 
                       help='writes energy data to InfluxDB of TOU (off peak, partial peak, and peak) breakdowns of '
                            'Solar, Powerall, Grid, etc., Energy Value, and Solar Offset',
                       action='store_true'
                      )
   parser.add_argument(
-#                      '-g', 
+                      '-g', 
                       '--data_to_gsheet', 
                       help='writes energy data to Google Sheet of TOU (off peak, partial peak, and peak) breakdowns of '
                            'Solar, Powerall, Grid, etc., Energy Value, and Solar Offset',
                       action='store_true'
                      )
   parser.add_argument(
-#                      '-b', 
+                      '-b', 
                       '--battery_charge_to_db', 
                       help='writes battery charge state history to InfluxDB in 15 minute increments',
                       action='store_true'
                      )
   parser.add_argument(
-#                      '-o', 
+                      '-o', 
                       '--outage_to_db', 
                       help='writes system backup history/grid outages to InfluxDB',
                       action='store_true'
                      )
   parser.add_argument(
-#                      '-d', 
+                      '-d', 
                       '--date', 
                       help='DATE of data import in m/d/yyyy format',
                       type=lambda d: datetime.strptime(d, '%m/%d/%Y'),

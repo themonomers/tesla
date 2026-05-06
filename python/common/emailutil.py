@@ -3,7 +3,7 @@ import os
 import time
 import argparse
 
-from common.utilities import NewlineFormatter
+from common.utilities import CustomHelpFormatter
 from common.googleutil import get_google_mail_service
 from common.utilities import get_config
 from common.logger import log_error, log_error_retry
@@ -126,7 +126,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='emailutil.py',
                     description='Service to send and truncate emails.',
-                    formatter_class=NewlineFormatter)
+                    formatter_class=CustomHelpFormatter)
   parser.add_argument(
                       '-t', 
                       '--truncate', 

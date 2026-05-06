@@ -5,7 +5,7 @@ import urllib.parse
 import urllib3
 import argparse
 
-from common.utilities import print_json, get_token, get_config, NewlineFormatter
+from common.utilities import print_json, get_token, get_config, CustomHelpFormatter
 from common.logger import log_error
 
 ACCESS_TOKEN = get_token()['tesla']['access_token']
@@ -483,9 +483,9 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='commandproxy.py',
                     description='API calls to modified tesla-http-proxy running on localhost.',
-                    formatter_class=NewlineFormatter)
+                    formatter_class=CustomHelpFormatter)
   parser.add_argument(
-#                      '-p', 
+                      '-p', 
                       '--print', 
                       help='prints all the vehicle data; VIN is the Vehicle Identification Number you can find on the '
                            'car or in the mobile app',

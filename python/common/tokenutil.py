@@ -8,7 +8,7 @@ import argparse
 
 from common.logger import log_error
 from common.crypto import encrypt
-from common.utilities import get_config, get_token, NewlineFormatter
+from common.utilities import get_config, get_token, CustomHelpFormatter
 from datetime import datetime, timedelta
 
 token = get_token()
@@ -132,7 +132,7 @@ if __name__ == "__main__":
                     prog='tokenutil.py',
                     description='API call for the Tesla authentication flow to retrieve new access and refresh tokens, '
                                 'check expiration and refresh if needed.',
-                    formatter_class=NewlineFormatter)
+                    formatter_class=CustomHelpFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                      '-n', 

@@ -90,10 +90,10 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='crypto.py',
                     description='Encryption and decryption functions for sensitive files.',
-                    formatter_class=utilities.NewlineFormatter)
+                    formatter_class=utilities.CustomHelpFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-#                     '-d', 
+                     '-d', 
                      '--decrypt', 
                      help='decrypt file and print contents; TOKEN_FILE is the location and filename of the encryption '
                           'key, SOURCE_FILE is the location and filename to decrypt', 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
                      metavar=('TOKEN_FILE', 'SOURCE_FILE')
                     )
   group.add_argument(
-#                     '-e', 
+                     '-e', 
                      '--encrypt', 
                      help='read a file and encrypt its contents in a new file; TOKEN_FILE is the location and filename '
                           'of the encryption key, INPUT_FILE is the location and filename of the un-encrypted file to '

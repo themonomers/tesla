@@ -7,7 +7,7 @@ from common.utilities import (
   create_cron_tab, 
   get_today_time,
   get_tomorrow_time,
-  NewlineFormatter
+  CustomHelpFormatter
 )
 from common.logger import log_error
 from datetime import datetime
@@ -76,10 +76,10 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='software.py',
                     description='Manage vehicle software.',
-                    formatter_class=NewlineFormatter)
+                    formatter_class=CustomHelpFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-#                     '-s', 
+                     '-s', 
                      '--schedule_update', 
                      help='mimics scheduling a software update from the vehicle interface; VEHICLE can be \'m3\' or '
                           '\'mx\', TIME is in 24-hour format and if it\'s before the current time it will schedule it '
