@@ -464,9 +464,9 @@ func setSeatTemp(vin string, mode string, seat int, setting int) map[string]any 
 //	1: front left
 //	2: front right
 func SetSeatClimateAuto(vin string, enable bool, seat int) map[string]any {
-	var url = BASE_OWNER_URL +
+	var url = BASE_PROXY_URL +
 		"/vehicles/" +
-		getVehicleId(vin) +
+		vin +
 		"/command/remote_auto_seat_climate_request"
 
 	payload, _ := json.Marshal(map[string]any{
@@ -479,8 +479,8 @@ func SetSeatClimateAuto(vin string, enable bool, seat int) map[string]any {
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := http.DefaultClient.Do(req)
-	common.LogError("SetSeatClimateAuto(): http.DefaultClient.Do", err)
+	resp, err := getHttpsClient().Do(req)
+	common.LogError("SetSeatClimateAuto(): getHttpClient", err)
 
 	defer resp.Body.Close()
 	body := map[string]any{}
@@ -494,9 +494,9 @@ func SetSeatClimateAuto(vin string, enable bool, seat int) map[string]any {
 //
 // enable:  True/False (on/off)
 func SetSteeringWheelHeating(vin string, enable bool) map[string]any {
-	var url = BASE_OWNER_URL +
+	var url = BASE_PROXY_URL +
 		"/vehicles/" +
-		getVehicleId(vin) +
+		vin +
 		"/command/remote_steering_wheel_heater_request"
 
 	payload, _ := json.Marshal(map[string]any{
@@ -508,8 +508,8 @@ func SetSteeringWheelHeating(vin string, enable bool) map[string]any {
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := http.DefaultClient.Do(req)
-	common.LogError("SetSteeringWheelHeating(): http.DefaultClient.Do", err)
+	resp, err := getHttpsClient().Do(req)
+	common.LogError("SetSteeringWheelHeating(): getHttpClient", err)
 
 	defer resp.Body.Close()
 	body := map[string]any{}
@@ -600,6 +600,65 @@ func stopPrecondition(vin string) map[string]any {
 	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
 	resp, err := http.DefaultClient.Do(req)
 	common.LogError("stopPrecondition(): http.DefaultClient.Do", err)
+
+	defer resp.Body.Close()
+	body := map[string]any{}
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
+}
+
+// Schedules a vehicle software update (over the air "OTA") to be
+// installed in the future.  Currently this works like the mobile
+// app where you cannot schedule a time in the future like you can
+// in the car.  You have to rely on crontab to mimic the behavior
+// to schedule in the future.
+//
+// offset_sec: seconds from now, e.g. 2 minutes from now = 60 * 2 = 120
+func ScheduleSoftwareUpdate(vin string, time int) map[string]any {
+	if vin == MX_VIN {
+		return scheduleSoftwareUpdate(vin, time)
+	}
+
+	var url = BASE_PROXY_URL +
+		"/vehicles/" +
+		vin +
+		"/command/schedule_software_update"
+
+	payload, _ := json.Marshal(map[string]any{
+		"offset_sec": time,
+	})
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	common.LogError("ScheduleSoftwareUpdate(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := getHttpsClient().Do(req)
+	common.LogError("ScheduleSoftwareUpdate(): getHttpClient", err)
+
+	defer resp.Body.Close()
+	body := map[string]any{}
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
+}
+
+func scheduleSoftwareUpdate(vin string, time int) map[string]any {
+	var url = BASE_OWNER_URL +
+		"/vehicles/" +
+		getVehicleId(vin) +
+		"/command/schedule_software_update"
+
+	payload, _ := json.Marshal(map[string]any{
+		"offset_sec": time,
+	})
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	common.LogError("scheduleSoftwareUpdate(): http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	resp, err := http.DefaultClient.Do(req)
+	common.LogError("scheduleSoftwareUpdate(): http.DefaultClient.Do", err)
 
 	defer resp.Body.Close()
 	body := map[string]any{}

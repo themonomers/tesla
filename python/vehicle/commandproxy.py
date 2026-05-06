@@ -416,6 +416,41 @@ def stop_precondition(vin):
   except Exception as e:
     log_error('stop_precondition(' + vin + '):', e)
 
+
+##
+# Schedules a vehicle software update (over the air "OTA") to be 
+# installed in the future.  Currently this works like the mobile 
+# app where you cannot schedule a time in the future like you can 
+# in the car.  You have to rely on crontab to mimic the behavior 
+# to schedule in the future.
+#
+# offset_sec: seconds from now, e.g. 2 minutes from now = 60 * 2 = 120
+#
+# author: mjhwa@yahoo.com
+##
+def schedule_software_update(vin, time):
+  try:
+    url = (BASE_PROXY_URL
+           + '/vehicles/' 
+           + vin
+           + '/command/schedule_software_update')
+
+    payload = {
+      'offset_sec': time
+    }
+
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
+    return requests.post(
+      url, 
+      json=payload, 
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      verify=CERT
+    )
+  except Exception as e:
+    log_error('schedule_software_update(' + vin + '):', e)
+
+
 ##
 # Loops through all vehicle data and prints to screen.  
 #

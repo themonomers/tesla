@@ -335,6 +335,41 @@ def stop_precondition(vin):
   except Exception as e:
     log_error('stop_precondition(' + vin + '):', e)
 
+
+##
+# Schedules a vehicle software update (over the air "OTA") to be 
+# installed in the future.  Currently this works like the mobile 
+# app where you cannot schedule a time in the future like you can 
+# in the car.  You have to rely on crontab to mimic the behavior 
+# to schedule in the future.
+#
+# offset_sec: seconds from now, e.g. 2 minutes from now = 60 * 2 = 120
+#
+# author: mjhwa@yahoo.com
+##
+def schedule_software_update(vin, time):
+  try:
+    if vin == M3_VIN:
+      return commandproxy.schedule_software_update(vin, time)
+
+    url = (BASE_OWNER_URL
+           + '/vehicles/'
+           + get_vehicle_id(vin)
+           + '/command/schedule_software_update')
+
+    payload = {
+      'offset_sec': time
+    }
+
+    return requests.post(
+      url,
+      json=payload,
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
+    )
+  except Exception as e:
+    log_error('schedule_software_update(' + vin + '):', e)
+
+
 ##
 # Loops through all vehicle data and prints to screen.  
 #
@@ -359,6 +394,13 @@ def main(parser):
 
   if (args.print):
     print_all_vehicle_data(args.print[0])
+  elif (args.schedule_software_update):
+    if args.schedule_software_update[0] == 'm3':
+      schedule_software_update(M3_VIN, 0)
+    elif args.schedule_software_update[0] == 'mx':
+      schedule_software_update(MX_VIN, 0)
+    else:
+      parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   else:
     parser.print_help()
 
@@ -368,13 +410,22 @@ if __name__ == "__main__":
                     prog='api.py',
                     description='API calls for Tesla Vehicles (Pre-2021 Model X and S).',
                     formatter_class=NewlineFormatter)
-  parser.add_argument(
-#                      '-p', 
-                      '--print', 
-                      help='prints all the vehicle data; VIN is the Vehicle Identification Number you can find on the '
-                           'car or in the mobile app',
-                      nargs=1,
-                      metavar='VIN'
-                     )
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument(
+#                     '-p', 
+                     '--print', 
+                     help='prints all the vehicle data; VIN is the Vehicle Identification Number you can find on the '
+                          'car or in the mobile app',
+                     nargs=1,
+                     metavar='VIN'
+                    )
+  group.add_argument(
+#                     '-s', 
+                     '--schedule_software_update', 
+                     help='mimics scheduling a software update from the vehicle interface; VEHICLE can be \'m3\' or '
+                          '\'mx\'',
+                     nargs=1,
+                     metavar='VEHICLE'
+                    )
 
   main(parser)

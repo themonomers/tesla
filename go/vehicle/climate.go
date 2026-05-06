@@ -289,15 +289,7 @@ func StartMXPrecondition() {
 
 // Sends command to stop vehicle preconditioning based on a previously scheduled
 // crontab configured in a Google Sheet.
-func StopM3Precondition() {
-	stopPreconditionCheck(M3_VIN)
-}
-
-func StopMXPrecondition() {
-	stopPreconditionCheck(MX_VIN)
-}
-
-func stopPreconditionCheck(vin string) {
+func StopPreconditionCheck(vin string) {
 	data := GetVehicleData(vin)
 
 	if common.IsVehicleAtPrimary(data) {

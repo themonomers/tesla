@@ -24,13 +24,21 @@ func main() {
 		case "-startmxprecondition":
 			vehicle.StartMXPrecondition()
 		case "-stopm3precondition":
-			vehicle.StopM3Precondition()
+			vehicle.StopPreconditionCheck(vehicle.M3_VIN)
 		case "-stopmxprecondition":
-			vehicle.StopMXPrecondition()
+			vehicle.StopPreconditionCheck(vehicle.MX_VIN)
 		case "-checkm3charge":
-			vehicle.CheckM3Charge()
+			vehicle.CheckCharge(vehicle.M3_VIN)
 		case "-checkmxcharge":
-			vehicle.CheckMXCharge()
+			vehicle.CheckCharge(vehicle.MX_VIN)
+		case "-schedulem3update":
+			vehicle.ScheduleUpdate(vehicle.M3_VIN)
+		case "-schedulemxupdate":
+			vehicle.ScheduleUpdate(vehicle.MX_VIN)
+		case "-schedulem3softwareupdate":
+			vehicle.ScheduleSoftwareUpdate(vehicle.M3_VIN, 0)
+		case "-schedulemxsoftwareupdate":
+			vehicle.ScheduleSoftwareUpdate(vehicle.MX_VIN, 0)
 		case "-removeteslacron":
 			vehicle.RemoveTeslaCron()
 		// energy
@@ -77,6 +85,10 @@ func printUsage() {
 	fmt.Println("-stopmxprecondition")
 	fmt.Println("-checkm3charge")
 	fmt.Println("-checkmxcharge")
+	fmt.Println("-schedulem3update")
+	fmt.Println("-schedulemxupdate")
+	fmt.Println("-schedulem3softwareupdate")
+	fmt.Println("-schedulemxsoftwareupdate")
 	fmt.Println("-removeteslacron")
 	fmt.Println("\n## Energy ##") // energy
 	fmt.Println("-writelivesitetelemetry")

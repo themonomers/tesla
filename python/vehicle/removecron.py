@@ -2,9 +2,9 @@ from crontab import CronTab
 
 
 ##
-# Script to clean up crontabs created for Tesla Climate and Charge Check.  
-# Should be set to run in the middle of the day as all the crontabs are 
-# evening or early morning.
+# Script to clean up crontabs created for Tesla Climate, Charge Check, and
+# Software Update.  Should be set to run in the middle of the day as all
+# the crontabs are set for evening or early morning.
 #
 # author: mjhwa@yahoo.com
 ##
@@ -34,6 +34,15 @@ def main():
   cron.write()
   job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> '
                           '/home/pi/tesla/python/cron.log 2>&1')
+  cron.remove(job)
+  cron.write()
+
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
+                          '--schedule_software_update=m3 >> /home/pi/tesla/python/cron.log 2>&1')
+  cron.remove(job)
+  cron.write()
+  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
+                          '--schedule_software_update=mx >> /home/pi/tesla/python/cron.log 2>&1')
   cron.remove(job)
   cron.write()
 

@@ -321,15 +321,7 @@ func scheduleEarliestCharging(data map[string]any) time.Time {
 
 // Additional scheduled charging check run on crontab.  If it failed to start, this
 // will attempt to start it at the target time.
-func CheckM3Charge() {
-	checkCharge(M3_VIN)
-}
-
-func CheckMXCharge() {
-	checkCharge(MX_VIN)
-}
-
-func checkCharge(vin string) {
+func CheckCharge(vin string) {
 	data := GetVehicleData(vin)
 
 	if common.IsVehicleAtPrimary(data) &&
