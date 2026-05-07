@@ -614,9 +614,9 @@ func stopPrecondition(vin string) map[string]any {
 // to schedule in the future.
 //
 // offset_sec: seconds from now, e.g. 2 minutes from now = 60 * 2 = 120
-func ScheduleSoftwareUpdate(vin string, time int) map[string]any {
+func ScheduleSoftwareUpdate(vin string, offset_sec int) map[string]any {
 	if vin == MX_VIN {
-		return scheduleSoftwareUpdate(vin, time)
+		return scheduleSoftwareUpdate(vin, offset_sec)
 	}
 
 	var url = BASE_PROXY_URL +
@@ -625,7 +625,7 @@ func ScheduleSoftwareUpdate(vin string, time int) map[string]any {
 		"/command/schedule_software_update"
 
 	payload, _ := json.Marshal(map[string]any{
-		"offset_sec": time,
+		"offset_sec": offset_sec,
 	})
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
@@ -636,20 +636,26 @@ func ScheduleSoftwareUpdate(vin string, time int) map[string]any {
 	resp, err := getHttpsClient().Do(req)
 	common.LogError("ScheduleSoftwareUpdate(): getHttpClient", err)
 
+	if resp.StatusCode != 200 {
+		WakeVehicle(vin)
+		time.Sleep(WAIT_TIME * time.Second)
+		return ScheduleSoftwareUpdate(vin, offset_sec)
+	}
+
 	defer resp.Body.Close()
 	body := map[string]any{}
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body
 }
 
-func scheduleSoftwareUpdate(vin string, time int) map[string]any {
+func scheduleSoftwareUpdate(vin string, offset_sec int) map[string]any {
 	var url = BASE_OWNER_URL +
 		"/vehicles/" +
 		getVehicleId(vin) +
 		"/command/schedule_software_update"
 
 	payload, _ := json.Marshal(map[string]any{
-		"offset_sec": time,
+		"offset_sec": offset_sec,
 	})
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
@@ -659,6 +665,12 @@ func scheduleSoftwareUpdate(vin string, time int) map[string]any {
 	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
 	resp, err := http.DefaultClient.Do(req)
 	common.LogError("scheduleSoftwareUpdate(): http.DefaultClient.Do", err)
+
+	if resp.StatusCode != 200 {
+		WakeVehicle(vin)
+		time.Sleep(WAIT_TIME * time.Second)
+		return scheduleSoftwareUpdate(vin, offset_sec)
+	}
 
 	defer resp.Body.Close()
 	body := map[string]any{}

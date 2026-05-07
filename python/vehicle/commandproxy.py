@@ -428,7 +428,7 @@ def stop_precondition(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def schedule_software_update(vin, time):
+def schedule_software_update(vin, offset_sec):
   try:
     url = (BASE_PROXY_URL
            + '/vehicles/' 
@@ -436,17 +436,24 @@ def schedule_software_update(vin, time):
            + '/command/schedule_software_update')
 
     payload = {
-      'offset_sec': time
+      'offset_sec': offset_sec
     }
 
     urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 
-    return requests.post(
+    response = requests.post(
       url, 
       json=payload, 
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
       verify=CERT
     )
+
+    if response.status_code != 200:
+      wake_vehicle(vin)
+      time.sleep(WAIT_TIME)
+      return schedule_software_update(vin, offset_sec)
+
+    return response    
   except Exception as e:
     log_error('schedule_software_update(' + vin + '):', e)
 

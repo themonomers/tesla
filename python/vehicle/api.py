@@ -1,5 +1,6 @@
 import requests
 import argparse
+import time
 import vehicle.commandproxy as commandproxy
 
 from common.utilities import print_json, get_token, get_config, CustomHelpFormatter
@@ -10,6 +11,8 @@ config = get_config()
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
 BASE_OWNER_URL = config['tesla']['base_owner_url']
+
+WAIT_TIME = 30 
 
 
 ##
@@ -347,7 +350,7 @@ def stop_precondition(vin):
 #
 # author: mjhwa@yahoo.com
 ##
-def schedule_software_update(vin, time):
+def schedule_software_update(vin, offset_sec):
   try:
     if vin == M3_VIN:
       return commandproxy.schedule_software_update(vin, time)
@@ -358,14 +361,21 @@ def schedule_software_update(vin, time):
            + '/command/schedule_software_update')
 
     payload = {
-      'offset_sec': time
+      'offset_sec': offset_sec
     }
 
-    return requests.post(
+    response = requests.post(
       url,
       json=payload,
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
+
+    if response.status_code != 200:
+      wake_vehicle(vin)
+      time.sleep(WAIT_TIME)
+      return schedule_software_update(vin, offset_sec)
+
+    return response
   except Exception as e:
     log_error('schedule_software_update(' + vin + '):', e)
 
