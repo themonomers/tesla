@@ -1,6 +1,5 @@
 import requests
 import argparse
-import time
 import vehicle.commandproxy as commandproxy
 
 from common.utilities import print_json, get_token, get_config, CustomHelpFormatter
@@ -23,11 +22,7 @@ WAIT_TIME = 30
 ##
 def get_vehicle_id(vin):
   try:
-    if vin == M3_VIN:
-      data = commandproxy.get_vehicle_data(M3_VIN)
-
-    if vin == MX_VIN:
-      data = commandproxy.get_vehicle_data(MX_VIN)
+    data = commandproxy.get_vehicle_data(vin)
 
     return data['response']['id_s']
   except Exception as e:
@@ -353,7 +348,7 @@ def stop_precondition(vin):
 def schedule_software_update(vin, offset_sec):
   try:
     if vin == M3_VIN:
-      return commandproxy.schedule_software_update(vin, time)
+      return commandproxy.schedule_software_update(vin, offset_sec)
 
     url = (BASE_OWNER_URL
            + '/vehicles/'
@@ -364,18 +359,11 @@ def schedule_software_update(vin, offset_sec):
       'offset_sec': offset_sec
     }
 
-    response = requests.post(
+    return requests.post(
       url,
       json=payload,
       headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
     )
-
-    if response.status_code != 200:
-      wake_vehicle(vin)
-      time.sleep(WAIT_TIME)
-      return schedule_software_update(vin, offset_sec)
-
-    return response
   except Exception as e:
     log_error('schedule_software_update(' + vin + '):', e)
 
