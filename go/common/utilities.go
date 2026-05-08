@@ -1,30 +1,42 @@
 package common
 
 import (
+	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
+	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-ini/ini"
 	"github.com/ridgelines/go-config"
 )
 
+var ACCESS_TOKEN string
 var PRIMARY_LAT float64
 var PRIMARY_LNG float64
 var SECONDARY_LAT float64
 var SECONDARY_LNG float64
 var R float64 = 3958.8 // Earth radius in miles
 var BASE_WEATHER_URL string
+var BASE_PROXY_URL string
+var CERT string
 var OPENWEATHERMAP_KEY string
 var TIMEZONE string
 var WAIT_TIME time.Duration = 30 // seconds
 
 func init() {
 	var err error
+
+	var t = GetToken()
+	ACCESS_TOKEN, err = t.String("tesla.access_token")
+	LogError("init(): load access token", err)
 
 	var c = GetConfig()
 	PRIMARY_LAT, err = c.Float("vehicle.primary_lat")
@@ -44,6 +56,12 @@ func init() {
 
 	BASE_WEATHER_URL, err = c.String("weather.base_url")
 	LogError("init(): load open weather map key", err)
+
+	BASE_PROXY_URL, err = c.String("tesla.base_proxy_url")
+	LogError("init(): load base proxy url", err)
+
+	CERT, err = c.String("tesla.certificate")
+	LogError("init(): load tesla certificate", err)
 
 	TIMEZONE, err = c.String("general.timezone")
 	LogError("init(): load timezone", err)
@@ -241,4 +259,93 @@ func FindStringIn2DArray(arr [][]any, target string) []int64 {
 	}
 
 	return i
+}
+
+func SendGet(url string) *http.Response {
+	return sendRequest("GET", url, nil)
+}
+
+func SendPost(url string, payload []byte) *http.Response {
+	return sendRequest("POST", url, payload)
+}
+
+// Centralize repetitive request posts.
+func sendRequest(method, url string, payload []byte) *http.Response {
+	var resp *http.Response
+
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(payload))
+	LogError(url+": http.NewRequest", err)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
+	if strings.HasPrefix(url, BASE_PROXY_URL) {
+		resp, err = getHttpsClient().Do(req)
+		LogError(url+": getHttpsClient", err)
+	} else {
+		resp, err = http.DefaultClient.Do(req)
+		LogError(url+": http.DefaultClient.Do", err)
+	}
+
+	return resp
+}
+
+// Retrieves HTTP client with a workaround for error "tls: failed to verify certificate: x509:
+// certificate relies on legacy Common Name field, use SANs instead" which skips the hostname
+// verification for self-signed certificates.
+func getHttpsClient() *http.Client {
+	caCert, err := os.ReadFile(CERT)
+	LogError("getHttpsClient(): os.ReadFile", err)
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, // Not actually skipping, we check the cert in VerifyPeerCertificate
+				RootCAs:            caCertPool,
+				VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
+					// Code copy/pasted and adapted from
+					// https://github.com/golang/go/blob/81555cb4f3521b53f9de4ce15f64b77cc9df61b9/src/crypto/tls/handshake_client.go#L327-L344
+					// but adapted to skip the hostname verification.
+					// See https://github.com/golang/go/issues/21971#issuecomment-412836078.
+
+					// If this is the first handshake on a connection, process and
+					// (optionally) verify the server's certificates.
+					certs := make([]*x509.Certificate, len(rawCerts))
+					for i, asn1Data := range rawCerts {
+						cert, err := x509.ParseCertificate(asn1Data)
+						LogError("getHttpsClient(): x509.ParseCertificate", err)
+						certs[i] = cert
+					}
+
+					opts := x509.VerifyOptions{
+						Roots:         caCertPool,
+						CurrentTime:   time.Now(),
+						DNSName:       "", // <- skip hostname verification
+						Intermediates: x509.NewCertPool(),
+					}
+
+					for i, cert := range certs {
+						if i == 0 {
+							continue
+						}
+						opts.Intermediates.AddCert(cert)
+					}
+					_, err := certs[0].Verify(opts)
+					return err
+				},
+			},
+		},
+	}
+
+	return client
+}
+
+// Converts a HTTP Response to a JSON object
+func GetJson(response *http.Response) map[string]any {
+	defer response.Body.Close()
+	body := map[string]any{}
+	json.NewDecoder(response.Body).Decode(&body)
+	return body
 }

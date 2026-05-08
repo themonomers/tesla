@@ -1,32 +1,19 @@
-import requests
+import json
+import time
+import urllib.parse
 import argparse
-import vehicle.commandproxy as commandproxy
 
-from common.utilities import print_json, get_token, get_config, CustomHelpFormatter
+from common.utilities import print_json, get_config, send_get, send_post, CustomHelpFormatter
 from common.logger import log_error
 
-ACCESS_TOKEN = get_token()['tesla']['access_token']
 config = get_config()
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
 BASE_OWNER_URL = config['tesla']['base_owner_url']
+BASE_PROXY_URL = config['tesla']['base_proxy_url']
+CERT = config['tesla']['certificate']
 
 WAIT_TIME = 30 
-
-
-##
-# Retrieves the vehicle ID, which changes from time to time, by the VIN, which 
-# doesn't change.  The vehicle ID is required for many of the API calls.
-# 
-# author: mjhwa@yahoo.com 
-##
-def get_vehicle_id(vin):
-  try:
-    data = commandproxy.get_vehicle_data(vin)
-
-    return data['response']['id_s']
-  except Exception as e:
-    log_error('get_vehicle_id(' + vin + '):', e)
 
 
 ##
@@ -37,7 +24,28 @@ def get_vehicle_id(vin):
 ##
 def get_vehicle_data(vin):
   try:
-    return commandproxy.get_vehicle_data(vin)
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
+           + vin 
+           + '/vehicle_data?endpoints='
+           + urllib.parse.quote(
+               'location_data;'
+               + 'charge_state;'
+               + 'climate_state;'
+               + 'vehicle_state;'
+               + 'gui_settings;'
+               + 'vehicle_config;'
+               + 'drive_state;'
+               + 'charge_schedule_data'))
+
+    response = send_get(url, CERT)
+
+    if response.status_code != 200:
+      wake_vehicle(vin)
+      time.sleep(WAIT_TIME)
+      return get_vehicle_data(vin)
+
+    return json.loads(response.text)
   except Exception as e:
     log_error('get_vehicle_data(' + vin + '):', e)
 
@@ -50,7 +58,12 @@ def get_vehicle_data(vin):
 ##
 def wake_vehicle(vin):
   try:
-    return commandproxy.wake_vehicle(vin)
+    url = (BASE_PROXY_URL
+           + '/vehicles/'
+           + vin 
+           + '/wake_up')
+
+    return send_post(url, None, CERT)
   except Exception as e:
     log_error('wake_vehicle(' + vin + '):', e)
 
@@ -62,18 +75,10 @@ def wake_vehicle(vin):
 ##
 def start_charge(vin):
   try:
-    if vin == M3_VIN:
-      return commandproxy.start_charge(vin)
-    
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin) 
-           + '/command/charge_start')
+    if vin == MX_VIN:
+      return send_post(get_url(BASE_OWNER_URL, vin, 'charge_start'), None, None)
 
-    return requests.post(
-      url, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
+    return send_post(get_url(BASE_PROXY_URL, vin, 'charge_start'), None, CERT)
   except Exception as e:
     log_error('start_charge(' + vin + '):', e)
 
@@ -85,18 +90,10 @@ def start_charge(vin):
 ##
 def stop_charge(vin):
   try:
-    if vin == M3_VIN:
-      return commandproxy.stop_charge(vin)
+    if vin == MX_VIN:
+      return send_post(get_url(BASE_OWNER_URL, vin, 'charge_stop'), None, None)
   
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin)
-           + '/command/charge_stop')
-
-    return requests.post(
-      url,
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
+    return send_post(get_url(BASE_PROXY_URL, vin, 'charge_stop'), None, CERT)
   except Exception as e:
     log_error('stop_charge(' + vin + '):', e)
 
@@ -110,14 +107,6 @@ def stop_charge(vin):
 ##
 def add_charge_schedule(vin, lat, lon, start_time, id):
   try:
-    if vin == M3_VIN:
-      return commandproxy.add_charge_schedule(vin, lat, lon, start_time, id)
-
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin) 
-           + '/command/add_charge_schedule')
-
     payload = {
       'days_of_week': 'All',
       'enabled': True,
@@ -130,11 +119,10 @@ def add_charge_schedule(vin, lat, lon, start_time, id):
       'id': id
     }
 
-    return requests.post(
-      url, 
-      json=payload, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
+    if vin == MX_VIN:
+      return send_post(get_url(BASE_OWNER_URL, vin, 'add_charge_schedule'), payload, None)
+
+    return send_post(get_url(BASE_PROXY_URL, vin, 'add_charge_schedule'), payload, CERT)
   except Exception as e:
     log_error('add_charge_schedule(' + vin + '):', e)
 
@@ -146,23 +134,14 @@ def add_charge_schedule(vin, lat, lon, start_time, id):
 ##
 def remove_charge_schedule(vin, id):
   try:
-    if vin == M3_VIN:
-      return commandproxy.remove_charge_schedule(vin, id)
-    
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin) 
-           + '/command/remove_charge_schedule')
-
     payload = {
       'id': id
     }
 
-    return requests.post(
-      url, 
-      json=payload, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
+    if vin == MX_VIN:
+      return send_post(get_url(BASE_OWNER_URL, vin, 'remove_charge_schedule'), payload, None)
+
+    return send_post(get_url(BASE_PROXY_URL, vin, 'remove_charge_schedule'), payload, CERT)
   except Exception as e:
     log_error('remove_charge_schedule(' + vin + '):', e)
   
@@ -174,20 +153,14 @@ def remove_charge_schedule(vin, id):
 ##
 def set_charging_amps(vin, amps):
   try:
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin)
-           + '/command/set_charging_amps')
-
     payload = {
       'charging_amps': amps
     }
 
-    return requests.post(
-      url,
-      json=payload,
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
+    if vin == MX_VIN:
+      return send_post(get_url(BASE_OWNER_URL, vin, 'set_charging_amps'), payload, None)
+
+    return send_post(get_url(BASE_PROXY_URL, vin, 'set_charging_amps'), payload, None)
   except Exception as e:
     log_error('set_charging_amps(' + vin + '):', e)
 
@@ -203,24 +176,15 @@ def set_charging_amps(vin, amps):
 ##
 def set_temp(vin, d_temp, p_temp):
   try:
-    if vin == M3_VIN:
-      return commandproxy.set_temp(vin, d_temp, p_temp)
-
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin) 
-           + '/command/set_temps')
-
     payload = {
       'driver_temp': d_temp,
       'passenger_temp': p_temp
     }
 
-    return requests.post(
-      url, 
-      json=payload, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
+    if vin == MX_VIN:
+      return send_post(get_url(BASE_OWNER_URL, vin, 'set_temps'), payload, None)
+
+    return send_post(get_url(BASE_PROXY_URL, vin, 'set_temps'), payload, CERT)
   except Exception as e:
     log_error('set_temp(' + vin + '):', e)
 
@@ -242,29 +206,18 @@ def set_temp(vin, d_temp, p_temp):
 ##
 def set_seat_heating(vin, seat, setting):
   try:
-    if vin == M3_VIN:
-      return commandproxy.set_seat_heating(vin, seat, setting)
-
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin) 
-           + '/command/remote_seat_heater_request')
+    if vin == MX_VIN:
+      payload = {
+        'heater': seat,
+        'level': setting
+      }
+      return send_post(get_url(BASE_OWNER_URL, vin, 'remote_seat_heater_request'), payload, None)
 
     payload = {
-      'heater': seat,
+      'seat_position': seat,
       'level': setting
     }
-#    "payload": JSON.stringify({'heater': '0', 'level': seats[0],
-#                               'heater': '1', 'level': seats[1],
-#                               'heater': '2', 'level': seats[2],
-#                               'heater': '4', 'level': seats[3],
-#                               'heater': '5', 'level': seats[4]})
-
-    return requests.post(
-      url, 
-      json=payload, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
+    return send_post(get_url(BASE_PROXY_URL, vin, 'remote_seat_heater_request'), payload, CERT)
   except Exception as e:
     log_error('set_seat_heating(' + vin + '):', e)
 
@@ -283,9 +236,56 @@ def set_seat_heating(vin, seat, setting):
 ##
 def set_seat_cooling(vin, seat, setting):
   try:
-    return commandproxy.set_seat_cooling(vin, seat, setting)
+    payload = {
+      'seat_position': seat,
+      'seat_cooler_level': setting
+    }
+
+    return send_post(get_url(BASE_PROXY_URL, vin, 'remote_seat_cooler_request'), payload, CERT)
   except Exception as e:
     log_error('set_seat_cooling(' + vin + '):', e)
+
+
+##
+# Sets automatic seat heating and cooling. Requires preconditioning or 
+# climate keeper to be on.
+# 
+# enable:  True/False (on/off)
+# seat:  1: front left
+#        2: front right
+#
+# author: mjhwa@yahoo.com
+##
+def set_seat_climate_auto(vin, enable, seat):
+  try:  
+    payload = {
+      'auto_climate_on': enable,
+      'auto_seat_position': seat
+    }
+
+    return send_post(get_url(BASE_PROXY_URL, vin, 'remote_auto_seat_climate_request'), payload, CERT)
+  except Exception as e:
+    log_error('set_seat_climate_auto(' + vin + '):', e)
+
+
+##
+# Sets steering wheel heating on/off. For vehicles that do not 
+# support auto steering wheel heat. Requires preconditioning or 
+# climate keeper to be on.
+#
+# enable:  True/False (on/off)
+#
+# author: mjhwa@yahoo.com
+##
+def set_steering_wheel_heating(vin, enable):
+  try:  
+    payload = {
+      'on': enable
+    }
+
+    return send_post(get_url(BASE_PROXY_URL, vin, 'remote_steering_wheel_heater_request'), payload, CERT)
+  except Exception as e:
+    log_error('set_steering_wheel_heating(' + vin + '):', e)
 
 
 ##
@@ -295,18 +295,10 @@ def set_seat_cooling(vin, seat, setting):
 ##
 def start_precondition(vin):
   try:  
-    if vin == M3_VIN:
-      return commandproxy.start_precondition(vin)
+    if vin == MX_VIN:
+      return send_post(get_url(BASE_OWNER_URL, vin, 'auto_conditioning_start'), None, None)
 
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin) 
-           + '/command/auto_conditioning_start')
-
-    return requests.post(
-      url, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
+    return send_post(get_url(BASE_PROXY_URL, vin, 'auto_conditioning_start'), None, CERT)
   except Exception as e:
     log_error('start_precondition(' + vin + '):', e)
 
@@ -318,18 +310,10 @@ def start_precondition(vin):
 ##
 def stop_precondition(vin):
   try:
-    if vin == M3_VIN:
-      return commandproxy.stop_precondition(vin)
+    if vin == MX_VIN:
+      return send_post(get_url(BASE_OWNER_URL, vin, 'auto_conditioning_stop'), None, None)
 
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin)
-           + '/command/auto_conditioning_stop')
-
-    return requests.post(
-      url, 
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
+    return send_post(get_url(BASE_PROXY_URL, vin, 'auto_conditioning_stop'), None, CERT)
   except Exception as e:
     log_error('stop_precondition(' + vin + '):', e)
 
@@ -347,25 +331,63 @@ def stop_precondition(vin):
 ##
 def schedule_software_update(vin, offset_sec):
   try:
-    if vin == M3_VIN:
-      return commandproxy.schedule_software_update(vin, offset_sec)
-
-    url = (BASE_OWNER_URL
-           + '/vehicles/'
-           + get_vehicle_id(vin)
-           + '/command/schedule_software_update')
-
     payload = {
       'offset_sec': offset_sec
     }
 
-    return requests.post(
-      url,
-      json=payload,
-      headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-    )
+    if vin == MX_VIN:
+      return send_post(get_url(BASE_OWNER_URL, vin, 'schedule_software_update'), payload, None)
+
+    response = send_post(get_url(BASE_PROXY_URL, vin, 'schedule_software_update'), payload, CERT)
+    if response.status_code != 200:
+      wake_vehicle(vin)
+      time.sleep(WAIT_TIME)
+      return schedule_software_update(vin, offset_sec)
+
+    return response 
   except Exception as e:
     log_error('schedule_software_update(' + vin + '):', e)
+
+
+##
+# Retrieves the vehicle ID, which changes from time to time, by the VIN, which 
+# doesn't change.  The vehicle ID is required for many of the API calls.
+# 
+# author: mjhwa@yahoo.com 
+##
+def get_vehicle_id(vin):
+  try:
+    data = get_vehicle_data(vin)
+
+    return data['response']['id_s']
+  except Exception as e:
+    log_error('get_vehicle_id(' + vin + '):', e)
+
+
+###
+# Centralize repetitive URL construction.
+#
+# author: mjhwa@yahoo.com
+##
+def get_url(base, vin, command):
+  try:
+    url = ''
+    if (base == BASE_OWNER_URL):
+      url = (base
+            + '/vehicles/'
+            + get_vehicle_id(vin)
+            + '/command/'
+            + command)
+    elif (base == BASE_PROXY_URL):
+      url = (base
+            + '/vehicles/'
+            + vin 
+            + '/command/'
+            + command)
+    
+    return url
+  except Exception as e:
+    log_error('get_url(' + url + '):', e)
 
 
 ##

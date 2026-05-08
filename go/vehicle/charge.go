@@ -12,6 +12,15 @@ import (
 	"github.com/themonomers/tesla/go/common"
 )
 
+var IsVehicleAtPrimary = common.IsVehicleAtPrimary
+var IsVehicleAtSecondary = common.IsVehicleAtSecondary
+var GetTomorrowTime = common.GetTomorrowTime
+var CreateCronTab = common.CreateCronTab
+var DeleteCronTab = common.DeleteCronTab
+var FindStringIn2DArray = common.FindStringIn2DArray
+var GetGoogleSheetService = common.GetGoogleSheetService
+var SendEmail = common.SendEmail
+
 type Range struct {
 	Start time.Time
 	End   time.Time
@@ -32,21 +41,21 @@ var EARLIEST_CHARGING_START_TIME string = "00:00"
 func init() {
 	var err error
 
-	var c = common.GetConfig()
+	var c = GetConfig()
 	M3_VIN, err = c.String("vehicle.m3_vin")
-	common.LogError("init(): load m3 vin", err)
+	LogError("init(): load m3 vin", err)
 
 	MX_VIN, err = c.String("vehicle.mx_vin")
-	common.LogError("init(): load mx vin", err)
+	LogError("init(): load mx vin", err)
 
 	EV_SPREADSHEET_ID, err = c.String("google.ev_spreadsheet_id")
-	common.LogError("init(): load ev spreadsheet id", err)
+	LogError("init(): load ev spreadsheet id", err)
 
 	EMAIL_1, err = c.String("notification.email_1")
-	common.LogError("init(): load email 1", err)
+	LogError("init(): load email 1", err)
 
 	EMAIL_2, err = c.String("notification.email_2")
-	common.LogError("init(): load email 2", err)
+	LogError("init(): load email 2", err)
 }
 
 // Checks to see if the vehicles are plugged in, inferred from the charge
@@ -63,7 +72,7 @@ func NotifyIsTeslaPluggedIn() {
 	mx_data := GetVehicleData(MX_VIN)
 
 	// get charging configuration info
-	srv := common.GetGoogleSheetService()
+	srv := GetGoogleSheetService()
 	charge_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Charge!A3:C11").Do()
 	if err != nil {
 		common.LogErrorRetry("Get configuration info from Google Sheets:", err)
@@ -104,9 +113,9 @@ func NotifyIsTeslaPluggedIn() {
 
 	// set cars for scheduled charging by daily charge time preference
 	day_of_week := time.Now().AddDate(0, 0, 1).Format("Monday")
-	dow_index := common.FindStringIn2DArray(charge_config.Values, day_of_week)
-	m3_target_finish_time := common.GetTomorrowTime(charge_config.Values[dow_index[0]][1].(string))
-	mx_target_finish_time := common.GetTomorrowTime(charge_config.Values[dow_index[0]][2].(string))
+	dow_index := FindStringIn2DArray(charge_config.Values, day_of_week)
+	m3_target_finish_time := GetTomorrowTime(charge_config.Values[dow_index[0]][1].(string))
+	mx_target_finish_time := GetTomorrowTime(charge_config.Values[dow_index[0]][2].(string))
 	m3_charge_start_time := scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 	mx_charge_start_time := scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
@@ -114,13 +123,13 @@ func NotifyIsTeslaPluggedIn() {
 	// "skip"
 	m3_climate_start_time := time.Time{}
 	mx_climate_start_time := time.Time{}
-	dow_index = common.FindStringIn2DArray(climate_config.Values, day_of_week)
+	dow_index = FindStringIn2DArray(climate_config.Values, day_of_week)
 	if climate_config.Values[dow_index[0]][8].(string) != "skip" {
-		m3_climate_start_time = common.GetTomorrowTime(climate_config.Values[dow_index[0]][8].(string))
+		m3_climate_start_time = GetTomorrowTime(climate_config.Values[dow_index[0]][8].(string))
 		m3_climate_start_time = SetPrecondition(m3_data, climate_config.Values[19][1].(string), m3_climate_start_time)
 	}
 	if climate_config.Values[dow_index[0]][14].(string) != "skip" {
-		mx_climate_start_time := common.GetTomorrowTime(climate_config.Values[dow_index[0]][14].(string))
+		mx_climate_start_time := GetTomorrowTime(climate_config.Values[dow_index[0]][14].(string))
 		mx_climate_start_time = SetPrecondition(mx_data, climate_config.Values[19][10].(string), mx_climate_start_time)
 	}
 
@@ -205,21 +214,21 @@ func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_targe
 
 	if m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" {
 		// get calculated start time depending on location of cars
-		if common.IsVehicleAtPrimary(m3_data) &&
-			common.IsVehicleAtPrimary(mx_data) {
+		if IsVehicleAtPrimary(m3_data) &&
+			IsVehicleAtPrimary(mx_data) {
 			start_time = calculateScheduledCharging("m3_primary_shared_charging",
 				m3_data,
 				mx_data,
 				m3_target_finish_time,
 				mx_target_finish_time)
-		} else if common.IsVehicleAtPrimary(m3_data) &&
-			!common.IsVehicleAtPrimary(mx_data) {
+		} else if IsVehicleAtPrimary(m3_data) &&
+			!IsVehicleAtPrimary(mx_data) {
 			start_time = calculateScheduledCharging("m3_primary_full_rate",
 				m3_data,
 				mx_data,
 				m3_target_finish_time,
 				mx_target_finish_time)
-		} else if common.IsVehicleAtSecondary(m3_data) {
+		} else if IsVehicleAtSecondary(m3_data) {
 			start_time = calculateScheduledCharging("m3_secondary_full_rate",
 				m3_data,
 				mx_data,
@@ -253,21 +262,21 @@ func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_targe
 
 	if mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" {
 		// get calculated start time depending on location of cars
-		if common.IsVehicleAtPrimary(mx_data) &&
-			common.IsVehicleAtPrimary(m3_data) {
+		if IsVehicleAtPrimary(mx_data) &&
+			IsVehicleAtPrimary(m3_data) {
 			start_time = calculateScheduledCharging("mx_primary_shared_charging",
 				m3_data,
 				mx_data,
 				m3_target_finish_time,
 				mx_target_finish_time)
-		} else if common.IsVehicleAtPrimary(mx_data) &&
-			!common.IsVehicleAtPrimary(m3_data) {
+		} else if IsVehicleAtPrimary(mx_data) &&
+			!IsVehicleAtPrimary(m3_data) {
 			start_time = calculateScheduledCharging("mx_primary_full_rate",
 				m3_data,
 				mx_data,
 				m3_target_finish_time,
 				mx_target_finish_time)
-		} else if common.IsVehicleAtSecondary(mx_data) {
+		} else if IsVehicleAtSecondary(mx_data) {
 			start_time = calculateScheduledCharging("mx_secondary_full_rate",
 				m3_data,
 				mx_data,
@@ -300,8 +309,8 @@ func scheduleEarliestCharging(data map[string]any) time.Time {
 	vin := data["response"].(map[string]any)["vin"].(string)
 
 	if data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" &&
-		common.IsVehicleAtPrimary(data) {
-		start_time = common.GetTomorrowTime(EARLIEST_CHARGING_START_TIME)
+		IsVehicleAtPrimary(data) {
+		start_time = GetTomorrowTime(EARLIEST_CHARGING_START_TIME)
 		total_minutes := (start_time.Hour() * 60) + start_time.Minute()
 
 		// Remove any previous scheduled charging by this program, temporarily set to
@@ -324,7 +333,7 @@ func scheduleEarliestCharging(data map[string]any) time.Time {
 func CheckCharge(vin string) {
 	data := GetVehicleData(vin)
 
-	if common.IsVehicleAtPrimary(data) &&
+	if IsVehicleAtPrimary(data) &&
 		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Charging" {
 		common.LogInfo("checkCharge(" + vin + "): Scheduled charging failed to start.  Starting backup charging.")
 		StartCharge(vin)
@@ -335,22 +344,22 @@ func CheckCharge(vin string) {
 func scheduleBackupCharging(data map[string]any, start_time time.Time) {
 	vin := data["response"].(map[string]any)["vin"].(string)
 
-	if common.IsVehicleAtPrimary(data) {
+	if IsVehicleAtPrimary(data) {
 		// create backup charging start crontab at target time tomorrow
 		switch vin {
 		case M3_VIN:
-			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkm3charge >> " +
+			DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkm3charge >> " +
 				"/home/pi/tesla/go/cron.log 2>&1")
-			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkm3charge >> "+
+			CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkm3charge >> "+
 				"/home/pi/tesla/go/cron.log 2>&1",
 				start_time.Minute(),
 				start_time.Hour(),
 				start_time.Day(),
 				int(start_time.Month()))
 		case MX_VIN:
-			common.DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkmxcharge >> " +
+			DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkmxcharge >> " +
 				"/home/pi/tesla/go/cron.log 2>&1")
-			common.CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkmxcharge >> "+
+			CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkmxcharge >> "+
 				"/home/pi/tesla/go/cron.log 2>&1",
 				start_time.Minute(),
 				start_time.Hour(),
@@ -608,8 +617,8 @@ func calculateFinishTime(m3_data, mx_data map[string]any) map[string]time.Time {
 		m3_charging_time = (mx_charging_time_at_full_rate * 2) + leftover_time
 	}
 
-	mx_finish_time := common.GetTomorrowTime(EARLIEST_CHARGING_START_TIME).Add(time.Duration(mx_charging_time * float64(time.Hour)))
-	m3_finish_time := common.GetTomorrowTime(EARLIEST_CHARGING_START_TIME).Add(time.Duration(m3_charging_time * float64(time.Hour)))
+	mx_finish_time := GetTomorrowTime(EARLIEST_CHARGING_START_TIME).Add(time.Duration(mx_charging_time * float64(time.Hour)))
+	m3_finish_time := GetTomorrowTime(EARLIEST_CHARGING_START_TIME).Add(time.Duration(m3_charging_time * float64(time.Hour)))
 
 	finish_times := map[string]time.Time{"mx_finish_time": mx_finish_time, "m3_finish_time": m3_finish_time}
 	return finish_times
@@ -676,7 +685,7 @@ func sendScheduledChargeMessage(vehicle string, data map[string]any, charge_star
 			subject = vehicle + " Set to Precondition"
 		}
 
-		common.SendEmail(to,
+		SendEmail(to,
 			subject,
 			message,
 			cc)
@@ -693,7 +702,7 @@ func sendPluggedInMessage(vehicle string, battery_level float64, battery_range f
 				"%, " +
 				strconv.FormatFloat(battery_range, 'f', -1, 64) +
 				" estimated miles.  \n\n-Your " + vehicle
-			common.SendEmail(to,
+			SendEmail(to,
 				"Please Plug In Your "+vehicle,
 				message,
 				cc)

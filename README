@@ -25,10 +25,9 @@ Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, 
       telemetry.py - Writes all energy data from previous day for Grafana
 
 /vehicle
-      api.py - API calls for Tesla Vehicles (Pre-2021 Model X and S)
+      api.py - API calls for Tesla Vehicles
       charge.py - Calculates and sets charging times to complete at a departure time for 2 EV's
       climate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
-      commandproxy.py - API calls to modified tesla-http-proxy running on localhost 
       removecron.py - Cleans up crontabs that are meant to exist for each specific day
       software.py - Simulates scheduling software updates from the vehicle interface 
       telemetry.py - Write all vehicle data from previous day in Google Sheet

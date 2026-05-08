@@ -14,15 +14,15 @@ var PCT_THRESHOLD float64 = 0.5
 func init() {
 	var err error
 
-	c := common.GetConfig()
+	c := GetConfig()
 	PRIMARY_LAT, err = c.Float("vehicle.primary_lat")
-	common.LogError("init(): load vehicle primary lat", err)
+	LogError("init(): load vehicle primary lat", err)
 
 	PRIMARY_LNG, err = c.Float("vehicle.primary_lng")
-	common.LogError("init(): load vehicle primary lng", err)
+	LogError("init(): load vehicle primary lng", err)
 
 	EMAIL_1, err = c.String("notification.email_1")
-	common.LogError("init(): load email 1", err)
+	LogError("init(): load email 1", err)
 }
 
 // Set to run on an early morning cron job (before sunrise) that will

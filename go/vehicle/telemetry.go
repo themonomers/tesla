@@ -13,22 +13,22 @@ var TELEMETRY_SHEET_ID int64
 func init() {
 	var err error
 
-	var c = common.GetConfig()
+	var c = GetConfig()
 	M3_VIN, err = c.String("vehicle.m3_vin")
-	common.LogError("init(): load m3 vin", err)
+	LogError("init(): load m3 vin", err)
 
 	MX_VIN, err = c.String("vehicle.mx_vin")
-	common.LogError("init(): load mx vin", err)
+	LogError("init(): load mx vin", err)
 
 	EV_SPREADSHEET_ID, err = c.String("google.ev_spreadsheet_id")
-	common.LogError("init(): load ev spreadsheet id", err)
+	LogError("init(): load ev spreadsheet id", err)
 
 	telemetry_sheet_id, err := c.String("google.telemetry_sheet_id")
-	common.LogError("init(): load telemetry sheet id", err)
+	LogError("init(): load telemetry sheet id", err)
 	TELEMETRY_SHEET_ID, _ = strconv.ParseInt(telemetry_sheet_id, 10, 64)
 
 	EMAIL_1, err = c.String("notification.email_1")
-	common.LogError("init(): load email 1", err)
+	LogError("init(): load email 1", err)
 }
 
 func WriteVehicleTelemetry() {
@@ -202,17 +202,17 @@ func writeM3Telemetry() {
 	})
 
 	// batch write data and formula copies to sheet
-	srv := common.GetGoogleSheetService()
+	srv := GetGoogleSheetService()
 	_, err := srv.Spreadsheets.Values.BatchUpdate(EV_SPREADSHEET_ID, inputs).Do()
-	common.LogError("WriteM3Telemetry(): srv.Spreadsheets.Values.BatchUpdate", err)
+	LogError("WriteM3Telemetry(): srv.Spreadsheets.Values.BatchUpdate", err)
 	_, err = srv.Spreadsheets.BatchUpdate(EV_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
-	common.LogError("WriteM3Telemetry(): srv.Spreadsheets.BatchUpdate", err)
+	LogError("WriteM3Telemetry(): srv.Spreadsheets.BatchUpdate", err)
 
 	// send email notification
 	message := "Model 3 telemetry successfully logged on " +
 		time.Now().Format("January 2, 2006 15:04:05") +
 		"."
-	common.SendEmail(EMAIL_1, "Model 3 Telemetry Logged", message, "")
+	SendEmail(EMAIL_1, "Model 3 Telemetry Logged", message, "")
 }
 
 func writeMXTelemetry() {
@@ -379,15 +379,15 @@ func writeMXTelemetry() {
 	})
 
 	// batch write data and formula copies to sheet
-	srv := common.GetGoogleSheetService()
+	srv := GetGoogleSheetService()
 	_, err := srv.Spreadsheets.Values.BatchUpdate(EV_SPREADSHEET_ID, inputs).Do()
-	common.LogError("WriteMXTelemetry(): srv.Spreadsheets.Values.BatchUpdate", err)
+	LogError("WriteMXTelemetry(): srv.Spreadsheets.Values.BatchUpdate", err)
 	_, err = srv.Spreadsheets.BatchUpdate(EV_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
-	common.LogError("WriteMXTelemetry(): srv.Spreadsheets.BatchUpdate", err)
+	LogError("WriteMXTelemetry(): srv.Spreadsheets.BatchUpdate", err)
 
 	// send email notification
 	message := "Model X telemetry successfully logged on " +
 		time.Now().Format("January 2, 2006 15:04:05") +
 		"."
-	common.SendEmail(EMAIL_1, "Model X Telemetry Logged", message, "")
+	SendEmail(EMAIL_1, "Model X Telemetry Logged", message, "")
 }

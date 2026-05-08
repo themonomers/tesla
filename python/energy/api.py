@@ -1,16 +1,13 @@
-import requests
 import json
 import pytz
 import argparse
 
-from common.utilities import print_json, get_config, get_token, CustomHelpFormatter
+from common.utilities import print_json, get_config, send_get, send_post, CustomHelpFormatter
 from common.logger import log_error
 from datetime import datetime
 
-ACCESS_TOKEN = get_token()['tesla']['access_token']
 config = get_config()
 SITE_ID = config['energy']['site_id']
-BATTERY_ID = config['energy']['battery_id']
 BASE_OWNER_URL = config['tesla']['base_owner_url']
 TIME_ZONE = config['general']['timezone']
 
@@ -22,19 +19,9 @@ TIME_ZONE = config['general']['timezone']
 ##
 def get_site_status():
   try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID 
-           + '/site_status')
-
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_status'), None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_site_status():', e)
 
@@ -46,19 +33,9 @@ def get_site_status():
 ##
 def get_site_live_status():
   try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/live_status')
-
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'live_status'), None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_site_live_status():', e)
 
@@ -70,19 +47,9 @@ def get_site_live_status():
 ##
 def get_site_info():
   try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/site_info')
-
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_info'), None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_site_info():', e)
 
@@ -106,23 +73,15 @@ def get_site_history(period, date):
       0
     ), is_dst=None)
 
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID 
-           + '/calendar_history'
-           + '?kind=energy'
-           + '&end_date=' 
-           + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
-           + '&period=' + period)
+    command = ('calendar_history'
+               + '?kind=energy'
+               + '&end_date=' 
+               + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
+               + '&period=' + period)
 
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, command), None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_site_history(' + period + '):', e)
 
@@ -134,19 +93,9 @@ def get_site_history(period, date):
 ##
 def get_battery_backup_history():
   try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID 
-           + '/calendar_history?kind=backup')
-
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'calendar_history?kind=backup'), None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_battery_backup_history():', e)
 
@@ -180,30 +129,21 @@ def get_site_tou_history(period, date):
       0
     ), is_dst=None)
 
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/calendar_history'
-           + '?kind=time_of_use_energy'
-           + '&period=' + period
-           + '&start_date=' 
-           + datetime.strftime(
-               s_date.astimezone(pytz.utc), 
-               '%Y-%m-%dT%H:%M:%SZ')
-           + '&end_date=' 
-           + datetime.strftime(
-               e_date.astimezone(pytz.utc), 
-               '%Y-%m-%dT%H:%M:%SZ')
-          )
+    command = ('calendar_history'
+               + '?kind=time_of_use_energy'
+               + '&period=' + period
+               + '&start_date=' 
+               + datetime.strftime(
+                  s_date.astimezone(pytz.utc), 
+                  '%Y-%m-%dT%H:%M:%SZ')
+               + '&end_date=' 
+               + datetime.strftime(
+                  e_date.astimezone(pytz.utc), 
+                  '%Y-%m-%dT%H:%M:%SZ'))
 
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, command), None).text
     )
- 
-    return response
   except Exception as e:
     log_error('get_site_tou_history():', e)
 
@@ -227,24 +167,15 @@ def get_battery_charge_history(period, date):
       0
     ), is_dst=None)
 
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID 
-           + '/calendar_history'
-           + '?kind=soe'
-           + '&period=' + period
-           + '&end_date='
-           + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
-          )
+    command = ('calendar_history'
+               + '?kind=soe'
+               + '&period=' + period
+               + '&end_date='
+               + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ'))
 
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, command), None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_battery_charge_history():', e)
 
@@ -278,29 +209,21 @@ def get_power_history(period, date):
       0
     ), is_dst=None)
 
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/calendar_history'
-           + '?kind=power'
-           + '&start_date='
-           + datetime.strftime(
-               s_date.astimezone(pytz.utc), 
-               '%Y-%m-%dT%H:%M:%SZ')
-           + '&end_date='
-           + datetime.strftime(
-               e_date.astimezone(pytz.utc), 
-               '%Y-%m-%dT%H:%M:%SZ')
-           + '&period=' + period)
+    command = ('calendar_history'
+               + '?kind=power'
+               + '&start_date='
+               + datetime.strftime(
+                  s_date.astimezone(pytz.utc), 
+                  '%Y-%m-%dT%H:%M:%SZ')
+               + '&end_date='
+               + datetime.strftime(
+                  e_date.astimezone(pytz.utc), 
+                  '%Y-%m-%dT%H:%M:%SZ')
+               + '&period=' + period)
 
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, command), None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_power_history():', e)
 
@@ -316,14 +239,9 @@ def get_rate_tariffs():
            + '/energy_sites/' 
            + 'rate_tariffs')
 
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(url, None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_rate_tariffs():', e)
 
@@ -336,19 +254,9 @@ def get_rate_tariffs():
 ##
 def get_site_tariff():
   try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/tariff_rate')
-
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'tariff_rate'), None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_site_tariff():', e)
 
@@ -360,19 +268,9 @@ def get_site_tariff():
 ##
 def get_backup_time_remaining():
   try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/backup_time_remaining')
-
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'backup_time_remaining'), None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_backup_time_remaining():', e)
 
@@ -406,31 +304,22 @@ def get_savings_forecast(period, date):
       0
     ), is_dst=None)
 
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/calendar_history'
-           + '?kind=savings'
-           + '&period=' + period
-           + '&start_date=' 
-           + datetime.strftime(
-               s_date.astimezone(pytz.utc),
-               '%Y-%m-%dT%H:%M:%SZ')
-           + '&end_date=' 
-           + datetime.strftime(
-               e_date.astimezone(pytz.utc),
-               '%Y-%m-%dT%H:%M:%SZ')
-           + '&tariff=PGE-EV2-A'
-          )
+    command = ('calendar_history'
+               + '?kind=savings'
+               + '&period=' + period
+               + '&start_date=' 
+               + datetime.strftime(
+                  s_date.astimezone(pytz.utc),
+                  '%Y-%m-%dT%H:%M:%SZ')
+               + '&end_date=' 
+               + datetime.strftime(
+                  e_date.astimezone(pytz.utc),
+                  '%Y-%m-%dT%H:%M:%SZ')
+               + '&tariff=PGE-EV2-A')
 
-    response = json.loads(
-      requests.get(
-        url,
-        headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-      ).text
+    return json.loads(
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, command), None).text
     )
-
-    return response
   except Exception as e:
     log_error('get_savings_forecast():', e)
 
@@ -474,22 +363,11 @@ def set_operational_mode_time_based_control():
 ##
 def set_operational_mode(mode):
   try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID 
-           + '/operation')
-  
     payload = {
       'default_real_mode': mode
     }
 
-    response = requests.post(
-                 url,
-                 json=payload,
-                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-               )
-
-    return response
+    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'operation'), payload, None)
   except Exception as e:
     log_error('set_operational_mode(' + mode + '):', e)
 
@@ -521,23 +399,12 @@ def set_energy_exports_solar():
 ##
 def set_grid_import_export(export_rule, disallow_grid_charging):
   try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID
-           + '/grid_import_export')
-    
     payload = {
       'customer_preferred_export_rule': export_rule,
       'disallow_charge_from_grid_with_solar_installed': disallow_grid_charging
     }
 
-    response = requests.post(
-                 url,
-                 json=payload,
-                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-               )
-
-    return response
+    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'grid_import_export'), payload, None)
   except Exception as e:
     log_error('set_grid_import_export(' + export_rule + ', ' + disallow_grid_charging + '):', e)
 
@@ -549,22 +416,11 @@ def set_grid_import_export(export_rule, disallow_grid_charging):
 ##
 def set_backup_reserve(backup_percent):
   try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID 
-           + '/backup')
-    
     payload = {
       'backup_reserve_percent': backup_percent
     }
 
-    response = requests.post(
-                 url,
-                 json=payload,
-                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-               )
-
-    return response
+    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'backup'), payload, None)
   except Exception as e:
     log_error('set_backup_reserve(' + backup_percent + '):', e)
 
@@ -577,24 +433,31 @@ def set_backup_reserve(backup_percent):
 ##
 def set_off_grid_vehicle_charging_reserve(percent):
   try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + SITE_ID 
-           + '/off_grid_vehicle_charging_reserve')
-    
     payload = {
       'off_grid_vehicle_charging_reserve_percent': percent
     }
 
-    response = requests.post(
-                 url,
-                 json=payload,
-                 headers={'authorization': 'Bearer ' + ACCESS_TOKEN}
-               )
-
-    return response
+    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'off_grid_vehicle_charging_reserve'), payload, None)
   except Exception as e:
     log_error('set_off_grid_vehicle_charging_reserve(' + percent + '):', e)
+
+
+###
+# Centralize repetitive URL construction.
+#
+# author: mjhwa@yahoo.com
+##
+def get_url(base, site_id, command):
+  try:
+    url = (base
+           + '/energy_sites/' 
+           + site_id 
+           + '/'
+           + command)
+
+    return url
+  except Exception as e:
+    log_error('get_url(' + url + '):', e)
 
 
 def main(parser):

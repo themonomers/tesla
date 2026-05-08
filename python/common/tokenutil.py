@@ -54,6 +54,7 @@ def new_token():
 def refresh_token():
   try:
     url = 'https://auth.tesla.com/oauth2/v3/token'
+    
     payload = {
     'grant_type': 'refresh_token',
     'client_id': 'ownerapi',
@@ -61,10 +62,7 @@ def refresh_token():
     'scope': 'openid email offline_access'
     }
 
-    response = json.loads(requests.post(
-                url,
-                json=payload
-            ).text)
+    response = json.loads(requests.post(url, json=payload).text)
 
     dt = datetime.now().replace(tzinfo=PAC)
 

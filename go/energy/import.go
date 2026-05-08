@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/influxdata/influxdb/client/v2"
-	"github.com/themonomers/tesla/go/common"
 )
 
 // Import missing dates for Tesla Energy data for InfluxDB.  This
@@ -51,14 +50,14 @@ func ImportOutageToDB() {
 	// get battery backup history data
 	data := GetBatteryBackupHistory()
 
-	c := common.GetDBClient()
+	c := GetDBClient()
 	defer c.Close()
 
 	// Create a new point batch
 	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
 		Database: "outage",
 	})
-	common.LogError("ImportOutageToDB(): client.NewBatchPoints", err)
+	LogError("ImportOutageToDB(): client.NewBatchPoints", err)
 
 	for key, val := range data["response"].(map[string]any)["events"].([]any) {
 		fmt.Println(key + 1)
@@ -87,13 +86,13 @@ func ImportOutageToDB() {
 			"value": duration,
 		}
 		pt, err := client.NewPoint("backup", tags, fields, start)
-		common.LogError("ImportOutageToDB(): client.NewPoint", err)
+		LogError("ImportOutageToDB(): client.NewPoint", err)
 		bp.AddPoint(pt)
 	}
 
 	// Write the batch
 	err = c.Write(bp)
-	common.LogError("ImportOutageToDB(): c.Write", err)
+	LogError("ImportOutageToDB(): c.Write", err)
 
 	// Close client resources
 	c.Close()

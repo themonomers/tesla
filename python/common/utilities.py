@@ -6,6 +6,7 @@ import zoneinfo
 import configparser
 import os
 import time
+import urllib3
 import argparse
 
 from common.crypto import decrypt
@@ -83,6 +84,8 @@ def get_token():
     return values
   except Exception as e:
     logger.log_error('get_token():', e)
+
+ACCESS_TOKEN = get_token()['tesla']['access_token']
 
 
 ##
@@ -294,6 +297,35 @@ def output(key, value, indent):
   for i in range(0, indent):
     space += ' '
   return(space + key + ' = ' + str(value))
+
+
+def send_get(url, cert):
+  return send_request('GET', url, None, cert)
+
+
+def send_post(url, payload, cert):
+  return send_request('POST', url, payload, cert)
+
+
+###
+# Centralize repetitive HTTP Request calls.
+#
+# author: mjhwa@yahoo.com
+##
+def send_request(method, url, payload, cert):
+  try:
+    if cert:
+      urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+
+    return requests.request(
+      method,
+      url, 
+      **({'json': payload} if payload else {}),
+      headers={'authorization': 'Bearer ' + ACCESS_TOKEN},
+      **({'verify': cert} if cert else {})
+    )
+  except Exception as e:
+    logger.log_error('send_request(' + url + '):', e)
 
 
 ##

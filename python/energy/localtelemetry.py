@@ -231,13 +231,7 @@ def get_local_meters_aggregates():
     url = (BASE_URL
             + '/meters/aggregates')
 
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-    response = requests.get(
-        url,
-        verify = False,
-        headers={'authorization': 'Bearer ' + LOCAL_TOKEN}
-    )
+    response = send_get(url)
 
     # Detect expired local token and re-auth
     resp = json.loads(response.text)
@@ -265,13 +259,7 @@ def get_local_system_status_soe():
     url = (BASE_URL
             + '/system_status/soe')
 
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-    response = requests.get(
-        url,
-        verify = False,
-        headers={'authorization': 'Bearer ' + LOCAL_TOKEN}
-    )
+    response = send_get(url)
 
     # Detect expired local token and re-auth
     resp = json.loads(response.text)    
@@ -298,13 +286,7 @@ def get_local_system_status():
     url = (BASE_URL
             + '/system_status')
 
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-    response = requests.get(
-        url,
-        verify = False,
-        headers={'authorization': 'Bearer ' + LOCAL_TOKEN}
-    )
+    response = send_get(url)
 
     # Detect expired local token and re-auth
     resp = json.loads(response.text)    
@@ -319,6 +301,29 @@ def get_local_system_status():
     return resp
   except Exception as e:
     log_error('get_local_system_status():', e)
+
+
+def send_get(url):
+  return send_request('GET', url)
+
+
+###
+# Centralize repetitive HTTP Request calls.
+#
+# author: mjhwa@yahoo.com
+##
+def send_request(method, url):
+  try:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    return requests.request(
+      method,
+      url,
+      verify = False,
+      headers={'authorization': 'Bearer ' + LOCAL_TOKEN}
+    )
+  except Exception as e:
+    log_error('send_request(' + url + '):', e)
 
 
 ##

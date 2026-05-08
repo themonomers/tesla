@@ -1,40 +1,32 @@
 package vehicle
 
 import (
-	"bytes"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/themonomers/tesla/go/common"
 )
 
-var ACCESS_TOKEN string
+var SendGet = common.SendGet
+var SendPost = common.SendPost
+var LogError = common.LogError
+var GetConfig = common.GetConfig
+
 var BASE_OWNER_URL string
 var BASE_PROXY_URL string
-var CERT string
 var WAIT_TIME time.Duration = 30 // seconds
 
 func init() {
 	var err error
 
-	var t = common.GetToken()
-	ACCESS_TOKEN, err = t.String("tesla.access_token")
-	common.LogError("init(): load access token", err)
-
-	var c = common.GetConfig()
+	var c = GetConfig()
 	BASE_PROXY_URL, err = c.String("tesla.base_proxy_url")
-	common.LogError("init(): load base proxy url", err)
+	LogError("init(): load base proxy url", err)
 
 	BASE_OWNER_URL, err = c.String("tesla.base_owner_url")
-	common.LogError("init(): load base owner url", err)
-
-	CERT, err = c.String("tesla.certificate")
-	common.LogError("init(): load tesla certificate", err)
+	LogError("init(): load base owner url", err)
 }
 
 // Retrieves the vehicle data needed for higher level functions to drive
@@ -54,12 +46,7 @@ func GetVehicleData(vin string) map[string]any {
 				"closures_state;"+
 				"drive_state")
 
-	req, err := http.NewRequest("GET", url, nil)
-	common.LogError("GetVehicleData(): http.NewRequest", err)
-
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("GetVehicleData(): getHttpClient", err)
+	resp := SendGet(url)
 
 	if resp.StatusCode != 200 {
 		WakeVehicle(vin)
@@ -67,193 +54,59 @@ func GetVehicleData(vin string) map[string]any {
 		return GetVehicleData(vin)
 	}
 
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return common.GetJson(resp)
 }
 
 // Function to repeatedly run (after a certain wait time) to wake the vehicle up
 // when it's asleep.
-func WakeVehicle(vin string) map[string]any {
+func WakeVehicle(vin string) *http.Response {
 	var url = BASE_PROXY_URL +
 		"/vehicles/" +
 		vin +
 		"/wake_up"
 
-	req, err := http.NewRequest("POST", url, nil)
-	common.LogError("WakeVehicle(): http.NewRequest", err)
-
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("WakeVehicle(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-
-	return body
+	return SendPost(url, nil)
 }
 
 // Function to send API call to start charging a vehicle.
-func StartCharge(vin string) map[string]any {
+func StartCharge(vin string) *http.Response {
 	if vin == MX_VIN {
-		return startCharge(vin)
+		return SendPost(getUrl(BASE_OWNER_URL, vin, "charge_start"), nil)
 	}
 
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin +
-		"/command/charge_start"
-
-	req, err := http.NewRequest("POST", url, nil)
-	common.LogError("StartCharge(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("StartCharge(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
-}
-
-func startCharge(vin string) map[string]any {
-	var url = BASE_OWNER_URL +
-		"/vehicles/" +
-		getVehicleId(vin) +
-		"/command/charge_start"
-
-	req, err := http.NewRequest("POST", url, nil)
-	common.LogError("startCharge(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := http.DefaultClient.Do(req)
-	common.LogError("startCharge(): http.DefaultClient.Do", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "charge_start"), nil)
 }
 
 // Function to send API call to stop charging a vehicle.
-func StopCharge(vin string) map[string]any {
+func StopCharge(vin string) *http.Response {
 	if vin == MX_VIN {
-		return stopCharge(vin)
+		return SendPost(getUrl(BASE_OWNER_URL, vin, "charge_stop"), nil)
 	}
 
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin +
-		"/command/charge_stop"
-
-	req, err := http.NewRequest("POST", url, nil)
-	common.LogError("StopCharge(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("StopCharge(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
-}
-
-func stopCharge(vin string) map[string]any {
-	var url = BASE_OWNER_URL +
-		"/vehicles/" +
-		getVehicleId(vin) +
-		"/command/charge_stop"
-
-	req, err := http.NewRequest("POST", url, nil)
-	common.LogError("stopCharge(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := http.DefaultClient.Do(req)
-	common.LogError("stopCharge(): http.DefaultClient.Do", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "charge_stop"), nil)
 }
 
 // Uses new endpoint to add a schedule for vehicle charging.
 // Scheduled Time is in minutes after midnight, e.g. 7:30 AM
 // = (7 * 60) + 30 = 450
-func AddChargeSchedule(vin string, lat float64, lon float64, sch_time int, id int) map[string]any {
+func AddChargeSchedule(vin string, lat float64, lon float64, sch_time int, id int) *http.Response {
+	payload, _ := json.Marshal(map[string]any{
+		"days_of_week":  "All",
+		"enabled":       true,
+		"start_enabled": true,
+		"end_enabled":   false,
+		"lat":           lat,
+		"lon":           lon,
+		"start_time":    sch_time,
+		"one_time":      false,
+		"id":            id,
+	})
+
 	if vin == MX_VIN {
-		return addChargeSchedule(vin, lat, lon, sch_time, id)
+		return SendPost(getUrl(BASE_OWNER_URL, vin, "add_charge_schedule"), payload)
 	}
 
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin +
-		"/command/add_charge_schedule"
-
-	payload, _ := json.Marshal(map[string]any{
-		"days_of_week":  "All",
-		"enabled":       true,
-		"start_enabled": true,
-		"end_enabled":   false,
-		"lat":           lat,
-		"lon":           lon,
-		"start_time":    sch_time,
-		"one_time":      false,
-		"id":            id,
-	})
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("AddChargeSchedule(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("AddChargeSchedule(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
-}
-
-func addChargeSchedule(vin string, lat float64, lon float64, sch_time int, id int) map[string]any {
-	var url = BASE_OWNER_URL +
-		"/vehicles/" +
-		getVehicleId(vin) +
-		"/command/add_charge_schedule"
-
-	payload, _ := json.Marshal(map[string]any{
-		"days_of_week":  "All",
-		"enabled":       true,
-		"start_enabled": true,
-		"end_enabled":   false,
-		"lat":           lat,
-		"lon":           lon,
-		"start_time":    sch_time,
-		"one_time":      false,
-		"id":            id,
-	})
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("addChargeSchedule(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := http.DefaultClient.Do(req)
-	common.LogError("addChargeSchedule(): http.DefaultClient.Do", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "add_charge_schedule"), payload)
 }
 
 // Uses new endpoint to remove a schedule for vehicle charging.
@@ -261,28 +114,12 @@ func addChargeSchedule(vin string, lat float64, lon float64, sch_time int, id in
 // an error ("x509: certificate signed by unknown authority") unlike
 // other endpoints.  This endpoint works for both newer and older model
 // cars.
-func RemoveChargeSchedule(vin string, id int) map[string]any {
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin +
-		"/command/remove_charge_schedule"
-
+func RemoveChargeSchedule(vin string, id int) *http.Response {
 	payload, _ := json.Marshal(map[string]any{
 		"id": id,
 	})
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("RemoveChargeSchedule(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("RemoveChargeSchedule(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "remove_charge_schedule"), payload)
 }
 
 // Sets the driver and/or passenger-side cabin temperature
@@ -290,58 +127,17 @@ func RemoveChargeSchedule(vin string, id int) map[string]any {
 //
 // d_temp:  driver side temperature in C
 // p_temp:  passenger side temperature in C
-func SetTemp(vin string, d_temp float64, p_temp float64) map[string]any {
+func SetTemp(vin string, d_temp float64, p_temp float64) *http.Response {
+	payload, _ := json.Marshal(map[string]any{
+		"driver_temp":    d_temp,
+		"passenger_temp": p_temp,
+	})
+
 	if vin == MX_VIN {
-		return setTemp(vin, d_temp, p_temp)
+		return SendPost(getUrl(BASE_OWNER_URL, vin, "set_temps"), payload)
 	}
 
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin +
-		"/command/set_temps"
-
-	payload, _ := json.Marshal(map[string]any{
-		"driver_temp":    d_temp,
-		"passenger_temp": p_temp,
-	})
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("SetTemp(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("SetTemp(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
-}
-
-func setTemp(vin string, d_temp float64, p_temp float64) map[string]any {
-	var url = BASE_OWNER_URL +
-		"/vehicles/" +
-		getVehicleId(vin) +
-		"/command/set_temps"
-
-	payload, _ := json.Marshal(map[string]any{
-		"driver_temp":    d_temp,
-		"passenger_temp": p_temp,
-	})
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("setTemp(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := http.DefaultClient.Do(req)
-	common.LogError("setTemp(): http.DefaultClient.Do", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "set_temps"), payload)
 }
 
 // Sets seat heating. Requires preconditioning or climate keeper to be on.
@@ -360,37 +156,20 @@ func setTemp(vin string, d_temp float64, p_temp float64) map[string]any {
 //	1: low
 //	2: medium
 //	3: high
-func SetSeatHeating(vin string, seat int, setting int) map[string]any {
+func SetSeatHeating(vin string, seat int, setting int) *http.Response {
 	if vin == MX_VIN {
-		return setSeatHeating(vin, seat, setting)
+		payload, _ := json.Marshal(map[string]any{
+			"heater": seat,
+			"level":  setting,
+		})
+		return SendPost(getUrl(BASE_OWNER_URL, vin, "remote_seat_heater_request"), payload)
 	}
 
-	return setSeatTemp(vin, "heat", seat, setting)
-}
-
-func setSeatHeating(vin string, seat int, setting int) map[string]any {
-	var url = BASE_OWNER_URL +
-		"/vehicles/" +
-		getVehicleId(vin) +
-		"/command/remote_seat_heater_request"
-
 	payload, _ := json.Marshal(map[string]any{
-		"heater": seat,
-		"level":  setting,
+		"seat_position": seat,
+		"level":         setting,
 	})
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("setSeatHeating(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := http.DefaultClient.Do(req)
-	common.LogError("setSeatHeating(): http.DefaultClient.Do", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "remote_seat_heater_request"), payload)
 }
 
 // Sets seat cooling. Requires preconditioning or climate keeper to be on.
@@ -406,53 +185,13 @@ func setSeatHeating(vin string, seat int, setting int) map[string]any {
 //	1: low
 //	2: medium
 //	3: high
-func SetSeatCooling(vin string, seat int, setting int) map[string]any {
-	if vin == MX_VIN {
-		return nil
-	}
+func SetSeatCooling(vin string, seat int, setting int) *http.Response {
+	payload, _ := json.Marshal(map[string]any{
+		"seat_position":     seat,
+		"seat_cooler_level": setting,
+	})
 
-	return setSeatTemp(vin, "cool", seat, setting)
-}
-
-// Function to set vehicle seat heater or cooler level.
-func setSeatTemp(vin string, mode string, seat int, setting int) map[string]any {
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin
-
-	var payload []byte
-
-	switch mode {
-	case "heat":
-		url += "/command/remote_seat_heater_request"
-
-		payload, _ = json.Marshal(map[string]any{
-			"seat_position": seat,
-			"level":         setting,
-		})
-	case "cool":
-		url += "/command/remote_seat_cooler_request"
-
-		payload, _ = json.Marshal(map[string]any{
-			"seat_position":     seat,
-			"seat_cooler_level": setting,
-		})
-	default:
-		return nil
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("setSeatTemp(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("setSeatTemp(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "remote_seat_cooler_request"), payload)
 }
 
 // Sets automatic seat heating and cooling. Requires preconditioning or
@@ -463,29 +202,13 @@ func setSeatTemp(vin string, mode string, seat int, setting int) map[string]any 
 //
 //	1: front left
 //	2: front right
-func SetSeatClimateAuto(vin string, enable bool, seat int) map[string]any {
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin +
-		"/command/remote_auto_seat_climate_request"
-
+func SetSeatClimateAuto(vin string, enable bool, seat int) *http.Response {
 	payload, _ := json.Marshal(map[string]any{
 		"auto_climate_on":    enable,
 		"auto_seat_position": seat,
 	})
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("SetSeatClimateAuto(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("SetSeatClimateAuto(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "remote_auto_seat_climate_request"), payload)
 }
 
 // Sets steering wheel heating on/off. For vehicles that do not
@@ -493,118 +216,30 @@ func SetSeatClimateAuto(vin string, enable bool, seat int) map[string]any {
 // climate keeper to be on.
 //
 // enable:  True/False (on/off)
-func SetSteeringWheelHeating(vin string, enable bool) map[string]any {
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin +
-		"/command/remote_steering_wheel_heater_request"
-
+func SetSteeringWheelHeating(vin string, enable bool) *http.Response {
 	payload, _ := json.Marshal(map[string]any{
 		"on": enable,
 	})
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("SetSteeringWheelHeating(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("SetSteeringWheelHeating(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "remote_steering_wheel_heater_request"), payload)
 }
 
 // Function to start vehicle preconditioning.
-func StartPrecondition(vin string) map[string]any {
+func StartPrecondition(vin string) *http.Response {
 	if vin == MX_VIN {
-		return startPrecondition(vin)
+		return SendPost(getUrl(BASE_OWNER_URL, vin, "auto_conditioning_start"), nil)
 	}
 
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin +
-		"/command/auto_conditioning_start"
-
-	req, err := http.NewRequest("POST", url, nil)
-	common.LogError("StartPrecondition(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("StartPrecondition(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
-}
-
-func startPrecondition(vin string) map[string]any {
-	var url = BASE_OWNER_URL +
-		"/vehicles/" +
-		getVehicleId(vin) +
-		"/command/auto_conditioning_start"
-
-	req, err := http.NewRequest("POST", url, nil)
-	common.LogError("startPrecondition(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := http.DefaultClient.Do(req)
-	common.LogError("startPrecondition(): http.DefaultClient.Do", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "auto_conditioning_start"), nil)
 }
 
 // Function to stop vehicle preconditioning.
-func StopPrecondition(vin string) map[string]any {
+func StopPrecondition(vin string) *http.Response {
 	if vin == MX_VIN {
-		return stopPrecondition(vin)
+		return SendPost(getUrl(BASE_OWNER_URL, vin, "auto_conditioning_stop"), nil)
 	}
 
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin +
-		"/command/auto_conditioning_stop"
-
-	req, err := http.NewRequest("POST", url, nil)
-	common.LogError("StopPrecondition(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("StopPrecondition(): getHttpClient", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
-}
-
-func stopPrecondition(vin string) map[string]any {
-	var url = BASE_OWNER_URL +
-		"/vehicles/" +
-		getVehicleId(vin) +
-		"/command/auto_conditioning_stop"
-
-	req, err := http.NewRequest("POST", url, nil)
-	common.LogError("stopPrecondition(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := http.DefaultClient.Do(req)
-	common.LogError("stopPrecondition(): http.DefaultClient.Do", err)
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return SendPost(getUrl(BASE_PROXY_URL, vin, "auto_conditioning_stop"), nil)
 }
 
 // Schedules a vehicle software update (over the air "OTA") to be
@@ -614,68 +249,24 @@ func stopPrecondition(vin string) map[string]any {
 // to schedule in the future.
 //
 // offset_sec: seconds from now, e.g. 2 minutes from now = 60 * 2 = 120
-func ScheduleSoftwareUpdate(vin string, offset_sec int) map[string]any {
-	if vin == MX_VIN {
-		return scheduleSoftwareUpdate(vin, offset_sec)
-	}
-
-	var url = BASE_PROXY_URL +
-		"/vehicles/" +
-		vin +
-		"/command/schedule_software_update"
-
+func ScheduleSoftwareUpdate(vin string, offset_sec int) *http.Response {
 	payload, _ := json.Marshal(map[string]any{
 		"offset_sec": offset_sec,
 	})
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("ScheduleSoftwareUpdate(): http.NewRequest", err)
+	var resp *http.Response
+	if vin == MX_VIN {
+		resp = SendPost(getUrl(BASE_OWNER_URL, vin, "schedule_software_update"), payload)
+	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := getHttpsClient().Do(req)
-	common.LogError("ScheduleSoftwareUpdate(): getHttpClient", err)
-
+	resp = SendPost(getUrl(BASE_PROXY_URL, vin, "schedule_software_update"), payload)
 	if resp.StatusCode != 200 {
 		WakeVehicle(vin)
 		time.Sleep(WAIT_TIME * time.Second)
 		return ScheduleSoftwareUpdate(vin, offset_sec)
 	}
 
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
-}
-
-func scheduleSoftwareUpdate(vin string, offset_sec int) map[string]any {
-	var url = BASE_OWNER_URL +
-		"/vehicles/" +
-		getVehicleId(vin) +
-		"/command/schedule_software_update"
-
-	payload, _ := json.Marshal(map[string]any{
-		"offset_sec": offset_sec,
-	})
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	common.LogError("scheduleSoftwareUpdate(): http.NewRequest", err)
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	resp, err := http.DefaultClient.Do(req)
-	common.LogError("scheduleSoftwareUpdate(): http.DefaultClient.Do", err)
-
-	if resp.StatusCode != 200 {
-		WakeVehicle(vin)
-		time.Sleep(WAIT_TIME * time.Second)
-		return scheduleSoftwareUpdate(vin, offset_sec)
-	}
-
-	defer resp.Body.Close()
-	body := map[string]any{}
-	json.NewDecoder(resp.Body).Decode(&body)
-	return body
+	return resp
 }
 
 // Retrieves the vehicle ID, which changes from time to time, by the VIN, which
@@ -686,55 +277,23 @@ func getVehicleId(vin string) string {
 	return data["response"].(map[string]any)["id_s"].(string)
 }
 
-// Retrieves HTTP client with a workaround for error "tls: failed to verify certificate: x509:
-// certificate relies on legacy Common Name field, use SANs instead" which skips the hostname
-// verification for self-signed certificates.
-func getHttpsClient() *http.Client {
-	caCert, err := os.ReadFile(CERT)
-	common.LogError("getHttpsClient(): os.ReadFile", err)
-
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
-
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // Not actually skipping, we check the cert in VerifyPeerCertificate
-				RootCAs:            caCertPool,
-				VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
-					// Code copy/pasted and adapted from
-					// https://github.com/golang/go/blob/81555cb4f3521b53f9de4ce15f64b77cc9df61b9/src/crypto/tls/handshake_client.go#L327-L344
-					// but adapted to skip the hostname verification.
-					// See https://github.com/golang/go/issues/21971#issuecomment-412836078.
-
-					// If this is the first handshake on a connection, process and
-					// (optionally) verify the server's certificates.
-					certs := make([]*x509.Certificate, len(rawCerts))
-					for i, asn1Data := range rawCerts {
-						cert, err := x509.ParseCertificate(asn1Data)
-						common.LogError("getHttpsClient(): x509.ParseCertificate", err)
-						certs[i] = cert
-					}
-
-					opts := x509.VerifyOptions{
-						Roots:         caCertPool,
-						CurrentTime:   time.Now(),
-						DNSName:       "", // <- skip hostname verification
-						Intermediates: x509.NewCertPool(),
-					}
-
-					for i, cert := range certs {
-						if i == 0 {
-							continue
-						}
-						opts.Intermediates.AddCert(cert)
-					}
-					_, err := certs[0].Verify(opts)
-					return err
-				},
-			},
-		},
+// Centralize repetitive URL construction.
+func getUrl(base, vin, command string) string {
+	var url string
+	switch base {
+	case BASE_OWNER_URL:
+		url = base +
+			"/vehicles/" +
+			getVehicleId(vin) +
+			"/command/" +
+			command
+	case BASE_PROXY_URL:
+		url = base +
+			"/vehicles/" +
+			vin +
+			"/command/" +
+			command
 	}
 
-	return client
+	return url
 }
