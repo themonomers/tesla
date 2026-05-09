@@ -1,4 +1,4 @@
-from crontab import CronTab
+from common.utilities import delete_cron_tab
 
 
 ##
@@ -9,42 +9,19 @@ from crontab import CronTab
 # author: mjhwa@yahoo.com
 ##
 def main():
-  cron = CronTab(user='pi')
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> '
-                          '/home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> '
-                          '/home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
+  values = ['m3', 'mx']
 
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> '
-                          '/home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=mx >> '
-                          '/home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
+  for val in values:
+    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start={val} >> '
+                    f'/home/pi/tesla/python/cron.log 2>&1')
+    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop={val} >> '
+                    f'/home/pi/tesla/python/cron.log 2>&1')
 
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> '
-                          '/home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> '
-                          '/home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
+    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check={val} >> '
+                    f'/home/pi/tesla/python/cron.log 2>&1')
 
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
-                          '--schedule_software_update=m3 >> /home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
-  job = cron.find_command('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
-                          '--schedule_software_update=mx >> /home/pi/tesla/python/cron.log 2>&1')
-  cron.remove(job)
-  cron.write()
+    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
+                    f'--schedule_software_update={val} >> /home/pi/tesla/python/cron.log 2>&1')
 
 
 if __name__ == "__main__":

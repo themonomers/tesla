@@ -27,24 +27,14 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 ##
 def schedule_update(vin, time):
   try:
-    if (vin == M3_VIN):
-      delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
-                      '--schedule_software_update=m3 >> /home/pi/tesla/python/cron.log 2>&1')
-      create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
-                      '--schedule_software_update=m3 >> /home/pi/tesla/python/cron.log 2>&1', 
-                      time.month, 
-                      time.day, 
-                      time.hour, 
-                      time.minute)
-    elif (vin == MX_VIN):
-      delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
-                      '--schedule_software_update=mx >> /home/pi/tesla/python/cron.log 2>&1')
-      create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
-                      '--schedule_software_update=mx >> /home/pi/tesla/python/cron.log 2>&1', 
-                      time.month, 
-                      time.day, 
-                      time.hour, 
-                      time.minute)
+    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
+                    f'--schedule_software_update={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1')
+    create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
+                    f'--schedule_software_update={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1', 
+                    time.month, 
+                    time.day, 
+                    time.hour, 
+                    time.minute)
   except Exception as e:
     log_error('schedule_update(' + vin + '):', e)
 

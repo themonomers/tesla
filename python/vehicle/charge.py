@@ -200,9 +200,9 @@ def charge_earliest():
 
     print('Charging at earliest off-peak time')
     print('==================================')
-    print('Start time:  12:00 AM')
-    print('Model 3 estimated finish time:  ' + m3_finish_time.strftime('%B %d, %Y %H:%M'))
-    print('Model X estimated finish time:  ' + mx_finish_time.strftime('%B %d, %Y %H:%M'))
+    print('Start time:  ' + get_tomorrow_time(EARLIEST_CHARGING_START_TIME).strftime('%B %d, %Y %I:%M %p'))
+    print('Model 3 estimated finish time:  ' + m3_finish_time.strftime('%B %d, %Y %I:%M %p'))
+    print('Model X estimated finish time:  ' + mx_finish_time.strftime('%B %d, %Y %I:%M %p'))
     confirm = input('\nDo you want to override scheduled departure to scheduled start at earliest off-peak time (y/N)?: ')
     if confirm == 'y':
       # set cars for scheduled charging at the earliest off-peak time
@@ -246,24 +246,14 @@ def schedule_backup_charging(data, start_time):
 
     if (is_vehicle_at_primary(data)):
       # create backup charging start crontab at target time tomorrow
-      if (vin == M3_VIN):
-        delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> '
-                        '/home/pi/tesla/python/cron.log 2>&1')
-        create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=m3 >> '
-                        '/home/pi/tesla/python/cron.log 2>&1', 
-                        start_time.month, 
-                        start_time.day, 
-                        start_time.hour, 
-                        start_time.minute)
-      elif (vin == MX_VIN):
-        delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> '
-                        '/home/pi/tesla/python/cron.log 2>&1')
-        create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py --check=mx >> '
-                        '/home/pi/tesla/python/cron.log 2>&1', 
-                        start_time.month, 
-                        start_time.day, 
-                        start_time.hour, 
-                        start_time.minute)
+      delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py '
+                      f'--check={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1')
+      create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py '
+                      f'--check={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1', 
+                      start_time.month, 
+                      start_time.day, 
+                      start_time.hour, 
+                      start_time.minute)
   except Exception as e:
     log_error('schedule_backup_charging(' + vin + '):', e)
 

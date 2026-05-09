@@ -52,24 +52,14 @@ def set_precondition(data, eco_mode, start_time):
       # check if the car is with 0.25 miles of the primary location
       if (is_vehicle_at_primary(data)):
         # create precondition start crontab at preferred time tomorrow
-        if (vin == M3_VIN):
-          delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> '
-                          '/home/pi/tesla/python/cron.log 2>&1')
-          create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=m3 >> '
-                          '/home/pi/tesla/python/cron.log 2>&1', 
-                          start_time.month, 
-                          start_time.day, 
-                          start_time.hour, 
-                          start_time.minute)
-        elif (vin == MX_VIN):
-          delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> '
-                          '/home/pi/tesla/python/cron.log 2>&1')
-          create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --start=mx >> '
-                          '/home/pi/tesla/python/cron.log 2>&1', 
-                          start_time.month, 
-                          start_time.day, 
-                          start_time.hour, 
-                          start_time.minute)
+        delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py '
+                        f'--start={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1')
+        create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py '
+                        f'--start={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1', 
+                        start_time.month, 
+                        start_time.day, 
+                        start_time.hour, 
+                        start_time.minute)
         return start_time
     return None
   except Exception as e:
@@ -178,15 +168,7 @@ def start_m3_precondition():
         set_seat_cooling(M3_VIN, int(index + 1), int(item)) if mode == 'cool' else set_seat_heating(M3_VIN, int(index), int(item))
 
       # create crontab to stop preconditioning at preferred time later in the day
-      delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> '
-                      '/home/pi/tesla/python/cron.log 2>&1')
-      create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=m3 >> '
-                      '/home/pi/tesla/python/cron.log 2>&1', 
-                      stop_time.month, 
-                      stop_time.day, 
-                      stop_time.hour, 
-                      stop_time.minute
-      )
+      setup_stop_cron(M3_VIN, stop_time)
   except Exception as e:
     log_error('start_m3_precondition():', e)
 
@@ -269,18 +251,20 @@ def start_mx_precondition():
         set_seat_heating(MX_VIN, int(index), int(item))
       
       # create crontab to stop preconditioning at preferred time later in the day
-      delete_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=mx >> '
-                      '/home/pi/tesla/python/cron.log 2>&1')
-      create_cron_tab('/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py --stop=mx >> '
-                      '/home/pi/tesla/python/cron.log 2>&1', 
-                      stop_time.month, 
-                      stop_time.day, 
-                      stop_time.hour, 
-                      stop_time.minute
-      )
+      setup_stop_cron(MX_VIN, stop_time)
   except Exception as e: 
     log_error('start_mx_precondition():', e)
 
+
+def setup_stop_cron(vin, stop_time):
+  delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py '
+                  f'--stop={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1')
+  create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/climate.py '
+                  f'--stop={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1', 
+                  stop_time.month, 
+                  stop_time.day, 
+                  stop_time.hour, 
+                  stop_time.minute)
 
 ##
 # Sends command to stop vehicle preconditioning based on a previously scheduled
