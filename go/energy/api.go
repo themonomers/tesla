@@ -6,24 +6,20 @@ import (
 	"time"
 
 	"github.com/themonomers/tesla/go/common"
+	"github.com/themonomers/tesla/go/vehicle"
 )
 
+var SendGet = vehicle.SendGet
+var SendPost = vehicle.SendPost
 var LogError = common.LogError
-var SendGet = common.SendGet
-var SendPost = common.SendPost
 var GetJson = common.GetJson
 var GetConfig = common.GetConfig
 
-var ACCESS_TOKEN string
 var SITE_ID string
 var BASE_OWNER_URL string
 
 func init() {
 	var err error
-
-	t := common.GetToken()
-	ACCESS_TOKEN, err = t.String("tesla.access_token")
-	LogError("init(): load access token", err)
 
 	c := GetConfig()
 	SITE_ID, err = c.String("energy.site_id")

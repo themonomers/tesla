@@ -1,7 +1,6 @@
 package energy
 
 import (
-	"crypto/tls"
 	"net/http"
 	"time"
 
@@ -9,8 +8,10 @@ import (
 	"github.com/themonomers/tesla/go/common"
 )
 
-var BASE_URL string
+var SendRequest = common.SendRequest
+
 var LOCAL_ACCESS_TOKEN string
+var BASE_URL string
 var TIMEZONE string
 var WAIT_TIME time.Duration = 30 // seconds
 
@@ -156,26 +157,5 @@ func splitTimestamp(timestamp string) time.Time {
 }
 
 func sendGet(url string) *http.Response {
-	return sendRequest("GET", url)
-}
-
-// Centralize repetitive request posts.
-func sendRequest(method, url string) *http.Response {
-	req, err := http.NewRequest(method, url, nil)
-	LogError(url+": http.NewRequest", err)
-	req.Header.Add("authorization", "Bearer "+LOCAL_ACCESS_TOKEN)
-
-	resp, err := getHttpsClient().Do(req)
-	LogError(url+": getHttpsClient", err)
-
-	return resp
-}
-
-// Retrieves HTTPS client and ignores x509 certificate error
-func getHttpsClient() *http.Client {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	return &http.Client{Transport: tr}
+	return SendRequest("GET", url, LOCAL_ACCESS_TOKEN, nil)
 }

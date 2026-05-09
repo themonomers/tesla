@@ -19,6 +19,7 @@ import (
 )
 
 var ACCESS_TOKEN string
+var LOCAL_ACCESS_TOKEN string
 var PRIMARY_LAT float64
 var PRIMARY_LNG float64
 var SECONDARY_LAT float64
@@ -34,11 +35,15 @@ var WAIT_TIME time.Duration = 30 // seconds
 func init() {
 	var err error
 
-	var t = GetToken()
+	t := GetToken()
 	ACCESS_TOKEN, err = t.String("tesla.access_token")
 	LogError("init(): load access token", err)
 
-	var c = GetConfig()
+	t = GetLocalEnergyToken()
+	LOCAL_ACCESS_TOKEN, err = t.String("tesla.token")
+	LogError("init(): load local energy token", err)
+
+	c := GetConfig()
 	PRIMARY_LAT, err = c.Float("vehicle.primary_lat")
 	LogError("init(): load vehicle primary lat", err)
 
@@ -73,7 +78,7 @@ func GetConfig() *config.Config {
 }
 
 func GetLocalEnergyConfig() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/energy/local_config.xor")
+	return getConfigFile("/home/pi/tesla/python/common/local_config.xor")
 }
 
 // Retrievies dictionary of access token values.
@@ -82,7 +87,7 @@ func GetToken() *config.Config {
 }
 
 func GetLocalEnergyToken() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/energy/local_token.xor")
+	return getConfigFile("/home/pi/tesla/python/common/local_token.xor")
 }
 
 // Golang ini configuration loader from a filename.
@@ -261,38 +266,45 @@ func FindStringIn2DArray(arr [][]any, target string) []int64 {
 	return i
 }
 
-func SendGet(url string) *http.Response {
-	return sendRequest("GET", url, nil)
-}
-
-func SendPost(url string, payload []byte) *http.Response {
-	return sendRequest("POST", url, payload)
-}
-
 // Centralize repetitive request posts.
-func sendRequest(method, url string, payload []byte) *http.Response {
+func SendRequest(method, url, token string, payload []byte) *http.Response {
 	var resp *http.Response
 
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(payload))
 	LogError(url+": http.NewRequest", err)
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Add("authorization", "Bearer "+ACCESS_TOKEN)
-	if strings.HasPrefix(url, BASE_PROXY_URL) {
+	req.Header.Add("authorization", "Bearer "+token)
+	switch token {
+	case ACCESS_TOKEN:
+		if strings.HasPrefix(url, BASE_PROXY_URL) {
+			resp, err = getHttpsClientWithCert().Do(req)
+			LogError(url+": getHttpsClientWithCert", err)
+		} else {
+			resp, err = http.DefaultClient.Do(req)
+			LogError(url+": http.DefaultClient.Do", err)
+		}
+	case LOCAL_ACCESS_TOKEN:
 		resp, err = getHttpsClient().Do(req)
 		LogError(url+": getHttpsClient", err)
-	} else {
-		resp, err = http.DefaultClient.Do(req)
-		LogError(url+": http.DefaultClient.Do", err)
 	}
 
 	return resp
 }
 
+// Retrieves HTTPS client and ignores x509 certificate error
+func getHttpsClient() *http.Client {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	return &http.Client{Transport: tr}
+}
+
 // Retrieves HTTP client with a workaround for error "tls: failed to verify certificate: x509:
 // certificate relies on legacy Common Name field, use SANs instead" which skips the hostname
 // verification for self-signed certificates.
-func getHttpsClient() *http.Client {
+func getHttpsClientWithCert() *http.Client {
 	caCert, err := os.ReadFile(CERT)
 	LogError("getHttpsClient(): os.ReadFile", err)
 

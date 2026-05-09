@@ -9,11 +9,11 @@ import (
 	"github.com/themonomers/tesla/go/common"
 )
 
-var SendGet = common.SendGet
-var SendPost = common.SendPost
+var SendRequest = common.SendRequest
 var LogError = common.LogError
 var GetConfig = common.GetConfig
 
+var ACCESS_TOKEN string
 var BASE_OWNER_URL string
 var BASE_PROXY_URL string
 var WAIT_TIME time.Duration = 30 // seconds
@@ -21,7 +21,11 @@ var WAIT_TIME time.Duration = 30 // seconds
 func init() {
 	var err error
 
-	var c = GetConfig()
+	t := common.GetToken()
+	ACCESS_TOKEN, err = t.String("tesla.access_token")
+	LogError("init(): load access token", err)
+
+	c := GetConfig()
 	BASE_PROXY_URL, err = c.String("tesla.base_proxy_url")
 	LogError("init(): load base proxy url", err)
 
@@ -254,12 +258,11 @@ func ScheduleSoftwareUpdate(vin string, offset_sec int) *http.Response {
 		"offset_sec": offset_sec,
 	})
 
-	var resp *http.Response
 	if vin == MX_VIN {
-		resp = SendPost(getUrl(BASE_OWNER_URL, vin, "schedule_software_update"), payload)
+		return SendPost(getUrl(BASE_OWNER_URL, vin, "schedule_software_update"), payload)
 	}
 
-	resp = SendPost(getUrl(BASE_PROXY_URL, vin, "schedule_software_update"), payload)
+	resp := SendPost(getUrl(BASE_PROXY_URL, vin, "schedule_software_update"), payload)
 	if resp.StatusCode != 200 {
 		WakeVehicle(vin)
 		time.Sleep(WAIT_TIME * time.Second)
@@ -296,4 +299,12 @@ func getUrl(base, vin, command string) string {
 	}
 
 	return url
+}
+
+func SendGet(url string) *http.Response {
+	return SendRequest("GET", url, ACCESS_TOKEN, nil)
+}
+
+func SendPost(url string, payload []byte) *http.Response {
+	return SendRequest("POST", url, ACCESS_TOKEN, payload)
 }
