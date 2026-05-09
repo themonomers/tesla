@@ -1,146 +1,18 @@
-import requests
 import json
-import configparser
-import os
 import zoneinfo
-import urllib3
 import time
 
-from common.crypto import encrypt, decrypt
-from common.utilities import get_config
+from common.utilities import get_config, get_local_config, get_local_token, auth_local_token, send_request
 from common.influxdb import get_db_client
 from common.logger import log_error
 from datetime import datetime
-from io import StringIO
 
 TIME_ZONE = get_config()['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 WAIT_TIME = 30  # seconds
 
-
-##
-# Retrieves dictionary of local configuration values
-# for direct access to the Tesla Energy Gateway.
-#
-# author: mjhwa@yahoo.com
-##
-def get_local_config():
-  try:
-    buffer = StringIO(
-      decrypt(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          'local_config.xor'
-        ),
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          '../common/tesla_private_key.pem'
-        )
-      )
-    )
-    config = configparser.ConfigParser()
-    config.sections()
-    config.read_file(buffer)
-    values = {s:dict(config.items(s)) for s in config.sections()}
-    buffer.close()
-    return values
-  except Exception as e:
-    log_error('get_local_config():', e)
-
-
-config = get_local_config()
-USERNAME = config['energy']['email']
-PASSWORD = config['energy']['password']
-BASE_URL = config['energy']['base_url']
-
-
-##
-# Retrieves dictionary for a local token for direct 
-# access to the Tesla Energy Gateway.
-#
-# author: mjhwa@yahoo.com
-##
-def get_local_token():
-  try:
-    # Check for the file which stores the latest local token
-    if os.path.exists(
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'local_token.xor'
-      )    
-    ) == False:
-      auth_local_token()
-
-    buffer = StringIO(
-      decrypt(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          'local_token.xor'
-        ),
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          '../common/tesla_private_key.pem'
-        )
-      )
-    )
-    config = configparser.ConfigParser()
-    config.sections()
-    config.read_file(buffer)
-    values = {s:dict(config.items(s)) for s in config.sections()}
-    buffer.close()
-    return values
-  except Exception as e:
-    log_error('get_local_token():', e)
-
-
 LOCAL_TOKEN = get_local_token()['tesla']['token']
-
-
-##
-# Authenicates directly to the Tesla Energy Gateway to
-# get a token for direct API calls.
-#
-# author: mjhwa@yahoo.com
-##
-def auth_local_token():
-  try:
-    url = (BASE_URL
-            + '/login/Basic')
-
-    payload = {
-      'username': 'customer',
-      'email': USERNAME,
-      'password': PASSWORD,
-      'force_sm_off': False
-    }
-
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-    response = json.loads(
-      requests.post(
-        url,
-        verify = False,
-        json=payload
-      ).text
-    )
-
-    message =  '[tesla]\n'
-    message += 'token=' + response['token'] + '\n'
-
-    # Encrypt config file
-    encrypt(
-      message,
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'local_token.xor'
-      ),
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        '../common/tesla_private_key.pem'
-      )
-    )
-  except Exception as e:
-    log_error('auth_local_token():', e)
+BASE_URL = get_local_config()['energy']['base_url']
 
 
 ##
@@ -304,26 +176,7 @@ def get_local_system_status():
 
 
 def send_get(url):
-  return send_request('GET', url)
-
-
-###
-# Centralize repetitive HTTP Request calls.
-#
-# author: mjhwa@yahoo.com
-##
-def send_request(method, url):
-  try:
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-    return requests.request(
-      method,
-      url,
-      verify = False,
-      headers={'authorization': 'Bearer ' + LOCAL_TOKEN}
-    )
-  except Exception as e:
-    log_error('send_request(' + url + '):', e)
+  return send_request('GET', url, LOCAL_TOKEN, None, None)
 
 
 ##

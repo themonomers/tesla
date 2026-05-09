@@ -3,8 +3,10 @@ import time
 import urllib.parse
 import argparse
 
-from common.utilities import print_json, get_config, send_get, send_post, CustomHelpFormatter
+from common.utilities import print_json, get_config, get_token, send_request, CustomHelpFormatter
 from common.logger import log_error
+
+ACCESS_TOKEN = get_token()['tesla']['access_token']
 
 config = get_config()
 M3_VIN = config['vehicle']['m3_vin']
@@ -388,6 +390,14 @@ def get_url(base, vin, command):
     return url
   except Exception as e:
     log_error('get_url(' + url + '):', e)
+
+
+def send_get(url, cert):
+  return send_request('GET', url, ACCESS_TOKEN, None, cert)
+
+
+def send_post(url, payload, cert):
+  return send_request('POST', url, ACCESS_TOKEN, payload, cert)
 
 
 ##

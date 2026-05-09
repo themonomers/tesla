@@ -2,9 +2,11 @@ import json
 import pytz
 import argparse
 
-from common.utilities import print_json, get_config, send_get, send_post, CustomHelpFormatter
+from common.utilities import print_json, get_config, get_token, send_request, CustomHelpFormatter
 from common.logger import log_error
 from datetime import datetime
+
+ACCESS_TOKEN = get_token()['tesla']['access_token']
 
 config = get_config()
 SITE_ID = config['energy']['site_id']
@@ -20,7 +22,7 @@ TIME_ZONE = config['general']['timezone']
 def get_site_status():
   try:
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_status'), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_status')).text
     )
   except Exception as e:
     log_error('get_site_status():', e)
@@ -34,7 +36,7 @@ def get_site_status():
 def get_site_live_status():
   try:
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'live_status'), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'live_status')).text
     )
   except Exception as e:
     log_error('get_site_live_status():', e)
@@ -48,7 +50,7 @@ def get_site_live_status():
 def get_site_info():
   try:
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_info'), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_info')).text
     )
   except Exception as e:
     log_error('get_site_info():', e)
@@ -80,7 +82,7 @@ def get_site_history(period, date):
                + '&period=' + period)
 
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, command), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
     )
   except Exception as e:
     log_error('get_site_history(' + period + '):', e)
@@ -94,7 +96,7 @@ def get_site_history(period, date):
 def get_battery_backup_history():
   try:
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'calendar_history?kind=backup'), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'calendar_history?kind=backup')).text
     )
   except Exception as e:
     log_error('get_battery_backup_history():', e)
@@ -142,7 +144,7 @@ def get_site_tou_history(period, date):
                   '%Y-%m-%dT%H:%M:%SZ'))
 
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, command), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
     )
   except Exception as e:
     log_error('get_site_tou_history():', e)
@@ -174,7 +176,7 @@ def get_battery_charge_history(period, date):
                + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ'))
 
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, command), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
     )
   except Exception as e:
     log_error('get_battery_charge_history():', e)
@@ -222,7 +224,7 @@ def get_power_history(period, date):
                + '&period=' + period)
 
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, command), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
     )
   except Exception as e:
     log_error('get_power_history():', e)
@@ -240,7 +242,7 @@ def get_rate_tariffs():
            + 'rate_tariffs')
 
     return json.loads(
-      send_get(url, None).text
+      send_get(url).text
     )
   except Exception as e:
     log_error('get_rate_tariffs():', e)
@@ -255,7 +257,7 @@ def get_rate_tariffs():
 def get_site_tariff():
   try:
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'tariff_rate'), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'tariff_rate')).text
     )
   except Exception as e:
     log_error('get_site_tariff():', e)
@@ -269,7 +271,7 @@ def get_site_tariff():
 def get_backup_time_remaining():
   try:
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'backup_time_remaining'), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'backup_time_remaining')).text
     )
   except Exception as e:
     log_error('get_backup_time_remaining():', e)
@@ -318,7 +320,7 @@ def get_savings_forecast(period, date):
                + '&tariff=PGE-EV2-A')
 
     return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, command), None).text
+      send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
     )
   except Exception as e:
     log_error('get_savings_forecast():', e)
@@ -367,7 +369,7 @@ def set_operational_mode(mode):
       'default_real_mode': mode
     }
 
-    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'operation'), payload, None)
+    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'operation'), payload)
   except Exception as e:
     log_error('set_operational_mode(' + mode + '):', e)
 
@@ -404,7 +406,7 @@ def set_grid_import_export(export_rule, disallow_grid_charging):
       'disallow_charge_from_grid_with_solar_installed': disallow_grid_charging
     }
 
-    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'grid_import_export'), payload, None)
+    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'grid_import_export'), payload)
   except Exception as e:
     log_error('set_grid_import_export(' + export_rule + ', ' + disallow_grid_charging + '):', e)
 
@@ -420,7 +422,7 @@ def set_backup_reserve(backup_percent):
       'backup_reserve_percent': backup_percent
     }
 
-    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'backup'), payload, None)
+    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'backup'), payload)
   except Exception as e:
     log_error('set_backup_reserve(' + backup_percent + '):', e)
 
@@ -437,7 +439,7 @@ def set_off_grid_vehicle_charging_reserve(percent):
       'off_grid_vehicle_charging_reserve_percent': percent
     }
 
-    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'off_grid_vehicle_charging_reserve'), payload, None)
+    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'off_grid_vehicle_charging_reserve'), payload)
   except Exception as e:
     log_error('set_off_grid_vehicle_charging_reserve(' + percent + '):', e)
 
@@ -458,6 +460,14 @@ def get_url(base, site_id, command):
     return url
   except Exception as e:
     log_error('get_url(' + url + '):', e)
+
+
+def send_get(url):
+  return send_request('GET', url, ACCESS_TOKEN, None, None)
+
+
+def send_post(url, payload):
+  return send_request('POST', url, ACCESS_TOKEN, payload, None)
 
 
 def main(parser):
