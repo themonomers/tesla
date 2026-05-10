@@ -418,22 +418,19 @@ def output(key, value, indent):
 # author: mjhwa@yahoo.com
 ##
 def send_request(method, url, token, payload, cert):
-  try:
-    if cert:
-      urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
-    
-    if token == LOCAL_TOKEN:
-      urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+  if cert:
+    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+  
+  if token == LOCAL_TOKEN:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    return requests.request(
-      method,
-      url, 
-      **({'json': payload} if payload else {}),
-      headers={'authorization': 'Bearer ' + token},
-      **({'verify': cert} if cert else {'verify': False} if token == LOCAL_TOKEN else {})
-    )
-  except Exception as e:
-    logger.log_error('send_request(' + url + '):', e)
+  return requests.request(
+    method,
+    url, 
+    **({'json': payload} if payload else {}),
+    headers={'authorization': 'Bearer ' + token},
+    **({'verify': cert} if cert else {'verify': False} if token == LOCAL_TOKEN else {})
+  )
 
 
 ##

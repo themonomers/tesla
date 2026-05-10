@@ -40,6 +40,110 @@ WAIT_TIME = 30
 
 
 ##
+# Checks to see if the vehicles are plugged in, inferred from the charge 
+# port door status, and sends an email to notify if it's not.  Also sets 
+# scheduled charging time to start charging at the calculated date and time. 
+# Skips if it's not within 0.25 miles from the primary location.
+#
+# If one of the other cars is in the secondary location, set time charge 
+# start time based on the secondary charge rate and set the charge start 
+# time for the one at the primary location to charge at full charge rate. 
+#
+# author: mjhwa@yahoo.com
+##
+def notify_is_tesla_plugged_in():
+  try:
+    # get all vehicle data to avoid repeat API calls
+    m3_data = get_vehicle_data(M3_VIN)
+    mx_data = get_vehicle_data(MX_VIN)
+
+    try:
+      # get charging configuration info
+      service = get_google_sheet_service()
+      charge_config = service.spreadsheets().values().get(
+        spreadsheetId=EV_SPREADSHEET_ID, 
+        range='Charge!A3:C11'
+      ).execute().get('values', [])
+
+      # get climate configuration info
+      climate_config = service.spreadsheets().values().get(
+        spreadsheetId=EV_SPREADSHEET_ID, 
+        range='Climate!A3:P22'
+      ).execute().get('values', [])
+      service.close()
+    except Exception as e:
+      log_error_retry('notify_is_tesla_plugged_in(): Get configuration info from Google Sheets: ' + str(e))
+      time.sleep(WAIT_TIME)
+      notify_is_tesla_plugged_in()
+
+
+    # send email notification if the car is not plugged in
+    charge_port_door_open = m3_data['response']['charge_state']['charge_port_door_open']
+    battery_level = m3_data['response']['charge_state']['battery_level']
+    battery_range = m3_data['response']['charge_state']['battery_range']
+    send_plugged_in_message('Model 3', 
+                            battery_level, 
+                            battery_range, 
+                            charge_port_door_open, 
+                            charge_config[8][1],
+                            EMAIL_1,
+                            '',
+                            '') 
+
+    charge_port_door_open = mx_data['response']['charge_state']['charge_port_door_open']
+    battery_level = mx_data['response']['charge_state']['battery_level']
+    battery_range = mx_data['response']['charge_state']['battery_range']
+    send_plugged_in_message('Model X', 
+                            battery_level, 
+                            battery_range, 
+                            charge_port_door_open, 
+                            charge_config[8][2],
+                            EMAIL_2,
+                            '',
+                            EMAIL_1) 
+
+    # set cars for scheduled charging by daily charge time preference
+    day_of_week = (datetime.today() + timedelta(1)).strftime('%A')
+    dow_index = [index for index, element in enumerate(charge_config) if day_of_week in element]
+    m3_target_finish_time = get_tomorrow_time(charge_config[dow_index[0]][1])
+    mx_target_finish_time = get_tomorrow_time(charge_config[dow_index[0]][2])
+    m3_charge_start_time = schedule_m3_charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
+    mx_charge_start_time = schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
+
+    # set cabin preconditioning the next morning and check that it's not 
+    # "skip"
+    m3_climate_start_time = None
+    mx_climate_start_time = None
+    dow_index = [index for index, element in enumerate(climate_config) if day_of_week in element]
+    if (climate_config[dow_index[0]][8] != 'skip'):
+      m3_climate_start_time = get_tomorrow_time(climate_config[dow_index[0]][8])
+      m3_climate_start_time = set_precondition(m3_data, climate_config[19][1], m3_climate_start_time)
+    if (climate_config[dow_index[0]][14] != 'skip'):
+      mx_climate_start_time = get_tomorrow_time(climate_config[dow_index[0]][14])
+      mx_climate_start_time = set_precondition(mx_data, climate_config[19][10], mx_climate_start_time)
+
+    # send email notification if either charging or preconditioning is scheduled
+    send_scheduled_charge_message('Model 3',
+                                  m3_data,
+                                  m3_charge_start_time,
+                                  m3_target_finish_time,
+                                  m3_climate_start_time,
+                                  EMAIL_1,
+                                  '',
+                                  '')
+    send_scheduled_charge_message('Model X',
+                                  mx_data,
+                                  mx_charge_start_time,
+                                  mx_target_finish_time,
+                                  mx_climate_start_time,
+                                  EMAIL_1,
+                                  '',
+                                  '')
+  except Exception as e:
+    log_error('notify_is_tesla_plugged_in():', e)
+    
+
+##
 # Called by a crontab to read vehicle range and expected charge 
 # finish time from a Google Sheet, then call the API to set a time 
 # for scheduled charging in the vehicle.
@@ -134,53 +238,6 @@ def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
 
 
 ##
-# Schedule charging based on earliest time for off-peak rates.
-#
-# author: mjhwa@yahoo.com
-##
-def schedule_earliest_charging(data): 
-  try:
-    vin = data['response']['vin']
-
-    if (data['response']['charge_state']['charging_state'] != 'Complete' and 
-      is_vehicle_at_primary(data) == True):
-      start_time = get_tomorrow_time(EARLIEST_CHARGING_START_TIME)
-      total_minutes = (start_time.hour * 60) + start_time.minute
-
-      # Remove any previous scheduled charging by this program, temporarily set to
-      # id=1, until I can figure out how to view the list of charge schedules and
-      # their corresponding ID's.
-      remove_charge_schedule(vin, 1)
-      add_charge_schedule(vin, data['response']['drive_state']['latitude'], data['response']['drive_state']['longitude'], total_minutes, 1)
-      stop_charge(vin) # for some reason charging starts sometimes after scheduled charging API is called
-
-      schedule_backup_charging(data, start_time + timedelta(minutes = 10))
-
-      return start_time
-    else:
-      return None
-  except Exception as e:
-    log_error_std_out('schedule_earliest_charging(' + vin + '):', e)
-
-
-##
-# Additional scheduled charging check run on crontab.  If it failed to start, this
-# will attempt to start it at the target time.
-#
-# author: mjhwa@yahoo.com
-def check_charge(vin):
-  try:
-    data = get_vehicle_data(vin)
-
-    if (is_vehicle_at_primary(data) and 
-        (data['response']['charge_state']['charging_state'] != 'Charging')):
-      log_info('check_charge(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
-      start_charge(vin)
-  except Exception as e:
-    log_error('check_charge(' + vin + '):', e)
-
-
-##
 # Schedule vehicle charging based on start time.  Assumes
 # the crontab scheduled charging based on finish time has 
 # already run and preconditioning does not need to be set 
@@ -233,6 +290,53 @@ def charge_earliest():
       print('\nScheduled start canceled')
   except Exception as e:
     log_error_std_out('charge_earliest():', e)
+
+
+##
+# Schedule charging based on earliest time for off-peak rates.
+#
+# author: mjhwa@yahoo.com
+##
+def schedule_earliest_charging(data): 
+  try:
+    vin = data['response']['vin']
+
+    if (data['response']['charge_state']['charging_state'] != 'Complete' and 
+      is_vehicle_at_primary(data) == True):
+      start_time = get_tomorrow_time(EARLIEST_CHARGING_START_TIME)
+      total_minutes = (start_time.hour * 60) + start_time.minute
+
+      # Remove any previous scheduled charging by this program, temporarily set to
+      # id=1, until I can figure out how to view the list of charge schedules and
+      # their corresponding ID's.
+      remove_charge_schedule(vin, 1)
+      add_charge_schedule(vin, data['response']['drive_state']['latitude'], data['response']['drive_state']['longitude'], total_minutes, 1)
+      stop_charge(vin) # for some reason charging starts sometimes after scheduled charging API is called
+
+      schedule_backup_charging(data, start_time + timedelta(minutes = 10))
+
+      return start_time
+    else:
+      return None
+  except Exception as e:
+    log_error_std_out('schedule_earliest_charging(' + vin + '):', e)
+
+
+##
+# Additional scheduled charging check run on crontab.  If it failed to start, this
+# will attempt to start it at the target time.
+#
+# author: mjhwa@yahoo.com
+def check_charge(vin):
+  try:
+    data = get_vehicle_data(vin)
+
+    if (is_vehicle_at_primary(data) and 
+        (data['response']['charge_state']['charging_state'] != 'Charging')):
+      log_info('check_charge(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
+      start_charge(vin)
+  except Exception as e:
+    log_error('check_charge(' + vin + '):', e)
 
 
 ##
@@ -308,11 +412,9 @@ def calculate_scheduled_charging(scenario, m3_data, mx_data, m3_target_finish_ti
       # Car 1 |============|==============|==========================|
       # Car 2              |==============|
       #             Charging at half rate | 7:00
-        if ((mx_target_finish_time != m3_target_finish_time) and (
-                  ((mx_start_time_at_full_rate < m3_start_time_at_full_rate) and (mx_target_finish_time > m3_target_finish_time)) or
-                  ((m3_start_time_at_full_rate < mx_start_time_at_full_rate) and (m3_target_finish_time > mx_target_finish_time))
-                )
-           ):
+        if (mx_target_finish_time != m3_target_finish_time and 
+            ((mx_start_time_at_full_rate < m3_start_time_at_full_rate and mx_target_finish_time > m3_target_finish_time) or
+             (m3_start_time_at_full_rate < mx_start_time_at_full_rate and m3_target_finish_time > mx_target_finish_time))):
           # Find the longer session
           if (mx_target_finish_time - mx_start_time_at_full_rate).total_seconds() > (m3_target_finish_time - m3_start_time_at_full_rate).total_seconds():
             # Car 2
@@ -580,110 +682,6 @@ def send_scheduled_charge_message(vehicle, data, charge_start_time, finish_time,
                cc,
                bcc, 
                '')
-
-
-##
-# Checks to see if the vehicles are plugged in, inferred from the charge 
-# port door status, and sends an email to notify if it's not.  Also sets 
-# scheduled charging time to start charging at the calculated date and time. 
-# Skips if it's not within 0.25 miles from the primary location.
-#
-# If one of the other cars is in the secondary location, set time charge 
-# start time based on the secondary charge rate and set the charge start 
-# time for the one at the primary location to charge at full charge rate. 
-#
-# author: mjhwa@yahoo.com
-##
-def notify_is_tesla_plugged_in():
-  try:
-    # get all vehicle data to avoid repeat API calls
-    m3_data = get_vehicle_data(M3_VIN)
-    mx_data = get_vehicle_data(MX_VIN)
-
-    try:
-      # get charging configuration info
-      service = get_google_sheet_service()
-      charge_config = service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Charge!A3:C11'
-      ).execute().get('values', [])
-
-      # get climate configuration info
-      climate_config = service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Climate!A3:P22'
-      ).execute().get('values', [])
-      service.close()
-    except Exception as e:
-      log_error_retry('Get configuration info from Google Sheets: ' + str(e))
-      time.sleep(WAIT_TIME)
-      notify_is_tesla_plugged_in()
-
-
-    # send email notification if the car is not plugged in
-    charge_port_door_open = m3_data['response']['charge_state']['charge_port_door_open']
-    battery_level = m3_data['response']['charge_state']['battery_level']
-    battery_range = m3_data['response']['charge_state']['battery_range']
-    send_plugged_in_message('Model 3', 
-                            battery_level, 
-                            battery_range, 
-                            charge_port_door_open, 
-                            charge_config[8][1],
-                            EMAIL_1,
-                            '',
-                            '') 
-
-    charge_port_door_open = mx_data['response']['charge_state']['charge_port_door_open']
-    battery_level = mx_data['response']['charge_state']['battery_level']
-    battery_range = mx_data['response']['charge_state']['battery_range']
-    send_plugged_in_message('Model X', 
-                            battery_level, 
-                            battery_range, 
-                            charge_port_door_open, 
-                            charge_config[8][2],
-                            EMAIL_2,
-                            '',
-                            EMAIL_1) 
-
-    # set cars for scheduled charging by daily charge time preference
-    day_of_week = (datetime.today() + timedelta(1)).strftime('%A')
-    dow_index = [index for index, element in enumerate(charge_config) if day_of_week in element]
-    m3_target_finish_time = get_tomorrow_time(charge_config[dow_index[0]][1])
-    mx_target_finish_time = get_tomorrow_time(charge_config[dow_index[0]][2])
-    m3_charge_start_time = schedule_m3_charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
-    mx_charge_start_time = schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
-
-    # set cabin preconditioning the next morning and check that it's not 
-    # "skip"
-    m3_climate_start_time = None
-    mx_climate_start_time = None
-    dow_index = [index for index, element in enumerate(climate_config) if day_of_week in element]
-    if (climate_config[dow_index[0]][8] != 'skip'):
-      m3_climate_start_time = get_tomorrow_time(climate_config[dow_index[0]][8])
-      m3_climate_start_time = set_precondition(m3_data, climate_config[19][1], m3_climate_start_time)
-    if (climate_config[dow_index[0]][14] != 'skip'):
-      mx_climate_start_time = get_tomorrow_time(climate_config[dow_index[0]][14])
-      mx_climate_start_time = set_precondition(mx_data, climate_config[19][10], mx_climate_start_time)
-
-    # send email notification if either charging or preconditioning is scheduled
-    send_scheduled_charge_message('Model 3',
-                                  m3_data,
-                                  m3_charge_start_time,
-                                  m3_target_finish_time,
-                                  m3_climate_start_time,
-                                  EMAIL_1,
-                                  '',
-                                  '')
-    send_scheduled_charge_message('Model X',
-                                  mx_data,
-                                  mx_charge_start_time,
-                                  mx_target_finish_time,
-                                  mx_climate_start_time,
-                                  EMAIL_1,
-                                  '',
-                                  '')
-  except Exception as e:
-    log_error('notify_is_tesla_plugged_in():', e)
 
 
 def main(parser):
