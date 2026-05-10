@@ -32,9 +32,9 @@ func main() {
 		case "-checkmxcharge":
 			vehicle.CheckCharge(vehicle.MX_VIN)
 		case "-schedulem3update":
-			vehicle.ScheduleUpdate(vehicle.M3_VIN)
+			vehicle.ScheduleUpdate(vehicle.M3_VIN, common.GetTomorrowTime("2:30"))
 		case "-schedulemxupdate":
-			vehicle.ScheduleUpdate(vehicle.MX_VIN)
+			vehicle.ScheduleUpdate(vehicle.MX_VIN, common.GetTomorrowTime("1:30"))
 		case "-schedulem3softwareupdate":
 			vehicle.ScheduleSoftwareUpdate(vehicle.M3_VIN, 0)
 		case "-schedulemxsoftwareupdate":

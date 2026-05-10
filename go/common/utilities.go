@@ -20,6 +20,8 @@ import (
 
 var ACCESS_TOKEN string
 var LOCAL_ACCESS_TOKEN string
+var M3_VIN string
+var MX_VIN string
 var PRIMARY_LAT float64
 var PRIMARY_LNG float64
 var SECONDARY_LAT float64
@@ -44,6 +46,12 @@ func init() {
 	LogError("init(): load local energy token", err)
 
 	c := GetConfig()
+	M3_VIN, err = c.String("vehicle.m3_vin")
+	LogError("init(): load m3 vin", err)
+
+	MX_VIN, err = c.String("vehicle.mx_vin")
+	LogError("init(): load mx vin", err)
+
 	PRIMARY_LAT, err = c.Float("vehicle.primary_lat")
 	LogError("init(): load vehicle primary lat", err)
 
@@ -360,4 +368,18 @@ func GetJson(response *http.Response) map[string]any {
 	body := map[string]any{}
 	json.NewDecoder(response.Body).Decode(&body)
 	return body
+}
+
+// Construct conditional in-line string substitutions
+func GetInLineSub(prefix, vin, suffix string) string {
+	var s string
+
+	switch vin {
+	case M3_VIN:
+		s = prefix + "m3" + suffix
+	case MX_VIN:
+		s = prefix + "mx" + suffix
+	}
+
+	return s
 }

@@ -1,6 +1,7 @@
 package vehicle
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -40,26 +41,14 @@ func SetPrecondition(data map[string]any, eco_mode string, start_time time.Time)
 		// check if the car is with 0.25 miles of the primary location
 		if IsVehicleAtPrimary(data) {
 			// create precondition start crontab at preferred time tomorrow
-			switch vin {
-			case M3_VIN:
-				DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go " +
-					"-startm3precondition >> /home/pi/tesla/go/cron.log 2>&1")
-				CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go "+
-					"-startm3precondition >> /home/pi/tesla/go/cron.log 2>&1",
-					start_time.Minute(),
-					start_time.Hour(),
-					start_time.Day(),
-					int(start_time.Month()))
-			case MX_VIN:
-				DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go " +
-					"-startmxprecondition >> /home/pi/tesla/go/cron.log 2>&1")
-				CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go "+
-					"-startmxprecondition >> /home/pi/tesla/go/cron.log 2>&1",
-					start_time.Minute(),
-					start_time.Hour(),
-					start_time.Day(),
-					int(start_time.Month()))
-			}
+			DeleteCronTab(fmt.Sprintf("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go "+
+				"-%s >> /home/pi/tesla/go/cron.log 2>&1", GetInLineSub("start", vin, "precondition")))
+			CreateCronTab(fmt.Sprintf("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go "+
+				"-%s >> /home/pi/tesla/go/cron.log 2>&1", GetInLineSub("start", vin, "precondition")),
+				start_time.Minute(),
+				start_time.Hour(),
+				start_time.Day(),
+				int(start_time.Month()))
 		}
 
 		return start_time
@@ -181,14 +170,7 @@ func StartM3Precondition() {
 		}
 
 		// create crontab to stop preconditioning at preferred time later in the day
-		DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopm3precondition >> " +
-			"/home/pi/tesla/go/cron.log 2>&1")
-		CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopm3precondition >> "+
-			"/home/pi/tesla/go/cron.log 2>&1",
-			stop_time.Minute(),
-			stop_time.Hour(),
-			stop_time.Day(),
-			int(stop_time.Month()))
+		setupStopCron(M3_VIN, stop_time)
 	}
 }
 
@@ -278,14 +260,7 @@ func StartMXPrecondition() {
 		}
 
 		// create crontab to stop preconditioning at preferred time later in the day
-		DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopmxprecondition >> " +
-			"/home/pi/tesla/go/cron.log 2>&1")
-		CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopmxprecondition >> "+
-			"/home/pi/tesla/go/cron.log 2>&1",
-			stop_time.Minute(),
-			stop_time.Hour(),
-			stop_time.Day(),
-			int(stop_time.Month()))
+		setupStopCron(MX_VIN, stop_time)
 	}
 }
 
@@ -305,4 +280,15 @@ func StopPreconditionCheck(vin string) {
 			StopPrecondition(vin) // for some cars the shift_state is nil while in park
 		}
 	}
+}
+
+func setupStopCron(vin string, stop_time time.Time) {
+	DeleteCronTab(fmt.Sprintf("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -%s >> "+
+		"/home/pi/tesla/go/cron.log 2>&1", GetInLineSub("stop", vin, "precondition")))
+	CreateCronTab(fmt.Sprintf("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -%s >> "+
+		"/home/pi/tesla/go/cron.log 2>&1", GetInLineSub("stop", vin, "precondition")),
+		stop_time.Minute(),
+		stop_time.Hour(),
+		stop_time.Day(),
+		int(stop_time.Month()))
 }

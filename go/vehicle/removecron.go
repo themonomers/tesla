@@ -1,23 +1,25 @@
 package vehicle
 
+import (
+	"fmt"
+)
+
 // Script to clean up crontabs created for Tesla Climate, Charge Check, and
 // Software Update.  Should be set to run in the middle of the day as all
 // the crontabs are set for evening or early morning.
 func RemoveTeslaCron() {
-	DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -startm3precondition >> " +
-		"/home/pi/tesla/go/cron.log 2>&1")
-	DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopm3precondition >> " +
-		"/home/pi/tesla/go/cron.log 2>&1")
-	DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -startmxprecondition >> " +
-		"/home/pi/tesla/go/cron.log 2>&1")
-	DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -stopmxprecondition >> " +
-		"/home/pi/tesla/go/cron.log 2>&1")
-	DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkm3charge >> " +
-		"/home/pi/tesla/go/cron.log 2>&1")
-	DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkmxcharge >> " +
-		"/home/pi/tesla/go/cron.log 2>&1")
-	DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -schedulem3softwareupdate " +
-		">> /home/pi/tesla/go/cron.log 2>&1")
-	DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -schedulemxsoftwareupdate " +
-		">> /home/pi/tesla/go/cron.log 2>&1")
+	values := [2]string{"m3", "mx"}
+
+	for _, val := range values {
+		DeleteCronTab(fmt.Sprintf("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -%s >> "+
+			"/home/pi/tesla/go/cron.log 2>&1", GetInLineSub("start", val, "precondition")))
+		DeleteCronTab(fmt.Sprintf("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -%s >> "+
+			"/home/pi/tesla/go/cron.log 2>&1", GetInLineSub("stop", val, "precondition")))
+
+		DeleteCronTab(fmt.Sprintf("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -%s >> "+
+			"/home/pi/tesla/go/cron.log 2>&1", GetInLineSub("check", val, "charge")))
+
+		DeleteCronTab(fmt.Sprintf("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -%s >> "+
+			"/home/pi/tesla/go/cron.log 2>&1", GetInLineSub("schedule", val, "softwareupdate")))
+	}
 }

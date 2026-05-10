@@ -20,6 +20,7 @@ var DeleteCronTab = common.DeleteCronTab
 var FindStringIn2DArray = common.FindStringIn2DArray
 var GetGoogleSheetService = common.GetGoogleSheetService
 var SendEmail = common.SendEmail
+var GetInLineSub = common.GetInLineSub
 
 type Range struct {
 	Start time.Time
@@ -346,26 +347,14 @@ func scheduleBackupCharging(data map[string]any, start_time time.Time) {
 
 	if IsVehicleAtPrimary(data) {
 		// create backup charging start crontab at target time tomorrow
-		switch vin {
-		case M3_VIN:
-			DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkm3charge >> " +
-				"/home/pi/tesla/go/cron.log 2>&1")
-			CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkm3charge >> "+
-				"/home/pi/tesla/go/cron.log 2>&1",
-				start_time.Minute(),
-				start_time.Hour(),
-				start_time.Day(),
-				int(start_time.Month()))
-		case MX_VIN:
-			DeleteCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkmxcharge >> " +
-				"/home/pi/tesla/go/cron.log 2>&1")
-			CreateCronTab("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -checkmxcharge >> "+
-				"/home/pi/tesla/go/cron.log 2>&1",
-				start_time.Minute(),
-				start_time.Hour(),
-				start_time.Day(),
-				int(start_time.Month()))
-		}
+		DeleteCronTab(fmt.Sprintf("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -%s >> "+
+			"/home/pi/tesla/go/cron.log 2>&1", GetInLineSub("check", vin, "charge")))
+		CreateCronTab(fmt.Sprintf("cd /home/pi/tesla/go && /usr/bin/timeout -k 60 300 go run main.go -%s >> "+
+			"/home/pi/tesla/go/cron.log 2>&1", GetInLineSub("check", vin, "charge")),
+			start_time.Minute(),
+			start_time.Hour(),
+			start_time.Day(),
+			int(start_time.Month()))
 	}
 }
 
