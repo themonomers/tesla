@@ -1,8 +1,10 @@
+import time
+
 from vehicle.api import get_vehicle_data
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
 from common.utilities import get_config
-from common.logger import log_error
+from common.logger import log_error, log_error_retry
 from datetime import datetime
 
 config = get_config()
@@ -25,6 +27,12 @@ def write_m3_telemetry():
   try:
     # get rollup of vehicle data
     data = get_vehicle_data(M3_VIN)  
+
+    # check for empty data and retry
+    if data['response']['vehicle_state']['odometer'] is None:
+      log_error_retry('write_m3_telemetry(): Empty data set: ' + str(data))
+      time.sleep(WAIT_TIME)
+      write_m3_telemetry()
     
     inputs = []
     # write odometer value
@@ -211,6 +219,12 @@ def write_mx_telemetry():
     # get rollup of vehicle data
     data = get_vehicle_data(MX_VIN)  
     
+    # check for empty data and retry
+    if data['response']['vehicle_state']['odometer'] is None:
+      log_error_retry('write_mx_telemetry(): Empty data set: ' + str(data))
+      time.sleep(WAIT_TIME)
+      write_mx_telemetry()
+
     inputs = []
     # write odometer value
     open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry','V:V')

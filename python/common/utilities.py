@@ -380,38 +380,6 @@ def get_daily_weather(lat, lng):
     logger.log_error('get_daily_weather():', e)
 
 
-##
-# Formats a key/value pair with indentions for formatting and printing out
-# with a temperature conversion from Celcius to Fahrenheit.
-#
-# author: mjhwa@yahoo.com
-##
-def output_fahrenheit(key, value, indent):
-  return output(key, str((value * 9 / 5) + 32) + ' (F)', indent)
-
-
-##
-# Formats a key/value pair with indentions for formatting and printing out
-# to a date and time format.
-#
-# author: mjhwa@yahoo.com
-##
-def output_date(key, value, indent):
-  return output(key, datetime.datetime.fromtimestamp(value), indent)
-
-
-##
-# Formats a key/value pair with indentions for formatting and printing out.
-#
-# author: mjhwa@yahoo.com
-##
-def output(key, value, indent):
-  space = ''
-  for i in range(0, indent):
-    space += ' '
-  return(space + key + ' = ' + str(value))
-
-
 ###
 # Centralize repetitive HTTP Request calls.
 #
