@@ -19,10 +19,9 @@ Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, 
 
 /energy
       api.py - API calls for Tesla Energy products
-      import.py - Imports data manually when automated processes fail
       localtelemetry.py - Write real time energy data using Tesla Gateway API
       mode.py - Customizes energy site behavior based on weather
-      telemetry.py - Writes all energy data from previous day for Grafana
+      telemetry.py - Writes energy data to store for analysis and visualization
 
 /vehicle
       api.py - API calls for Tesla Vehicles
