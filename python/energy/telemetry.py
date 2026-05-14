@@ -1,5 +1,6 @@
 import pytz
 import zoneinfo
+import argparse
 
 from energy.api import (
   get_site_status, 
@@ -13,7 +14,7 @@ from energy.api import (
 from energy.localtelemetry import get_local_system_status
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
-from common.utilities import get_config
+from common.utilities import get_config, CustomHelpFormatter
 from common.influxdb import get_db_client
 from common.logger import log_error
 from datetime import datetime, timedelta
@@ -1010,25 +1011,129 @@ def write_battery_backup_history_to_db():
 
 ##
 # Write the data for the previous day based on a cron job that runs just after
-# midnight to ensure we get a full day's worth of data.
+# midnight to ensure we get a full day's worth of data.  Also supports manually run 
+# data collection for automated routines that failed.
 #
 # author: mjhwa@yahoo.com
 ##
-def main():
-  write_energy_detail_to_db(datetime.today() - timedelta(1))
-  write_energy_summary_to_db(datetime.today() - timedelta(1))
-  write_battery_charge_to_db(datetime.today() - timedelta(1))
-  write_energy_tou_summary_to_db(datetime.today() - timedelta(1))
-  write_energy_data_to_gsheet(datetime.today() - timedelta(1))
-  write_battery_backup_history_to_db()
+def main(parser):
+  args = parser.parse_args()
 
-  # send email notification
-  message = ('Energy telemetry successfully logged on '
-             + datetime.today().strftime('%B %d, %Y %H:%M:%S')
-             + '.')
-  send_email('Energy Telemetry Logged', message, EMAIL_1, '', '', '')
+  if not any(vars(args).values()):
+    parser.print_help()
+    return
+
+  options = [args.detail_to_db, 
+             args.summary_to_db, 
+             args.tou_summary_to_db, 
+             args.data_to_gsheet, 
+             args.battery_charge_to_db,
+             args.outage_to_db]
+  if args.all and any(options):
+    parser.error('-a, --all cannot be used with any other options')
+
+  if ((args.detail_to_db or 
+       args.summary_to_db or 
+       args.tou_summary_to_db or
+       args.data_to_gsheet or
+       args.battery_charge_to_db) and 
+       not args.date):
+    parser.error('--date (m/d/yyyy) is required when --detail_to_db, --summary_to_db, --tou_summary_to_db, '
+                 '--data_to_gsheet, or --battery_charge_to_db is used')
+
+  if (args.all):
+    write_energy_detail_to_db(datetime.today() - timedelta(1))
+    write_energy_summary_to_db(datetime.today() - timedelta(1))
+    write_battery_charge_to_db(datetime.today() - timedelta(1))
+    write_energy_tou_summary_to_db(datetime.today() - timedelta(1))
+    write_energy_data_to_gsheet(datetime.today() - timedelta(1))
+    write_battery_backup_history_to_db()
+
+    # send email notification
+    message = ('Energy telemetry successfully logged on '
+              + datetime.today().strftime('%B %d, %Y %H:%M:%S')
+              + '.')
+    send_email('Energy Telemetry Logged', message, EMAIL_1, '', '', '')
+  else:
+    date = None
+    if (args.date):
+      date = datetime.strptime(args.date[0].strftime('%m/%d/%Y'), '%m/%d/%Y') 
+
+    if (args.detail_to_db):
+      write_energy_detail_to_db(date)
+    
+    if (args.summary_to_db):
+      write_energy_summary_to_db(date)
+
+    if (args.tou_summary_to_db):
+      write_energy_tou_summary_to_db(date)
+
+    if (args.data_to_gsheet):
+      write_energy_data_to_gsheet(date)
+
+    if (args.battery_charge_to_db):
+      write_battery_charge_to_db(date)
+
+    if (args.outage_to_db):
+      write_battery_backup_history_to_db()
 
 
 if __name__ == "__main__":
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='telemetry.py',
+                    description='Writes energy data to store for analysis and visualization.',
+                    formatter_class=CustomHelpFormatter)
+  parser.add_argument(
+                      '-a', 
+                      '--all', 
+                      help='writes all energy data from previous day as part of an automated routine',
+                      action='store_true'
+                     )
+  parser.add_argument(
+                      '-e', 
+                      '--detail_to_db', 
+                      help='writes energy data to InfluxDB in 5 minute increments for Home, Solar, Powerall, and Grid',
+                      action='store_true'
+                     )
+  parser.add_argument(
+                      '-s', 
+                      '--summary_to_db', 
+                      help='writes energy data to InfluxDB of daily totals for Home, Solar, Powerall, and Grid',
+                      action='store_true'
+                     )
+  parser.add_argument(
+                      '-t', 
+                      '--tou_summary_to_db', 
+                      help='writes energy data to InfluxDB of TOU (off peak, partial peak, and peak) breakdowns of '
+                           'Solar, Powerall, Grid, etc., Energy Value, and Solar Offset',
+                      action='store_true'
+                     )
+  parser.add_argument(
+                      '-g', 
+                      '--data_to_gsheet', 
+                      help='writes energy data to Google Sheet of TOU (off peak, partial peak, and peak) breakdowns of '
+                           'Solar, Powerall, Grid, etc., Energy Value, and Solar Offset',
+                      action='store_true'
+                     )
+  parser.add_argument(
+                      '-b', 
+                      '--battery_charge_to_db', 
+                      help='writes battery charge state history to InfluxDB in 15 minute increments',
+                      action='store_true'
+                     )
+  parser.add_argument(
+                      '-o', 
+                      '--outage_to_db', 
+                      help='writes system backup history/grid outages to InfluxDB',
+                      action='store_true'
+                     )
+  parser.add_argument(
+                      '-d', 
+                      '--date', 
+                      help='DATE of data import in m/d/yyyy format',
+                      type=lambda d: datetime.strptime(d, '%m/%d/%Y'),
+                      nargs=1,
+                      metavar='DATE'
+                     )
 
+  main(parser)
