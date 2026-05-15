@@ -9,6 +9,7 @@ from vehicle.api import (
 )
 from common.googleutil import get_google_sheet_service
 from common.utilities import (
+  log,
   delete_cron_tab, 
   create_cron_tab, 
   is_vehicle_at_primary, 
@@ -17,7 +18,6 @@ from common.utilities import (
   get_config, 
   CustomHelpFormatter
 )
-from common.logger import log_error
 from datetime import datetime
 
 config = get_config()
@@ -63,7 +63,7 @@ def set_precondition(data, eco_mode, start_time):
         return start_time
     return None
   except Exception as e:
-    log_error('set_precondition(' + vin + '):', e)
+    log().error('set_precondition(' + vin + '): ' + str(e))
 
 
 ##
@@ -94,10 +94,10 @@ def start_m3_precondition():
     
     # get local weather
     wdata = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
-#    print('temp: ' + str(wdata['current']['temp']))
+    log().debug('temp: ' + str(wdata['current']['temp']))
     
-#    print('cold temp threshold: ' + climate_config[17][1])
-#    print('hot temp threshold: ' + climate_config[18][1])
+    log().debug('cold temp threshold: ' + climate_config[17][1])
+    log().debug('hot temp threshold: ' + climate_config[18][1])
 
     # get today's day of week to compare against Google Sheet temp preferences 
     # for that day
@@ -149,9 +149,9 @@ def start_m3_precondition():
     else:
       return # outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 
-    #print('d_temp: ' + str(d_temp))
-    #print('p_temp: ' + str(p_temp))
-    #print('seats: ' + str(seats))
+    log().debug('d_temp: ' + str(d_temp))
+    log().debug('p_temp: ' + str(p_temp))
+    log().debug('seats: ' + str(seats))
     # no need to execute if the car is not at primary location
     data = get_vehicle_data(M3_VIN)
     if (is_vehicle_at_primary(data)):
@@ -170,7 +170,7 @@ def start_m3_precondition():
       # create crontab to stop preconditioning at preferred time later in the day
       setup_stop_cron(M3_VIN, stop_time)
   except Exception as e:
-    log_error('start_m3_precondition():', e)
+    log().error('start_m3_precondition(): ' + str(e))
 
 
 def start_mx_precondition():
@@ -188,10 +188,10 @@ def start_mx_precondition():
     
     # get local weather
     wdata = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
-#    print('temp: ' + str(wdata['current']['temp']))    
+    log().debug('temp: ' + str(wdata['current']['temp']))    
 
-#    print('cold temp threshold: ' + climate_config[17][10])
-#    print('hot temp threshold: ' + climate_config[18][10])
+    log().debug('cold temp threshold: ' + climate_config[17][10])
+    log().debug('hot temp threshold: ' + climate_config[18][10])
 
     # get today's day of week to compare against Google Sheet temp preferences 
     # for that day
@@ -234,9 +234,9 @@ def start_mx_precondition():
     else:
       return # outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 
-    #print('d_temp: ' + str(d_temp))
-    #print('p_temp: ' + str(p_temp))
-    #print('seats: ' + str(seats))
+    log().debug('d_temp: ' + str(d_temp))
+    log().debug('p_temp: ' + str(p_temp))
+    log().debug('seats: ' + str(seats))
     # no need to execute if the car is not at primary location
     data = get_vehicle_data(MX_VIN)
     if (is_vehicle_at_primary(data)):
@@ -253,7 +253,7 @@ def start_mx_precondition():
       # create crontab to stop preconditioning at preferred time later in the day
       setup_stop_cron(MX_VIN, stop_time)
   except Exception as e: 
-    log_error('start_mx_precondition():', e)
+    log().error('start_mx_precondition(): ' + str(e))
 
 
 def setup_stop_cron(vin, stop_time):
@@ -281,7 +281,7 @@ def stop_precondition(vin):
         data['response']['drive_state']['shift_state'] != 'N'): # only execute if the car is at primary location and in park
       api.stop_precondition(vin)
   except Exception as e:
-    log_error('stop_precondition(' + vin + '):', e)
+    log().error('stop_precondition(' + vin + '): ' + str(e))
 
 
 def main(parser):

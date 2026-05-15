@@ -1,7 +1,6 @@
 from energy.api import set_backup_reserve
 from common.emailutil import send_email
-from common.utilities import get_daily_weather, get_config
-from common.logger import log_error
+from common.utilities import log, get_daily_weather, get_config
 from datetime import datetime, date, timedelta
 
 config = get_config()
@@ -88,7 +87,7 @@ def set_energy_mode_based_on_weather():
     else:
       set_backup_reserve(35)
   except Exception as e:
-    log_error('set_energy_mode_based_on_weather():', e)
+    log().error('set_energy_mode_based_on_weather(): ' + str(e))
 
 
 def main():

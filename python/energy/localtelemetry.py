@@ -1,18 +1,133 @@
 import json
 import zoneinfo
 import time
+import os
+import configparser
 
-from common.utilities import get_config, get_local_config, get_local_token, auth_local_token, send_request
+from common.crypto import encrypt, decrypt
+from common.utilities import log, get_config, send_request
 from common.influxdb import get_db_client
-from common.logger import log_error
 from datetime import datetime
+from io import StringIO
 
 TIME_ZONE = get_config()['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 WAIT_TIME = 30  # seconds
 
+
+##
+# Retrieves dictionary of local configuration values
+# for direct access to the Tesla Energy Gateway.
+#
+# author: mjhwa@yahoo.com
+##
+def get_local_config():
+  try:
+    buffer = StringIO(
+      decrypt(
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          'local_config.xor'
+        ),
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          '../common/tesla_private_key.pem'
+        )
+      )
+    )
+    config = configparser.ConfigParser()
+    config.sections()
+    config.read_file(buffer)
+    values = {s:dict(config.items(s)) for s in config.sections()}
+    buffer.close()
+    return values
+  except Exception as e:
+    log().error('get_local_config(): ' + str(e))
+
+local_config = get_local_config()
+USERNAME = local_config['energy']['email']
+PASSWORD = local_config['energy']['password']
+BASE_URL = local_config['energy']['base_url']
+
+
+##
+# Retrieves dictionary for a local token for direct 
+# access to the Tesla Energy Gateway.
+#
+# author: mjhwa@yahoo.com
+##
+def get_local_token():
+  try:
+    # Check for the file which stores the latest local token
+    if os.path.exists(
+      os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'local_token.xor'
+      )    
+    ) == False:
+      auth_local_token()
+
+    buffer = StringIO(
+      decrypt(
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          'local_token.xor'
+        ),
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          '../common/tesla_private_key.pem'
+        )
+      )
+    )
+    config = configparser.ConfigParser()
+    config.sections()
+    config.read_file(buffer)
+    values = {s:dict(config.items(s)) for s in config.sections()}
+    buffer.close()
+    return values
+  except Exception as e:
+    log().error('get_local_token(): ' + str(e))
+
 LOCAL_TOKEN = get_local_token()['tesla']['token']
-BASE_URL = get_local_config()['energy']['base_url']
+
+
+##
+# Authenicates directly to the Tesla Energy Gateway to
+# get a token for direct API calls.
+#
+# author: mjhwa@yahoo.com
+##
+def auth_local_token():
+  try:
+    url = (BASE_URL
+            + '/login/Basic')
+
+    payload = {
+      'username': 'customer',
+      'email': USERNAME,
+      'password': PASSWORD,
+      'force_sm_off': False
+    }
+
+    response = json.loads(send_request('POST', url, LOCAL_TOKEN, payload, None).text)
+
+    message =  '[tesla]\n'
+    message += 'token=' + response['token'] + '\n'
+
+    # Encrypt config file
+    encrypt(
+      message,
+      os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'local_token.xor'
+      ),
+      os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        '../common/tesla_private_key.pem'
+      )
+    )
+  except Exception as e:
+    log().error('auth_local_token(): ' + str(e))
 
 
 ##
@@ -89,7 +204,7 @@ def write_local_live_site_telemetry():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log_error('write_local_live_site_telemetry():', e)
+    log().error('write_local_live_site_telemetry(): ' + str(e))
 
 
 ##
@@ -117,7 +232,7 @@ def get_local_meters_aggregates():
 
     return resp
   except Exception as e:
-    log_error('get_local_meters_aggregates():', e)
+    log().error('get_local_meters_aggregates(): ' + str(e))
 
 
 ##
@@ -145,7 +260,7 @@ def get_local_system_status_soe():
 
     return resp
   except Exception as e:
-    log_error('get_local_system_status_soe():', e)
+    log().error('get_local_system_status_soe(): ' + str(e))
 
 
 ##
@@ -172,7 +287,7 @@ def get_local_system_status():
 
     return resp
   except Exception as e:
-    log_error('get_local_system_status():', e)
+    log().error('get_local_system_status(): ' + str(e))
 
 
 def send_get(url):
@@ -206,4 +321,3 @@ def main():
 
 if __name__ == "__main__":
   main()
-

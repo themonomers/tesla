@@ -3,8 +3,7 @@ import time
 from vehicle.api import get_vehicle_data
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
-from common.utilities import get_config
-from common.logger import log_error, log_error_retry
+from common.utilities import log, get_config
 from datetime import datetime
 
 config = get_config()
@@ -29,8 +28,8 @@ def write_m3_telemetry():
     data = get_vehicle_data(M3_VIN)  
 
     # check for empty data and retry
-    if data['response']['vehicle_state']['odometer'] is None:
-      log_error_retry('write_m3_telemetry(): Empty data set: ' + str(data))
+    if data is None:
+      log().warning('write_m3_telemetry(): Empty data set: ' + str(data))
       time.sleep(WAIT_TIME)
       write_m3_telemetry()
     
@@ -211,7 +210,7 @@ def write_m3_telemetry():
                + '.')
     send_email('Model 3 Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
-    log_error('write_m3_telemetry():', e)
+    log().error('write_m3_telemetry(): ' + str(e))
 
 
 def write_mx_telemetry():
@@ -220,8 +219,8 @@ def write_mx_telemetry():
     data = get_vehicle_data(MX_VIN)  
     
     # check for empty data and retry
-    if data['response']['vehicle_state']['odometer'] is None:
-      log_error_retry('write_mx_telemetry(): Empty data set: ' + str(data))
+    if data is None:
+      log().warning('write_mx_telemetry(): Empty data set: ' + str(data))
       time.sleep(WAIT_TIME)
       write_mx_telemetry()
 
@@ -401,7 +400,7 @@ def write_mx_telemetry():
                + '.')
     send_email('Model X Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
-    log_error('write_mx_telemetry():', e)
+    log().error('write_mx_telemetry(): ' + str(e))
 
 
 def main():

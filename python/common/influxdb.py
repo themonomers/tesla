@@ -1,5 +1,4 @@
-from common.utilities import get_config
-from common.logger import log_error
+from common.utilities import get_config, log
 from influxdb import InfluxDBClient
 
 config = get_config()
@@ -23,6 +22,6 @@ def get_db_client():
       password=INFLUX_PASSWORD
     )
   except Exception as e:
-    log_error('get_db_client():', e)
+    log().error('get_db_client(): ' + str(e))
 
 

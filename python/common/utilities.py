@@ -8,8 +8,9 @@ import os
 import time
 import urllib3
 import argparse
+import logging
 
-from common.crypto import encrypt, decrypt
+from common.crypto import decrypt
 from crontab import CronTab
 from datetime import datetime, timedelta
 from io import StringIO
@@ -44,7 +45,7 @@ def get_config():
     buffer.close()
     return values
   except Exception as e:
-    logger.log_error_std_out('get_config():', e)
+    log().error('get_config(): ' + str(e))
 
 config = get_config()
 PRIMARY_LAT = float(config['vehicle']['primary_lat'])
@@ -55,150 +56,6 @@ OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
 BASE_WEATHER_URL = config['weather']['base_url']
 TIME_ZONE = config['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
-
-
-##
-# Retrieves dictionary of local configuration values
-# for direct access to the Tesla Energy Gateway.
-#
-# author: mjhwa@yahoo.com
-##
-def get_local_config():
-  try:
-    buffer = StringIO(
-      decrypt(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          'local_config.xor'
-        ),
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          'tesla_private_key.pem'
-        )
-      )
-    )
-    config = configparser.ConfigParser()
-    config.sections()
-    config.read_file(buffer)
-    values = {s:dict(config.items(s)) for s in config.sections()}
-    buffer.close()
-    return values
-  except Exception as e:
-    logger.log_error('get_local_config():', e)
-
-local_config = get_local_config()
-USERNAME = local_config['energy']['email']
-PASSWORD = local_config['energy']['password']
-BASE_URL = local_config['energy']['base_url']
-
-
-##
-# Retrievies dictionary of access token values.
-#
-# author: mjhwa@yahoo.com
-##
-def get_token():
-  try:
-    buffer = StringIO(
-      decrypt(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          'token.xor'
-        ),
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          'tesla_private_key.pem'
-        )
-      )
-    )
-    config = configparser.ConfigParser()
-    config.sections()
-    config.read_file(buffer)
-    values = {s:dict(config.items(s)) for s in config.sections()}
-    buffer.close()
-    return values
-  except Exception as e:
-    logger.log_error('get_token():', e)
-
-
-##
-# Retrieves dictionary for a local token for direct 
-# access to the Tesla Energy Gateway.
-#
-# author: mjhwa@yahoo.com
-##
-def get_local_token():
-  try:
-    # Check for the file which stores the latest local token
-    if os.path.exists(
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'local_token.xor'
-      )    
-    ) == False:
-      auth_local_token()
-
-    buffer = StringIO(
-      decrypt(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          'local_token.xor'
-        ),
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          'tesla_private_key.pem'
-        )
-      )
-    )
-    config = configparser.ConfigParser()
-    config.sections()
-    config.read_file(buffer)
-    values = {s:dict(config.items(s)) for s in config.sections()}
-    buffer.close()
-    return values
-  except Exception as e:
-    logger.log_error('get_local_token():', e)
-
-LOCAL_TOKEN = get_local_token()['tesla']['token']
-
-
-##
-# Authenicates directly to the Tesla Energy Gateway to
-# get a token for direct API calls.
-#
-# author: mjhwa@yahoo.com
-##
-def auth_local_token():
-  try:
-    url = (BASE_URL
-            + '/login/Basic')
-
-    payload = {
-      'username': 'customer',
-      'email': USERNAME,
-      'password': PASSWORD,
-      'force_sm_off': False
-    }
-
-    response = json.loads(send_request('POST', url, LOCAL_TOKEN, payload, None).text)
-
-    message =  '[tesla]\n'
-    message += 'token=' + response['token'] + '\n'
-
-    # Encrypt config file
-    encrypt(
-      message,
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'local_token.xor'
-      ),
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'tesla_private_key.pem'
-      )
-    )
-  except Exception as e:
-    logger.log_error('auth_local_token():', e)
 
 
 ##
@@ -213,7 +70,7 @@ def delete_cron_tab(command):
     cron.remove(job)
     cron.write()
   except Exception as e:
-    logger.log_error('delete_cron_tab():', e)
+    log().error('delete_cron_tab(): ' + str(e))
 
 
 ##
@@ -231,7 +88,7 @@ def create_cron_tab(command, month, day, hour, minute):
     job.minute.on(minute)
     cron.write()
   except Exception as e:
-    logger.log_error('create_cron_tab():', e)
+    log().error('create_cron_tab():' + str(e))
 
 
 ##
@@ -265,7 +122,7 @@ def is_vehicle_at_location(data, lat, lng):
     else:
       return False
   except Exception as e:
-    logger.log_warn('is_vehicle_at_location():' + str(e))
+    log().warning('is_vehicle_at_location(): ' + str(e))
     return False
 
 
@@ -283,7 +140,7 @@ def get_distance(car_lat, car_lng, x_lat, x_lng):
     
     return d
   except Exception as e:
-    logger.log_error('get_distance():', e)
+    log().error('get_distance(): ' + str(e))
 
 
 def to_rad(x):
@@ -307,7 +164,7 @@ def get_tomorrow_time(time):
       + time, '%Y-%m-%dT%H:%M'
     ).replace(tzinfo=PAC)
   except Exception as e:
-    logger.log_error('get_tomorrow_time():', e)
+    log().error('get_tomorrow_time(): ' + str(e))
 
 
 def get_today_time(time):
@@ -322,7 +179,7 @@ def get_today_time(time):
       + time, '%Y-%m-%dT%H:%M'
     ).replace(tzinfo=PAC)
   except Exception as e:
-    logger.log_error('get_today_time():', e)
+    log().error('get_today_time(): ' + str(e))
 
 
 ##
@@ -349,7 +206,7 @@ def get_current_weather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    logger.log_error('get_current_weather():', e)
+    log().error('get_current_weather(): ' + str(e))
     
 
 ##
@@ -377,7 +234,7 @@ def get_daily_weather(lat, lng):
 
     return json.loads(response.text)
   except Exception as e:
-    logger.log_error('get_daily_weather():', e)
+    log().error('get_daily_weather(): ' + str(e))
 
 
 ###
@@ -433,6 +290,26 @@ def print_json(json_obj, level):
     print (offset + str(json_obj))
 
 
+##
+# Standard logging function.
+#
+# author: mjhwa@yahoo.com
+##
+def log():
+  logger = logging.getLogger(__name__)
+  logging.basicConfig(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
+                      level=logging.INFO,
+                      format='%(asctime)s [%(levelname)s] %(message)s',
+                      datefmt='%Y-%m-%d %H:%M:%S')
+
+  return logger
+
+
+##
+# Command line help formatting to improve readability.
+#
+# author: mjhwa@yahoo.com
+##
 class CustomHelpFormatter(argparse.HelpFormatter):
   # Adds a newline after every help text line
   def _split_lines(self, text, width):
@@ -505,4 +382,5 @@ if __name__ == "__main__":
   main(parser)
 
 
-import common.logger as logger
+from energy.localtelemetry import get_local_token
+LOCAL_TOKEN = get_local_token()['tesla']['token']

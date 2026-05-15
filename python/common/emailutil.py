@@ -3,10 +3,9 @@ import os
 import time
 import argparse
 
-from common.utilities import CustomHelpFormatter
+from common.utilities import log, CustomHelpFormatter
 from common.googleutil import get_google_mail_service
 from common.utilities import get_config
-from common.logger import log_error, log_error_retry
 from email.mime.image import MIMEImage
 from email.message import EmailMessage
 from datetime import datetime, timedelta
@@ -60,7 +59,7 @@ def send_email(subject, body, to, cc, bcc, filename):
     server.send_message(msg)
     server.close()
   except Exception as e:
-    log_error_retry('send_email(): ' + str(e))
+    log().warning('send_email(): ' + str(e))
     time.sleep(WAIT_TIME)
     send_email(subject, body, to, cc, bcc, filename)
 
@@ -75,7 +74,7 @@ def truncate_email(query):
   try:
     # get the date for the threshold (days prior)
     delete_date = datetime.today() - timedelta(DELETE_THRESHOLD)
-    #print('threshold: ' + str(delete_date))
+    log().debug('threshold: ' + str(delete_date))
 
     # Call the Gmail API and get the messages based on query
     service = get_google_mail_service()
@@ -89,25 +88,25 @@ def truncate_email(query):
    
     # Loop through all the messages returned
     for item in messages['messages']:
-      #print(item['id'])
+      log().debug(item['id'])
       message = service.users().messages().get(
                   userId='me',
                   id=item['id']
                 ).execute()
 
       email_date = datetime.fromtimestamp(int(message['internalDate'])/1000)
-      #print(email_date)
+      log().debug(email_date)
 
       # Check if the email date is older than the delete date threshold and
       # move to trash
       if (email_date < delete_date):
-        #print(str(email_date) + ' ' + str(message['payload']['headers'][8]))
+        log().debug(str(email_date) + ' ' + str(message['payload']['headers'][8]))
         message = service.users().messages().trash(
                     userId='me',
                     id=item['id']
                   ).execute() 
   except Exception as e:
-    log_error('truncate_email():', e)
+    log().error('truncate_email(): ' + str(e))
   finally:
     service.close()
 

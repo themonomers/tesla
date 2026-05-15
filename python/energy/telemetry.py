@@ -14,9 +14,8 @@ from energy.api import (
 from energy.localtelemetry import get_local_system_status
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
-from common.utilities import get_config, CustomHelpFormatter
+from common.utilities import log, get_config, CustomHelpFormatter
 from common.influxdb import get_db_client
-from common.logger import log_error
 from datetime import datetime, timedelta
 
 config = get_config()
@@ -85,7 +84,7 @@ def write_energy_detail_to_db(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log_error('write_energy_detail_to_db():', e)
+    log().error('write_energy_detail_to_db(): ' + str(e))
 
 
 ##
@@ -225,7 +224,7 @@ def write_energy_summary_to_db(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log_error('write_energy_summary_to_db():', e)
+    log().error('write_energy_summary_to_db(): ' + str(e))
 
 
 ##
@@ -266,7 +265,7 @@ def write_battery_charge_to_db(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log_error('write_battery_charge_to_db():', e)
+    log().error('write_battery_charge_to_db(): ' + str(e))
 
 
 ##
@@ -363,7 +362,7 @@ def write_energy_tou_summary_to_db(date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log_error('write_energy_tou_summary_to_db():', e)
+    log().error('write_energy_tou_summary_to_db(): ' + str(e))
 
 
 ##
@@ -945,7 +944,7 @@ def write_energy_data_to_gsheet(date):
     ).execute()
     service.close()
   except Exception as e:
-    log_error('write_energy_data_to_gsheet():', e)
+    log().error('write_energy_data_to_gsheet(): ' + str(e))
 
 
 ##
@@ -1006,7 +1005,7 @@ def write_battery_backup_history_to_db():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log_error('write_battery_backup_history_to_db():', e)
+    log().error('write_battery_backup_history_to_db(): ' + str(e))
 
 
 ##

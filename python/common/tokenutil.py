@@ -3,20 +3,51 @@ import datetime
 import zoneinfo
 import requests
 import json
+import configparser
 import os
 import argparse
 
-from common.logger import log_error
-from common.crypto import encrypt
-from common.utilities import get_config, get_token, CustomHelpFormatter
+from common.utilities import log, get_config, CustomHelpFormatter
+from common.crypto import encrypt, decrypt
 from datetime import datetime, timedelta
+from io import StringIO
+
+TIME_ZONE = get_config()['general']['timezone']
+PAC = zoneinfo.ZoneInfo(TIME_ZONE)
+
+
+##
+# Retrievies dictionary of access token values.
+#
+# author: mjhwa@yahoo.com
+##
+def get_token():
+  try:
+    buffer = StringIO(
+      decrypt(
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          'token.xor'
+        ),
+        os.path.join(
+          os.path.dirname(os.path.abspath(__file__)),
+          'tesla_private_key.pem'
+        )
+      )
+    )
+    config = configparser.ConfigParser()
+    config.sections()
+    config.read_file(buffer)
+    values = {s:dict(config.items(s)) for s in config.sections()}
+    buffer.close()
+    return values
+  except Exception as e:
+    log().error('get_token(): ' + str(e))
 
 token = get_token()
 REFRESH_TOKEN = token['tesla']['refresh_token']
 EXPIRES_AT = token['tesla']['expires_at']
 
-TIME_ZONE = get_config()['general']['timezone']
-PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 ##
 # Uses https://github.com/tdorssers/TeslaPy. To install, run:  
@@ -43,7 +74,7 @@ def new_token():
     print('created_at=' + datetime.strftime(expires_at - timedelta(seconds = response['expires_in']), '%Y-%m-%d %H:%M:%S'))
     print('expires_at=' + datetime.strftime(expires_at, '%Y-%m-%d %H:%M:%S'))
   except Exception as e:
-    log_error('new_token():', e)
+    log().error('new_token(): ' + str(e))
 
 
 ##
@@ -86,7 +117,7 @@ def refresh_token():
     )
     )
   except Exception as e:
-    log_error('refresh_token():', e)
+    log().error('refresh_token(): ' + str(e))
 
 
 ##
@@ -103,13 +134,13 @@ def check_token_expiration():
     # get the refresh date 1 hours and 5 minutes prior
     # the additional 5 minutes is because of crontab timing
     refresh_date = expiration_date - timedelta(hours=1, minutes=5)
-    #print('refresh date: ' + str(refresh_date))
-    #print('now: ' + str(datetime.today()))
+    log().debug('refresh date: ' + str(refresh_date))
+    log().debug('now: ' + str(datetime.today()))
 
     if (datetime.today() >= refresh_date):
       refresh_token()
   except Exception as e:
-    log_error('check_token_expiration():', e)
+    log().error('check_token_expiration(): ' + str(e))
 
 
 def main(parser):

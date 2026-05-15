@@ -1,7 +1,7 @@
 import os
 import time
-import common.logger as logger
 
+from common.utilities import log
 from apiclient import discovery
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
@@ -34,7 +34,7 @@ def get_google_sheet_service():
     service = discovery.build('sheets', 'v4', credentials=credentials)
     return service
   except Exception as e:
-    logger.log_error('get_google_sheet_service():', e)
+    log().error('get_google_sheet_service(): ' + str(e))
 
 
 ##
@@ -58,7 +58,7 @@ def find_open_row(sheet_id, sheet_name, range):
 
     return len(values) + 1
   except Exception as e:
-    logger.log_error_retry_std_out('find_open_row(): ' + str(e))
+    log().warning('find_open_row(): ' + str(e))
     time.sleep(WAIT_TIME)
     return find_open_row(sheet_id, sheet_name, range)
 
@@ -125,4 +125,4 @@ def get_google_mail_service():
 
     return build('gmail', 'v1', credentials=creds)
   except Exception as e:
-    logger.log_error('get_google_mail_service():', e)
+    log().error('get_google_mail_service(): ' + str(e))

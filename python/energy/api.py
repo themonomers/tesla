@@ -2,8 +2,14 @@ import json
 import pytz
 import argparse
 
-from common.utilities import print_json, get_config, get_token, send_request, CustomHelpFormatter
-from common.logger import log_error
+from common.utilities import (
+  log, 
+  print_json, 
+  get_config, 
+  send_request, 
+  CustomHelpFormatter
+)
+from common.tokenutil import get_token
 from datetime import datetime
 
 ACCESS_TOKEN = get_token()['tesla']['access_token']
@@ -25,7 +31,7 @@ def get_site_status():
       send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_status')).text
     )
   except Exception as e:
-    log_error('get_site_status():', e)
+    log().error('get_site_status(): ' + str(e))
 
 
 ##
@@ -39,7 +45,7 @@ def get_site_live_status():
       send_get(get_url(BASE_OWNER_URL, SITE_ID, 'live_status')).text
     )
   except Exception as e:
-    log_error('get_site_live_status():', e)
+    log().error('get_site_live_status(): ' + str(e))
 
 
 ##
@@ -53,7 +59,7 @@ def get_site_info():
       send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_info')).text
     )
   except Exception as e:
-    log_error('get_site_info():', e)
+    log().error('get_site_info(): ' + str(e))
 
 
 ##
@@ -85,7 +91,7 @@ def get_site_history(period, date):
       send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
     )
   except Exception as e:
-    log_error('get_site_history(' + period + '):', e)
+    log().error('get_site_history(' + period + '): ' + str(e))
 
 
 ##
@@ -99,7 +105,7 @@ def get_battery_backup_history():
       send_get(get_url(BASE_OWNER_URL, SITE_ID, 'calendar_history?kind=backup')).text
     )
   except Exception as e:
-    log_error('get_battery_backup_history():', e)
+    log().error('get_battery_backup_history(): ' + str(e))
 
 
 ##
@@ -147,7 +153,7 @@ def get_site_tou_history(period, date):
       send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
     )
   except Exception as e:
-    log_error('get_site_tou_history():', e)
+    log().error('get_site_tou_history(): ' + str(e))
 
 
 ##
@@ -179,7 +185,7 @@ def get_battery_charge_history(period, date):
       send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
     )
   except Exception as e:
-    log_error('get_battery_charge_history():', e)
+    log().error('get_battery_charge_history(): ' + str(e))
 
 
 ##
@@ -227,7 +233,7 @@ def get_power_history(period, date):
       send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
     )
   except Exception as e:
-    log_error('get_power_history():', e)
+    log().error('get_power_history(): ' + str(e))
 
 
 ##
@@ -245,7 +251,7 @@ def get_rate_tariffs():
       send_get(url).text
     )
   except Exception as e:
-    log_error('get_rate_tariffs():', e)
+    log().error('get_rate_tariffs(): ' + str(e))
 
 
 ##
@@ -260,7 +266,7 @@ def get_site_tariff():
       send_get(get_url(BASE_OWNER_URL, SITE_ID, 'tariff_rate')).text
     )
   except Exception as e:
-    log_error('get_site_tariff():', e)
+    log().error('get_site_tariff(): ' + str(e))
 
 
 ##
@@ -274,7 +280,7 @@ def get_backup_time_remaining():
       send_get(get_url(BASE_OWNER_URL, SITE_ID, 'backup_time_remaining')).text
     )
   except Exception as e:
-    log_error('get_backup_time_remaining():', e)
+    log().error('get_backup_time_remaining(): ' + str(e))
 
 
 ##
@@ -323,7 +329,7 @@ def get_savings_forecast(period, date):
       send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
     )
   except Exception as e:
-    log_error('get_savings_forecast():', e)
+    log().error('get_savings_forecast(): ' + str(e))
 
 
 ##
@@ -371,7 +377,7 @@ def set_operational_mode(mode):
 
     return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'operation'), payload)
   except Exception as e:
-    log_error('set_operational_mode(' + mode + '):', e)
+    log().error('set_operational_mode(' + mode + '): ' + str(e))
 
 
 ##
@@ -408,7 +414,7 @@ def set_grid_import_export(export_rule, disallow_grid_charging):
 
     return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'grid_import_export'), payload)
   except Exception as e:
-    log_error('set_grid_import_export(' + export_rule + ', ' + disallow_grid_charging + '):', e)
+    log().error('set_grid_import_export(' + export_rule + ', ' + disallow_grid_charging + '): ' + str(e))
 
 
 ##
@@ -424,7 +430,7 @@ def set_backup_reserve(backup_percent):
 
     return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'backup'), payload)
   except Exception as e:
-    log_error('set_backup_reserve(' + backup_percent + '):', e)
+    log().error('set_backup_reserve(' + backup_percent + '): ' + str(e))
 
 
 ##
@@ -441,7 +447,7 @@ def set_off_grid_vehicle_charging_reserve(percent):
 
     return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'off_grid_vehicle_charging_reserve'), payload)
   except Exception as e:
-    log_error('set_off_grid_vehicle_charging_reserve(' + percent + '):', e)
+    log().error('set_off_grid_vehicle_charging_reserve(' + percent + '): ' + str(e))
 
 
 ###
@@ -459,7 +465,7 @@ def get_url(base, site_id, command):
 
     return url
   except Exception as e:
-    log_error('get_url(' + url + '):', e)
+    log().error('get_url(' + url + '): ' + str(e))
 
 
 def send_get(url):

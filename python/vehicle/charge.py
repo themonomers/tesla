@@ -12,6 +12,7 @@ from vehicle.climate import set_precondition
 from common.googleutil import get_google_sheet_service
 from common.emailutil import send_email
 from common.utilities import (
+  log,
   is_vehicle_at_primary, 
   is_vehicle_at_secondary, 
   get_tomorrow_time, 
@@ -20,7 +21,6 @@ from common.utilities import (
   create_cron_tab, 
   CustomHelpFormatter
 )
-from common.logger import log_info, log_error, log_error_retry, log_error_std_out
 from datetime import timedelta, datetime
 from collections import namedtuple
 
@@ -72,7 +72,7 @@ def notify_is_tesla_plugged_in():
       ).execute().get('values', [])
       service.close()
     except Exception as e:
-      log_error_retry('notify_is_tesla_plugged_in(): Get configuration info from Google Sheets: ' + str(e))
+      log().warning('notify_is_tesla_plugged_in(): Get configuration info from Google Sheets: ' + str(e))
       time.sleep(WAIT_TIME)
       notify_is_tesla_plugged_in()
 
@@ -140,7 +140,7 @@ def notify_is_tesla_plugged_in():
                                   '',
                                   '')
   except Exception as e:
-    log_error('notify_is_tesla_plugged_in():', e)
+    log().error('notify_is_tesla_plugged_in(): ' + str(e))
     
 
 ##
@@ -192,7 +192,7 @@ def schedule_m3_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
     else:
       return None
   except Exception as e:
-    log_error('schedule_m3_charging():', e)
+    log().error('schedule_m3_charging(): ' + str(e))
 
 
 def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time): 
@@ -234,7 +234,7 @@ def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
     else:
       return None
   except Exception as e:
-    log_error('schedule_mx_charging():', e)
+    log().error('schedule_mx_charging(): ' + str(e))
 
 
 ##
@@ -289,7 +289,7 @@ def charge_earliest():
     else:
       print('\nScheduled start canceled')
   except Exception as e:
-    log_error_std_out('charge_earliest():', e)
+    log().error('charge_earliest(): ' + str(e))
 
 
 ##
@@ -319,7 +319,7 @@ def schedule_earliest_charging(data):
     else:
       return None
   except Exception as e:
-    log_error_std_out('schedule_earliest_charging(' + vin + '):', e)
+    log().error('schedule_earliest_charging(' + vin + '): ' + str(e))
 
 
 ##
@@ -333,10 +333,10 @@ def check_charge(vin):
 
     if (is_vehicle_at_primary(data) and 
         (data['response']['charge_state']['charging_state'] != 'Charging')):
-      log_info('check_charge(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
+      log().info('check_charge(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
       start_charge(vin)
   except Exception as e:
-    log_error('check_charge(' + vin + '):', e)
+    log().error('check_charge(' + vin + '): ' + str(e))
 
 
 ##
@@ -359,7 +359,7 @@ def schedule_backup_charging(data, start_time):
                       start_time.hour, 
                       start_time.minute)
   except Exception as e:
-    log_error('schedule_backup_charging(' + vin + '):', e)
+    log().error('schedule_backup_charging(' + vin + '): ' + str(e))
 
 
 ##
@@ -551,7 +551,7 @@ def calculate_scheduled_charging(scenario, m3_data, mx_data, m3_target_finish_ti
 
       return m3_start_time
   except Exception as e:
-    log_error('calculate_scheduled_charging(' + scenario + '):', e)
+    log().error('calculate_scheduled_charging(' + scenario + '): ' + str(e))
 
 
 ##
@@ -590,7 +590,7 @@ def calculate_finish_time(m3_data, mx_data):
     }
     return finish_times
   except Exception as e:
-    log_error_std_out('calculate_finish_time():', e)
+    log().error('calculate_finish_time(): ' + str(e))
 
 
 ##
@@ -626,7 +626,7 @@ def calculate_miles_needed(m3_data, mx_data):
     }
     return miles_needed
   except Exception as e:
-    log_error('calculate_miles_needed():', e)
+    log().error('calculate_miles_needed(): ' + str(e))
 
 
 def send_plugged_in_message(vehicle, battery_level, battery_range, charge_port_door_open, notify, to, cc, bcc):
@@ -645,7 +645,7 @@ def send_plugged_in_message(vehicle, battery_level, battery_range, charge_port_d
                  cc,
                  bcc, 
                  '')
-      #print('send email: ' + message)
+      log().debug('send email: ' + message)
 
 
 def send_scheduled_charge_message(vehicle, data, charge_start_time, finish_time, climate_start_time, to, cc, bcc):

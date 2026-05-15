@@ -2,6 +2,7 @@ import argparse
 import zoneinfo
 
 from common.utilities import (
+  log,
   get_config, 
   delete_cron_tab, 
   create_cron_tab, 
@@ -9,7 +10,6 @@ from common.utilities import (
   get_tomorrow_time,
   CustomHelpFormatter
 )
-from common.logger import log_error
 from datetime import datetime
 
 config = get_config()
@@ -36,7 +36,7 @@ def schedule_update(vin, time):
                     time.hour, 
                     time.minute)
   except Exception as e:
-    log_error('schedule_update(' + vin + '):', e)
+    log().error('schedule_update(' + vin + '): ' + str(e))
 
 
 def main(parser):
