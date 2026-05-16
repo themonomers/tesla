@@ -1,6 +1,9 @@
 import argparse
 import vehicle.api as api
 
+from common.configutil import get_config
+from common.logutil import log
+from common.argutil import CustomHelpFormatter
 from vehicle.api import (
   get_vehicle_data, 
   set_temp, 
@@ -9,14 +12,11 @@ from vehicle.api import (
 )
 from common.googleutil import get_google_sheet_service
 from common.utilities import (
-  log,
   delete_cron_tab, 
   create_cron_tab, 
   is_vehicle_at_primary, 
   get_today_time, 
-  get_current_weather, 
-  get_config, 
-  CustomHelpFormatter
+  get_current_weather 
 )
 from datetime import datetime
 

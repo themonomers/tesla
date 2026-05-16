@@ -3,13 +3,10 @@ import time
 import urllib.parse
 import argparse
 
-from common.utilities import (
-  log,
-  print_json, 
-  get_config, 
-  send_request, 
-  CustomHelpFormatter
-)
+from common.configutil import get_config
+from common.logutil import log
+from common.argutil import CustomHelpFormatter
+from common.utilities import print_json, send_request
 from common.tokenutil import get_token
 
 ACCESS_TOKEN = get_token()['tesla']['access_token']

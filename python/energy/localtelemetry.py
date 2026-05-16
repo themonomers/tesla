@@ -6,14 +6,12 @@ import time
 import os
 import configparser
 
+from common.logutil import log
 from common.crypto import encrypt, decrypt
-from common.utilities import log, get_config
 from common.influxdb import get_db_client
 from datetime import datetime
 from io import StringIO
 
-TIME_ZONE = get_config()['general']['timezone']
-PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 WAIT_TIME = 30  # seconds
 
 
@@ -50,6 +48,8 @@ local_config = get_local_config()
 USERNAME = local_config['energy']['email']
 PASSWORD = local_config['energy']['password']
 BASE_URL = local_config['energy']['base_url']
+TIME_ZONE = local_config['general']['timezone']
+PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 
 ##

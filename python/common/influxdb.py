@@ -1,4 +1,5 @@
-from common.utilities import get_config, log
+from common.configutil import get_config
+from common.logutil import log
 from influxdb import InfluxDBClient
 
 config = get_config()

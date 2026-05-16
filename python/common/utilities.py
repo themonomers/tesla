@@ -3,51 +3,17 @@ import math
 import json
 import datetime
 import zoneinfo
-import configparser
 import os
 import time
 import urllib3
 import argparse
-import logging
-import sys
-import common.googleutil as googleutil
 
-from common.crypto import decrypt
+from common.configutil import get_config
+from common.logutil import log
+from common.argutil import CustomHelpFormatter
+from common.googleutil import get_google_sheet_service
 from crontab import CronTab
 from datetime import datetime, timedelta
-from io import StringIO
-
-R = 3958.8  #Earth radius in miles
-WAIT_TIME = 30  # seconds
-
-
-##
-# Retrieves dictionary of configuration values.
-#
-# author: mjhwa@yahoo.com
-##
-def get_config():
-  try:
-    buffer = StringIO(
-      decrypt(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          'config.xor'
-        ),
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          'tesla_private_key.pem'
-        )
-      )
-    )
-    config = configparser.ConfigParser()
-    config.sections()
-    config.read_file(buffer)
-    values = {s:dict(config.items(s)) for s in config.sections()}
-    buffer.close()
-    return values
-  except Exception as e:
-    log().error('get_config(): ' + str(e))
 
 config = get_config()
 PRIMARY_LAT = float(config['vehicle']['primary_lat'])
@@ -59,6 +25,9 @@ BASE_WEATHER_URL = config['weather']['base_url']
 LOG_SPREADSHEET_ID = config['google']['log_spreadsheet_id']
 TIME_ZONE = config['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
+
+R = 3958.8  #Earth radius in miles
+WAIT_TIME = 30  # seconds
 
 
 ##
@@ -291,29 +260,6 @@ def print_json(json_obj, level):
 
 
 ##
-# Standard logging function.
-#
-# author: mjhwa@yahoo.com
-##
-def log():
-  logger = logging.getLogger(__name__)
-  logging.basicConfig(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
-                      level=logging.WARNING,
-                      format='%(asctime)s [%(levelname)s] %(message)s',
-                      datefmt='%Y-%m-%d %H:%M:%S')
-
-  if not logger.handlers:
-    handler = ExitOnErrorHandler(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
-                                mode='a')
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    handler.setLevel(logging.ERROR)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-  return logger
-
-
-##
 # Load log file into Google Sheet for ease of viewing and analysis.
 #
 # author: mjhwa@yahoo.com
@@ -360,12 +306,11 @@ def load_log_into_gsheet(days_to_load):
             })
 
             count = count + 1
-          
-    # batch write data and formula copies to sheet
-    if len(inputs) > 0:
-      service = googleutil.get_google_sheet_service()
 
-      # clear sheet then write data
+    # clear sheet then batch write data
+    if len(inputs) > 0:
+      service = get_google_sheet_service()
+
       service.spreadsheets().values().batchClear(
           spreadsheetId=LOG_SPREADSHEET_ID, 
           body={'ranges': 'log!A2:C'}
@@ -380,45 +325,6 @@ def load_log_into_gsheet(days_to_load):
     file.close()
   except Exception as e:
     log().error('load_log_into_gsheet(): ' + str(e))
-
-
-##
-#  A custom FileHandler that flushes data and terminates the application
-#  when an ERROR level log or higher is emitted.
-#
-# author: mjhwa@yahoo.com
-##
-class ExitOnErrorHandler(logging.FileHandler):
-  def emit(self, record):
-    # Run the standard write operation first
-    super().emit(record)
-    
-    # Manually flush the file internal buffers to disk
-    self.flush()
-    
-    # Check if the log level is equal to or higher than ERROR (Level 40)
-    if record.levelno >= logging.ERROR:
-      sys.exit(1)
-
-
-##
-# Command line help formatting to improve readability.
-#
-# author: mjhwa@yahoo.com
-##
-class CustomHelpFormatter(argparse.HelpFormatter):
-  # Adds a newline after every help text line
-  def _split_lines(self, text, width):
-    return super()._split_lines(text, width) + ['']
-
-  # Join options (e.g., -f, --file) and append metavar once
-  def _format_action_invocation(self, action):
-    if not action.option_strings or action.nargs == 0:
-      return super()._format_action_invocation(action)
-    
-    default = self._get_default_metavar_for_optional(action)
-    args_string = self._format_args(action, default)
-    return ', '.join(action.option_strings) + ' ' + args_string
 
 
 def main(parser):

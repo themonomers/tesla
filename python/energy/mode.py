@@ -1,6 +1,8 @@
+from common.configutil import get_config
+from common.logutil import log
 from energy.api import set_backup_reserve
 from common.emailutil import send_email
-from common.utilities import log, get_daily_weather, get_config
+from common.utilities import get_daily_weather
 from datetime import datetime, date, timedelta
 
 config = get_config()

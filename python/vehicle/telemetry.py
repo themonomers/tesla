@@ -1,9 +1,10 @@
 import time
 
+from common.configutil import get_config
+from common.logutil import log
 from vehicle.api import get_vehicle_data
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
-from common.utilities import log, get_config
 from datetime import datetime
 
 config = get_config()

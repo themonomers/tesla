@@ -1,5 +1,6 @@
 import argparse
 
+from common.argutil import CustomHelpFormatter
 from itertools import cycle
 
 
@@ -82,14 +83,11 @@ def main(parser):
     parser.print_help()
 
 
-import common.utilities as utilities
-
-
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='crypto.py',
                     description='Encryption and decryption functions for sensitive files.',
-                    formatter_class=utilities.CustomHelpFormatter)
+                    formatter_class=CustomHelpFormatter)
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
                      '-d', 
