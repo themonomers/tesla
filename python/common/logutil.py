@@ -1,7 +1,7 @@
 import os
 import logging
 import sys
-
+import configparser
 
 ##
 # Standard logging function.
@@ -9,12 +9,22 @@ import sys
 # author: mjhwa@yahoo.com
 ##
 def log():
+  # retrieve logging level
+  config = configparser.ConfigParser()
+  config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log.ini'))
+  config.sections()
+  values = {s:dict(config.items(s)) for s in config.sections()}
+  log_level_string = values['general']['log_level']
+  log_level = getattr(logging, log_level_string, logging.INFO)
+
+  # get and configure logger
   logger = logging.getLogger(__name__)
   logging.basicConfig(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
-                      level=logging.WARNING,
+                      level=log_level,
                       format='%(asctime)s [%(levelname)s] %(message)s',
                       datefmt='%Y-%m-%d %H:%M:%S')
 
+  # set custom handler for certain logging levels
   if not logger.handlers:
     handler = ExitOnErrorHandler(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
                                 mode='a')
