@@ -296,13 +296,19 @@ def print_json(json_obj, level):
 # author: mjhwa@yahoo.com
 ##
 def log():
-  handler = ExitOnErrorHandler(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
-                               mode='a')
-  formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-  handler.setLevel(logging.WARNING)
-  handler.setFormatter(formatter)
   logger = logging.getLogger(__name__)
-  logger.addHandler(handler)
+  logging.basicConfig(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
+                      level=logging.WARNING,
+                      format='%(asctime)s [%(levelname)s] %(message)s',
+                      datefmt='%Y-%m-%d %H:%M:%S')
+
+  if not logger.handlers:
+    handler = ExitOnErrorHandler(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
+                                mode='a')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    handler.setLevel(logging.ERROR)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
   return logger
 
@@ -392,7 +398,7 @@ class ExitOnErrorHandler(logging.FileHandler):
     
     # Check if the log level is equal to or higher than ERROR (Level 40)
     if record.levelno >= logging.ERROR:
-        sys.exit(1)
+      sys.exit(1)
 
 
 ##

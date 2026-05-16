@@ -72,7 +72,6 @@ def main(parser):
   if (args.decrypt):
     token_fn = args.decrypt[0]
     source_fn = args.decrypt[1]
-    decrypt(source_fn, token_fn)
     print(decrypt(source_fn, token_fn))
   elif (args.encrypt):
     token_fn = args.encrypt[0]
