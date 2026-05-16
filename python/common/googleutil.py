@@ -31,7 +31,7 @@ def get_google_sheet_service():
       secret_file, 
       scopes=scopes
     )
-    service = discovery.build('sheets', 'v4', credentials=credentials)
+    service = discovery.build('sheets', 'v4', credentials=credentials, cache_discovery=False)
     return service
   except Exception as e:
     log().error('get_google_sheet_service(): ' + str(e))
