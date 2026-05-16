@@ -29,7 +29,7 @@ def write_m3_telemetry():
 
     # check for empty data and retry
     if data is None:
-      log().warning('write_m3_telemetry(): Empty data set: ' + str(data))
+      log().warning('Retry write_m3_telemetry() due to empty data set: ' + str(data))
       time.sleep(WAIT_TIME)
       write_m3_telemetry()
     
@@ -220,7 +220,7 @@ def write_mx_telemetry():
     
     # check for empty data and retry
     if data is None:
-      log().warning('write_mx_telemetry(): Empty data set: ' + str(data))
+      log().warning('Retry write_mx_telemetry() due to empty data set: ' + str(data))
       time.sleep(WAIT_TIME)
       write_mx_telemetry()
 

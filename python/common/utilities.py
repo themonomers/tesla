@@ -9,6 +9,8 @@ import time
 import urllib3
 import argparse
 import logging
+import sys
+import common.googleutil as googleutil
 
 from common.crypto import decrypt
 from crontab import CronTab
@@ -54,6 +56,7 @@ SECONDARY_LAT = float(config['vehicle']['secondary_lat'])
 SECONDARY_LNG = float(config['vehicle']['secondary_lng'])
 OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
 BASE_WEATHER_URL = config['weather']['base_url']
+LOG_SPREADSHEET_ID = config['google']['log_spreadsheet_id']
 TIME_ZONE = config['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
@@ -246,15 +249,12 @@ def send_request(method, url, token, payload, cert):
   if cert:
     urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
   
-  if token == LOCAL_TOKEN:
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
   return requests.request(
     method,
     url, 
     **({'json': payload} if payload else {}),
     headers={'authorization': 'Bearer ' + token},
-    **({'verify': cert} if cert else {'verify': False} if token == LOCAL_TOKEN else {})
+    **({'verify': cert} if cert else {})
   )
 
 
@@ -296,13 +296,103 @@ def print_json(json_obj, level):
 # author: mjhwa@yahoo.com
 ##
 def log():
+  handler = ExitOnErrorHandler(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
+                               mode='a')
+  formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+  handler.setLevel(logging.WARNING)
+  handler.setFormatter(formatter)
   logger = logging.getLogger(__name__)
-  logging.basicConfig(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
-                      level=logging.INFO,
-                      format='%(asctime)s [%(levelname)s] %(message)s',
-                      datefmt='%Y-%m-%d %H:%M:%S')
+  logger.addHandler(handler)
 
   return logger
+
+
+##
+# Load log file into Google Sheet for ease of viewing and analysis.
+#
+# author: mjhwa@yahoo.com
+##
+def load_log_into_gsheet(days_to_load):
+  try:
+    inputs = []
+    count = 0
+    threshold = get_today_time('00:00') - timedelta(days_to_load)
+
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 'r') as file:
+      for line in file:
+        # Remove trailing newline characters
+        clean_line = line.strip()
+        
+        # Split the line by spaces
+        parts = clean_line.split(' ')
+        
+        # Extract fields based on index positions
+        if len(parts) >= 4:
+          timestamp = f"{parts[0]} {parts[1]}"
+          level = parts[2]
+          message = " ".join(parts[3:])
+
+          log().debug('==========')
+          log().debug(f'{timestamp}')
+          log().debug(f'{level}')
+          log().debug(f'{message}')
+          
+          log_date = datetime.strptime(str(timestamp), '%Y-%m-%d %H:%M:%S').replace(tzinfo=PAC)
+          if log_date > threshold:
+            # write this into Google Sheet
+            inputs.append({
+              'range': 'log!A' + str(2 + count),
+              'values': [[level]]
+            })
+            inputs.append({
+              'range': 'log!B' + str(2 + count),
+              'values': [[timestamp]]
+            })
+            inputs.append({
+              'range': 'log!C' + str(2 + count),
+              'values': [[message]]
+            })
+
+            count = count + 1
+          
+    # batch write data and formula copies to sheet
+    if len(inputs) > 0:
+      service = googleutil.get_google_sheet_service()
+
+      # clear sheet then write data
+      service.spreadsheets().values().batchClear(
+          spreadsheetId=LOG_SPREADSHEET_ID, 
+          body={'ranges': 'log!A2:C'}
+      ).execute()
+
+      service.spreadsheets().values().batchUpdate(
+        spreadsheetId=LOG_SPREADSHEET_ID, 
+        body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
+      ).execute()
+      service.close()
+
+    file.close()
+  except Exception as e:
+    log().error('load_log_into_gsheet(): ' + str(e))
+
+
+##
+#  A custom FileHandler that flushes data and terminates the application
+#  when an ERROR level log or higher is emitted.
+#
+# author: mjhwa@yahoo.com
+##
+class ExitOnErrorHandler(logging.FileHandler):
+  def emit(self, record):
+    # Run the standard write operation first
+    super().emit(record)
+    
+    # Manually flush the file internal buffers to disk
+    self.flush()
+    
+    # Check if the log level is equal to or higher than ERROR (Level 40)
+    if record.levelno >= logging.ERROR:
+        sys.exit(1)
 
 
 ##
@@ -346,6 +436,8 @@ def main(parser):
         )
       )
     )
+  elif (args.load):
+    load_log_into_gsheet(args.load[0])
   else:
     parser.print_help()
 
@@ -378,9 +470,14 @@ if __name__ == "__main__":
                      nargs=2,
                      metavar=('LATITUDE', 'LONGITUDE')
                     )
+  group.add_argument(
+                     '-l', 
+                     '--load', 
+                     help='load log file into Google Sheet for ease of viewing and analysis; DAYS are the number of days '
+                          'of log entry history to load into Google Sheet',
+                     type=int,
+                     nargs=1,
+                     metavar='DAYS'
+                    )
 
   main(parser)
-
-
-from energy.localtelemetry import get_local_token
-LOCAL_TOKEN = get_local_token()['tesla']['token']

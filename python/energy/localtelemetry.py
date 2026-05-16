@@ -1,3 +1,5 @@
+import requests
+import urllib3
 import json
 import zoneinfo
 import time
@@ -5,7 +7,7 @@ import os
 import configparser
 
 from common.crypto import encrypt, decrypt
-from common.utilities import log, get_config, send_request
+from common.utilities import log, get_config
 from common.influxdb import get_db_client
 from datetime import datetime
 from io import StringIO
@@ -109,7 +111,7 @@ def auth_local_token():
       'force_sm_off': False
     }
 
-    response = json.loads(send_request('POST', url, LOCAL_TOKEN, payload, None).text)
+    response = json.loads(send_request('POST', url, LOCAL_TOKEN, payload).text)
 
     message =  '[tesla]\n'
     message += 'token=' + response['token'] + '\n'
@@ -291,7 +293,24 @@ def get_local_system_status():
 
 
 def send_get(url):
-  return send_request('GET', url, LOCAL_TOKEN, None, None)
+  return send_request('GET', url, LOCAL_TOKEN, None)
+
+
+###
+# Centralize repetitive HTTP Request calls.
+#
+# author: mjhwa@yahoo.com
+##
+def send_request(method, url, token, payload):
+  urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+  return requests.request(
+    method,
+    url, 
+    **({'json': payload} if payload else {}),
+    headers={'authorization': 'Bearer ' + token},
+    verify=False
+  )
 
 
 ##

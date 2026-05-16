@@ -72,7 +72,7 @@ def notify_is_tesla_plugged_in():
       ).execute().get('values', [])
       service.close()
     except Exception as e:
-      log().warning('notify_is_tesla_plugged_in(): Get configuration info from Google Sheets: ' + str(e))
+      log().warning('Retry getting configuration info from Google Sheets: ' + str(e))
       time.sleep(WAIT_TIME)
       notify_is_tesla_plugged_in()
 
@@ -333,7 +333,7 @@ def check_charge(vin):
 
     if (is_vehicle_at_primary(data) and 
         (data['response']['charge_state']['charging_state'] != 'Charging')):
-      log().info('check_charge(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
+      log().warning('check_charge(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
       start_charge(vin)
   except Exception as e:
     log().error('check_charge(' + vin + '): ' + str(e))

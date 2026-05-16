@@ -59,7 +59,7 @@ def send_email(subject, body, to, cc, bcc, filename):
     server.send_message(msg)
     server.close()
   except Exception as e:
-    log().warning('send_email(): ' + str(e))
+    log().warning('Retry send_email(): ' + str(e))
     time.sleep(WAIT_TIME)
     send_email(subject, body, to, cc, bcc, filename)
 
