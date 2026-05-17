@@ -10,14 +10,6 @@
     "handlers": {
         "exitOnErrorHandler": {
             "class": "logutil.ExitOnErrorHandler",
-            "level": "ERROR",
-            "formatter": "standardFormatter",
-            "filename": "/home/pi/tesla/python/tesla.log",
-            "mode": "a"
-        },
-        "standardHandler": {
-            "class": "logging.FileHandler",
-            "level": "INFO",
             "formatter": "standardFormatter",
             "filename": "/home/pi/tesla/python/tesla.log",
             "mode": "a"
@@ -26,7 +18,7 @@
     "loggers": {
         "root": {
             "level": "INFO",
-            "handlers": ["exitOnErrorHandler", "standardHandler"],
+            "handlers": ["exitOnErrorHandler"],
             "propagate": false
         }
     }
