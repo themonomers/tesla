@@ -1,6 +1,7 @@
 **/test
 **/__pycache__
 *.json
+!log.json
 *.xor
 *.log
 *.pem

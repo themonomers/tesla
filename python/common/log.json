@@ -1,0 +1,38 @@
+{
+    "version": 1,
+    "disable_existing_loggers": false,
+    "formatters": {
+        "standardFormatter": {
+            "format": "%(asctime)s %(levelname)s %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        }
+    },
+    "handlers": {
+        "exitOnErrorHandler": {
+            "class": "logutil.ExitOnErrorHandler",
+            "level": "ERROR",
+            "formatter": "standardFormatter",
+            "filename": "/home/pi/tesla/python/tesla.log",
+            "mode": "a"
+        },
+        "rotatingFileHandler": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "level": "INFO",
+            "formatter": "standardFormatter",
+            "filename": "/home/pi/tesla/python/tesla.log",
+            "when": "midnight",
+            "interval": 30,
+            "backupCount": 12,
+            "encoding": null,
+            "delay": false,
+            "utc": false
+        }
+    },
+    "loggers": {
+        "root": {
+            "level": "INFO",
+            "handlers": ["exitOnErrorHandler", "rotatingFileHandler"],
+            "propagate": false
+        }
+    }
+}

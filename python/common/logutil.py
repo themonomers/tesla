@@ -1,10 +1,8 @@
 import os
 import logging
+import logging.config
+import json
 import sys
-import configparser
-import datetime
-
-from logging.handlers import TimedRotatingFileHandler
 
 
 ##
@@ -26,42 +24,10 @@ class ExitOnErrorHandler(logging.FileHandler):
       sys.exit(1)
 
 
-# retrieve logging configs
-config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log.ini'))
-config.sections()
-values = {s:dict(config.items(s)) for s in config.sections()}
-level_string = values['general']['level']
-level = getattr(logging, level_string, logging.INFO)
-format = values['general']['format']
-datefmt = values['general']['datefmt']
-
-# get and configure logger
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log.json'), 'r') as f:
+  config = json.load(f)
+logging.config.dictConfig(config)
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'),  
-                    level=level,
-                    format=format, 
-                    datefmt=datefmt)
-
-# set custom handler for >= ERROR logging levels and log file rotation handler
-handler = ExitOnErrorHandler(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
-                             mode='a')
-formatter = logging.Formatter(format, datefmt=datefmt)
-handler.setLevel(logging.ERROR)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
-# set handler for log rotation every 30 days
-handler = TimedRotatingFileHandler(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
-                                   when='midnight', 
-                                   interval=30,
-                                   atTime=datetime.time(3, 0),
-                                   backupCount=12)
-handler.setLevel(level)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
-logger.propagate = False
 
 
 ##
