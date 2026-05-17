@@ -2,38 +2,9 @@ import os
 import logging
 import sys
 import configparser
+import datetime
 
-##
-# Standard logging function.
-#
-# author: mjhwa@yahoo.com
-##
-def log():
-  # retrieve logging level
-  config = configparser.ConfigParser()
-  config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log.ini'))
-  config.sections()
-  values = {s:dict(config.items(s)) for s in config.sections()}
-  log_level_string = values['general']['log_level']
-  log_level = getattr(logging, log_level_string, logging.INFO)
-
-  # get and configure logger
-  logger = logging.getLogger(__name__)
-  logging.basicConfig(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
-                      level=log_level,
-                      format='%(asctime)s [%(levelname)s] %(message)s',
-                      datefmt='%Y-%m-%d %H:%M:%S')
-
-  # set custom handler for certain logging levels
-  if not logger.handlers:
-    handler = ExitOnErrorHandler(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
-                                mode='a')
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    handler.setLevel(logging.ERROR)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-  return logger
+from logging.handlers import TimedRotatingFileHandler
 
 
 ##
@@ -53,3 +24,50 @@ class ExitOnErrorHandler(logging.FileHandler):
     # Check if the log level is equal to or higher than ERROR (Level 40)
     if record.levelno >= logging.ERROR:
       sys.exit(1)
+
+
+# retrieve logging configs
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log.ini'))
+config.sections()
+values = {s:dict(config.items(s)) for s in config.sections()}
+level_string = values['general']['level']
+level = getattr(logging, level_string, logging.INFO)
+format = values['general']['format']
+datefmt = values['general']['datefmt']
+
+# get and configure logger
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'),  
+                    level=level,
+                    format=format, 
+                    datefmt=datefmt)
+
+# set custom handler for >= ERROR logging levels and log file rotation handler
+handler = ExitOnErrorHandler(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
+                             mode='a')
+formatter = logging.Formatter(format, datefmt=datefmt)
+handler.setLevel(logging.ERROR)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# set handler for log rotation every 30 days
+handler = TimedRotatingFileHandler(filename=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 
+                                   when='midnight', 
+                                   interval=30,
+                                   atTime=datetime.time(3, 0),
+                                   backupCount=12)
+handler.setLevel(level)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+logger.propagate = False
+
+
+##
+# Standard logging function.
+#
+# author: mjhwa@yahoo.com
+##
+def log():
+  return logger
