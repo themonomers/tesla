@@ -15,23 +15,18 @@
             "filename": "/home/pi/tesla/python/tesla.log",
             "mode": "a"
         },
-        "rotatingFileHandler": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
+        "standardHandler": {
+            "class": "logging.FileHandler",
             "level": "INFO",
             "formatter": "standardFormatter",
             "filename": "/home/pi/tesla/python/tesla.log",
-            "when": "midnight",
-            "interval": 30,
-            "backupCount": 12,
-            "encoding": null,
-            "delay": false,
-            "utc": false
+            "mode": "a"
         }
     },
     "loggers": {
         "root": {
             "level": "INFO",
-            "handlers": ["exitOnErrorHandler", "rotatingFileHandler"],
+            "handlers": ["exitOnErrorHandler", "standardHandler"],
             "propagate": false
         }
     }

@@ -23,8 +23,9 @@ class ExitOnErrorHandler(logging.FileHandler):
     if record.levelno >= logging.ERROR:
       sys.exit(1)
 
-
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'log.json'), 'r') as f:
+system_path = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(system_path)
+with open(os.path.join(system_path, 'log.json'), 'r') as f:
   config = json.load(f)
 logging.config.dictConfig(config)
 logger = logging.getLogger(__name__)
