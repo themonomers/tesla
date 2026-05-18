@@ -27,10 +27,10 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 ##
 def schedule_update(vin, time):
   try:
-    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
-                    f'--schedule_software_update={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1')
-    create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/api.py '
-                    f'--schedule_software_update={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1', 
+    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/api.py '
+                    f'--schedule_software_update={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/logs/cron.log 2>&1')
+    create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/api.py '
+                    f'--schedule_software_update={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/logs/cron.log 2>&1', 
                     time.month, 
                     time.day, 
                     time.hour, 

@@ -350,10 +350,10 @@ def schedule_backup_charging(data, start_time):
 
     if (is_vehicle_at_primary(data)):
       # create backup charging start crontab at target time tomorrow
-      delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py '
-                      f'--check={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1')
-      create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/vehicle/charge.py '
-                      f'--check={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/cron.log 2>&1', 
+      delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/charge.py '
+                      f'--check={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/logs/cron.log 2>&1')
+      create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/charge.py '
+                      f'--check={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/logs/cron.log 2>&1', 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
