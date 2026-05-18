@@ -4,12 +4,13 @@ import zoneinfo
 from common.configutil import get_config
 from common.logutil import log
 from common.argutil import CustomHelpFormatter
-from common.utilities import (
+from common.cronutil import (
   delete_cron_tab, 
   create_cron_tab, 
-  get_today_time,
-  get_tomorrow_time
+  get_cronjob,
+  get_redirect
 )
+from common.utilities import get_today_time, get_tomorrow_time
 from datetime import datetime
 
 config = get_config()
@@ -27,10 +28,8 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 ##
 def schedule_update(vin, time):
   try:
-    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/api.py '
-                    f'--schedule_software_update={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/logs/cron.log 2>&1')
-    create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/api.py '
-                    f'--schedule_software_update={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/logs/cron.log 2>&1', 
+    delete_cron_tab(get_cronjob('api', 'schedule_software_update') + ('m3' if vin == M3_VIN else 'mx') + get_redirect())
+    create_cron_tab(get_cronjob('api', 'schedule_software_update') + ('m3' if vin == M3_VIN else 'mx') + get_redirect(), 
                     time.month, 
                     time.day, 
                     time.hour, 

@@ -6,3 +6,4 @@
 *.json
 !log.json
 !file.json
+!cron.json

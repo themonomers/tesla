@@ -1,4 +1,8 @@
-from common.utilities import delete_cron_tab
+from common.cronutil import (
+  delete_cron_tab,
+  get_cronjob,
+  get_redirect
+)
 
 
 ##
@@ -12,16 +16,12 @@ def main():
   values = ['m3', 'mx']
 
   for val in values:
-    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/climate.py --start={val} >> '
-                    f'/home/pi/tesla/python/logs/cron.log 2>&1')
-    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/climate.py --stop={val} >> '
-                    f'/home/pi/tesla/python/logs/cron.log 2>&1')
+    delete_cron_tab(get_cronjob('climate', 'start') + val + get_redirect())
+    delete_cron_tab(get_cronjob('climate', 'stop') + val + get_redirect())
 
-    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/charge.py --check={val} >> '
-                    f'/home/pi/tesla/python/logs/cron.log 2>&1')
+    delete_cron_tab(get_cronjob('charge', 'check') + val + get_redirect())
 
-    delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/api.py '
-                    f'--schedule_software_update={val} >> /home/pi/tesla/python/logs/cron.log 2>&1')
+    delete_cron_tab(get_cronjob('api', 'schedule_software_update') + val + get_redirect())
 
 
 if __name__ == "__main__":

@@ -12,7 +12,6 @@ from common.logutil import log
 from common.argutil import CustomHelpFormatter
 from common.googleutil import get_google_sheet_service
 from common.fileutil import get_filepath
-from crontab import CronTab
 from datetime import datetime, timedelta
 
 config = get_config()
@@ -28,39 +27,6 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 R = 3958.8  #Earth radius in miles
 WAIT_TIME = 30  # seconds
-
-
-##
-# Removes crontab for a single command.
-#
-# author: mjhwa@yahoo.com
-##
-def delete_cron_tab(command):
-  try: 
-    cron = CronTab(user='pi')
-    job = cron.find_command(command)
-    cron.remove(job)
-    cron.write()
-  except Exception as e:
-    log().error('delete_cron_tab(): ' + str(e))
-
-
-##
-# Creates crontab entry for a single command.
-#
-# author: mjhwa@yahoo.com
-##
-def create_cron_tab(command, month, day, hour, minute):
-  try:
-    cron = CronTab(user='pi')
-    job = cron.new(command=command)
-    job.month.on(month)
-    job.day.on(day)
-    job.hour.on(hour)
-    job.minute.on(minute)
-    cron.write()
-  except Exception as e:
-    log().error('create_cron_tab():' + str(e))
 
 
 ##

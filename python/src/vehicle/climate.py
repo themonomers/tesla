@@ -11,9 +11,13 @@ from vehicle.api import (
   set_seat_cooling, 
 )
 from common.googleutil import get_google_sheet_service
-from common.utilities import (
+from common.cronutil import (
   delete_cron_tab, 
   create_cron_tab, 
+  get_cronjob,
+  get_redirect
+)
+from common.utilities import (
   is_vehicle_at_primary, 
   get_today_time, 
   get_current_weather 
@@ -52,10 +56,8 @@ def set_precondition(data, eco_mode, start_time):
       # check if the car is with 0.25 miles of the primary location
       if (is_vehicle_at_primary(data)):
         # create precondition start crontab at preferred time tomorrow
-        delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/climate.py '
-                        f'--start={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/logs/cron.log 2>&1')
-        create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/climate.py '
-                        f'--start={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/logs/cron.log 2>&1', 
+        delete_cron_tab(get_cronjob('climate', 'start') + ('m3' if vin == M3_VIN else 'mx') + get_redirect())
+        create_cron_tab(get_cronjob('climate', 'start') + ('m3' if vin == M3_VIN else 'mx') + get_redirect(), 
                         start_time.month, 
                         start_time.day, 
                         start_time.hour, 
@@ -257,10 +259,8 @@ def start_mx_precondition():
 
 
 def setup_stop_cron(vin, stop_time):
-  delete_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/climate.py '
-                  f'--stop={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/logs/cron.log 2>&1')
-  create_cron_tab(f'/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/climate.py '
-                  f'--stop={"m3" if vin == M3_VIN else "mx"} >> /home/pi/tesla/python/logs/cron.log 2>&1', 
+  delete_cron_tab(get_cronjob('climate', 'stop') + ('m3' if vin == M3_VIN else 'mx') + get_redirect())
+  create_cron_tab(get_cronjob('climate', 'stop') + ('m3' if vin == M3_VIN else 'mx') + get_redirect(), 
                   stop_time.month, 
                   stop_time.day, 
                   stop_time.hour, 
