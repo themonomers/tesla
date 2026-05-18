@@ -8,6 +8,7 @@ from common.logutil import log
 from common.argutil import CustomHelpFormatter
 from common.utilities import print_json, send_request
 from common.tokenutil import get_token
+from common.fileutil import get_filepath
 
 ACCESS_TOKEN = get_token()['tesla']['access_token']
 
@@ -16,7 +17,7 @@ M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
 BASE_OWNER_URL = config['tesla']['base_owner_url']
 BASE_PROXY_URL = config['tesla']['base_proxy_url']
-CERT = config['tesla']['certificate']
+CERT = get_filepath('secrets', 'teslaCert')
 
 WAIT_TIME = 30 
 

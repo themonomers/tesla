@@ -4,13 +4,13 @@ import zoneinfo
 import requests
 import json
 import configparser
-import os
 import argparse
 
 from common.configutil import get_config
 from common.logutil import log
 from common.argutil import CustomHelpFormatter
 from common.crypto import encrypt, decrypt
+from common.fileutil import get_filepath
 from datetime import datetime, timedelta
 from io import StringIO
 
@@ -26,16 +26,7 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 def get_token():
   try:
     buffer = StringIO(
-      decrypt(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          '../../secrets/token.xor'
-        ),
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          '../../secrets/tesla_private_key.pem'
-        )
-      )
+      decrypt(get_filepath('secrets', 'token'), get_filepath('secrets', 'teslaKey'))
     )
     config = configparser.ConfigParser()
     config.sections()
@@ -108,15 +99,9 @@ def refresh_token():
 
     # Encrypt config file
     encrypt(
-    message,
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        '../../secrets/token.xor'
-    ),
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        '../../secrets/tesla_private_key.pem'
-    )
+      message,
+      get_filepath('secrets', 'token'),
+      get_filepath('secrets', 'teslaKey')
     )
   except Exception as e:
     log().error('refresh_token(): ' + str(e))

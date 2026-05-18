@@ -1,8 +1,8 @@
-import os
 import configparser
 
 from common.logutil import log
 from common.crypto import decrypt
+from common.fileutil import get_filepath
 from io import StringIO
 
 
@@ -14,16 +14,7 @@ from io import StringIO
 def get_config():
   try:
     buffer = StringIO(
-      decrypt(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          '../../configs/config.xor'
-        ),
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          '../../secrets/tesla_private_key.pem'
-        )
-      )
+      decrypt(get_filepath('configs', 'config'), get_filepath('secrets', 'teslaKey'))
     )
     config = configparser.ConfigParser()
     config.sections()

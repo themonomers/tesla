@@ -4,6 +4,8 @@ import logging.config
 import json
 import sys
 
+from common.fileutil import get_filepath
+
 
 ##
 #  A custom FileHandler that flushes data and terminates the application
@@ -25,9 +27,11 @@ class ExitOnErrorHandler(logging.FileHandler):
 
 system_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(system_path)
-with open(os.path.join(system_path, '../../configs/log.json'), 'r') as f:
+with open(get_filepath('logs', 'config'), 'r') as f:
   config = json.load(f)
+config['handlers']['exitOnErrorHandler']['filename'] = get_filepath('logs', 'filename')
 logging.config.dictConfig(config)
+
 logger = logging.getLogger(__name__)
 
 

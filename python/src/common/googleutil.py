@@ -2,6 +2,7 @@ import os
 import time
 
 from common.logutil import log
+from common.fileutil import get_filepath
 from apiclient import discovery
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
@@ -20,12 +21,7 @@ WAIT_TIME = 30
 def get_google_sheet_service():
   try:
     scopes = ['https://www.googleapis.com/auth/spreadsheets']
-    secret_file = (
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), 
-        '../../secrets/gsheet_credentials.json'
-      )
-    )
+    secret_file = (get_filepath('secrets', 'googleSheetCred'))
 
     credentials = service_account.Credentials.from_service_account_file(
       secret_file, 
@@ -77,19 +73,8 @@ def get_google_mail_service():
     # The file gmail_token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists(
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), 
-        '../../secrets/gmail_token.json'
-      )
-    ):
-      creds = Credentials.from_authorized_user_file(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)), 
-          '../../secrets/gmail_token.json'
-        ), 
-        scopes
-      )
+    if os.path.exists(get_filepath('secrets', 'googleMailToken')):
+      creds = Credentials.from_authorized_user_file(get_filepath('secrets', 'googleMailToken'), scopes)
 
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
@@ -97,10 +82,7 @@ def get_google_mail_service():
         creds.refresh(Request())
       else:
         flow = InstalledAppFlow.from_client_secrets_file(
-          os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), 
-            '../../secrets/gmail_client_secret.json'
-          ), 
+          get_filepath('secrets', 'googleMailSecret'), 
           scopes,
           redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
         )
@@ -113,13 +95,7 @@ def get_google_mail_service():
         creds = flow.run_console(format(auth_url))
 
       # Save the credentials for the next run
-      with open(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)), 
-          '../../secrets/gmail_token.json'
-        ), 
-        'w'
-      ) as token:
+      with open(get_filepath('secrets', 'googleMailToken'), 'w') as token:
         token.write(creds.to_json())
         token.close()
 

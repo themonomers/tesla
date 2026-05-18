@@ -1,0 +1,19 @@
+{
+    "configs": {
+        "config": "./configs/config.xor",
+        "localConfig": "./configs/local_config.xor"
+    },
+    "secrets": {
+        "token": "./secrets/token.xor",
+        "localToken": "./secrets/local_token.xor",
+        "teslaKey": "./secrets/tesla_private_key.pem",
+        "teslaCert": "./secrets/cert.pem",
+        "googleMailSecret": "./secrets/gmail_client_secret.json",
+        "googleMailToken": "./secrets/gmail_token.json",
+        "googleSheetCred": "./secrets/gsheet_credentials.json"
+    },
+    "logs": {
+        "filename": "./logs/tesla.log",
+        "config": "./configs/log.json"
+    }
+}

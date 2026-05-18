@@ -10,9 +10,10 @@ Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, 
 
 /common
       argutil.py - Tools for command line arguments
-      configutil.py - Retrieve configuration values
+      configutil.py - Retrieves configuration values
       crypto.py - Encryption and decryption functions for sensitive files
       emailutil.py - Service to send and truncate emails
+      fileutil.py - Retrieves filepaths for configurations and secrets
       googleutil.py - API calls for Google services and utilities
       influxdb.py - Access to InfluxDB
       logutil.py - Central logging service 

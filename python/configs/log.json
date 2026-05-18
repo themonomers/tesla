@@ -11,7 +11,7 @@
         "exitOnErrorHandler": {
             "class": "logutil.ExitOnErrorHandler",
             "formatter": "standardFormatter",
-            "filename": "/home/pi/tesla/python/logs/tesla.log",
+            "filename": "",
             "mode": "a"
         }
     },

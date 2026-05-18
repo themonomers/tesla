@@ -3,7 +3,6 @@ import math
 import json
 import datetime
 import zoneinfo
-import os
 import time
 import urllib3
 import argparse
@@ -12,6 +11,7 @@ from common.configutil import get_config
 from common.logutil import log
 from common.argutil import CustomHelpFormatter
 from common.googleutil import get_google_sheet_service
+from common.fileutil import get_filepath
 from crontab import CronTab
 from datetime import datetime, timedelta
 
@@ -270,7 +270,7 @@ def load_log_into_gsheet(days_to_load):
     count = 0
     threshold = get_today_time('00:00') - timedelta(days_to_load)
 
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../logs/tesla.log'), 'r') as file:
+    with open(get_filepath('logs', 'filename'), 'r') as file:
       for line in file:
         # Remove trailing newline characters
         clean_line = line.strip()

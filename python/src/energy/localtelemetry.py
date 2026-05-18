@@ -9,6 +9,7 @@ import configparser
 from common.logutil import log
 from common.crypto import encrypt, decrypt
 from common.influxdb import get_db_client
+from common.fileutil import get_filepath
 from datetime import datetime
 from io import StringIO
 
@@ -24,16 +25,7 @@ WAIT_TIME = 30  # seconds
 def get_local_config():
   try:
     buffer = StringIO(
-      decrypt(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          '../../configs/local_config.xor'
-        ),
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          '../../secrets/tesla_private_key.pem'
-        )
-      )
+      decrypt(get_filepath('configs', 'localConfig'), get_filepath('secrets', 'teslaKey'))
     )
     config = configparser.ConfigParser()
     config.sections()
@@ -62,24 +54,12 @@ def get_local_token():
   try:
     # Check for the file which stores the latest local token
     if os.path.exists(
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        '../../secrets/local_token.xor'
-      )    
+      get_filepath('secrets', 'localToken')
     ) == False:
       auth_local_token()
 
     buffer = StringIO(
-      decrypt(
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          '../../secrets/local_token.xor'
-        ),
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          '../../secrets/tesla_private_key.pem'
-        )
-      )
+      decrypt(get_filepath('secrets', 'localToken'), get_filepath('secrets', 'teslaKey'))
     )
     config = configparser.ConfigParser()
     config.sections()
@@ -119,14 +99,8 @@ def auth_local_token():
     # Encrypt config file
     encrypt(
       message,
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        '../../secrets/local_token.xor'
-      ),
-      os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        '../../secrets/tesla_private_key.pem'
-      )
+      get_filepath('secrets', 'localToken'),
+      get_filepath('secrets', 'teslaKey')
     )
   except Exception as e:
     log().error('auth_local_token(): ' + str(e))
