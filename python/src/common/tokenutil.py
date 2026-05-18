@@ -29,11 +29,11 @@ def get_token():
       decrypt(
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          'token.xor'
+          '../../secrets/token.xor'
         ),
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          'tesla_private_key.pem'
+          '../../secrets/tesla_private_key.pem'
         )
       )
     )
@@ -111,11 +111,11 @@ def refresh_token():
     message,
     os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        'token.xor'
+        '../../secrets/token.xor'
     ),
     os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        'tesla_private_key.pem'
+        '../../secrets/tesla_private_key.pem'
     )
     )
   except Exception as e:

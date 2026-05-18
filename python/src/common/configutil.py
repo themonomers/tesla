@@ -17,11 +17,11 @@ def get_config():
       decrypt(
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          'config.xor'
+          '../../configs/config.xor'
         ),
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          'tesla_private_key.pem'
+          '../../secrets/tesla_private_key.pem'
         )
       )
     )

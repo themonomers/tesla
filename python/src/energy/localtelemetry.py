@@ -27,11 +27,11 @@ def get_local_config():
       decrypt(
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          'local_config.xor'
+          '../../configs/local_config.xor'
         ),
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          '../common/tesla_private_key.pem'
+          '../../secrets/tesla_private_key.pem'
         )
       )
     )
@@ -64,7 +64,7 @@ def get_local_token():
     if os.path.exists(
       os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        'local_token.xor'
+        '../../secrets/local_token.xor'
       )    
     ) == False:
       auth_local_token()
@@ -73,11 +73,11 @@ def get_local_token():
       decrypt(
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          'local_token.xor'
+          '../../secrets/local_token.xor'
         ),
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
-          '../common/tesla_private_key.pem'
+          '../../secrets/tesla_private_key.pem'
         )
       )
     )
@@ -121,11 +121,11 @@ def auth_local_token():
       message,
       os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        'local_token.xor'
+        '../../secrets/local_token.xor'
       ),
       os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        '../common/tesla_private_key.pem'
+        '../../secrets/tesla_private_key.pem'
       )
     )
   except Exception as e:

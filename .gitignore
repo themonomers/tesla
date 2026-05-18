@@ -1,7 +1,7 @@
-**/test
+**/tests
+**/logs
 **/__pycache__
 *.json
 !log.json
 *.xor
-*.log
 *.pem

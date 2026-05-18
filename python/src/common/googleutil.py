@@ -23,7 +23,7 @@ def get_google_sheet_service():
     secret_file = (
       os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 
-        'gsheet_credentials.json'
+        '../../secrets/gsheet_credentials.json'
       )
     )
 
@@ -80,13 +80,13 @@ def get_google_mail_service():
     if os.path.exists(
       os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 
-        'gmail_token.json'
+        '../../secrets/gmail_token.json'
       )
     ):
       creds = Credentials.from_authorized_user_file(
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)), 
-          'gmail_token.json'
+          '../../secrets/gmail_token.json'
         ), 
         scopes
       )
@@ -99,7 +99,7 @@ def get_google_mail_service():
         flow = InstalledAppFlow.from_client_secrets_file(
           os.path.join(
             os.path.dirname(os.path.abspath(__file__)), 
-            'gmail_client_secret.json'
+            '../../secrets/gmail_client_secret.json'
           ), 
           scopes,
           redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
@@ -116,7 +116,7 @@ def get_google_mail_service():
       with open(
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)), 
-          'gmail_token.json'
+          '../../secrets/gmail_token.json'
         ), 
         'w'
       ) as token:

@@ -270,7 +270,7 @@ def load_log_into_gsheet(days_to_load):
     count = 0
     threshold = get_today_time('00:00') - timedelta(days_to_load)
 
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tesla.log'), 'r') as file:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../logs/tesla.log'), 'r') as file:
       for line in file:
         # Remove trailing newline characters
         clean_line = line.strip()
