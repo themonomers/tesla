@@ -1,7 +1,9 @@
 {
     "configs": {
         "config": "./configs/config.xor",
-        "localConfig": "./configs/local_config.xor"
+        "localConfig": "./configs/local_config.xor",
+        "cron": "./configs/cron.json",
+        "log": "./configs/log.json"
     },
     "secrets": {
         "token": "./secrets/token.xor",
@@ -13,7 +15,6 @@
         "googleSheetCred": "./secrets/gsheet_credentials.json"
     },
     "logs": {
-        "filename": "./logs/tesla.log",
-        "config": "./configs/log.json"
+        "filename": "./logs/tesla.log"
     }
 }

@@ -12,9 +12,9 @@ from vehicle.api import (
 )
 from common.googleutil import get_google_sheet_service
 from common.cronutil import (
-  delete_cron_tab, 
-  create_cron_tab, 
-  get_cronjob
+  delete_cron, 
+  create_cron, 
+  get_cron
 )
 from common.utilities import (
   is_vehicle_at_primary, 
@@ -55,8 +55,8 @@ def set_precondition(data, eco_mode, start_time):
       # check if the car is with 0.25 miles of the primary location
       if (is_vehicle_at_primary(data)):
         # create precondition start crontab at preferred time tomorrow
-        delete_cron_tab(get_cronjob('climate', 'start') + ('m3' if vin == M3_VIN else 'mx') + get_cronjob('redirect'))
-        create_cron_tab(get_cronjob('climate', 'start') + ('m3' if vin == M3_VIN else 'mx') + get_cronjob('redirect'), 
+        delete_cron(get_cron('climate', 'start') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
+        create_cron(get_cron('climate', 'start') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
                         start_time.month, 
                         start_time.day, 
                         start_time.hour, 
@@ -258,8 +258,8 @@ def start_mx_precondition():
 
 
 def setup_stop_cron(vin, stop_time):
-  delete_cron_tab(get_cronjob('climate', 'stop') + ('m3' if vin == M3_VIN else 'mx') + get_cronjob('redirect'))
-  create_cron_tab(get_cronjob('climate', 'stop') + ('m3' if vin == M3_VIN else 'mx') + get_cronjob('redirect'), 
+  delete_cron(get_cron('climate', 'stop') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
+  create_cron(get_cron('climate', 'stop') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
                   stop_time.month, 
                   stop_time.day, 
                   stop_time.hour, 
