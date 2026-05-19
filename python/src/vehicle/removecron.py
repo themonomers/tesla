@@ -1,8 +1,4 @@
-from common.cronutil import (
-  delete_cron_tab,
-  get_cronjob,
-  get_redirect
-)
+from common.cronutil import delete_cron_tab, get_cronjob
 
 
 ##
@@ -16,12 +12,12 @@ def main():
   values = ['m3', 'mx']
 
   for val in values:
-    delete_cron_tab(get_cronjob('climate', 'start') + val + get_redirect())
-    delete_cron_tab(get_cronjob('climate', 'stop') + val + get_redirect())
+    delete_cron_tab(get_cronjob('climate', 'start') + val + get_cronjob('redirect'))
+    delete_cron_tab(get_cronjob('climate', 'stop') + val + get_cronjob('redirect'))
 
-    delete_cron_tab(get_cronjob('charge', 'check') + val + get_redirect())
+    delete_cron_tab(get_cronjob('charge', 'check') + val + get_cronjob('redirect'))
 
-    delete_cron_tab(get_cronjob('api', 'schedule_software_update') + val + get_redirect())
+    delete_cron_tab(get_cronjob('api', 'schedule_software_update') + val + get_cronjob('redirect'))
 
 
 if __name__ == "__main__":

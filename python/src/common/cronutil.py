@@ -5,11 +5,11 @@ from crontab import CronTab
 
 
 ##
-# Retrieves filepaths for configurations and secrets.
+# Crontab tools and retrieving configured cron job commands.
 #
 # author: mjhwa@yahoo.com
 ##
-def get_cronjob(category, option): 
+def get_cronjob(category, option=None): 
   # 1. Dynamically locate the project root relative to this script
   project_root = Path(__file__).resolve().parent.parent.parent
 
@@ -22,10 +22,6 @@ def get_cronjob(category, option):
     return config.get(category)
   else:
     return config.get('command').get(category).get(option)
-
-
-def get_redirect():
-  return get_cronjob('redirect', None)
 
 
 ##

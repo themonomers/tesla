@@ -7,8 +7,7 @@ from common.argutil import CustomHelpFormatter
 from common.cronutil import (
   delete_cron_tab, 
   create_cron_tab, 
-  get_cronjob,
-  get_redirect
+  get_cronjob
 )
 from common.utilities import get_today_time, get_tomorrow_time
 from datetime import datetime
@@ -28,8 +27,12 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 ##
 def schedule_update(vin, time):
   try:
-    delete_cron_tab(get_cronjob('api', 'schedule_software_update') + ('m3' if vin == M3_VIN else 'mx') + get_redirect())
-    create_cron_tab(get_cronjob('api', 'schedule_software_update') + ('m3' if vin == M3_VIN else 'mx') + get_redirect(), 
+    delete_cron_tab(get_cronjob('api', 'schedule_software_update') + 
+                    ('m3' if vin == M3_VIN else 'mx') + 
+                    get_cronjob('redirect'))
+    create_cron_tab(get_cronjob('api', 'schedule_software_update') + 
+                    ('m3' if vin == M3_VIN else 'mx') + 
+                    get_cronjob('redirect'), 
                     time.month, 
                     time.day, 
                     time.hour, 

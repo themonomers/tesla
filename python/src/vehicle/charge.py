@@ -17,8 +17,7 @@ from common.emailutil import send_email
 from common.cronutil import (
   delete_cron_tab, 
   create_cron_tab, 
-  get_cronjob, 
-  get_redirect
+  get_cronjob
 )
 from common.utilities import (
   is_vehicle_at_primary, 
@@ -354,8 +353,8 @@ def schedule_backup_charging(data, start_time):
 
     if (is_vehicle_at_primary(data)):
       # create backup charging start crontab at target time tomorrow
-      delete_cron_tab(get_cronjob('charge', 'check') + ('m3' if vin == M3_VIN else 'mx') + get_redirect())
-      create_cron_tab(get_cronjob('charge', 'check') + ('m3' if vin == M3_VIN else 'mx') + get_redirect(), 
+      delete_cron_tab(get_cronjob('charge', 'check') + ('m3' if vin == M3_VIN else 'mx') + get_cronjob('redirect'))
+      create_cron_tab(get_cronjob('charge', 'check') + ('m3' if vin == M3_VIN else 'mx') + get_cronjob('redirect'), 
                       start_time.month, 
                       start_time.day, 
                       start_time.hour, 
