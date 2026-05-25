@@ -26,7 +26,7 @@ def get_google_sheet_service():
     secret_file, 
     scopes=scopes
   )
-  service = discovery.build('sheets', 'v4', credentials=credentials, cache_discovery=False)
+  service = discovery.build('sheets', 'v4', credentials=credentials)
 
   return service
 

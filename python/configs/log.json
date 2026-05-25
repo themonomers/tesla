@@ -20,6 +20,11 @@
             "level": "INFO",
             "handlers": ["exitOnErrorHandler"],
             "propagate": false
+        }, 
+        "googleapiclient.discovery_cache": {
+            "level": "ERROR",
+            "handlers": ["exitOnErrorHandler"],
+            "propagate": false
         }
     }
 }

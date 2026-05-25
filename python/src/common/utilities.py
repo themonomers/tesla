@@ -235,11 +235,6 @@ def load_log_into_gsheet(days_to_load):
           level = parts[2]
           message = " ".join(parts[3:])
 
-          log().debug('==========')
-          log().debug(f'{timestamp}')
-          log().debug(f'{level}')
-          log().debug(f'{message}')
-          
           log_date = datetime.strptime(str(timestamp), '%Y-%m-%d %H:%M:%S').replace(tzinfo=PAC)
           if log_date > threshold:
             # write this into Google Sheet
