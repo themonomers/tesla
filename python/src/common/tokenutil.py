@@ -24,18 +24,16 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 # author: mjhwa@yahoo.com
 ##
 def get_token():
-  try:
-    buffer = StringIO(
-      decrypt(get_filepath('secrets', 'token'), get_filepath('secrets', 'teslaKey'))
-    )
-    config = configparser.ConfigParser()
-    config.sections()
-    config.read_file(buffer)
-    values = {s:dict(config.items(s)) for s in config.sections()}
-    buffer.close()
-    return values
-  except Exception as e:
-    log().error('get_token(): ' + str(e))
+  buffer = StringIO(
+    decrypt(get_filepath('secrets', 'token'), get_filepath('secrets', 'teslaKey'))
+  )
+  config = configparser.ConfigParser()
+  config.sections()
+  config.read_file(buffer)
+  values = {s:dict(config.items(s)) for s in config.sections()}
+  buffer.close()
+  
+  return values
 
 token = get_token()
 REFRESH_TOKEN = token['tesla']['refresh_token']
@@ -54,20 +52,17 @@ EXPIRES_AT = token['tesla']['expires_at']
 # author: mjhwa@yahoo.com 
 ##
 def new_token():
-  try:
-    with teslapy.Tesla('elon@tesla.com') as tesla:
-        response = tesla.fetch_token()
+  with teslapy.Tesla('elon@tesla.com') as tesla:
+      response = tesla.fetch_token()
 
-    expires_at = datetime.fromtimestamp(response['expires_at'], tz=PAC)
+  expires_at = datetime.fromtimestamp(response['expires_at'], tz=PAC)
 
-    # print outputs to screen
-    print('[tesla]')
-    print('access_token=' + response['access_token'])
-    print('refresh_token=' + response['refresh_token'])
-    print('created_at=' + datetime.strftime(expires_at - timedelta(seconds = response['expires_in']), '%Y-%m-%d %H:%M:%S'))
-    print('expires_at=' + datetime.strftime(expires_at, '%Y-%m-%d %H:%M:%S'))
-  except Exception as e:
-    log().error('new_token(): ' + str(e))
+  # print outputs to screen
+  print('[tesla]')
+  print('access_token=' + response['access_token'])
+  print('refresh_token=' + response['refresh_token'])
+  print('created_at=' + datetime.strftime(expires_at - timedelta(seconds = response['expires_in']), '%Y-%m-%d %H:%M:%S'))
+  print('expires_at=' + datetime.strftime(expires_at, '%Y-%m-%d %H:%M:%S'))
 
 
 ##
@@ -76,35 +71,32 @@ def new_token():
 # author: mjhwa@yahoo.com 
 ##
 def refresh_token():
-  try:
-    url = 'https://auth.tesla.com/oauth2/v3/token'
-    
-    payload = {
-    'grant_type': 'refresh_token',
-    'client_id': 'ownerapi',
-    'refresh_token': REFRESH_TOKEN,
-    'scope': 'openid email offline_access'
-    }
+  url = 'https://auth.tesla.com/oauth2/v3/token'
+  
+  payload = {
+  'grant_type': 'refresh_token',
+  'client_id': 'ownerapi',
+  'refresh_token': REFRESH_TOKEN,
+  'scope': 'openid email offline_access'
+  }
 
-    response = json.loads(requests.post(url, json=payload).text)
+  response = json.loads(requests.post(url, json=payload).text)
 
-    dt = datetime.now().replace(tzinfo=PAC)
+  dt = datetime.now().replace(tzinfo=PAC)
 
-    # Format output
-    message =  '[tesla]\n'
-    message += 'access_token=' + (response)['access_token'] + '\n'
-    message += 'refresh_token=' + (response)['refresh_token'] + '\n'
-    message += 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
-    message += 'expires_at=' + datetime.strftime(dt + timedelta(seconds=(response)['expires_in']), '%Y-%m-%d %H:%M:%S') + '\n'
+  # Format output
+  message =  '[tesla]\n'
+  message += 'access_token=' + (response)['access_token'] + '\n'
+  message += 'refresh_token=' + (response)['refresh_token'] + '\n'
+  message += 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
+  message += 'expires_at=' + datetime.strftime(dt + timedelta(seconds=(response)['expires_in']), '%Y-%m-%d %H:%M:%S') + '\n'
 
-    # Encrypt config file
-    encrypt(
-      message,
-      get_filepath('secrets', 'token'),
-      get_filepath('secrets', 'teslaKey')
-    )
-  except Exception as e:
-    log().error('refresh_token(): ' + str(e))
+  # Encrypt config file
+  encrypt(
+    message,
+    get_filepath('secrets', 'token'),
+    get_filepath('secrets', 'teslaKey')
+  )
 
 
 ##

@@ -46,25 +46,22 @@ WAIT_TIME = 30
 # author: mjhwa@yahoo.com
 ## 
 def set_precondition(data, eco_mode, start_time):
-  try: 
-    vin = data['response']['vin']
+  vin = data['response']['vin']
 
-    # check if eco mode is off first so we don't have to even call the 
-    # Tesla API if we don't have to
-    if (eco_mode == 'off'):
-      # check if the car is with 0.25 miles of the primary location
-      if (is_vehicle_at_primary(data)):
-        # create precondition start crontab at preferred time tomorrow
-        delete_cron(get_cron('climate', 'start') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
-        create_cron(get_cron('climate', 'start') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
-                        start_time.month, 
-                        start_time.day, 
-                        start_time.hour, 
-                        start_time.minute)
-        return start_time
-    return None
-  except Exception as e:
-    log().error('set_precondition(' + vin + '): ' + str(e))
+  # check if eco mode is off first so we don't have to even call the 
+  # Tesla API if we don't have to
+  if (eco_mode == 'off'):
+    # check if the car is with 0.25 miles of the primary location
+    if (is_vehicle_at_primary(data)):
+      # create precondition start crontab at preferred time tomorrow
+      delete_cron(get_cron('climate', 'start') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
+      create_cron(get_cron('climate', 'start') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
+                  start_time.month, 
+                  start_time.day, 
+                  start_time.hour, 
+                  start_time.minute)
+      return start_time
+  return None
 
 
 ##
@@ -260,10 +257,10 @@ def start_mx_precondition():
 def setup_stop_cron(vin, stop_time):
   delete_cron(get_cron('climate', 'stop') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
   create_cron(get_cron('climate', 'stop') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
-                  stop_time.month, 
-                  stop_time.day, 
-                  stop_time.hour, 
-                  stop_time.minute)
+              stop_time.month, 
+              stop_time.day, 
+              stop_time.hour, 
+              stop_time.minute)
 
 ##
 # Sends command to stop vehicle preconditioning based on a previously scheduled

@@ -29,31 +29,28 @@ WAIT_TIME = 30
 # author: mjhwa@yahoo.com 
 ##
 def get_vehicle_data(vin):
-  try:
-    url = (BASE_PROXY_URL
-           + '/vehicles/'
-           + vin 
-           + '/vehicle_data?endpoints='
-           + urllib.parse.quote(
-               'location_data;'
-               + 'charge_state;'
-               + 'climate_state;'
-               + 'vehicle_state;'
-               + 'gui_settings;'
-               + 'vehicle_config;'
-               + 'drive_state;'
-               + 'charge_schedule_data'))
+  url = (BASE_PROXY_URL
+          + '/vehicles/'
+          + vin 
+          + '/vehicle_data?endpoints='
+          + urllib.parse.quote(
+              'location_data;'
+              + 'charge_state;'
+              + 'climate_state;'
+              + 'vehicle_state;'
+              + 'gui_settings;'
+              + 'vehicle_config;'
+              + 'drive_state;'
+              + 'charge_schedule_data'))
 
-    response = send_get(url, CERT)
+  response = send_get(url, CERT)
 
-    if response.status_code != 200:
-      wake_vehicle(vin)
-      time.sleep(WAIT_TIME)
-      return get_vehicle_data(vin)
+  if response.status_code != 200:
+    wake_vehicle(vin)
+    time.sleep(WAIT_TIME)
+    return get_vehicle_data(vin)
 
-    return json.loads(response.text)
-  except Exception as e:
-    log().error('get_vehicle_data(' + vin + '): ' + str(e))
+  return json.loads(response.text)
 
 
 ##
@@ -63,15 +60,12 @@ def get_vehicle_data(vin):
 # author: mjhwa@yahoo.com
 ##
 def wake_vehicle(vin):
-  try:
-    url = (BASE_PROXY_URL
-           + '/vehicles/'
-           + vin 
-           + '/wake_up')
+  url = (BASE_PROXY_URL
+          + '/vehicles/'
+          + vin 
+          + '/wake_up')
 
-    return send_post(url, None, CERT)
-  except Exception as e:
-    log().error('wake_vehicle(' + vin + '): ' + str(e))
+  return send_post(url, None, CERT)
 
 
 ##
@@ -80,13 +74,10 @@ def wake_vehicle(vin):
 # author: mjhwa@yahoo.com
 ##
 def start_charge(vin):
-  try:
-    if vin == MX_VIN:
-      return send_post(get_url(BASE_OWNER_URL, vin, 'charge_start'), None, None)
+  if vin == MX_VIN:
+    return send_post(get_url(BASE_OWNER_URL, vin, 'charge_start'), None, None)
 
-    return send_post(get_url(BASE_PROXY_URL, vin, 'charge_start'), None, CERT)
-  except Exception as e:
-    log().error('start_charge(' + vin + '): ' + str(e))
+  return send_post(get_url(BASE_PROXY_URL, vin, 'charge_start'), None, CERT)
 
 
 ##
@@ -95,13 +86,10 @@ def start_charge(vin):
 # author: mjhwa@yahoo.com
 ##
 def stop_charge(vin):
-  try:
-    if vin == MX_VIN:
-      return send_post(get_url(BASE_OWNER_URL, vin, 'charge_stop'), None, None)
-  
-    return send_post(get_url(BASE_PROXY_URL, vin, 'charge_stop'), None, CERT)
-  except Exception as e:
-    log().error('stop_charge(' + vin + '): ' + str(e))
+  if vin == MX_VIN:
+    return send_post(get_url(BASE_OWNER_URL, vin, 'charge_stop'), None, None)
+
+  return send_post(get_url(BASE_PROXY_URL, vin, 'charge_stop'), None, CERT)
 
 
 ##
@@ -112,25 +100,22 @@ def stop_charge(vin):
 # author: mjhwa@yahoo.com
 ##
 def add_charge_schedule(vin, lat, lon, start_time, id):
-  try:
-    payload = {
-      'days_of_week': 'All',
-      'enabled': True,
-      'start_enabled': True,
-      'end_enabled': False,
-      'lat': lat,
-      'lon': lon,
-      'start_time': start_time,
-      'one_time': False,
-      'id': id
-    }
+  payload = {
+    'days_of_week': 'All',
+    'enabled': True,
+    'start_enabled': True,
+    'end_enabled': False,
+    'lat': lat,
+    'lon': lon,
+    'start_time': start_time,
+    'one_time': False,
+    'id': id
+  }
 
-    if vin == MX_VIN:
-      return send_post(get_url(BASE_OWNER_URL, vin, 'add_charge_schedule'), payload, None)
+  if vin == MX_VIN:
+    return send_post(get_url(BASE_OWNER_URL, vin, 'add_charge_schedule'), payload, None)
 
-    return send_post(get_url(BASE_PROXY_URL, vin, 'add_charge_schedule'), payload, CERT)
-  except Exception as e:
-    log().error('add_charge_schedule(' + vin + '): ' + str(e))
+  return send_post(get_url(BASE_PROXY_URL, vin, 'add_charge_schedule'), payload, CERT)
 
 
 ##
@@ -139,17 +124,14 @@ def add_charge_schedule(vin, lat, lon, start_time, id):
 # author: mjhwa@yahoo.com
 ##
 def remove_charge_schedule(vin, id):
-  try:
-    payload = {
-      'id': id
-    }
+  payload = {
+    'id': id
+  }
 
-    if vin == MX_VIN:
-      return send_post(get_url(BASE_OWNER_URL, vin, 'remove_charge_schedule'), payload, None)
+  if vin == MX_VIN:
+    return send_post(get_url(BASE_OWNER_URL, vin, 'remove_charge_schedule'), payload, None)
 
-    return send_post(get_url(BASE_PROXY_URL, vin, 'remove_charge_schedule'), payload, CERT)
-  except Exception as e:
-    log().error('remove_charge_schedule(' + vin + '): ' + str(e))
+  return send_post(get_url(BASE_PROXY_URL, vin, 'remove_charge_schedule'), payload, CERT)
   
 
 ##
@@ -158,17 +140,14 @@ def remove_charge_schedule(vin, id):
 # author: mjhwa@yahoo.com
 ##
 def set_charging_amps(vin, amps):
-  try:
-    payload = {
-      'charging_amps': amps
-    }
+  payload = {
+    'charging_amps': amps
+  }
 
-    if vin == MX_VIN:
-      return send_post(get_url(BASE_OWNER_URL, vin, 'set_charging_amps'), payload, None)
+  if vin == MX_VIN:
+    return send_post(get_url(BASE_OWNER_URL, vin, 'set_charging_amps'), payload, None)
 
-    return send_post(get_url(BASE_PROXY_URL, vin, 'set_charging_amps'), payload, None)
-  except Exception as e:
-    log().error('set_charging_amps(' + vin + '): ' + str(e))
+  return send_post(get_url(BASE_PROXY_URL, vin, 'set_charging_amps'), payload, None)
 
 
 ##
@@ -181,18 +160,15 @@ def set_charging_amps(vin, amps):
 # author: mjhwa@yahoo.com
 ##
 def set_temp(vin, d_temp, p_temp):
-  try:
-    payload = {
-      'driver_temp': d_temp,
-      'passenger_temp': p_temp
-    }
+  payload = {
+    'driver_temp': d_temp,
+    'passenger_temp': p_temp
+  }
 
-    if vin == MX_VIN:
-      return send_post(get_url(BASE_OWNER_URL, vin, 'set_temps'), payload, None)
+  if vin == MX_VIN:
+    return send_post(get_url(BASE_OWNER_URL, vin, 'set_temps'), payload, None)
 
-    return send_post(get_url(BASE_PROXY_URL, vin, 'set_temps'), payload, CERT)
-  except Exception as e:
-    log().error('set_temp(' + vin + '): ' + str(e))
+  return send_post(get_url(BASE_PROXY_URL, vin, 'set_temps'), payload, CERT)
 
 
 ##
@@ -211,21 +187,20 @@ def set_temp(vin, d_temp, p_temp):
 # author: mjhwa@yahoo.com
 ##
 def set_seat_heating(vin, seat, setting):
-  try:
-    if vin == MX_VIN:
-      payload = {
-        'heater': seat,
-        'level': setting
-      }
-      return send_post(get_url(BASE_OWNER_URL, vin, 'remote_seat_heater_request'), payload, None)
-
+  if vin == MX_VIN:
     payload = {
-      'seat_position': seat,
+      'heater': seat,
       'level': setting
     }
-    return send_post(get_url(BASE_PROXY_URL, vin, 'remote_seat_heater_request'), payload, CERT)
-  except Exception as e:
-    log().error('set_seat_heating(' + vin + '): ' + str(e))
+
+    return send_post(get_url(BASE_OWNER_URL, vin, 'remote_seat_heater_request'), payload, None)
+
+  payload = {
+    'seat_position': seat,
+    'level': setting
+  }
+
+  return send_post(get_url(BASE_PROXY_URL, vin, 'remote_seat_heater_request'), payload, CERT)
 
 
 ##
@@ -241,15 +216,12 @@ def set_seat_heating(vin, seat, setting):
 # author: mjhwa@yahoo.com
 ##
 def set_seat_cooling(vin, seat, setting):
-  try:
-    payload = {
-      'seat_position': seat,
-      'seat_cooler_level': setting
-    }
+  payload = {
+    'seat_position': seat,
+    'seat_cooler_level': setting
+  }
 
-    return send_post(get_url(BASE_PROXY_URL, vin, 'remote_seat_cooler_request'), payload, CERT)
-  except Exception as e:
-    log().error('set_seat_cooling(' + vin + '): ' + str(e))
+  return send_post(get_url(BASE_PROXY_URL, vin, 'remote_seat_cooler_request'), payload, CERT)
 
 
 ##
@@ -263,15 +235,12 @@ def set_seat_cooling(vin, seat, setting):
 # author: mjhwa@yahoo.com
 ##
 def set_seat_climate_auto(vin, enable, seat):
-  try:  
-    payload = {
-      'auto_climate_on': enable,
-      'auto_seat_position': seat
-    }
+  payload = {
+    'auto_climate_on': enable,
+    'auto_seat_position': seat
+  }
 
-    return send_post(get_url(BASE_PROXY_URL, vin, 'remote_auto_seat_climate_request'), payload, CERT)
-  except Exception as e:
-    log().error('set_seat_climate_auto(' + vin + '): ' + str(e))
+  return send_post(get_url(BASE_PROXY_URL, vin, 'remote_auto_seat_climate_request'), payload, CERT)
 
 
 ##
@@ -284,14 +253,11 @@ def set_seat_climate_auto(vin, enable, seat):
 # author: mjhwa@yahoo.com
 ##
 def set_steering_wheel_heating(vin, enable):
-  try:  
-    payload = {
-      'on': enable
-    }
+  payload = {
+    'on': enable
+  }
 
-    return send_post(get_url(BASE_PROXY_URL, vin, 'remote_steering_wheel_heater_request'), payload, CERT)
-  except Exception as e:
-    log().error('set_steering_wheel_heating(' + vin + '): ' + str(e))
+  return send_post(get_url(BASE_PROXY_URL, vin, 'remote_steering_wheel_heater_request'), payload, CERT)
 
 
 ##
@@ -300,13 +266,10 @@ def set_steering_wheel_heating(vin, enable):
 # author: mjhwa@yahoo.com
 ##
 def start_precondition(vin):
-  try:  
-    if vin == MX_VIN:
-      return send_post(get_url(BASE_OWNER_URL, vin, 'auto_conditioning_start'), None, None)
+  if vin == MX_VIN:
+    return send_post(get_url(BASE_OWNER_URL, vin, 'auto_conditioning_start'), None, None)
 
-    return send_post(get_url(BASE_PROXY_URL, vin, 'auto_conditioning_start'), None, CERT)
-  except Exception as e:
-    log().error('start_precondition(' + vin + '): ' + str(e))
+  return send_post(get_url(BASE_PROXY_URL, vin, 'auto_conditioning_start'), None, CERT)
 
 
 ##
@@ -315,13 +278,10 @@ def start_precondition(vin):
 # author: mjhwa@yahoo.com
 ##
 def stop_precondition(vin):
-  try:
-    if vin == MX_VIN:
-      return send_post(get_url(BASE_OWNER_URL, vin, 'auto_conditioning_stop'), None, None)
+  if vin == MX_VIN:
+    return send_post(get_url(BASE_OWNER_URL, vin, 'auto_conditioning_stop'), None, None)
 
-    return send_post(get_url(BASE_PROXY_URL, vin, 'auto_conditioning_stop'), None, CERT)
-  except Exception as e:
-    log().error('stop_precondition(' + vin + '): ' + str(e))
+  return send_post(get_url(BASE_PROXY_URL, vin, 'auto_conditioning_stop'), None, CERT)
 
 
 ##
@@ -362,12 +322,9 @@ def schedule_software_update(vin, offset_sec):
 # author: mjhwa@yahoo.com 
 ##
 def get_vehicle_id(vin):
-  try:
-    data = get_vehicle_data(vin)
+  data = get_vehicle_data(vin)
 
-    return data['response']['id_s']
-  except Exception as e:
-    log().error('get_vehicle_id(' + vin + '): ' + str(e))
+  return data['response']['id_s']
 
 
 ###
@@ -376,24 +333,21 @@ def get_vehicle_id(vin):
 # author: mjhwa@yahoo.com
 ##
 def get_url(base, vin, command):
-  try:
-    url = ''
-    if (base == BASE_OWNER_URL):
-      url = (base
-            + '/vehicles/'
-            + get_vehicle_id(vin)
-            + '/command/'
-            + command)
-    elif (base == BASE_PROXY_URL):
-      url = (base
-            + '/vehicles/'
-            + vin 
-            + '/command/'
-            + command)
-    
-    return url
-  except Exception as e:
-    log().error('get_url(' + url + '): ' + str(e))
+  url = ''
+  if (base == BASE_OWNER_URL):
+    url = (base
+          + '/vehicles/'
+          + get_vehicle_id(vin)
+          + '/command/'
+          + command)
+  elif (base == BASE_PROXY_URL):
+    url = (base
+          + '/vehicles/'
+          + vin 
+          + '/command/'
+          + command)
+  
+  return url
 
 
 def send_get(url, cert):
@@ -410,15 +364,12 @@ def send_post(url, payload, cert):
 # author: mjhwa@yahoo.come
 ##
 def print_all_vehicle_data(vin):
-  try:
-    data = get_vehicle_data(vin)
+  data = get_vehicle_data(vin)
 
-    if ('error' in data):
-      raise Exception (data['error'])
+  if ('error' in data):
+    raise Exception (data['error'])
 
-    print_json(data, 0)
-  except Exception as e:
-    log().error('print_all_vehicle_data(' + vin + '): ' + str(e))
+  print_json(data, 0)
 
 
 def main(parser):

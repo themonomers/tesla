@@ -1,5 +1,4 @@
 from common.configutil import get_config
-from common.logutil import log
 from influxdb import InfluxDBClient
 
 config = get_config()
@@ -15,14 +14,9 @@ INFLUX_PASSWORD = config['influxdb']['password']
 # author: mjhwa@yahoo.com
 ##
 def get_db_client():
-  try:
-    return InfluxDBClient(
-      host=INFLUX_HOST, 
-      port=INFLUX_PORT, 
-      username=INFLUX_USER, 
-      password=INFLUX_PASSWORD
-    )
-  except Exception as e:
-    log().error('get_db_client(): ' + str(e))
-
-
+  return InfluxDBClient(
+    host=INFLUX_HOST, 
+    port=INFLUX_PORT, 
+    username=INFLUX_USER, 
+    password=INFLUX_PASSWORD
+  )

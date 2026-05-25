@@ -56,10 +56,6 @@ WAIT_TIME = 30
 ##
 def notify_is_tesla_plugged_in():
   try:
-    # get all vehicle data to avoid repeat API calls
-    m3_data = get_vehicle_data(M3_VIN)
-    mx_data = get_vehicle_data(MX_VIN)
-
     try:
       # get charging configuration info
       service = get_google_sheet_service()
@@ -79,6 +75,9 @@ def notify_is_tesla_plugged_in():
       time.sleep(WAIT_TIME)
       notify_is_tesla_plugged_in()
 
+    # get all vehicle data to avoid repeat API calls
+    m3_data = get_vehicle_data(M3_VIN)
+    mx_data = get_vehicle_data(MX_VIN)
 
     # send email notification if the car is not plugged in
     charge_port_door_open = m3_data['response']['charge_state']['charge_port_door_open']
@@ -154,90 +153,84 @@ def notify_is_tesla_plugged_in():
 # author: mjhwa@yahoo.com
 ##
 def schedule_m3_charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time): 
-  try:
-    if (m3_data['response']['charge_state']['charging_state'] != 'Complete'):
-      # get calculated start time depending on location of cars
-      if ((is_vehicle_at_primary(m3_data) == True) and
-          (is_vehicle_at_primary(mx_data) == True)):
-        start_time = calculate_scheduled_charging('m3_primary_shared_charging', 
-                                                  m3_data, 
-                                                  mx_data, 
-                                                  m3_target_finish_time, 
-                                                  mx_target_finish_time)
-      elif ((is_vehicle_at_primary(m3_data) == True) and 
-            (is_vehicle_at_primary(mx_data) == False)):
-        start_time = calculate_scheduled_charging('m3_primary_full_rate', 
-                                                  m3_data, 
-                                                  mx_data, 
-                                                  m3_target_finish_time, 
-                                                  mx_target_finish_time)
-      elif (is_vehicle_at_secondary(m3_data)):
-        start_time = calculate_scheduled_charging('m3_secondary_full_rate', 
-                                                  m3_data, 
-                                                  mx_data, 
-                                                  m3_target_finish_time, 
-                                                  mx_target_finish_time)
-      else:
-        return None
-
-      total_minutes = (start_time.hour * 60) + start_time.minute
-
-      # Remove any previous scheduled charging by this program, temporarily set to
-      # id=1, until I can figure out how to view the list of charge schedules and
-      # their corresponding ID's.
-      remove_charge_schedule(M3_VIN, 1)
-      add_charge_schedule(M3_VIN, m3_data['response']['drive_state']['latitude'], m3_data['response']['drive_state']['longitude'], total_minutes, 1)
-      stop_charge(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
-
-      schedule_backup_charging(m3_data, start_time + timedelta(minutes = 10))
-
-      return start_time
+  if (m3_data['response']['charge_state']['charging_state'] != 'Complete'):
+    # get calculated start time depending on location of cars
+    if ((is_vehicle_at_primary(m3_data) == True) and
+        (is_vehicle_at_primary(mx_data) == True)):
+      start_time = calculate_scheduled_charging('m3_primary_shared_charging', 
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
+    elif ((is_vehicle_at_primary(m3_data) == True) and 
+          (is_vehicle_at_primary(mx_data) == False)):
+      start_time = calculate_scheduled_charging('m3_primary_full_rate', 
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
+    elif (is_vehicle_at_secondary(m3_data)):
+      start_time = calculate_scheduled_charging('m3_secondary_full_rate', 
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
     else:
       return None
-  except Exception as e:
-    log().error('schedule_m3_charging(): ' + str(e))
+
+    total_minutes = (start_time.hour * 60) + start_time.minute
+
+    # Remove any previous scheduled charging by this program, temporarily set to
+    # id=1, until I can figure out how to view the list of charge schedules and
+    # their corresponding ID's.
+    remove_charge_schedule(M3_VIN, 1)
+    add_charge_schedule(M3_VIN, m3_data['response']['drive_state']['latitude'], m3_data['response']['drive_state']['longitude'], total_minutes, 1)
+    stop_charge(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
+
+    schedule_backup_charging(m3_data, start_time + timedelta(minutes = 10))
+
+    return start_time
+  else:
+    return None
 
 
 def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time): 
-  try:
-    if (mx_data['response']['charge_state']['charging_state'] != 'Complete'):
-      # get calculated start time depending on location of cars
-      if ((is_vehicle_at_primary(mx_data) == True) and 
-          (is_vehicle_at_primary(m3_data) == True)):
-        start_time = calculate_scheduled_charging('mx_primary_shared_charging',
-                                                  m3_data, 
-                                                  mx_data, 
-                                                  m3_target_finish_time, 
-                                                  mx_target_finish_time)
-      elif ((is_vehicle_at_primary(mx_data) == True) and 
-            (is_vehicle_at_primary(m3_data) == False)):
-        start_time = calculate_scheduled_charging('mx_primary_full_rate', 
-                                                  m3_data, 
-                                                  mx_data, 
-                                                  m3_target_finish_time, 
-                                                  mx_target_finish_time)
-      elif (is_vehicle_at_secondary(mx_data)):
-        start_time = calculate_scheduled_charging('mx_secondary_full_rate', 
-                                                  m3_data, 
-                                                  mx_data, 
-                                                  m3_target_finish_time, 
-                                                  mx_target_finish_time)
-      else:
-        return None
-
-      total_minutes = (start_time.hour * 60) + start_time.minute
-
-      remove_charge_schedule(MX_VIN, 1)
-      add_charge_schedule(MX_VIN, mx_data['response']['drive_state']['latitude'], mx_data['response']['drive_state']['longitude'], total_minutes, 1)
-      stop_charge(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
-
-      schedule_backup_charging(mx_data, start_time + timedelta(minutes = 10))
-
-      return start_time
+  if (mx_data['response']['charge_state']['charging_state'] != 'Complete'):
+    # get calculated start time depending on location of cars
+    if ((is_vehicle_at_primary(mx_data) == True) and 
+        (is_vehicle_at_primary(m3_data) == True)):
+      start_time = calculate_scheduled_charging('mx_primary_shared_charging',
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
+    elif ((is_vehicle_at_primary(mx_data) == True) and 
+          (is_vehicle_at_primary(m3_data) == False)):
+      start_time = calculate_scheduled_charging('mx_primary_full_rate', 
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
+    elif (is_vehicle_at_secondary(mx_data)):
+      start_time = calculate_scheduled_charging('mx_secondary_full_rate', 
+                                                m3_data, 
+                                                mx_data, 
+                                                m3_target_finish_time, 
+                                                mx_target_finish_time)
     else:
       return None
-  except Exception as e:
-    log().error('schedule_mx_charging(): ' + str(e))
+
+    total_minutes = (start_time.hour * 60) + start_time.minute
+
+    remove_charge_schedule(MX_VIN, 1)
+    add_charge_schedule(MX_VIN, mx_data['response']['drive_state']['latitude'], mx_data['response']['drive_state']['longitude'], total_minutes, 1)
+    stop_charge(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
+
+    schedule_backup_charging(mx_data, start_time + timedelta(minutes = 10))
+
+    return start_time
+  else:
+    return None
 
 
 ##
@@ -249,50 +242,47 @@ def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
 # author: mjhwa@yahoo.com
 ##
 def charge_earliest():
-  try:
-    # get all vehicle data to avoid repeat API calls
-    m3_data = get_vehicle_data(M3_VIN)
-    mx_data = get_vehicle_data(MX_VIN)
+  # get all vehicle data to avoid repeat API calls
+  m3_data = get_vehicle_data(M3_VIN)
+  mx_data = get_vehicle_data(MX_VIN)
 
-    finish_times = calculate_finish_time(m3_data, mx_data)
-    m3_finish_time = finish_times['m3_finish_time']
-    mx_finish_time = finish_times['mx_finish_time']
+  finish_times = calculate_finish_time(m3_data, mx_data)
+  m3_finish_time = finish_times['m3_finish_time']
+  mx_finish_time = finish_times['mx_finish_time']
 
-    print('Charging at earliest off-peak time')
-    print('==================================')
-    print('Start time:  ' + get_tomorrow_time(EARLIEST_CHARGING_START_TIME).strftime('%B %d, %Y %I:%M %p'))
-    print('Model 3 estimated finish time:  ' + m3_finish_time.strftime('%B %d, %Y %I:%M %p'))
-    print('Model X estimated finish time:  ' + mx_finish_time.strftime('%B %d, %Y %I:%M %p'))
-    confirm = input('\nDo you want to override scheduled departure to scheduled start at earliest off-peak time (y/N)?: ')
+  print('Charging at earliest off-peak time')
+  print('==================================')
+  print('Start time:  ' + get_tomorrow_time(EARLIEST_CHARGING_START_TIME).strftime('%B %d, %Y %I:%M %p'))
+  print('Model 3 estimated finish time:  ' + m3_finish_time.strftime('%B %d, %Y %I:%M %p'))
+  print('Model X estimated finish time:  ' + mx_finish_time.strftime('%B %d, %Y %I:%M %p'))
+  confirm = input('\nDo you want to override scheduled departure to scheduled start at earliest off-peak time (y/N)?: ')
+  if confirm == 'y':
+    # set cars for scheduled charging at the earliest off-peak time
+    m3_start_time = schedule_earliest_charging(m3_data)
+    mx_start_time = schedule_earliest_charging(mx_data)
+
+    confirm = input('\nDo you want email confirmation (y/N])?: ')
     if confirm == 'y':
-      # set cars for scheduled charging at the earliest off-peak time
-      m3_start_time = schedule_earliest_charging(m3_data)
-      mx_start_time = schedule_earliest_charging(mx_data)
-
-      confirm = input('\nDo you want email confirmation (y/N])?: ')
-      if confirm == 'y':
-        send_scheduled_charge_message('Model 3',
-                                      m3_data,
-                                      m3_start_time,
-                                      m3_finish_time,
-                                      None,
-                                      EMAIL_1,
-                                      '',
-                                      '')
-        send_scheduled_charge_message('Model X',
-                                      mx_data,
-                                      mx_start_time,
-                                      mx_finish_time,
-                                      None,
-                                      EMAIL_1,
-                                      '',
-                                      '')
-      else:
-        print('\nNo email confirmation')
+      send_scheduled_charge_message('Model 3',
+                                    m3_data,
+                                    m3_start_time,
+                                    m3_finish_time,
+                                    None,
+                                    EMAIL_1,
+                                    '',
+                                    '')
+      send_scheduled_charge_message('Model X',
+                                    mx_data,
+                                    mx_start_time,
+                                    mx_finish_time,
+                                    None,
+                                    EMAIL_1,
+                                    '',
+                                    '')
     else:
-      print('\nScheduled start canceled')
-  except Exception as e:
-    log().error('charge_earliest(): ' + str(e))
+      print('\nNo email confirmation')
+  else:
+    print('\nScheduled start canceled')
 
 
 ##
@@ -301,28 +291,25 @@ def charge_earliest():
 # author: mjhwa@yahoo.com
 ##
 def schedule_earliest_charging(data): 
-  try:
-    vin = data['response']['vin']
+  vin = data['response']['vin']
 
-    if (data['response']['charge_state']['charging_state'] != 'Complete' and 
-      is_vehicle_at_primary(data) == True):
-      start_time = get_tomorrow_time(EARLIEST_CHARGING_START_TIME)
-      total_minutes = (start_time.hour * 60) + start_time.minute
+  if (data['response']['charge_state']['charging_state'] != 'Complete' and 
+    is_vehicle_at_primary(data) == True):
+    start_time = get_tomorrow_time(EARLIEST_CHARGING_START_TIME)
+    total_minutes = (start_time.hour * 60) + start_time.minute
 
-      # Remove any previous scheduled charging by this program, temporarily set to
-      # id=1, until I can figure out how to view the list of charge schedules and
-      # their corresponding ID's.
-      remove_charge_schedule(vin, 1)
-      add_charge_schedule(vin, data['response']['drive_state']['latitude'], data['response']['drive_state']['longitude'], total_minutes, 1)
-      stop_charge(vin) # for some reason charging starts sometimes after scheduled charging API is called
+    # Remove any previous scheduled charging by this program, temporarily set to
+    # id=1, until I can figure out how to view the list of charge schedules and
+    # their corresponding ID's.
+    remove_charge_schedule(vin, 1)
+    add_charge_schedule(vin, data['response']['drive_state']['latitude'], data['response']['drive_state']['longitude'], total_minutes, 1)
+    stop_charge(vin) # for some reason charging starts sometimes after scheduled charging API is called
 
-      schedule_backup_charging(data, start_time + timedelta(minutes = 10))
+    schedule_backup_charging(data, start_time + timedelta(minutes = 10))
 
-      return start_time
-    else:
-      return None
-  except Exception as e:
-    log().error('schedule_earliest_charging(' + vin + '): ' + str(e))
+    return start_time
+  else:
+    return None
 
 
 ##
@@ -348,19 +335,16 @@ def check_charge(vin):
 # author: mjhwa@yahoo.com
 ##
 def schedule_backup_charging(data, start_time):
-  try:
-    vin = data['response']['vin']
+  vin = data['response']['vin']
 
-    if (is_vehicle_at_primary(data)):
-      # create backup charging start crontab at target time tomorrow
-      delete_cron(get_cron('charge', 'check') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
-      create_cron(get_cron('charge', 'check') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
-                      start_time.month, 
-                      start_time.day, 
-                      start_time.hour, 
-                      start_time.minute)
-  except Exception as e:
-    log().error('schedule_backup_charging(' + vin + '): ' + str(e))
+  if (is_vehicle_at_primary(data)):
+    # create backup charging start crontab at target time tomorrow
+    delete_cron(get_cron('charge', 'check') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
+    create_cron(get_cron('charge', 'check') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
+                start_time.month, 
+                start_time.day, 
+                start_time.hour, 
+                start_time.minute)
 
 
 ##
@@ -370,189 +354,186 @@ def schedule_backup_charging(data, start_time):
 # author: mjhwa@yahoo.com
 ##
 def calculate_scheduled_charging(scenario, m3_data, mx_data, m3_target_finish_time, mx_target_finish_time):
-  try:
-    miles_needed = calculate_miles_needed(m3_data, mx_data)
-    mx_miles_needed = miles_needed['mx_miles_needed']
-    m3_miles_needed = miles_needed['m3_miles_needed']
+  miles_needed = calculate_miles_needed(m3_data, mx_data)
+  mx_miles_needed = miles_needed['mx_miles_needed']
+  m3_miles_needed = miles_needed['m3_miles_needed']
 
-    # Calculate scheduled charging time based on location of cars
-    if ((scenario == 'mx_primary_shared_charging') or (scenario == 'm3_primary_shared_charging')):
-      mx_charging_time_at_full_rate = mx_miles_needed / MX_FULL_CHARGE_RATE_AT_PRIMARY  # hours
-      m3_charging_time_at_full_rate = m3_miles_needed / M3_FULL_CHARGE_RATE_AT_PRIMARY  # hours
+  # Calculate scheduled charging time based on location of cars
+  if ((scenario == 'mx_primary_shared_charging') or (scenario == 'm3_primary_shared_charging')):
+    mx_charging_time_at_full_rate = mx_miles_needed / MX_FULL_CHARGE_RATE_AT_PRIMARY  # hours
+    m3_charging_time_at_full_rate = m3_miles_needed / M3_FULL_CHARGE_RATE_AT_PRIMARY  # hours
 
-      mx_start_time_at_full_rate = mx_target_finish_time - timedelta(hours = mx_charging_time_at_full_rate)
-      m3_start_time_at_full_rate = m3_target_finish_time - timedelta(hours = m3_charging_time_at_full_rate)
+    mx_start_time_at_full_rate = mx_target_finish_time - timedelta(hours = mx_charging_time_at_full_rate)
+    m3_start_time_at_full_rate = m3_target_finish_time - timedelta(hours = m3_charging_time_at_full_rate)
 
-      # Determine if there is a charging time overlap
-      Range = namedtuple('Range', ['start', 'end'])
-      r1 = Range(start = mx_start_time_at_full_rate, end = mx_target_finish_time)
-      r2 = Range(start = m3_start_time_at_full_rate, end = m3_target_finish_time)
-      latest_start = max(r1.start, r2.start)
-      earliest_end = min(r1.end, r2.end)
-      delta = (earliest_end - latest_start).total_seconds()
-      overlap = max(0, delta)
+    # Determine if there is a charging time overlap
+    Range = namedtuple('Range', ['start', 'end'])
+    r1 = Range(start = mx_start_time_at_full_rate, end = mx_target_finish_time)
+    r2 = Range(start = m3_start_time_at_full_rate, end = m3_target_finish_time)
+    latest_start = max(r1.start, r2.start)
+    earliest_end = min(r1.end, r2.end)
+    delta = (earliest_end - latest_start).total_seconds()
+    overlap = max(0, delta)
 
-      # 1.  Charging times don't overlap
-      #
-      #                                     Charging at full rate   | 10:00
-      # Car 1                           |===========================|
-      # Car 2 |======================|
-      #        Charging at full rate | 7:00
-      if (overlap <= 0):
-        if (scenario == 'm3_primary_shared_charging'): 
-          return m3_start_time_at_full_rate
+    # 1.  Charging times don't overlap
+    #
+    #                                     Charging at full rate   | 10:00
+    # Car 1                           |===========================|
+    # Car 2 |======================|
+    #        Charging at full rate | 7:00
+    if (overlap <= 0):
+      if (scenario == 'm3_primary_shared_charging'): 
+        return m3_start_time_at_full_rate
 
-        if (scenario == 'mx_primary_shared_charging'): 
-          return mx_start_time_at_full_rate
-          
-      else:
-      # 2a.  Charging times overlap, fully with different finish times
-      #
-      #       Charging at 
-      #       full rate                        Charging at full rate | 10:00
-      # Car 1 |============|==============|==========================|
-      # Car 2              |==============|
-      #             Charging at half rate | 7:00
-        if (mx_target_finish_time != m3_target_finish_time and 
-            ((mx_start_time_at_full_rate < m3_start_time_at_full_rate and mx_target_finish_time > m3_target_finish_time) or
-             (m3_start_time_at_full_rate < mx_start_time_at_full_rate and m3_target_finish_time > mx_target_finish_time))):
-          # Find the longer session
-          if (mx_target_finish_time - mx_start_time_at_full_rate).total_seconds() > (m3_target_finish_time - m3_start_time_at_full_rate).total_seconds():
-            # Car 2
-            m3_charging_time_at_half_rate = m3_miles_needed / (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2)
-            m3_start_time = m3_target_finish_time - timedelta(hours = m3_charging_time_at_half_rate)
+      if (scenario == 'mx_primary_shared_charging'): 
+        return mx_start_time_at_full_rate
+        
+    else:
+    # 2a.  Charging times overlap, fully with different finish times
+    #
+    #       Charging at 
+    #       full rate                        Charging at full rate | 10:00
+    # Car 1 |============|==============|==========================|
+    # Car 2              |==============|
+    #             Charging at half rate | 7:00
+      if (mx_target_finish_time != m3_target_finish_time and 
+          ((mx_start_time_at_full_rate < m3_start_time_at_full_rate and mx_target_finish_time > m3_target_finish_time) or
+            (m3_start_time_at_full_rate < mx_start_time_at_full_rate and m3_target_finish_time > mx_target_finish_time))):
+        # Find the longer session
+        if (mx_target_finish_time - mx_start_time_at_full_rate).total_seconds() > (m3_target_finish_time - m3_start_time_at_full_rate).total_seconds():
+          # Car 2
+          m3_charging_time_at_half_rate = m3_miles_needed / (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2)
+          m3_start_time = m3_target_finish_time - timedelta(hours = m3_charging_time_at_half_rate)
 
-            # Car 1
-            mx_miles_added_at_full_rate = (mx_target_finish_time - m3_target_finish_time).total_seconds() / 60 / 60 * MX_FULL_CHARGE_RATE_AT_PRIMARY
-            mx_miles_added_at_half_rate = m3_charging_time_at_half_rate * (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2)
-            mx_miles_remaining = mx_miles_needed - mx_miles_added_at_full_rate - mx_miles_added_at_half_rate
-            mx_start_time = (mx_target_finish_time 
-                             - timedelta(hours = mx_miles_added_at_full_rate / MX_FULL_CHARGE_RATE_AT_PRIMARY)
-                             - timedelta(hours = mx_miles_added_at_half_rate / (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2))
-                             - timedelta(hours = mx_miles_remaining / MX_FULL_CHARGE_RATE_AT_PRIMARY)
-                            )
-
-          else:
-            # Car 2
-            mx_charging_time_at_half_rate = mx_miles_needed / (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2)
-            mx_start_time = mx_target_finish_time - timedelta(hours = mx_charging_time_at_half_rate)
-
-            # Car 1
-            m3_miles_added_at_full_rate = (m3_target_finish_time - mx_target_finish_time).total_seconds() / 60 / 60 * M3_FULL_CHARGE_RATE_AT_PRIMARY
-            m3_miles_added_at_half_rate = mx_charging_time_at_half_rate * (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2)
-            m3_miles_remaining = m3_miles_needed - m3_miles_added_at_full_rate - m3_miles_added_at_half_rate
-            m3_start_time = (m3_target_finish_time 
-                             - timedelta(hours = m3_miles_added_at_full_rate / M3_FULL_CHARGE_RATE_AT_PRIMARY)
-                             - timedelta(hours = m3_miles_added_at_half_rate / (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2))
-                             - timedelta(hours = m3_miles_remaining / M3_FULL_CHARGE_RATE_AT_PRIMARY)
-                            )
-
-      # 2b.  Charging times overlap, partially
-      #
-      #                                        Charging at full rate | 10:00
-      # Car 1                      |=======|=========================|
-      # Car 2 |====================|=======|
-      #        Charging at full            | 7:00
-      #        rate                Charging at 
-      #                            half rate
-        elif (mx_target_finish_time > m3_target_finish_time):
           # Car 1
-          mx_miles_added_at_full_rate = ((mx_target_finish_time - m3_target_finish_time).total_seconds() 
-                                          / 60 / 60 
-                                          * MX_FULL_CHARGE_RATE_AT_PRIMARY)
-          mx_miles_remaining = mx_miles_needed - mx_miles_added_at_full_rate
-          mx_charging_time_at_half_rate = mx_miles_remaining / (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2)  # hours
-          mx_start_time = m3_target_finish_time - timedelta(hours = mx_charging_time_at_half_rate)
+          mx_miles_added_at_full_rate = (mx_target_finish_time - m3_target_finish_time).total_seconds() / 60 / 60 * MX_FULL_CHARGE_RATE_AT_PRIMARY
+          mx_miles_added_at_half_rate = m3_charging_time_at_half_rate * (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2)
+          mx_miles_remaining = mx_miles_needed - mx_miles_added_at_full_rate - mx_miles_added_at_half_rate
+          mx_start_time = (mx_target_finish_time 
+                            - timedelta(hours = mx_miles_added_at_full_rate / MX_FULL_CHARGE_RATE_AT_PRIMARY)
+                            - timedelta(hours = mx_miles_added_at_half_rate / (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2))
+                            - timedelta(hours = mx_miles_remaining / MX_FULL_CHARGE_RATE_AT_PRIMARY)
+                          )
+
+        else:
+          # Car 2
+          mx_charging_time_at_half_rate = mx_miles_needed / (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2)
+          mx_start_time = mx_target_finish_time - timedelta(hours = mx_charging_time_at_half_rate)
+
+          # Car 1
+          m3_miles_added_at_full_rate = (m3_target_finish_time - mx_target_finish_time).total_seconds() / 60 / 60 * M3_FULL_CHARGE_RATE_AT_PRIMARY
+          m3_miles_added_at_half_rate = mx_charging_time_at_half_rate * (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2)
+          m3_miles_remaining = m3_miles_needed - m3_miles_added_at_full_rate - m3_miles_added_at_half_rate
+          m3_start_time = (m3_target_finish_time 
+                            - timedelta(hours = m3_miles_added_at_full_rate / M3_FULL_CHARGE_RATE_AT_PRIMARY)
+                            - timedelta(hours = m3_miles_added_at_half_rate / (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2))
+                            - timedelta(hours = m3_miles_remaining / M3_FULL_CHARGE_RATE_AT_PRIMARY)
+                          )
+
+    # 2b.  Charging times overlap, partially
+    #
+    #                                        Charging at full rate | 10:00
+    # Car 1                      |=======|=========================|
+    # Car 2 |====================|=======|
+    #        Charging at full            | 7:00
+    #        rate                Charging at 
+    #                            half rate
+      elif (mx_target_finish_time > m3_target_finish_time):
+        # Car 1
+        mx_miles_added_at_full_rate = ((mx_target_finish_time - m3_target_finish_time).total_seconds() 
+                                        / 60 / 60 
+                                        * MX_FULL_CHARGE_RATE_AT_PRIMARY)
+        mx_miles_remaining = mx_miles_needed - mx_miles_added_at_full_rate
+        mx_charging_time_at_half_rate = mx_miles_remaining / (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2)  # hours
+        mx_start_time = m3_target_finish_time - timedelta(hours = mx_charging_time_at_half_rate)
+
+        # Car 2
+        m3_miles_added_at_half_rate = ((m3_target_finish_time - mx_start_time).total_seconds()
+                                        / 60 / 60 
+                                        * (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2))
+        m3_miles_remaining = m3_miles_needed - m3_miles_added_at_half_rate
+        m3_charging_time_at_full_rate = m3_miles_remaining / M3_FULL_CHARGE_RATE_AT_PRIMARY  # hours
+        m3_start_time = mx_start_time - timedelta(hours = m3_charging_time_at_full_rate)
+
+      elif (mx_target_finish_time < m3_target_finish_time):
+        # Car 1
+        m3_miles_added_at_full_rate = ((m3_target_finish_time - mx_target_finish_time).total_seconds() 
+                                        / 60 / 60 
+                                        * M3_FULL_CHARGE_RATE_AT_PRIMARY)
+        m3_miles_remaining = m3_miles_needed - m3_miles_added_at_full_rate
+        m3_charging_time_at_half_rate = m3_miles_remaining / (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2)  # hours
+        m3_start_time = mx_target_finish_time - timedelta(hours = m3_charging_time_at_half_rate)
+
+        # Car 2
+        mx_miles_added_at_half_rate = ((mx_target_finish_time - m3_start_time).total_seconds()
+                                        / 60 / 60 
+                                        * (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2))
+        mx_miles_remaining = mx_miles_needed - mx_miles_added_at_half_rate
+        mx_charging_time_at_full_rate = mx_miles_remaining / MX_FULL_CHARGE_RATE_AT_PRIMARY  # hours
+        mx_start_time = m3_start_time - timedelta(hours = mx_charging_time_at_full_rate)
+    
+    # 2c.  Charging times overlap, fully with the same finish times
+    #          
+    # For the longer/earlier start time, calculate the start time based on a part of 
+    # the charging session being at half rate and another part at full rate.  The session 
+    # will charge at half rate when the other car begins charging but the difference in 
+    # miles/charge that starts before the other car will be at full rate.
+    #
+    #                                  Charging at half rate   | 07:00
+    # Car 1                        |===========================|
+    # Car 2 |======================|===========================|
+    #        Charging at full rate 
+      elif (mx_target_finish_time == m3_target_finish_time):
+        mx_charging_time_at_half_rate = mx_miles_needed / (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2)  # hours
+        m3_charging_time_at_half_rate = m3_miles_needed / (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2)  # hours
+
+        mx_start_time_at_half_rate = mx_target_finish_time - timedelta(hours = mx_charging_time_at_half_rate)
+        m3_start_time_at_half_rate = m3_target_finish_time - timedelta(hours = m3_charging_time_at_half_rate)
+
+        if (mx_start_time_at_half_rate < m3_start_time_at_half_rate):
+          # Car 1 (The shorter/later start time will charge at half rate the entire session)
+          m3_start_time = m3_start_time_at_half_rate
 
           # Car 2
-          m3_miles_added_at_half_rate = ((m3_target_finish_time - mx_start_time).total_seconds()
-                                          / 60 / 60 
-                                          * (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2))
-          m3_miles_remaining = m3_miles_needed - m3_miles_added_at_half_rate
-          m3_charging_time_at_full_rate = m3_miles_remaining / M3_FULL_CHARGE_RATE_AT_PRIMARY  # hours
-          m3_start_time = mx_start_time - timedelta(hours = m3_charging_time_at_full_rate)
-
-        elif (mx_target_finish_time < m3_target_finish_time):
-          # Car 1
-          m3_miles_added_at_full_rate = ((m3_target_finish_time - mx_target_finish_time).total_seconds() 
-                                          / 60 / 60 
-                                          * M3_FULL_CHARGE_RATE_AT_PRIMARY)
-          m3_miles_remaining = m3_miles_needed - m3_miles_added_at_full_rate
-          m3_charging_time_at_half_rate = m3_miles_remaining / (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2)  # hours
-          m3_start_time = mx_target_finish_time - timedelta(hours = m3_charging_time_at_half_rate)
-
-          # Car 2
-          mx_miles_added_at_half_rate = ((mx_target_finish_time - m3_start_time).total_seconds()
+          mx_miles_added_at_half_rate = ((mx_target_finish_time - m3_start_time_at_half_rate).total_seconds() 
                                           / 60 / 60 
                                           * (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2))
           mx_miles_remaining = mx_miles_needed - mx_miles_added_at_half_rate
-          mx_charging_time_at_full_rate = mx_miles_remaining / MX_FULL_CHARGE_RATE_AT_PRIMARY  # hours
-          mx_start_time = m3_start_time - timedelta(hours = mx_charging_time_at_full_rate)
-      
-      # 2c.  Charging times overlap, fully with the same finish times
-      #          
-      # For the longer/earlier start time, calculate the start time based on a part of 
-      # the charging session being at half rate and another part at full rate.  The session 
-      # will charge at half rate when the other car begins charging but the difference in 
-      # miles/charge that starts before the other car will be at full rate.
-      #
-      #                                  Charging at half rate   | 07:00
-      # Car 1                        |===========================|
-      # Car 2 |======================|===========================|
-      #        Charging at full rate 
-        elif (mx_target_finish_time == m3_target_finish_time):
-          mx_charging_time_at_half_rate = mx_miles_needed / (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2)  # hours
-          m3_charging_time_at_half_rate = m3_miles_needed / (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2)  # hours
+          mx_miles_remaining_charging_time_at_full_rate = mx_miles_remaining / MX_FULL_CHARGE_RATE_AT_PRIMARY
+          mx_start_time = m3_start_time_at_half_rate - timedelta(hours = mx_miles_remaining_charging_time_at_full_rate)
+        else:
+          # Car 1 (The shorter/later start time will charge at half rate the entire session)
+          mx_start_time = mx_start_time_at_half_rate
 
-          mx_start_time_at_half_rate = mx_target_finish_time - timedelta(hours = mx_charging_time_at_half_rate)
-          m3_start_time_at_half_rate = m3_target_finish_time - timedelta(hours = m3_charging_time_at_half_rate)
+          # Car 2
+          m3_miles_added_at_half_rate = ((m3_target_finish_time - mx_start_time_at_half_rate).total_seconds() 
+                                          / 60 / 60 
+                                          * (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2))
+          m3_miles_remaining = m3_miles_needed - m3_miles_added_at_half_rate
+          m3_miles_remaining_charging_time_at_full_rate = m3_miles_remaining / M3_FULL_CHARGE_RATE_AT_PRIMARY
+          m3_start_time = mx_start_time_at_half_rate - timedelta(hours = m3_miles_remaining_charging_time_at_full_rate)
 
-          if (mx_start_time_at_half_rate < m3_start_time_at_half_rate):
-            # Car 1 (The shorter/later start time will charge at half rate the entire session)
-            m3_start_time = m3_start_time_at_half_rate
+      if (scenario == 'm3_primary_shared_charging'): 
+        return m3_start_time
 
-            # Car 2
-            mx_miles_added_at_half_rate = ((mx_target_finish_time - m3_start_time_at_half_rate).total_seconds() 
-                                            / 60 / 60 
-                                            * (MX_FULL_CHARGE_RATE_AT_PRIMARY / 2))
-            mx_miles_remaining = mx_miles_needed - mx_miles_added_at_half_rate
-            mx_miles_remaining_charging_time_at_full_rate = mx_miles_remaining / MX_FULL_CHARGE_RATE_AT_PRIMARY
-            mx_start_time = m3_start_time_at_half_rate - timedelta(hours = mx_miles_remaining_charging_time_at_full_rate)
-          else:
-            # Car 1 (The shorter/later start time will charge at half rate the entire session)
-            mx_start_time = mx_start_time_at_half_rate
+      if (scenario == 'mx_primary_shared_charging'): 
+        return mx_start_time
+  elif (scenario == 'mx_primary_full_rate'):
+    mx_start_time = mx_target_finish_time - timedelta(hours = (mx_miles_needed / MX_FULL_CHARGE_RATE_AT_PRIMARY))
+    
+    return mx_start_time
+  elif (scenario == 'm3_primary_full_rate'):
+    m3_start_time = m3_target_finish_time - timedelta(hours = (m3_miles_needed / M3_FULL_CHARGE_RATE_AT_PRIMARY))
+    
+    return m3_start_time
+  elif (scenario == 'mx_secondary_full_rate'):
+    mx_start_time = mx_target_finish_time - timedelta(hours = (mx_miles_needed / MX_FULL_CHARGE_RATE_AT_SECONDARY))
+    
+    return mx_start_time
+  elif (scenario == 'm3_secondary_full_rate'):
+    m3_start_time = m3_target_finish_time - timedelta(hours = (m3_miles_needed / M3_FULL_CHARGE_RATE_AT_SECONDARY))
 
-            # Car 2
-            m3_miles_added_at_half_rate = ((m3_target_finish_time - mx_start_time_at_half_rate).total_seconds() 
-                                            / 60 / 60 
-                                            * (M3_FULL_CHARGE_RATE_AT_PRIMARY / 2))
-            m3_miles_remaining = m3_miles_needed - m3_miles_added_at_half_rate
-            m3_miles_remaining_charging_time_at_full_rate = m3_miles_remaining / M3_FULL_CHARGE_RATE_AT_PRIMARY
-            m3_start_time = mx_start_time_at_half_rate - timedelta(hours = m3_miles_remaining_charging_time_at_full_rate)
-
-        if (scenario == 'm3_primary_shared_charging'): 
-          return m3_start_time
-
-        if (scenario == 'mx_primary_shared_charging'): 
-          return mx_start_time
-    elif (scenario == 'mx_primary_full_rate'):
-      mx_start_time = mx_target_finish_time - timedelta(hours = (mx_miles_needed / MX_FULL_CHARGE_RATE_AT_PRIMARY))
-      
-      return mx_start_time
-    elif (scenario == 'm3_primary_full_rate'):
-      m3_start_time = m3_target_finish_time - timedelta(hours = (m3_miles_needed / M3_FULL_CHARGE_RATE_AT_PRIMARY))
-      
-      return m3_start_time
-    elif (scenario == 'mx_secondary_full_rate'):
-      mx_start_time = mx_target_finish_time - timedelta(hours = (mx_miles_needed / MX_FULL_CHARGE_RATE_AT_SECONDARY))
-      
-      return mx_start_time
-    elif (scenario == 'm3_secondary_full_rate'):
-      m3_start_time = m3_target_finish_time - timedelta(hours = (m3_miles_needed / M3_FULL_CHARGE_RATE_AT_SECONDARY))
-
-      return m3_start_time
-  except Exception as e:
-    log().error('calculate_scheduled_charging(' + scenario + '): ' + str(e))
+    return m3_start_time
 
 
 ##
@@ -561,37 +542,35 @@ def calculate_scheduled_charging(scenario, m3_data, mx_data, m3_target_finish_ti
 # author: mjhwa@yahoo.com
 ##
 def calculate_finish_time(m3_data, mx_data):
-  try:
-    miles_needed = calculate_miles_needed(m3_data, mx_data)
+  miles_needed = calculate_miles_needed(m3_data, mx_data)
 
-    # Calculate how long charging will take based on miles needed
-    mx_charging_time_at_full_rate = miles_needed['mx_miles_needed'] / MX_FULL_CHARGE_RATE_AT_PRIMARY
-    m3_charging_time_at_full_rate = miles_needed['m3_miles_needed'] / M3_FULL_CHARGE_RATE_AT_PRIMARY
+  # Calculate how long charging will take based on miles needed
+  mx_charging_time_at_full_rate = miles_needed['mx_miles_needed'] / MX_FULL_CHARGE_RATE_AT_PRIMARY
+  m3_charging_time_at_full_rate = miles_needed['m3_miles_needed'] / M3_FULL_CHARGE_RATE_AT_PRIMARY
 
-    leftover_time = 0
-    mx_charging_time = 0
-    m3_charging_time = 0 
-    if mx_charging_time_at_full_rate > m3_charging_time_at_full_rate:
-      leftover_time = mx_charging_time_at_full_rate - m3_charging_time_at_full_rate
+  leftover_time = 0
+  mx_charging_time = 0
+  m3_charging_time = 0 
+  if mx_charging_time_at_full_rate > m3_charging_time_at_full_rate:
+    leftover_time = mx_charging_time_at_full_rate - m3_charging_time_at_full_rate
 
-      mx_charging_time = (m3_charging_time_at_full_rate * 2) + leftover_time
-      m3_charging_time = m3_charging_time_at_full_rate * 2
-    elif mx_charging_time_at_full_rate < m3_charging_time_at_full_rate:
-      leftover_time = m3_charging_time_at_full_rate - mx_charging_time_at_full_rate
+    mx_charging_time = (m3_charging_time_at_full_rate * 2) + leftover_time
+    m3_charging_time = m3_charging_time_at_full_rate * 2
+  elif mx_charging_time_at_full_rate < m3_charging_time_at_full_rate:
+    leftover_time = m3_charging_time_at_full_rate - mx_charging_time_at_full_rate
 
-      mx_charging_time = mx_charging_time_at_full_rate * 2
-      m3_charging_time = (mx_charging_time_at_full_rate * 2) + leftover_time
+    mx_charging_time = mx_charging_time_at_full_rate * 2
+    m3_charging_time = (mx_charging_time_at_full_rate * 2) + leftover_time
 
-    mx_finish_time = get_tomorrow_time(EARLIEST_CHARGING_START_TIME) + timedelta(hours = mx_charging_time)
-    m3_finish_time = get_tomorrow_time(EARLIEST_CHARGING_START_TIME) + timedelta(hours = m3_charging_time)
+  mx_finish_time = get_tomorrow_time(EARLIEST_CHARGING_START_TIME) + timedelta(hours = mx_charging_time)
+  m3_finish_time = get_tomorrow_time(EARLIEST_CHARGING_START_TIME) + timedelta(hours = m3_charging_time)
 
-    finish_times = {
-        "mx_finish_time": mx_finish_time,
-        "m3_finish_time": m3_finish_time
-    }
-    return finish_times
-  except Exception as e:
-    log().error('calculate_finish_time(): ' + str(e))
+  finish_times = {
+      "mx_finish_time": mx_finish_time,
+      "m3_finish_time": m3_finish_time
+  }
+
+  return finish_times
 
 
 ##
@@ -601,33 +580,31 @@ def calculate_finish_time(m3_data, mx_data):
 # author: mjhwa@yahoo.com
 ##
 def calculate_miles_needed(m3_data, mx_data):
-  try:
-    mx_current_range = mx_data['response']['charge_state']['battery_range']
-    m3_current_range = m3_data['response']['charge_state']['battery_range']
+  mx_current_range = mx_data['response']['charge_state']['battery_range']
+  m3_current_range = m3_data['response']['charge_state']['battery_range']
 
-    mx_max_range = (   mx_data['response']['charge_state']['battery_range'] 
-                    / (mx_data['response']['charge_state']['battery_level'] / 100.0))
-    m3_max_range = (   m3_data['response']['charge_state']['battery_range'] 
-                    / (m3_data['response']['charge_state']['battery_level'] / 100.0))
+  mx_max_range = (   mx_data['response']['charge_state']['battery_range'] 
+                  / (mx_data['response']['charge_state']['battery_level'] / 100.0))
+  m3_max_range = (   m3_data['response']['charge_state']['battery_range'] 
+                  / (m3_data['response']['charge_state']['battery_level'] / 100.0))
 
-    mx_charge_limit = mx_data['response']['charge_state']['charge_limit_soc'] / 100.0
-    m3_charge_limit = m3_data['response']['charge_state']['charge_limit_soc'] / 100.0
+  mx_charge_limit = mx_data['response']['charge_state']['charge_limit_soc'] / 100.0
+  m3_charge_limit = m3_data['response']['charge_state']['charge_limit_soc'] / 100.0
 
-    mx_target_range = mx_max_range * mx_charge_limit
-    m3_target_range = m3_max_range * m3_charge_limit
+  mx_target_range = mx_max_range * mx_charge_limit
+  m3_target_range = m3_max_range * m3_charge_limit
 
-    mx_miles_needed = 0
-    if (mx_target_range - mx_current_range) > 0: mx_miles_needed = mx_target_range - mx_current_range
-    m3_miles_needed = 0
-    if (m3_target_range - m3_current_range) > 0: m3_miles_needed = m3_target_range - m3_current_range
+  mx_miles_needed = 0
+  if (mx_target_range - mx_current_range) > 0: mx_miles_needed = mx_target_range - mx_current_range
+  m3_miles_needed = 0
+  if (m3_target_range - m3_current_range) > 0: m3_miles_needed = m3_target_range - m3_current_range
 
-    miles_needed = {
-        "mx_miles_needed": mx_miles_needed,
-        "m3_miles_needed": m3_miles_needed
-    }
-    return miles_needed
-  except Exception as e:
-    log().error('calculate_miles_needed(): ' + str(e))
+  miles_needed = {
+      "mx_miles_needed": mx_miles_needed,
+      "m3_miles_needed": m3_miles_needed
+  }
+  
+  return miles_needed
 
 
 def send_plugged_in_message(vehicle, battery_level, battery_range, charge_port_door_open, notify, to, cc, bcc):

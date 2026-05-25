@@ -19,18 +19,16 @@ WAIT_TIME = 30
 # author: mjhwa@yahoo.com
 ##
 def get_google_sheet_service():
-  try:
-    scopes = ['https://www.googleapis.com/auth/spreadsheets']
-    secret_file = (get_filepath('secrets', 'googleSheetCred'))
+  scopes = ['https://www.googleapis.com/auth/spreadsheets']
+  secret_file = (get_filepath('secrets', 'googleSheetCred'))
 
-    credentials = service_account.Credentials.from_service_account_file(
-      secret_file, 
-      scopes=scopes
-    )
-    service = discovery.build('sheets', 'v4', credentials=credentials, cache_discovery=False)
-    return service
-  except Exception as e:
-    log().error('get_google_sheet_service(): ' + str(e))
+  credentials = service_account.Credentials.from_service_account_file(
+    secret_file, 
+    scopes=scopes
+  )
+  service = discovery.build('sheets', 'v4', credentials=credentials, cache_discovery=False)
+
+  return service
 
 
 ##
@@ -65,40 +63,37 @@ def find_open_row(sheet_id, sheet_name, range):
 # author: mjhwa@yahoo.com
 ##
 def get_google_mail_service():
-  try:
-    # If modifying these scopes, delete the file gmail_token.json.
-    scopes = ['https://www.googleapis.com/auth/gmail.modify']
+  # If modifying these scopes, delete the file gmail_token.json.
+  scopes = ['https://www.googleapis.com/auth/gmail.modify']
 
-    creds = None
-    # The file gmail_token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists(get_filepath('secrets', 'googleMailToken')):
-      creds = Credentials.from_authorized_user_file(get_filepath('secrets', 'googleMailToken'), scopes)
+  creds = None
+  # The file gmail_token.json stores the user's access and refresh tokens, and is
+  # created automatically when the authorization flow completes for the first
+  # time.
+  if os.path.exists(get_filepath('secrets', 'googleMailToken')):
+    creds = Credentials.from_authorized_user_file(get_filepath('secrets', 'googleMailToken'), scopes)
 
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-      if creds and creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-      else:
-        flow = InstalledAppFlow.from_client_secrets_file(
-          get_filepath('secrets', 'googleMailSecret'), 
-          scopes,
-          redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
-        )
+  # If there are no (valid) credentials available, let the user log in.
+  if not creds or not creds.valid:
+    if creds and creds.expired and creds.refresh_token:
+      creds.refresh(Request())
+    else:
+      flow = InstalledAppFlow.from_client_secrets_file(
+        get_filepath('secrets', 'googleMailSecret'), 
+        scopes,
+        redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
+      )
 
-        # Tell the user to go to the authorization URL.
-        # The user will get an authorization code. This code is used to get the
-        # access token.
-        print('Please go to this URL: ')
-        auth_url, _ = flow.authorization_url(prompt='consent')
-        creds = flow.run_console(format(auth_url))
+      # Tell the user to go to the authorization URL.
+      # The user will get an authorization code. This code is used to get the
+      # access token.
+      print('Please go to this URL: ')
+      auth_url, _ = flow.authorization_url(prompt='consent')
+      creds = flow.run_console(format(auth_url))
 
-      # Save the credentials for the next run
-      with open(get_filepath('secrets', 'googleMailToken'), 'w') as token:
-        token.write(creds.to_json())
-        token.close()
+    # Save the credentials for the next run
+    with open(get_filepath('secrets', 'googleMailToken'), 'w') as token:
+      token.write(creds.to_json())
+      token.close()
 
-    return build('gmail', 'v1', credentials=creds)
-  except Exception as e:
-    log().error('get_google_mail_service(): ' + str(e))
+  return build('gmail', 'v1', credentials=creds)

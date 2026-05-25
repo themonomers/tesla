@@ -22,7 +22,7 @@ def get_cron(category, option=None):
   if category == 'redirect':
     return config.get(category)
   else:
-    return config.get('command').get(category).get(option)
+    return config.get('commands').get(category).get(option)
 
 
 ##

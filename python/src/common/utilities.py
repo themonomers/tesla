@@ -65,20 +65,17 @@ def is_vehicle_at_location(data, lat, lng):
 
 
 def get_distance(car_lat, car_lng, x_lat, x_lng):
-  try:
-    diff_lat = to_rad(car_lat - x_lat)
-    diff_lng = to_rad(car_lng - x_lng)  
-    
-    a = ((math.sin(diff_lat/2) * math.sin(diff_lat/2)) 
-          + math.cos(x_lat) 
-          * math.cos(car_lat) 
-          * (math.sin(diff_lng/2) * math.sin(diff_lng/2)))
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    d = R * c
-    
-    return d
-  except Exception as e:
-    log().error('get_distance(): ' + str(e))
+  diff_lat = to_rad(car_lat - x_lat)
+  diff_lng = to_rad(car_lng - x_lng)  
+  
+  a = ((math.sin(diff_lat/2) * math.sin(diff_lat/2)) 
+        + math.cos(x_lat) 
+        * math.cos(car_lat) 
+        * (math.sin(diff_lng/2) * math.sin(diff_lng/2)))
+  c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+  d = R * c
+  
+  return d
 
 
 def to_rad(x):
@@ -91,33 +88,27 @@ def to_rad(x):
 # author: mjhwa@yahoo.com
 ##
 def get_tomorrow_time(time):
-  try:
-    return datetime.strptime(
-        str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).year)
-      + '-'
-      + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).month)
-      + '-'
-      + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).day)
-      + 'T'
-      + time, '%Y-%m-%dT%H:%M'
-    ).replace(tzinfo=PAC)
-  except Exception as e:
-    log().error('get_tomorrow_time(): ' + str(e))
+  return datetime.strptime(
+      str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).year)
+    + '-'
+    + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).month)
+    + '-'
+    + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).day)
+    + 'T'
+    + time, '%Y-%m-%dT%H:%M'
+  ).replace(tzinfo=PAC)
 
 
 def get_today_time(time):
-  try:
-    return datetime.strptime(
-        str(datetime.now().replace(tzinfo=PAC).year)
-      + '-'
-      + str(datetime.now().replace(tzinfo=PAC).month)
-      + '-'
-      + str(datetime.now().replace(tzinfo=PAC).day)
-      + 'T'
-      + time, '%Y-%m-%dT%H:%M'
-    ).replace(tzinfo=PAC)
-  except Exception as e:
-    log().error('get_today_time(): ' + str(e))
+  return datetime.strptime(
+      str(datetime.now().replace(tzinfo=PAC).year)
+    + '-'
+    + str(datetime.now().replace(tzinfo=PAC).month)
+    + '-'
+    + str(datetime.now().replace(tzinfo=PAC).day)
+    + 'T'
+    + time, '%Y-%m-%dT%H:%M'
+  ).replace(tzinfo=PAC)
 
 
 ##
@@ -127,24 +118,21 @@ def get_today_time(time):
 # author: mjhwa@yahoo.com
 ##
 def get_current_weather(lat, lng):
-  try:
-    url = (BASE_WEATHER_URL
-           + '/onecall'
-           + '?lat=' + str(lat)
-           + '&lon=' + str(lng)
-           + '&appid=' + OPENWEATHERMAP_KEY
-           + '&exclude=minutely,hourly,daily,alerts'
-           + '&units=metric')
+  url = (BASE_WEATHER_URL
+          + '/onecall'
+          + '?lat=' + str(lat)
+          + '&lon=' + str(lng)
+          + '&appid=' + OPENWEATHERMAP_KEY
+          + '&exclude=minutely,hourly,daily,alerts'
+          + '&units=metric')
 
-    response = requests.get(url)
+  response = requests.get(url)
 
-    if (response.status_code != 200):
-      time.sleep(WAIT_TIME)
-      return get_current_weather(lat, lng)
+  if (response.status_code != 200):
+    time.sleep(WAIT_TIME)
+    return get_current_weather(lat, lng)
 
-    return json.loads(response.text)
-  except Exception as e:
-    log().error('get_current_weather(): ' + str(e))
+  return json.loads(response.text)
     
 
 ##
@@ -155,24 +143,21 @@ def get_current_weather(lat, lng):
 # author: mjhwa@yahoo.com
 ##
 def get_daily_weather(lat, lng):
-  try:
-    url = (BASE_WEATHER_URL
-           + '/onecall'
-           + '?lat=' + str(lat)
-           + '&lon=' + str(lng)
-           + '&appid=' + OPENWEATHERMAP_KEY
-           + '&exclude=current,minutely,alerts'
-           + '&units=metric')
+  url = (BASE_WEATHER_URL
+          + '/onecall'
+          + '?lat=' + str(lat)
+          + '&lon=' + str(lng)
+          + '&appid=' + OPENWEATHERMAP_KEY
+          + '&exclude=current,minutely,alerts'
+          + '&units=metric')
 
-    response = requests.get(url)
+  response = requests.get(url)
 
-    if (response.status_code != 200):
-      time.sleep(WAIT_TIME)
-      return get_daily_weather(lat, lng)
+  if (response.status_code != 200):
+    time.sleep(WAIT_TIME)
+    return get_daily_weather(lat, lng)
 
-    return json.loads(response.text)
-  except Exception as e:
-    log().error('get_daily_weather(): ' + str(e))
+  return json.loads(response.text)
 
 
 ###
@@ -302,18 +287,6 @@ def main(parser):
   elif (args.daily):
     data = get_daily_weather(PRIMARY_LAT, PRIMARY_LNG)
     print_json(data, 0)
-  elif (args.distance):
-    print(
-      'distance from primary location (mi): ' 
-      + str(
-        get_distance(
-          args.distance[0], 
-          args.distance[1], 
-          PRIMARY_LAT,
-          PRIMARY_LNG
-        )
-      )
-    )
   elif (args.load):
     load_log_into_gsheet(args.load[0])
   else:
@@ -338,15 +311,6 @@ if __name__ == "__main__":
                      help='prints weather conditions for today + 7 days, and hourly weather conditions for 48 hours '
                           'at a configured primary location',
                      action='store_true'
-                    )
-  group.add_argument(
-                     '-D', 
-                     '--distance', 
-                     help='calculates distance from a configured primary location; LATITUDE and LONGITUDE is a location '
-                          'in decimal degrees',
-                     type=float,
-                     nargs=2,
-                     metavar=('LATITUDE', 'LONGITUDE')
                     )
   group.add_argument(
                      '-l', 

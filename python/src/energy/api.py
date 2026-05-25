@@ -3,7 +3,6 @@ import pytz
 import argparse
 
 from common.configutil import get_config
-from common.logutil import log
 from common.argutil import CustomHelpFormatter
 from common.utilities import print_json, send_request
 from common.tokenutil import get_token
@@ -23,12 +22,9 @@ TIME_ZONE = config['general']['timezone']
 # author: mjhwa@yahoo.com
 ##
 def get_site_status():
-  try:
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_status')).text
-    )
-  except Exception as e:
-    log().error('get_site_status(): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_status')).text
+  )
 
 
 ##
@@ -37,12 +33,9 @@ def get_site_status():
 # author: mjhwa@yahoo.com
 ##
 def get_site_live_status():
-  try:
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'live_status')).text
-    )
-  except Exception as e:
-    log().error('get_site_live_status(): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'live_status')).text
+  )
 
 
 ##
@@ -51,12 +44,9 @@ def get_site_live_status():
 # author: mjhwa@yahoo.com
 ##
 def get_site_info():
-  try:
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_info')).text
-    )
-  except Exception as e:
-    log().error('get_site_info(): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_info')).text
+  )
 
 
 ##
@@ -66,29 +56,26 @@ def get_site_info():
 # author: mjhwa@yahoo.com
 ##
 def get_site_history(period, date):
-  try:
-    local = pytz.timezone(TIME_ZONE)
-    date = local.localize(datetime(
-      date.year, 
-      date.month, 
-      date.day, 
-      23, 
-      59, 
-      59, 
-      0
-    ), is_dst=None)
+  local = pytz.timezone(TIME_ZONE)
+  date = local.localize(datetime(
+    date.year, 
+    date.month, 
+    date.day, 
+    23, 
+    59, 
+    59, 
+    0
+  ), is_dst=None)
 
-    command = ('calendar_history'
-               + '?kind=energy'
-               + '&end_date=' 
-               + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
-               + '&period=' + period)
+  command = ('calendar_history'
+              + '?kind=energy'
+              + '&end_date=' 
+              + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
+              + '&period=' + period)
 
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
-    )
-  except Exception as e:
-    log().error('get_site_history(' + period + '): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
+  )
 
 
 ##
@@ -97,12 +84,9 @@ def get_site_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_battery_backup_history():
-  try:
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'calendar_history?kind=backup')).text
-    )
-  except Exception as e:
-    log().error('get_battery_backup_history(): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'calendar_history?kind=backup')).text
+  )
 
 
 ##
@@ -112,45 +96,42 @@ def get_battery_backup_history():
 # author: mjhwa@yahoo.com
 ##
 def get_site_tou_history(period, date):
-  try:
-    local = pytz.timezone(TIME_ZONE)
-    s_date = local.localize(datetime(
-      date.year,
-      date.month,
-      date.day,
-      0,
-      0,
-      0,
-      0
-    ), is_dst=None)
+  local = pytz.timezone(TIME_ZONE)
+  s_date = local.localize(datetime(
+    date.year,
+    date.month,
+    date.day,
+    0,
+    0,
+    0,
+    0
+  ), is_dst=None)
 
-    e_date = local.localize(datetime(
-      date.year,
-      date.month,
-      date.day,
-      23,
-      59,
-      59,
-      0
-    ), is_dst=None)
+  e_date = local.localize(datetime(
+    date.year,
+    date.month,
+    date.day,
+    23,
+    59,
+    59,
+    0
+  ), is_dst=None)
 
-    command = ('calendar_history'
-               + '?kind=time_of_use_energy'
-               + '&period=' + period
-               + '&start_date=' 
-               + datetime.strftime(
-                  s_date.astimezone(pytz.utc), 
-                  '%Y-%m-%dT%H:%M:%SZ')
-               + '&end_date=' 
-               + datetime.strftime(
-                  e_date.astimezone(pytz.utc), 
-                  '%Y-%m-%dT%H:%M:%SZ'))
+  command = ('calendar_history'
+              + '?kind=time_of_use_energy'
+              + '&period=' + period
+              + '&start_date=' 
+              + datetime.strftime(
+                s_date.astimezone(pytz.utc), 
+                '%Y-%m-%dT%H:%M:%SZ')
+              + '&end_date=' 
+              + datetime.strftime(
+                e_date.astimezone(pytz.utc), 
+                '%Y-%m-%dT%H:%M:%SZ'))
 
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
-    )
-  except Exception as e:
-    log().error('get_site_tou_history(): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
+  )
 
 
 ##
@@ -160,29 +141,26 @@ def get_site_tou_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_battery_charge_history(period, date):
-  try:
-    local = pytz.timezone(TIME_ZONE)
-    date = local.localize(datetime(
-      date.year,
-      date.month,
-      date.day,
-      23,
-      59,
-      59,
-      0
-    ), is_dst=None)
+  local = pytz.timezone(TIME_ZONE)
+  date = local.localize(datetime(
+    date.year,
+    date.month,
+    date.day,
+    23,
+    59,
+    59,
+    0
+  ), is_dst=None)
 
-    command = ('calendar_history'
-               + '?kind=soe'
-               + '&period=' + period
-               + '&end_date='
-               + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ'))
+  command = ('calendar_history'
+              + '?kind=soe'
+              + '&period=' + period
+              + '&end_date='
+              + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ'))
 
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
-    )
-  except Exception as e:
-    log().error('get_battery_charge_history(): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
+  )
 
 
 ##
@@ -192,45 +170,42 @@ def get_battery_charge_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_power_history(period, date):
-  try:
-    local = pytz.timezone(TIME_ZONE)
-    s_date = local.localize(datetime(
-      date.year,
-      date.month,
-      date.day,
-      0,
-      0,
-      0,
-      0
-    ), is_dst=None)
+  local = pytz.timezone(TIME_ZONE)
+  s_date = local.localize(datetime(
+    date.year,
+    date.month,
+    date.day,
+    0,
+    0,
+    0,
+    0
+  ), is_dst=None)
 
-    e_date = local.localize(datetime(
-      date.year,
-      date.month,
-      date.day,
-      23,
-      59,
-      59,
-      0
-    ), is_dst=None)
+  e_date = local.localize(datetime(
+    date.year,
+    date.month,
+    date.day,
+    23,
+    59,
+    59,
+    0
+  ), is_dst=None)
 
-    command = ('calendar_history'
-               + '?kind=power'
-               + '&start_date='
-               + datetime.strftime(
-                  s_date.astimezone(pytz.utc), 
-                  '%Y-%m-%dT%H:%M:%SZ')
-               + '&end_date='
-               + datetime.strftime(
-                  e_date.astimezone(pytz.utc), 
-                  '%Y-%m-%dT%H:%M:%SZ')
-               + '&period=' + period)
+  command = ('calendar_history'
+              + '?kind=power'
+              + '&start_date='
+              + datetime.strftime(
+                s_date.astimezone(pytz.utc), 
+                '%Y-%m-%dT%H:%M:%SZ')
+              + '&end_date='
+              + datetime.strftime(
+                e_date.astimezone(pytz.utc), 
+                '%Y-%m-%dT%H:%M:%SZ')
+              + '&period=' + period)
 
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
-    )
-  except Exception as e:
-    log().error('get_power_history(): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
+  )
 
 
 ##
@@ -239,16 +214,13 @@ def get_power_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_rate_tariffs():
-  try:
-    url = (BASE_OWNER_URL
-           + '/energy_sites/' 
-           + 'rate_tariffs')
+  url = (BASE_OWNER_URL
+          + '/energy_sites/' 
+          + 'rate_tariffs')
 
-    return json.loads(
-      send_get(url).text
-    )
-  except Exception as e:
-    log().error('get_rate_tariffs(): ' + str(e))
+  return json.loads(
+    send_get(url).text
+  )
 
 
 ##
@@ -258,12 +230,9 @@ def get_rate_tariffs():
 # author: mjhwa@yahoo.com
 ##
 def get_site_tariff():
-  try:
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'tariff_rate')).text
-    )
-  except Exception as e:
-    log().error('get_site_tariff(): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'tariff_rate')).text
+  )
 
 
 ##
@@ -272,12 +241,9 @@ def get_site_tariff():
 # author: mjhwa@yahoo.com
 ##
 def get_backup_time_remaining():
-  try:
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, 'backup_time_remaining')).text
-    )
-  except Exception as e:
-    log().error('get_backup_time_remaining(): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'backup_time_remaining')).text
+  )
 
 
 ##
@@ -287,46 +253,43 @@ def get_backup_time_remaining():
 # author: mjhwa@yahoo.com
 ##
 def get_savings_forecast(period, date):
-  try:
-    local = pytz.timezone(TIME_ZONE)
-    s_date = local.localize(datetime(
-      date.year,
-      date.month,
-      date.day,
-      0,
-      0,
-      0,
-      0
-    ), is_dst=None)
+  local = pytz.timezone(TIME_ZONE)
+  s_date = local.localize(datetime(
+    date.year,
+    date.month,
+    date.day,
+    0,
+    0,
+    0,
+    0
+  ), is_dst=None)
 
-    e_date = local.localize(datetime(
-      date.year,
-      date.month,
-      date.day,
-      23,
-      59,
-      59,
-      0
-    ), is_dst=None)
+  e_date = local.localize(datetime(
+    date.year,
+    date.month,
+    date.day,
+    23,
+    59,
+    59,
+    0
+  ), is_dst=None)
 
-    command = ('calendar_history'
-               + '?kind=savings'
-               + '&period=' + period
-               + '&start_date=' 
-               + datetime.strftime(
-                  s_date.astimezone(pytz.utc),
-                  '%Y-%m-%dT%H:%M:%SZ')
-               + '&end_date=' 
-               + datetime.strftime(
-                  e_date.astimezone(pytz.utc),
-                  '%Y-%m-%dT%H:%M:%SZ')
-               + '&tariff=PGE-EV2-A')
+  command = ('calendar_history'
+              + '?kind=savings'
+              + '&period=' + period
+              + '&start_date=' 
+              + datetime.strftime(
+                s_date.astimezone(pytz.utc),
+                '%Y-%m-%dT%H:%M:%SZ')
+              + '&end_date=' 
+              + datetime.strftime(
+                e_date.astimezone(pytz.utc),
+                '%Y-%m-%dT%H:%M:%SZ')
+              + '&tariff=PGE-EV2-A')
 
-    return json.loads(
-      send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
-    )
-  except Exception as e:
-    log().error('get_savings_forecast(): ' + str(e))
+  return json.loads(
+    send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
+  )
 
 
 ##
@@ -367,14 +330,11 @@ def set_operational_mode_time_based_control():
 # author: mjhwa@yahoo.com
 ##
 def set_operational_mode(mode):
-  try:
-    payload = {
-      'default_real_mode': mode
-    }
+  payload = {
+    'default_real_mode': mode
+  }
 
-    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'operation'), payload)
-  except Exception as e:
-    log().error('set_operational_mode(' + mode + '): ' + str(e))
+  return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'operation'), payload)
 
 
 ##
@@ -403,15 +363,12 @@ def set_energy_exports_solar():
 # author: mjhwa@yahoo.com
 ##
 def set_grid_import_export(export_rule, disallow_grid_charging):
-  try:
-    payload = {
-      'customer_preferred_export_rule': export_rule,
-      'disallow_charge_from_grid_with_solar_installed': disallow_grid_charging
-    }
+  payload = {
+    'customer_preferred_export_rule': export_rule,
+    'disallow_charge_from_grid_with_solar_installed': disallow_grid_charging
+  }
 
-    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'grid_import_export'), payload)
-  except Exception as e:
-    log().error('set_grid_import_export(' + export_rule + ', ' + disallow_grid_charging + '): ' + str(e))
+  return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'grid_import_export'), payload)
 
 
 ##
@@ -420,14 +377,11 @@ def set_grid_import_export(export_rule, disallow_grid_charging):
 # author: mjhwa@yahoo.com
 ##
 def set_backup_reserve(backup_percent):
-  try:
-    payload = {
-      'backup_reserve_percent': backup_percent
-    }
+  payload = {
+    'backup_reserve_percent': backup_percent
+  }
 
-    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'backup'), payload)
-  except Exception as e:
-    log().error('set_backup_reserve(' + backup_percent + '): ' + str(e))
+  return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'backup'), payload)
 
 
 ##
@@ -437,14 +391,11 @@ def set_backup_reserve(backup_percent):
 # author: mjhwa@yahoo.com
 ##
 def set_off_grid_vehicle_charging_reserve(percent):
-  try:
-    payload = {
-      'off_grid_vehicle_charging_reserve_percent': percent
-    }
+  payload = {
+    'off_grid_vehicle_charging_reserve_percent': percent
+  }
 
-    return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'off_grid_vehicle_charging_reserve'), payload)
-  except Exception as e:
-    log().error('set_off_grid_vehicle_charging_reserve(' + percent + '): ' + str(e))
+  return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'off_grid_vehicle_charging_reserve'), payload)
 
 
 ###
@@ -453,16 +404,11 @@ def set_off_grid_vehicle_charging_reserve(percent):
 # author: mjhwa@yahoo.com
 ##
 def get_url(base, site_id, command):
-  try:
-    url = (base
-           + '/energy_sites/' 
-           + site_id 
-           + '/'
-           + command)
-
-    return url
-  except Exception as e:
-    log().error('get_url(' + url + '): ' + str(e))
+    return (base
+            + '/energy_sites/' 
+            + site_id 
+            + '/'
+            + command)
 
 
 def send_get(url):

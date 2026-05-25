@@ -23,18 +23,16 @@ WAIT_TIME = 30  # seconds
 # author: mjhwa@yahoo.com
 ##
 def get_local_config():
-  try:
-    buffer = StringIO(
-      decrypt(get_filepath('configs', 'localConfig'), get_filepath('secrets', 'teslaKey'))
-    )
-    config = configparser.ConfigParser()
-    config.sections()
-    config.read_file(buffer)
-    values = {s:dict(config.items(s)) for s in config.sections()}
-    buffer.close()
-    return values
-  except Exception as e:
-    log().error('get_local_config(): ' + str(e))
+  buffer = StringIO(
+    decrypt(get_filepath('configs', 'localConfig'), get_filepath('secrets', 'teslaKey'))
+  )
+  config = configparser.ConfigParser()
+  config.sections()
+  config.read_file(buffer)
+  values = {s:dict(config.items(s)) for s in config.sections()}
+  buffer.close()
+
+  return values
 
 local_config = get_local_config()
 USERNAME = local_config['energy']['email']
@@ -51,24 +49,22 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 # author: mjhwa@yahoo.com
 ##
 def get_local_token():
-  try:
-    # Check for the file which stores the latest local token
-    if os.path.exists(
-      get_filepath('secrets', 'localToken')
-    ) == False:
-      auth_local_token()
+  # Check for the file which stores the latest local token
+  if os.path.exists(
+    get_filepath('secrets', 'localToken')
+  ) == False:
+    auth_local_token()
 
-    buffer = StringIO(
-      decrypt(get_filepath('secrets', 'localToken'), get_filepath('secrets', 'teslaKey'))
-    )
-    config = configparser.ConfigParser()
-    config.sections()
-    config.read_file(buffer)
-    values = {s:dict(config.items(s)) for s in config.sections()}
-    buffer.close()
-    return values
-  except Exception as e:
-    log().error('get_local_token(): ' + str(e))
+  buffer = StringIO(
+    decrypt(get_filepath('secrets', 'localToken'), get_filepath('secrets', 'teslaKey'))
+  )
+  config = configparser.ConfigParser()
+  config.sections()
+  config.read_file(buffer)
+  values = {s:dict(config.items(s)) for s in config.sections()}
+  buffer.close()
+
+  return values
 
 LOCAL_TOKEN = get_local_token()['tesla']['token']
 
@@ -80,30 +76,27 @@ LOCAL_TOKEN = get_local_token()['tesla']['token']
 # author: mjhwa@yahoo.com
 ##
 def auth_local_token():
-  try:
-    url = (BASE_URL
-            + '/login/Basic')
+  url = (BASE_URL
+          + '/login/Basic')
 
-    payload = {
-      'username': 'customer',
-      'email': USERNAME,
-      'password': PASSWORD,
-      'force_sm_off': False
-    }
+  payload = {
+    'username': 'customer',
+    'email': USERNAME,
+    'password': PASSWORD,
+    'force_sm_off': False
+  }
 
-    response = json.loads(send_request('POST', url, LOCAL_TOKEN, payload).text)
+  response = json.loads(send_request('POST', url, LOCAL_TOKEN, payload).text)
 
-    message =  '[tesla]\n'
-    message += 'token=' + response['token'] + '\n'
+  message =  '[tesla]\n'
+  message += 'token=' + response['token'] + '\n'
 
-    # Encrypt config file
-    encrypt(
-      message,
-      get_filepath('secrets', 'localToken'),
-      get_filepath('secrets', 'teslaKey')
-    )
-  except Exception as e:
-    log().error('auth_local_token(): ' + str(e))
+  # Encrypt config file
+  encrypt(
+    message,
+    get_filepath('secrets', 'localToken'),
+    get_filepath('secrets', 'teslaKey')
+  )
 
 
 ##
@@ -190,25 +183,22 @@ def write_local_live_site_telemetry():
 # author: mjhwa@yahoo.com
 ##
 def get_local_meters_aggregates():
-  try:
-    url = (BASE_URL
-            + '/meters/aggregates')
+  url = (BASE_URL
+          + '/meters/aggregates')
 
-    response = send_get(url)
+  response = send_get(url)
 
-    # Detect expired local token and re-auth
-    resp = json.loads(response.text)
-    if ('message' in resp):
-      if (resp['message'] == 'Invalid bearer token'):
-        auth_local_token()
-        write_local_live_site_telemetry()
-    elif (response.status_code != 200):
-      time.sleep(WAIT_TIME)
-      return get_local_meters_aggregates()
+  # Detect expired local token and re-auth
+  resp = json.loads(response.text)
+  if ('message' in resp):
+    if (resp['message'] == 'Invalid bearer token'):
+      auth_local_token()
+      write_local_live_site_telemetry()
+  elif (response.status_code != 200):
+    time.sleep(WAIT_TIME)
+    return get_local_meters_aggregates()
 
-    return resp
-  except Exception as e:
-    log().error('get_local_meters_aggregates(): ' + str(e))
+  return resp
 
 
 ##
@@ -218,25 +208,22 @@ def get_local_meters_aggregates():
 # author: mjhwa@yahoo.com
 ##
 def get_local_system_status_soe():
-  try:
-    url = (BASE_URL
-            + '/system_status/soe')
+  url = (BASE_URL
+          + '/system_status/soe')
 
-    response = send_get(url)
+  response = send_get(url)
 
-    # Detect expired local token and re-auth
-    resp = json.loads(response.text)    
-    if ('message' in resp):
-      if (resp['message'] == 'Invalid bearer token'):
-        auth_local_token()
-        write_local_live_site_telemetry()
-    elif (response.status_code != 200):
-      time.sleep(WAIT_TIME)
-      return get_local_system_status_soe()
+  # Detect expired local token and re-auth
+  resp = json.loads(response.text)    
+  if ('message' in resp):
+    if (resp['message'] == 'Invalid bearer token'):
+      auth_local_token()
+      write_local_live_site_telemetry()
+  elif (response.status_code != 200):
+    time.sleep(WAIT_TIME)
+    return get_local_system_status_soe()
 
-    return resp
-  except Exception as e:
-    log().error('get_local_system_status_soe(): ' + str(e))
+  return resp
 
 
 ##
@@ -245,25 +232,22 @@ def get_local_system_status_soe():
 # author: mjhwa@yahoo.com
 ##
 def get_local_system_status():
-  try:
-    url = (BASE_URL
-            + '/system_status')
+  url = (BASE_URL
+          + '/system_status')
 
-    response = send_get(url)
+  response = send_get(url)
 
-    # Detect expired local token and re-auth
-    resp = json.loads(response.text)    
-    if ('message' in resp):
-      if (resp['message'] == 'Invalid bearer token'):
-        auth_local_token()
-        write_local_live_site_telemetry()
-    elif (response.status_code != 200):
-      time.sleep(WAIT_TIME)
-      return get_local_system_status()
+  # Detect expired local token and re-auth
+  resp = json.loads(response.text)    
+  if ('message' in resp):
+    if (resp['message'] == 'Invalid bearer token'):
+      auth_local_token()
+      write_local_live_site_telemetry()
+  elif (response.status_code != 200):
+    time.sleep(WAIT_TIME)
+    return get_local_system_status()
 
-    return resp
-  except Exception as e:
-    log().error('get_local_system_status(): ' + str(e))
+  return resp
 
 
 def send_get(url):

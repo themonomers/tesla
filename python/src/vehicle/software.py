@@ -26,15 +26,12 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 # author: mjhwa@yahoo.com
 ##
 def schedule_update(vin, time):
-  try:
-    delete_cron(get_cron('api', 'schedule_software_update') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
-    create_cron(get_cron('api', 'schedule_software_update') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
-                    time.month, 
-                    time.day, 
-                    time.hour, 
-                    time.minute)
-  except Exception as e:
-    log().error('schedule_update(' + vin + '): ' + str(e))
+  delete_cron(get_cron('api', 'schedule_software_update') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
+  create_cron(get_cron('api', 'schedule_software_update') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
+              time.month, 
+              time.day, 
+              time.hour, 
+              time.minute)
 
 
 def main(parser):

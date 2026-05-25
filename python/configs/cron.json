@@ -1,5 +1,5 @@
 {
-    "command": {
+    "commands": {
         "charge": {
             "check": "/usr/bin/timeout -k 60 300 python -u /home/pi/tesla/python/src/vehicle/charge.py --check="
         },
