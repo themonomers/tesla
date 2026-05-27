@@ -1,6 +1,7 @@
 package energy
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -16,19 +17,14 @@ var TIMEZONE string
 var WAIT_TIME time.Duration = 30 // seconds
 
 func init() {
-	var err error
+	t := common.GetLocalToken()
+	LOCAL_ACCESS_TOKEN, _ = t.String("tesla.token")
 
-	t := common.GetLocalEnergyToken()
-	LOCAL_ACCESS_TOKEN, err = t.String("tesla.token")
-	LogError("init(): load local energy token", err)
-
-	c := common.GetLocalEnergyConfig()
-	BASE_URL, err = c.String("energy.base_url")
-	LogError("init(): load energy base url", err)
+	c := common.GetLocalConfig()
+	BASE_URL, _ = c.String("energy.base_url")
 
 	c = GetConfig()
-	TIMEZONE, err = c.String("general.timezone")
-	LogError("init(): load timezone", err)
+	TIMEZONE, _ = c.String("general.timezone")
 }
 
 // Writes live energy data to InfluxDB, accessed locally
@@ -40,55 +36,51 @@ func WriteLiveSiteTelemetry() {
 	defer c.Close()
 
 	// Create a new point batch
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database: "live",
 	})
-	LogError("WriteLiveSiteTelemetry(): client.NewBatchPoints", err)
 
 	// Create points and add to batch
 	tags := map[string]string{"source": "solar_power"}
 	fields := map[string]any{
 		"value": data["solar"].(map[string]any)["instant_power"].(float64),
 	}
-	pt, err := client.NewPoint("energy_live", tags, fields, splitTimestamp(data["solar"].(map[string]any)["last_communication_time"].(string)))
-	LogError("WriteLiveSiteTelemetry(): client.NewPoint", err)
+	pt, _ := client.NewPoint("energy_live", tags, fields, splitTimestamp(data["solar"].(map[string]any)["last_communication_time"].(string)))
 	bp.AddPoint(pt)
 
 	tags = map[string]string{"source": "battery_power"}
 	fields = map[string]any{
 		"value": data["battery"].(map[string]any)["instant_power"].(float64),
 	}
-	pt, err = client.NewPoint("energy_live", tags, fields, splitTimestamp(data["battery"].(map[string]any)["last_communication_time"].(string)))
-	LogError("WriteLiveSiteTelemetry(): client.NewPoint", err)
+	pt, _ = client.NewPoint("energy_live", tags, fields, splitTimestamp(data["battery"].(map[string]any)["last_communication_time"].(string)))
 	bp.AddPoint(pt)
 
 	tags = map[string]string{"source": "grid_power"}
 	fields = map[string]any{
 		"value": data["site"].(map[string]any)["instant_power"].(float64),
 	}
-	pt, err = client.NewPoint("energy_live", tags, fields, splitTimestamp(data["site"].(map[string]any)["last_communication_time"].(string)))
-	LogError("WriteLiveSiteTelemetry(): client.NewPoint", err)
+	pt, _ = client.NewPoint("energy_live", tags, fields, splitTimestamp(data["site"].(map[string]any)["last_communication_time"].(string)))
 	bp.AddPoint(pt)
 
 	tags = map[string]string{"source": "load_power"}
 	fields = map[string]any{
 		"value": data["load"].(map[string]any)["instant_power"].(float64),
 	}
-	pt, err = client.NewPoint("energy_live", tags, fields, splitTimestamp(data["load"].(map[string]any)["last_communication_time"].(string)))
-	LogError("WriteLiveSiteTelemetry(): client.NewPoint", err)
+	pt, _ = client.NewPoint("energy_live", tags, fields, splitTimestamp(data["load"].(map[string]any)["last_communication_time"].(string)))
 	bp.AddPoint(pt)
 
 	tags = map[string]string{"source": "percentage_charged"}
 	fields = map[string]any{
 		"value": getLocalSystemStatusSOE()["percentage"].(float64),
 	}
-	pt, err = client.NewPoint("energy_live", tags, fields, time.Now())
-	LogError("WriteLiveSiteTelemetry(): client.NewPoint", err)
+	pt, _ = client.NewPoint("energy_live", tags, fields, time.Now())
 	bp.AddPoint(pt)
 
 	// Write the batch
-	err = c.Write(bp)
-	LogError("WriteLiveSiteTelemetry(): c.Write", err)
+	err := c.Write(bp)
+	if err != nil {
+		slog.Error("WriteLiveSiteTelemetry(): c.Write(): " + err.Error())
+	}
 
 	// Close client resources
 	c.Close()
@@ -149,8 +141,7 @@ func splitTimestamp(timestamp string) time.Time {
 
 	t, err := time.ParseInLocation("2006-01-02T15:04:05.000000-07:00", timestamp, loc)
 	if err != nil {
-		t, err = time.ParseInLocation("2006-01-02T15:04:05.00000-07:00", timestamp, loc)
-		LogError("splitTimestamp(): time.ParseInLocation", err)
+		t, _ = time.ParseInLocation("2006-01-02T15:04:05.00000-07:00", timestamp, loc)
 	}
 
 	return t

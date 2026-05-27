@@ -10,6 +10,13 @@ import (
 )
 
 func main() {
+	// Initialize the logger to write to app.log at the Info level
+	cleanup, err := common.InitLogger()
+	if err != nil {
+		panic(err)
+	}
+	defer cleanup() // Ensures files close cleanly on shutdown
+
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		// vehicle
@@ -63,8 +70,10 @@ func main() {
 		// maintenance
 		case "-truncateemail":
 			common.TruncateEmail()
-		case "-truncatelog":
-			common.TruncateLog()
+		/*
+			case "-truncatelog":
+				common.TruncateLog()
+		*/
 		default:
 			printUsage()
 		}

@@ -3,6 +3,7 @@ package vehicle
 import (
 	"bufio"
 	"fmt"
+	"log/slog"
 	"math"
 	"os"
 	"strconv"
@@ -40,23 +41,12 @@ var M3_FULL_CHARGE_RATE_AT_SECONDARY float64 = 30 // (mi/hr)
 var EARLIEST_CHARGING_START_TIME string = "00:00"
 
 func init() {
-	var err error
-
-	var c = GetConfig()
-	M3_VIN, err = c.String("vehicle.m3_vin")
-	LogError("init(): load m3 vin", err)
-
-	MX_VIN, err = c.String("vehicle.mx_vin")
-	LogError("init(): load mx vin", err)
-
-	EV_SPREADSHEET_ID, err = c.String("google.ev_spreadsheet_id")
-	LogError("init(): load ev spreadsheet id", err)
-
-	EMAIL_1, err = c.String("notification.email_1")
-	LogError("init(): load email 1", err)
-
-	EMAIL_2, err = c.String("notification.email_2")
-	LogError("init(): load email 2", err)
+	c := GetConfig()
+	M3_VIN, _ = c.String("vehicle.m3_vin")
+	MX_VIN, _ = c.String("vehicle.mx_vin")
+	EV_SPREADSHEET_ID, _ = c.String("google.ev_spreadsheet_id")
+	EMAIL_1, _ = c.String("notification.email_1")
+	EMAIL_2, _ = c.String("notification.email_2")
 }
 
 // Checks to see if the vehicles are plugged in, inferred from the charge
@@ -68,15 +58,11 @@ func init() {
 // start time based on the secondary charge rate and set the charge start
 // time for the one at the primary location to charge at full charge rate.
 func NotifyIsTeslaPluggedIn() {
-	// get all vehicle data to avoid repeat API calls
-	m3_data := GetVehicleData(M3_VIN)
-	mx_data := GetVehicleData(MX_VIN)
-
 	// get charging configuration info
 	srv := GetGoogleSheetService()
 	charge_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Charge!A3:C11").Do()
 	if err != nil {
-		common.LogErrorRetry("Get configuration info from Google Sheets:", err)
+		slog.Warn("Retry getting configuration info from Google Sheets: " + err.Error())
 		time.Sleep(WAIT_TIME * time.Second)
 		NotifyIsTeslaPluggedIn()
 	}
@@ -84,10 +70,14 @@ func NotifyIsTeslaPluggedIn() {
 	// get climate configuration info
 	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
 	if err != nil {
-		common.LogErrorRetry("Get configuration info from Google Sheets:", err)
+		slog.Warn("Retry getting configuration info from Google Sheets: " + err.Error())
 		time.Sleep(WAIT_TIME * time.Second)
 		NotifyIsTeslaPluggedIn()
 	}
+
+	// get all vehicle data to avoid repeat API calls
+	m3_data := GetVehicleData(M3_VIN)
+	mx_data := GetVehicleData(MX_VIN)
 
 	// send email notification if the car is not plugged in
 	charge_port_door_open := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool)
@@ -172,8 +162,7 @@ func ChargeEarliest() {
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("\nDo you want to override scheduled departure to scheduled start at earliest off-peak time (y/N])?: ")
-	confirm, err := reader.ReadString('\n')
-	common.LogErrorStdOut("Error reading input", err)
+	confirm, _ := reader.ReadString('\n')
 	confirm = strings.TrimSuffix(confirm, "\n")
 	if confirm == "y" {
 		// set cars for scheduled charging at the earliest off-peak time
@@ -181,8 +170,7 @@ func ChargeEarliest() {
 		mx_start_time := scheduleEarliestCharging(mx_data)
 
 		fmt.Println("\nDo you want email confirmation (y/N])?: ")
-		confirm, err = reader.ReadString('\n')
-		common.LogErrorStdOut("Error reading input", err)
+		confirm, _ = reader.ReadString('\n')
 		confirm = strings.TrimSuffix(confirm, "\n")
 		if confirm == "y" {
 			sendScheduledChargeMessage("Model 3",
@@ -336,7 +324,7 @@ func CheckCharge(vin string) {
 
 	if IsVehicleAtPrimary(data) &&
 		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Charging" {
-		common.LogInfo("checkCharge(" + vin + "): Scheduled charging failed to start.  Starting backup charging.")
+		slog.Warn("checkCharge(" + vin + "): Scheduled charging failed to start.  Starting backup charging.")
 		StartCharge(vin)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -20,11 +21,8 @@ var CONFIGS map[string]string
 var DELETE_THRESHOLD float64 = 30.0
 
 func init() {
-	var err error
-
-	var c = GetConfig()
-	CONFIGS, err = c.Settings() // github.com/ridgelines/go-config doesn't support loading by sections so we have to grab everything and loop
-	LogError("init(): load settings", err)
+	c := GetConfig()
+	CONFIGS, _ = c.Settings() // github.com/ridgelines/go-config doesn't support loading by sections so we have to grab everything and loop
 }
 
 // Looks for the next empty cell in a Google Sheet row to avoid overwriting data
@@ -34,7 +32,7 @@ func FindOpenRow(sheet_id, sheet_name, rng string) int {
 	rng = sheet_name + "!" + rng
 	resp, err := service.Spreadsheets.Values.Get(sheet_id, rng).Do()
 	if err != nil {
-		LogErrorRetryStdOut("FindOpenRow(): service.Spreadsheets.Values.Get  " + err.Error())
+		slog.Warn("Retry FindOpenRow(): service.Spreadsheets.Values.Get():  " + err.Error())
 		time.Sleep(WAIT_TIME * time.Second)
 		return FindOpenRow(sheet_id, sheet_name, rng)
 	}
@@ -49,17 +47,12 @@ func FindOpenRow(sheet_id, sheet_name, rng string) int {
 // Get Google Sheet service with edit/delete scope.
 func GetGoogleSheetService() *sheets.Service {
 	ctx := context.Background()
-	b, err := os.ReadFile("/home/pi/tesla/go/secrets/google_client_secret.json")
-	LogError("GetGoogleSheetService(): os.ReadFile", err)
+	b, _ := os.ReadFile("/home/pi/tesla/go/secrets/google_client_secret.json")
 
 	// If modifying these scopes, delete your previously saved gsheet_token.json.
-	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
-	LogError("GetGoogleSheetService(): google.ConfigFromJSON", err)
-
+	config, _ := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
 	client := getClient(config, "/home/pi/tesla/go/secrets/gsheet_token.json")
-
-	srv, err := sheets.NewService(ctx, option.WithHTTPClient(client))
-	LogError("GetGoogleSheetService(): sheets.NewService", err)
+	srv, _ := sheets.NewService(ctx, option.WithHTTPClient(client))
 
 	return srv
 }
@@ -67,17 +60,12 @@ func GetGoogleSheetService() *sheets.Service {
 // Get Google Mail service with edit/delete scope.
 func getGoogleMailService() *gmail.Service {
 	ctx := context.Background()
-	b, err := os.ReadFile("/home/pi/tesla/go/secrets/google_client_secret.json")
-	LogError("getGoogleMailService(): os.ReadFile", err)
+	b, _ := os.ReadFile("/home/pi/tesla/go/secrets/google_client_secret.json")
 
 	// If modifying these scopes, delete your previously saved google_token.json.
-	config, err := google.ConfigFromJSON(b, gmail.GmailModifyScope)
-	LogError("getGoogleMailService(): google.ConfigFromJSON", err)
-
+	config, _ := google.ConfigFromJSON(b, gmail.GmailModifyScope)
 	client := getClient(config, "/home/pi/tesla/go/secrets/gmail_token.json")
-
-	srv, err := gmail.NewService(ctx, option.WithHTTPClient(client))
-	LogError("getGoogleMailService(): gmail.NewService", err)
+	srv, _ := gmail.NewService(ctx, option.WithHTTPClient(client))
 
 	return srv
 }
@@ -89,13 +77,13 @@ func getClient(config *oauth2.Config, token_filename string) *http.Client {
 	// time.
 	tok, err := tokenFromFile(token_filename)
 	if err != nil {
+		slog.Info("getClient(): tokenFromFile(): " + err.Error())
 		tok = getTokenFromWeb(config)
 		saveToken(token_filename, tok)
 	}
 
 	// Automatically refresh token.
-	new_token, err := config.TokenSource(context.TODO(), tok).Token()
-	LogError("getClient(): config.TokenSource", err)
+	new_token, _ := config.TokenSource(context.TODO(), tok).Token()
 	saveToken(token_filename, new_token)
 
 	return config.Client(context.Background(), new_token)
@@ -109,30 +97,29 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 
 	var authCode string
 	_, err := fmt.Scan(&authCode)
-	LogError("getTokenFromWeb(): fmt.Scan", err)
+	if err != nil {
+		slog.Error("getTokenFromWeb():  fmt.Scan(): " + err.Error())
+	}
 
-	tok, err := config.Exchange(context.TODO(), authCode)
-	LogError("getTokenFromWeb(): config.Exchange", err)
+	tok, _ := config.Exchange(context.TODO(), authCode)
 
 	return tok
 }
 
 // Retrieves a token from a local file.
 func tokenFromFile(file string) (*oauth2.Token, error) {
-	f, err := os.Open(file)
-	LogError("tokenFromFile(): os.Open", err)
+	f, _ := os.Open(file)
 
 	defer f.Close()
 	tok := &oauth2.Token{}
-	err = json.NewDecoder(f).Decode(tok)
+	err := json.NewDecoder(f).Decode(tok)
 	return tok, err
 }
 
 // Saves a token to a file path.
 func saveToken(path string, token *oauth2.Token) {
 	fmt.Printf("Saving credential file to: %s\n", path)
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	LogError("saveToken(): os.OpenFile", err)
+	f, _ := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 
 	defer f.Close()
 	json.NewEncoder(f).Encode(token)
@@ -155,8 +142,7 @@ func TruncateEmail() {
 func deleteEmail(query string, delete_date time.Time) {
 	// Call the Gmail API and get the messages based on query
 	service := getGoogleMailService()
-	messages, err := service.Users.Messages.List("me").Q(query).Do()
-	LogError("deleteEmail(): service.Users.Messages.List", err)
+	messages, _ := service.Users.Messages.List("me").Q(query).Do()
 
 	if len(messages.Messages) == 0 {
 		return
@@ -164,9 +150,7 @@ func deleteEmail(query string, delete_date time.Time) {
 
 	// Loop through all the messages returned
 	for i := 0; i < len(messages.Messages); i++ {
-		message, err := service.Users.Messages.Get("me", messages.Messages[i].Id).Do()
-		LogError("deleteEmail(): service.Users.Messages.Get", err)
-
+		message, _ := service.Users.Messages.Get("me", messages.Messages[i].Id).Do()
 		email_dt := time.Unix(0, message.InternalDate*int64(time.Millisecond))
 		//		fmt.Print(email_dt)
 		//		fmt.Print(": ")

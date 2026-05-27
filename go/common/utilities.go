@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/http"
 	"os"
@@ -34,46 +35,23 @@ var TIMEZONE string
 var WAIT_TIME time.Duration = 30 // seconds
 
 func init() {
-	var err error
-
 	t := GetToken()
-	ACCESS_TOKEN, err = t.String("tesla.access_token")
-	LogError("init(): load access token", err)
+	ACCESS_TOKEN, _ = t.String("tesla.access_token")
 
-	t = GetLocalEnergyToken()
-	LOCAL_ACCESS_TOKEN, err = t.String("tesla.token")
-	LogError("init(): load local energy token", err)
+	t = GetLocalToken()
+	LOCAL_ACCESS_TOKEN, _ = t.String("tesla.token")
 
 	c := GetConfig()
-	M3_VIN, err = c.String("vehicle.m3_vin")
-	LogError("init(): load m3 vin", err)
-
-	MX_VIN, err = c.String("vehicle.mx_vin")
-	LogError("init(): load mx vin", err)
-
-	PRIMARY_LAT, err = c.Float("vehicle.primary_lat")
-	LogError("init(): load vehicle primary lat", err)
-
-	PRIMARY_LNG, err = c.Float("vehicle.primary_lng")
-	LogError("init(): load vehicle primary lng", err)
-
-	SECONDARY_LAT, err = c.Float("vehicle.secondary_lat")
-	LogError("init(): load vehicle secondary lat", err)
-
-	SECONDARY_LNG, err = c.Float("vehicle.secondary_lng")
-	LogError("init(): load vehicle secondary lng", err)
-
-	OPENWEATHERMAP_KEY, err = c.String("weather.openweathermap_key")
-	LogError("init(): load open weather map key", err)
-
-	BASE_WEATHER_URL, err = c.String("weather.base_url")
-	LogError("init(): load open weather map key", err)
-
-	BASE_PROXY_URL, err = c.String("tesla.base_proxy_url")
-	LogError("init(): load base proxy url", err)
-
-	TIMEZONE, err = c.String("general.timezone")
-	LogError("init(): load timezone", err)
+	M3_VIN, _ = c.String("vehicle.m3_vin")
+	MX_VIN, _ = c.String("vehicle.mx_vin")
+	PRIMARY_LAT, _ = c.Float("vehicle.primary_lat")
+	PRIMARY_LNG, _ = c.Float("vehicle.primary_lng")
+	SECONDARY_LAT, _ = c.Float("vehicle.secondary_lat")
+	SECONDARY_LNG, _ = c.Float("vehicle.secondary_lng")
+	OPENWEATHERMAP_KEY, _ = c.String("weather.openweathermap_key")
+	BASE_WEATHER_URL, _ = c.String("weather.base_url")
+	BASE_PROXY_URL, _ = c.String("tesla.base_proxy_url")
+	TIMEZONE, _ = c.String("general.timezone")
 }
 
 // Retrieves dictionary of configuration values.
@@ -81,7 +59,7 @@ func GetConfig() *config.Config {
 	return getConfigFile("/home/pi/tesla/python/secrets/config.xor")
 }
 
-func GetLocalEnergyConfig() *config.Config {
+func GetLocalConfig() *config.Config {
 	return getConfigFile("/home/pi/tesla/python/secrets/local_config.xor")
 }
 
@@ -90,7 +68,7 @@ func GetToken() *config.Config {
 	return getConfigFile("/home/pi/tesla/python/secrets/token.xor")
 }
 
-func GetLocalEnergyToken() *config.Config {
+func GetLocalToken() *config.Config {
 	return getConfigFile("/home/pi/tesla/python/secrets/local_token.xor")
 }
 
@@ -100,7 +78,9 @@ func getConfigFile(read_fn string) *config.Config {
 	env := config.NewStatic(iniFile)
 	c := config.NewConfig([]config.Provider{env})
 	err := c.Load()
-	LogErrorStdOut("getConfigFile(): c.Load()", err)
+	if err != nil {
+		slog.Error("getConfigFile(): c.Load(): " + err.Error())
+	}
 
 	return c
 }
@@ -113,8 +93,7 @@ func getConfigFile(read_fn string) *config.Config {
 func newINIFile(data []byte) map[string]string {
 	settings := map[string]string{}
 
-	config, err := ini.Load(data)
-	LogError("NewINIFile(): ini.Load", err)
+	config, _ := ini.Load(data)
 
 	for _, section := range config.Sections() {
 		for _, key := range section.Keys() {
@@ -174,8 +153,7 @@ func GetTomorrowTime(t string) time.Time {
 	now := time.Now()
 	loc, _ := time.LoadLocation(TIMEZONE)
 
-	date, err := time.ParseInLocation("2006-1-2 15:4", strconv.Itoa(now.Year())+"-"+strconv.Itoa(int(now.Month()))+"-"+strconv.Itoa(now.Day())+" "+t, loc)
-	LogError("GetTomorrowTime(): time.ParseInLocation", err)
+	date, _ := time.ParseInLocation("2006-1-2 15:4", strconv.Itoa(now.Year())+"-"+strconv.Itoa(int(now.Month()))+"-"+strconv.Itoa(now.Day())+" "+t, loc)
 
 	return date.AddDate(0, 0, 1)
 }
@@ -184,8 +162,7 @@ func GetTodayTime(t string) time.Time {
 	now := time.Now()
 	loc, _ := time.LoadLocation(TIMEZONE)
 
-	date, err := time.ParseInLocation("2006-1-2 15:4", strconv.Itoa(now.Year())+"-"+strconv.Itoa(int(now.Month()))+"-"+strconv.Itoa(now.Day())+" "+t, loc)
-	LogError("GetTomorrowTime(): time.ParseInLocation", err)
+	date, _ := time.ParseInLocation("2006-1-2 15:4", strconv.Itoa(now.Year())+"-"+strconv.Itoa(int(now.Month()))+"-"+strconv.Itoa(now.Day())+" "+t, loc)
 
 	return date
 }
@@ -201,8 +178,7 @@ func GetCurrentWeather(lat, lng float64) map[string]any {
 		"&exclude=minutely,hourly,daily,alerts" +
 		"&units=metric"
 
-	resp, err := http.Get(url)
-	LogError("GetCurrentWeather(): http.Get", err)
+	resp, _ := http.Get(url)
 
 	if resp.StatusCode != 200 {
 		time.Sleep(WAIT_TIME * time.Second)
@@ -228,8 +204,7 @@ func GetDailyWeather(lat, lng float64) map[string]any {
 		"&exclude=current,minutely,alerts" +
 		"&units=metric"
 
-	resp, err := http.Get(url)
-	LogError("GetDailyWeather(): http.Get", err)
+	resp, _ := http.Get(url)
 
 	if resp.StatusCode != 200 {
 		time.Sleep(WAIT_TIME * time.Second)
@@ -248,13 +223,17 @@ func CreateCronTab(command string, minute int, hour int, dom int, mon int) {
 	cron := fmt.Sprint(minute) + " " + fmt.Sprint(hour) + " " + fmt.Sprint(dom) + " " + fmt.Sprint(mon) + " * " + command
 
 	err := exec.Command("bash", "-c", "(crontab -l && echo '"+cron+"') | crontab -").Run()
-	LogError("CreateCronTab(): exec.Command", err)
+	if err != nil {
+		slog.Error("CreateCronTab(): exec.Command(): " + err.Error())
+	}
 }
 
 // Removes crontab for a single command.
 func DeleteCronTab(command string) {
 	err := exec.Command("bash", "-c", "(crontab -l | grep -v '"+command+"') | crontab -").Run()
-	LogError("DeleteCronTab(): exec.Command", err)
+	if err != nil {
+		slog.Error("DeleteCronTab(): exec.Command(): " + err.Error())
+	}
 }
 
 func FindStringIn2DArray(arr [][]any, target string) []int64 {
@@ -274,23 +253,19 @@ func FindStringIn2DArray(arr [][]any, target string) []int64 {
 func SendRequest(method, url, token string, payload []byte) *http.Response {
 	var resp *http.Response
 
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(payload))
-	LogError(url+": http.NewRequest", err)
+	req, _ := http.NewRequest(method, url, bytes.NewBuffer(payload))
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("authorization", "Bearer "+token)
 	switch token {
 	case ACCESS_TOKEN:
 		if strings.HasPrefix(url, BASE_PROXY_URL) {
-			resp, err = getHttpsClientWithCert().Do(req)
-			LogError(url+": getHttpsClientWithCert", err)
+			resp, _ = getHttpsClientWithCert().Do(req)
 		} else {
-			resp, err = http.DefaultClient.Do(req)
-			LogError(url+": http.DefaultClient.Do", err)
+			resp, _ = http.DefaultClient.Do(req)
 		}
 	case LOCAL_ACCESS_TOKEN:
-		resp, err = getHttpsClient().Do(req)
-		LogError(url+": getHttpsClient", err)
+		resp, _ = getHttpsClient().Do(req)
 	}
 
 	return resp
@@ -309,8 +284,7 @@ func getHttpsClient() *http.Client {
 // certificate relies on legacy Common Name field, use SANs instead" which skips the hostname
 // verification for self-signed certificates.
 func getHttpsClientWithCert() *http.Client {
-	caCert, err := os.ReadFile("/home/pi/tesla/python/secrets/cert.pem")
-	LogError("getHttpsClient(): os.ReadFile", err)
+	caCert, _ := os.ReadFile("/home/pi/tesla/python/secrets/cert.pem")
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
@@ -330,8 +304,7 @@ func getHttpsClientWithCert() *http.Client {
 					// (optionally) verify the server's certificates.
 					certs := make([]*x509.Certificate, len(rawCerts))
 					for i, asn1Data := range rawCerts {
-						cert, err := x509.ParseCertificate(asn1Data)
-						LogError("getHttpsClient(): x509.ParseCertificate", err)
+						cert, _ := x509.ParseCertificate(asn1Data)
 						certs[i] = cert
 					}
 

@@ -10,7 +10,6 @@ import (
 )
 
 var SendRequest = common.SendRequest
-var LogError = common.LogError
 var GetConfig = common.GetConfig
 
 var ACCESS_TOKEN string
@@ -19,18 +18,12 @@ var BASE_PROXY_URL string
 var WAIT_TIME time.Duration = 30 // seconds
 
 func init() {
-	var err error
-
 	t := common.GetToken()
-	ACCESS_TOKEN, err = t.String("tesla.access_token")
-	LogError("init(): load access token", err)
+	ACCESS_TOKEN, _ = t.String("tesla.access_token")
 
 	c := GetConfig()
-	BASE_PROXY_URL, err = c.String("tesla.base_proxy_url")
-	LogError("init(): load base proxy url", err)
-
-	BASE_OWNER_URL, err = c.String("tesla.base_owner_url")
-	LogError("init(): load base owner url", err)
+	BASE_PROXY_URL, _ = c.String("tesla.base_proxy_url")
+	BASE_OWNER_URL, _ = c.String("tesla.base_owner_url")
 }
 
 // Retrieves the vehicle data needed for higher level functions to drive

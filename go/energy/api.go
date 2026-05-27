@@ -11,7 +11,6 @@ import (
 
 var SendGet = vehicle.SendGet
 var SendPost = vehicle.SendPost
-var LogError = common.LogError
 var GetJson = common.GetJson
 var GetConfig = common.GetConfig
 
@@ -19,14 +18,9 @@ var SITE_ID string
 var BASE_OWNER_URL string
 
 func init() {
-	var err error
-
 	c := GetConfig()
-	SITE_ID, err = c.String("energy.site_id")
-	LogError("init(): load site id", err)
-
-	BASE_OWNER_URL, err = c.String("tesla.base_owner_url")
-	LogError("init(): load base owner url", err)
+	SITE_ID, _ = c.String("energy.site_id")
+	BASE_OWNER_URL, _ = c.String("tesla.base_owner_url")
 }
 
 // Gets some quick and basic information.

@@ -7,12 +7,10 @@ import (
 // Simple decryption based on a key.
 func Decrypt(read_fn string) []byte {
 	// open encrypted file
-	message, err := os.ReadFile(read_fn)
-	LogError("Decrypt(): os.ReadFile encrypted file", err)
+	message, _ := os.ReadFile(read_fn)
 
 	// read key
-	key, err := os.ReadFile("/home/pi/tesla/python/secrets/tesla_private_key.pem")
-	LogError("Decrypt(): os.ReadFile key", err)
+	key, _ := os.ReadFile("/home/pi/tesla/python/secrets/tesla_private_key.pem")
 
 	// decrypt with key
 	result := []byte{}

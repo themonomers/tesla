@@ -1,6 +1,7 @@
 package vehicle
 
 import (
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -11,24 +12,13 @@ import (
 var TELEMETRY_SHEET_ID int64
 
 func init() {
-	var err error
-
-	var c = GetConfig()
-	M3_VIN, err = c.String("vehicle.m3_vin")
-	LogError("init(): load m3 vin", err)
-
-	MX_VIN, err = c.String("vehicle.mx_vin")
-	LogError("init(): load mx vin", err)
-
-	EV_SPREADSHEET_ID, err = c.String("google.ev_spreadsheet_id")
-	LogError("init(): load ev spreadsheet id", err)
-
-	telemetry_sheet_id, err := c.String("google.telemetry_sheet_id")
-	LogError("init(): load telemetry sheet id", err)
+	c := GetConfig()
+	M3_VIN, _ = c.String("vehicle.m3_vin")
+	MX_VIN, _ = c.String("vehicle.mx_vin")
+	EV_SPREADSHEET_ID, _ = c.String("google.ev_spreadsheet_id")
+	telemetry_sheet_id, _ := c.String("google.telemetry_sheet_id")
 	TELEMETRY_SHEET_ID, _ = strconv.ParseInt(telemetry_sheet_id, 10, 64)
-
-	EMAIL_1, err = c.String("notification.email_1")
-	LogError("init(): load email 1", err)
+	EMAIL_1, _ = c.String("notification.email_1")
 }
 
 func WriteVehicleTelemetry() {
@@ -204,9 +194,13 @@ func writeM3Telemetry() {
 	// batch write data and formula copies to sheet
 	srv := GetGoogleSheetService()
 	_, err := srv.Spreadsheets.Values.BatchUpdate(EV_SPREADSHEET_ID, inputs).Do()
-	LogError("WriteM3Telemetry(): srv.Spreadsheets.Values.BatchUpdate", err)
+	if err != nil {
+		slog.Error("WriteM3Telemetry(): srv.Spreadsheets.Values.BatchUpdate(): " + err.Error())
+	}
 	_, err = srv.Spreadsheets.BatchUpdate(EV_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
-	LogError("WriteM3Telemetry(): srv.Spreadsheets.BatchUpdate", err)
+	if err != nil {
+		slog.Error("WriteM3Telemetry(): srv.Spreadsheets.BatchUpdate(): " + err.Error())
+	}
 
 	// send email notification
 	message := "Model 3 telemetry successfully logged on " +
@@ -381,9 +375,13 @@ func writeMXTelemetry() {
 	// batch write data and formula copies to sheet
 	srv := GetGoogleSheetService()
 	_, err := srv.Spreadsheets.Values.BatchUpdate(EV_SPREADSHEET_ID, inputs).Do()
-	LogError("WriteMXTelemetry(): srv.Spreadsheets.Values.BatchUpdate", err)
+	if err != nil {
+		slog.Error("WriteMXTelemetry(): srv.Spreadsheets.Values.BatchUpdate(): " + err.Error())
+	}
 	_, err = srv.Spreadsheets.BatchUpdate(EV_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
-	LogError("WriteMXTelemetry(): srv.Spreadsheets.BatchUpdate", err)
+	if err != nil {
+		slog.Error("WriteMXTelemetry(): srv.Spreadsheets.BatchUpdate(): " + err.Error())
+	}
 
 	// send email notification
 	message := "Model X telemetry successfully logged on " +

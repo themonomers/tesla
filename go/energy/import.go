@@ -3,6 +3,7 @@ package energy
 import (
 	"bufio"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
@@ -54,10 +55,9 @@ func ImportOutageToDB() {
 	defer c.Close()
 
 	// Create a new point batch
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database: "outage",
 	})
-	LogError("ImportOutageToDB(): client.NewBatchPoints", err)
 
 	for key, val := range data["response"].(map[string]any)["events"].([]any) {
 		fmt.Println(key + 1)
@@ -85,14 +85,15 @@ func ImportOutageToDB() {
 		fields := map[string]any{
 			"value": duration,
 		}
-		pt, err := client.NewPoint("backup", tags, fields, start)
-		LogError("ImportOutageToDB(): client.NewPoint", err)
+		pt, _ := client.NewPoint("backup", tags, fields, start)
 		bp.AddPoint(pt)
 	}
 
 	// Write the batch
-	err = c.Write(bp)
-	LogError("ImportOutageToDB(): c.Write", err)
+	err := c.Write(bp)
+	if err != nil {
+		slog.Error("ImportOutageToDB(): c.Write(): " + err.Error())
+	}
 
 	// Close client resources
 	c.Close()

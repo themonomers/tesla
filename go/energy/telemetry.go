@@ -1,8 +1,7 @@
 package energy
 
 import (
-	//	"encoding/json"
-	//	"fmt"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -18,18 +17,11 @@ var SUMMARY_SHEET_ID int64
 var EMAIL_1 string
 
 func init() {
-	var err error
-
 	c := GetConfig()
-	ENERGY_SPREADSHEET_ID, err = c.String("google.energy_spreadsheet_id")
-	LogError("init(): load energy spreadsheet id", err)
-
-	summary_sheet_id, err := c.String("google.summary_sheet_id")
-	LogError("init(): load energy summary sheet id", err)
+	ENERGY_SPREADSHEET_ID, _ = c.String("google.energy_spreadsheet_id")
+	summary_sheet_id, _ := c.String("google.summary_sheet_id")
 	SUMMARY_SHEET_ID, _ = strconv.ParseInt(summary_sheet_id, 10, 64)
-
-	EMAIL_1, err = c.String("notification.email_1")
-	LogError("init(): load email 1", err)
+	EMAIL_1, _ = c.String("notification.email_1")
 }
 
 // Write the data for the previous day based on a cron job that runs just after
@@ -61,15 +53,13 @@ func WriteEnergyDetailToDB(date time.Time) {
 	defer c.Close()
 
 	// Create a new point batch
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database: "energy",
 	})
-	LogError("WriteEnergyDetailToDB(): client.NewBatchPoints", err)
 
 	for _, val := range data["response"].(map[string]any)["time_series"].([]any) {
 		//d, err := time.Parse("2006-01-02", strings.Split(val.(map[string]any)["timestamp"].(string), "T")[0])
-		d, err := time.Parse("2006-01-02T15:04:05-07:00", val.(map[string]any)["timestamp"].(string))
-		LogError("WriteEnergyDetailToDB(): time.Parse", err)
+		d, _ := time.Parse("2006-01-02T15:04:05-07:00", val.(map[string]any)["timestamp"].(string))
 
 		if d.Year() == date.Year() &&
 			d.Month() == date.Month() &&
@@ -81,14 +71,15 @@ func WriteEnergyDetailToDB(date time.Time) {
 					fields := map[string]any{
 						"value": val.(float64),
 					}
-					pt, err := client.NewPoint("energy_detail", tags, fields, d)
-					LogError("WriteEnergyDetailToDB(): client.NewPoint", err)
+					pt, _ := client.NewPoint("energy_detail", tags, fields, d)
 					bp.AddPoint(pt)
 				}
 			}
 			// Write the batch
-			err = c.Write(bp)
-			LogError("WriteEnergyDetailToDB(): c.Write", err)
+			err := c.Write(bp)
+			if err != nil {
+				slog.Error("WriteEnergyDetailToDB(): c.Write(): " + err.Error())
+			}
 
 			// Close client resources
 			c.Close()
@@ -108,10 +99,9 @@ func WriteEnergySummaryToDB(date time.Time) {
 	defer c.Close()
 
 	// Create a new point batch
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database: "energy",
 	})
-	LogError("WriteEnergySummaryToDB(): client.NewBatchPoints", err)
 
 	// write battery data
 	// Create points and add to batch
@@ -119,8 +109,7 @@ func WriteEnergySummaryToDB(date time.Time) {
 	fields := map[string]any{
 		"value": data["nominal_full_pack_energy"].(float64),
 	}
-	pt, err := client.NewPoint("energy_summary", tags, fields, date.Local().UTC())
-	LogError("WriteEnergySummaryToDB(): client.NewPoint", err)
+	pt, _ := client.NewPoint("energy_summary", tags, fields, date.Local().UTC())
 	bp.AddPoint(pt)
 
 	// get battery data
@@ -129,8 +118,7 @@ func WriteEnergySummaryToDB(date time.Time) {
 	fields = map[string]any{
 		"value": data["response"].(map[string]any)["percentage_charged"].(float64),
 	}
-	pt, err = client.NewPoint("energy_summary", tags, fields, date.Local().UTC())
-	LogError("WriteEnergySummaryToDB(): client.NewPoint", err)
+	pt, _ = client.NewPoint("energy_summary", tags, fields, date.Local().UTC())
 	bp.AddPoint(pt)
 
 	// get solar data
@@ -141,8 +129,7 @@ func WriteEnergySummaryToDB(date time.Time) {
 	// write solar data
 	cumulative_data := make(map[string]float64)
 	for _, items := range data["response"].(map[string]any)["time_series"].([]any) {
-		d, err := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
-		LogError("WriteEnergySummaryToDB(): time.Parse", err)
+		d, _ := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
 
 		if d.Year() == date.Year() &&
 			d.Month() == date.Month() &&
@@ -164,16 +151,14 @@ func WriteEnergySummaryToDB(date time.Time) {
 		fields = map[string]any{
 			"value": val,
 		}
-		pt, err = client.NewPoint("energy_summary", tags, fields, date)
-		LogError("WriteEnergySummaryToDB(): client.NewPoint", err)
+		pt, _ = client.NewPoint("energy_summary", tags, fields, date)
 		bp.AddPoint(pt)
 	}
 
 	// get solar value
 	data = GetSavingsForecast("day", date)
 	for _, j := range data["response"].([]any) {
-		d, err := time.Parse(time.RFC3339, j.(map[string]any)["timestamp"].(string))
-		LogError("WriteEnergySummaryToDB(): time.Parse", err)
+		d, _ := time.Parse(time.RFC3339, j.(map[string]any)["timestamp"].(string))
 
 		// timestamp in data is in UTC, convert to local time
 		d_local := d.Local()
@@ -189,15 +174,16 @@ func WriteEnergySummaryToDB(date time.Time) {
 			fields = map[string]any{
 				"value": j.(map[string]any)["value"].(float64),
 			}
-			pt, err = client.NewPoint("energy_summary", tags, fields, d)
-			LogError("WriteEnergySummaryToDB(): client.NewPoint", err)
+			pt, _ = client.NewPoint("energy_summary", tags, fields, d)
 			bp.AddPoint(pt)
 		}
 	}
 
 	// Write the batch
-	err = c.Write(bp)
-	LogError("WriteEnergySummaryToDB(): c.Write", err)
+	err := c.Write(bp)
+	if err != nil {
+		slog.Error("WriteEnergySummaryToDB(): c.Write(): " + err.Error())
+	}
 
 	// Close client resources
 	c.Close()
@@ -213,10 +199,9 @@ func WriteBatteryChargeToDB(date time.Time) {
 	defer c.Close()
 
 	// Create a new point batch
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database: "energy",
 	})
-	LogError("WriteBatteryChargeToDB(): client.NewBatchPoints", err)
 
 	for _, val := range data["response"].(map[string]any)["time_series"].([]any) {
 		tags := map[string]string{"source": "percentage_charged"}
@@ -224,14 +209,15 @@ func WriteBatteryChargeToDB(date time.Time) {
 			"value": val.(map[string]any)["soe"].(float64),
 		}
 		d, _ := time.Parse("2006-01-02T15:04:05-07:00", val.(map[string]any)["timestamp"].(string))
-		pt, err := client.NewPoint("energy_detail", tags, fields, d)
-		LogError("WriteBatteryChargeToDB(): client.NewPoint", err)
+		pt, _ := client.NewPoint("energy_detail", tags, fields, d)
 		bp.AddPoint(pt)
 	}
 
 	// Write the batch
-	err = c.Write(bp)
-	LogError("WriteBatteryChargeToDB(): c.Write", err)
+	err := c.Write(bp)
+	if err != nil {
+		slog.Error("WriteBatteryChargeToDB(): c.Write(): " + err.Error())
+	}
 
 	// Close client resources
 	c.Close()
@@ -250,15 +236,13 @@ func WriteEnergyTOUSummaryToDB(date time.Time) {
 	defer c.Close()
 
 	// Create a new point batch
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database: "summary",
 	})
-	LogError("WriteEnergyTOUSummaryToDB(): client.NewBatchPoints", err)
 
 	cumulative_data := make(map[string]float64)
 	for _, items := range data["response"].(map[string]any)["time_series"].([]any) {
-		d, err := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
-		LogError("WriteEnergyTOUSummaryToDB(): time.Parse", err)
+		d, _ := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
 
 		if d.Year() == date.Year() &&
 			d.Month() == date.Month() &&
@@ -275,8 +259,7 @@ func WriteEnergyTOUSummaryToDB(date time.Time) {
 		fields := map[string]any{
 			"value": val,
 		}
-		pt, err := client.NewPoint("all_day", tags, fields, date)
-		LogError("WriteEnergyTOUSummaryToDB(): client.NewPoint", err)
+		pt, _ := client.NewPoint("all_day", tags, fields, date)
 		bp.AddPoint(pt)
 	}
 
@@ -294,8 +277,7 @@ func WriteEnergyTOUSummaryToDB(date time.Time) {
 					fields := map[string]any{
 						"value": val_2.(float64),
 					}
-					pt, err := client.NewPoint(key_1, tags, fields, date)
-					LogError("WriteEnergyTOUSummaryToDB(): client.NewPoint", err)
+					pt, _ := client.NewPoint(key_1, tags, fields, date)
 					bp.AddPoint(pt)
 				}
 			}
@@ -303,8 +285,10 @@ func WriteEnergyTOUSummaryToDB(date time.Time) {
 	}
 
 	// Write the batch
-	err = c.Write(bp)
-	LogError("WriteEnergyTOUSummaryToDB(): c.Write", err)
+	err := c.Write(bp)
+	if err != nil {
+		slog.Error("WriteEnergyTOUSummaryToDB(): c.Write(): " + err.Error())
+	}
 
 	// Close client resources
 	c.Close()
@@ -367,8 +351,7 @@ func WriteEnergyDataToGsheet(date time.Time) {
 
 	cumulative_data := make(map[string]float64)
 	for _, items := range data["response"].(map[string]any)["time_series"].([]any) {
-		d, err := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
-		LogError("WriteEnergyDataToGsheet(): time.Parse", err)
+		d, _ := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
 
 		if d.Year() == date.Year() &&
 			d.Month() == date.Month() &&
@@ -866,9 +849,13 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	// batch write data and formula copies to sheet
 	srv := common.GetGoogleSheetService()
 	_, err := srv.Spreadsheets.Values.BatchUpdate(ENERGY_SPREADSHEET_ID, inputs).Do()
-	LogError("WriteEnergyDataToGsheet(): srv.Spreadsheets.Values.BatchUpdate", err)
+	if err != nil {
+		slog.Error("WriteEnergyDataToGsheet(): srv.Spreadsheets.Values.BatchUpdate(): " + err.Error())
+	}
 	_, err = srv.Spreadsheets.BatchUpdate(ENERGY_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
-	LogError("WriteEnergyDataToGsheet(): srv.Spreadsheets.BatchUpdate", err)
+	if err != nil {
+		slog.Error("WriteEnergyDataToGsheet(): srv.Spreadsheets.BatchUpdate(): " + err.Error())
+	}
 }
 
 // Compares the list of backup events already stored in the DB vs. the list
@@ -882,14 +869,12 @@ func WriteBatteryBackupHistoryToDB() {
 
 	// get existing list of backup events saved to DB
 	q := client.NewQuery("SELECT * FROM backup", "outage", "")
-	db, err := c.Query(q)
-	LogError("WriteBatteryBackupHistoryToDB(): c.Query", err)
+	db, _ := c.Query(q)
 
 	// Create a new point batch
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database: "outage",
 	})
-	LogError("ImportOutageToDB(): client.NewBatchPoints", err)
 
 	for _, val := range data["response"].(map[string]any)["events"].([]any) {
 		var skip bool = false
@@ -916,15 +901,16 @@ func WriteBatteryBackupHistoryToDB() {
 			fields := map[string]any{
 				"value": duration,
 			}
-			pt, err := client.NewPoint("backup", tags, fields, start)
-			LogError("ImportOutageToDB(): client.NewPoint", err)
+			pt, _ := client.NewPoint("backup", tags, fields, start)
 			bp.AddPoint(pt)
 		}
 	}
 
 	// Write the batch
-	err = c.Write(bp)
-	LogError("ImportOutageToDB(): c.Write", err)
+	err := c.Write(bp)
+	if err != nil {
+		slog.Error("WriteBatteryBackupHistoryToDB(): c.Write(): " + err.Error())
+	}
 
 	// Close client resources
 	c.Close()

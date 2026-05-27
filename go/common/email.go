@@ -1,6 +1,7 @@
 package common
 
 import (
+	"log/slog"
 	"net/smtp"
 	"time"
 )
@@ -9,14 +10,9 @@ var SENDER_EMAIL string
 var SENDER_PASSWORD string
 
 func init() {
-	var err error
-
-	var c = GetConfig()
-	SENDER_EMAIL, err = c.String("notification.sender_email")
-	LogError("init(): load notification sender email", err)
-
-	SENDER_PASSWORD, err = c.String("notification.sender_password")
-	LogError("init(): load notification sender password", err)
+	c := GetConfig()
+	SENDER_EMAIL, _ = c.String("notification.sender_email")
+	SENDER_PASSWORD, _ = c.String("notification.sender_password")
 }
 
 // Send email via Google SMTP.
@@ -31,7 +27,7 @@ func SendEmail(to, subject, message, cc string) {
 	auth := smtp.PlainAuth("", SENDER_EMAIL, SENDER_PASSWORD, "smtp.gmail.com")
 	err := smtp.SendMail("smtp.gmail.com:587", auth, SENDER_EMAIL, tos, msg)
 	if err != nil {
-		LogErrorRetry("SendEmail(): smtp.SendMail", err)
+		slog.Warn("Retry SendEmail(): smtp.SendMail(): " + err.Error())
 		time.Sleep(WAIT_TIME * time.Second)
 		SendEmail(to, subject, message, cc)
 	}

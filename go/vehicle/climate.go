@@ -2,6 +2,7 @@ package vehicle
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -14,14 +15,9 @@ var PRIMARY_LAT float64
 var PRIMARY_LNG float64
 
 func init() {
-	var err error
-
-	var c = GetConfig()
-	PRIMARY_LAT, err = c.Float("vehicle.primary_lat")
-	LogError("init(): load vehicle primary lat", err)
-
-	PRIMARY_LNG, err = c.Float("vehicle.primary_lng")
-	LogError("init(): load vehicle primary lng", err)
+	c := GetConfig()
+	PRIMARY_LAT, _ = c.Float("vehicle.primary_lat")
+	PRIMARY_LNG, _ = c.Float("vehicle.primary_lng")
 }
 
 // Creates a trigger to precondition the cabin for the following morning,
@@ -70,7 +66,9 @@ func StartM3Precondition() {
 	// get configuration info
 	srv := GetGoogleSheetService()
 	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
-	LogError("StartM3Precondition(): srv.Spreadsheets.Values.Get", err)
+	if err != nil {
+		slog.Error("StartM3Precondition(): srv.Spreadsheets.Values.Get(): " + err.Error())
+	}
 
 	// check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
 	if climate_config.Values[19][1] == "on" {
@@ -178,7 +176,9 @@ func StartMXPrecondition() {
 	// get configuration info
 	srv := GetGoogleSheetService()
 	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
-	LogError("StartMXPrecondition(): srv.Spreadsheets.Values.Get", err)
+	if err != nil {
+		slog.Error("StartMXPrecondition(): srv.Spreadsheets.Values.Get(): " + err.Error())
+	}
 
 	// check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
 	if climate_config.Values[19][10] == "on" {

@@ -10,30 +10,19 @@ var INFLUX_USER string
 var INFLUX_PASSWORD string
 
 func init() {
-	var err error
-
-	var c = GetConfig()
-	INFLUX_HOST, err = c.String("influxdb.host")
-	LogError("init(): influxdb host", err)
-
-	INFLUX_PORT, err = c.String("influxdb.port")
-	LogError("init(): influxdb port", err)
-
-	INFLUX_USER, err = c.String("influxdb.user")
-	LogError("init(): influxdb user", err)
-
-	INFLUX_PASSWORD, err = c.String("influxdb.password")
-	LogError("init(): influxdb password", err)
+	c := GetConfig()
+	INFLUX_HOST, _ = c.String("influxdb.host")
+	INFLUX_PORT, _ = c.String("influxdb.port")
+	INFLUX_USER, _ = c.String("influxdb.user")
+	INFLUX_PASSWORD, _ = c.String("influxdb.password")
 }
 
 func GetDBClient() client.HTTPClient {
-	// Create a new HTTPClient
-	c, err := client.NewHTTPClient(client.HTTPConfig{
+	c, _ := client.NewHTTPClient(client.HTTPConfig{
 		Addr:     "http://" + INFLUX_HOST + ":" + INFLUX_PORT,
 		Username: INFLUX_USER,
 		Password: INFLUX_PASSWORD,
 	})
-	LogError("GetDBClient(): client.NewHTTPClient", err)
 
 	return c
 }

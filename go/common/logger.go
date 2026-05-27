@@ -1,96 +1,81 @@
 package common
 
 import (
+	"context"
 	"fmt"
+	"io"
+	"log"
+	"log/slog"
 	"os"
-	"strconv"
-	"time"
-
-	"google.golang.org/api/sheets/v4"
+	"sync"
 )
 
-var LOG_SPREADSHEET_ID string
-var LOG_SHEET_ID int64
-var INFO = "INFO"
-var WARN = "WARN"
-var ERROR = "ERROR"
-var ERROR_RETRY = "ERROR_RETRY"
-
-func init() {
-	var err error
-
-	var c = GetConfig()
-	LOG_SPREADSHEET_ID, err = c.String("google.log_spreadsheet_id")
-	LogErrorStdOut("init(): load log spreadsheet id", err)
-
-	e_id, err := c.Int("google.log_sheet_id")
-	LogErrorStdOut("init(): load log sheet id", err)
-	LOG_SHEET_ID = int64(e_id)
-}
-
-// Logs information into a Google Sheet.
-func log(level, msg string) {
-	// write this into an open row in logging Google Sheet
-	var open_row = strconv.Itoa(FindOpenRow(LOG_SPREADSHEET_ID, "log", "A:A"))
-
-	var vr sheets.ValueRange
-	data := []any{level, time.Now().Format("2006-01-02 15:04:05"), msg}
-	vr.Values = append(vr.Values, data)
-	srv := GetGoogleSheetService()
-	_, err := srv.Spreadsheets.Values.Update(LOG_SPREADSHEET_ID, "log!A"+open_row+":"+"C"+open_row, &vr).ValueInputOption("USER_ENTERED").Do()
-	LogErrorStdOut("log(): srv.Spreadsheets.Values.Update", err)
-
-	if level == ERROR {
-		os.Exit(1)
-	}
-}
-
-func LogInfo(msg string) {
-	log(INFO, msg)
-}
-
-func LogWarn(msg string) {
-	log(WARN, msg)
-}
-
-func LogError(msg string, err error) {
+// Setup initializes a file-backed logger and sets it as the system default.
+// It returns a cleanup function to close the log file gracefully when the app exits.
+func InitLogger() (func(), error) {
+	// Open or create the log file with read-write, append, and create permissions
+	file, err := os.OpenFile("./logs/tesla.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log(ERROR, msg+" "+err.Error())
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+
+	// Initialize our custom handler with a minimum level filter
+	handler := NewCustomHandler(file, slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	})
+
+	// Set the custom logger as the global application default
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+
+	// Return a closure to execute when closing down the main routine
+	cleanup := func() {
+		_ = file.Close()
+	}
+
+	return cleanup, nil
+}
+
+// CustomHandler implements the slog.Handler interface for raw formatting
+type CustomHandler struct {
+	w    io.Writer
+	mu   *sync.Mutex
+	opts slog.HandlerOptions
+}
+
+func NewCustomHandler(w io.Writer, opts slog.HandlerOptions) *CustomHandler {
+	return &CustomHandler{
+		w:    w,
+		mu:   &sync.Mutex{},
+		opts: opts,
 	}
 }
 
-func LogErrorRetry(msg string, err error) {
-	log(ERROR_RETRY, msg+" "+err.Error())
-}
-
-// Log errors to standard output.
-func logStdOut(level, msg string) {
-	fmt.Println("[" + level + "] " + time.Now().Format("2006-01-02 15:04:05") + " " + msg)
-
-	if level == ERROR {
-		os.Exit(1)
+// Enabled checks if the record's level meets the minimum configured level
+func (h *CustomHandler) Enabled(_ context.Context, level slog.Level) bool {
+	minLevel := h.opts.Level
+	if minLevel == nil {
+		minLevel = slog.LevelInfo
 	}
+	return level >= minLevel.Level()
 }
 
-func LogInfoStdOut(msg string) {
-	logStdOut(INFO, msg)
+// Handle formats the record without keys, equals signs, or quotes
+func (h *CustomHandler) Handle(_ context.Context, r slog.Record) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	line := fmt.Sprintf("%s %s %s\n", r.Time.Format("2006-01-02 15:04:05"), r.Level.String(), r.Message)
+
+	_, err := io.WriteString(h.w, line)
+	return err
 }
 
-func LogWarnStdOut(msg string) {
-	logStdOut(WARN, msg)
-}
+// WithAttrs and WithGroup are required to implement the interface
+func (h *CustomHandler) WithAttrs(attrs []slog.Attr) slog.Handler { return h }
+func (h *CustomHandler) WithGroup(name string) slog.Handler       { return h }
 
-func LogErrorStdOut(msg string, err error) {
-	if err != nil {
-		logStdOut(ERROR, msg+" "+err.Error())
-		//		os.Exit(1)
-	}
-}
-
-func LogErrorRetryStdOut(msg string) {
-	logStdOut(ERROR_RETRY, msg)
-}
-
+/*
 // Keeps the log from getting too long/big; deletes any rows older than
 // 30 days.
 func TruncateLog() {
@@ -146,4 +131,4 @@ func TruncateLog() {
 			return
 		}
 	}
-}
+}*/
