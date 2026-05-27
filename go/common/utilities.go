@@ -56,20 +56,20 @@ func init() {
 
 // Retrieves dictionary of configuration values.
 func GetConfig() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/secrets/config.xor")
+	return getConfigFile(GetFilePath(GetFiles().Configs.Config))
 }
 
 func GetLocalConfig() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/secrets/local_config.xor")
+	return getConfigFile(GetFilePath(GetFiles().Configs.LocalConfig))
 }
 
 // Retrievies dictionary of access token values.
 func GetToken() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/secrets/token.xor")
+	return getConfigFile(GetFilePath(GetFiles().Secrets.Token))
 }
 
 func GetLocalToken() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/secrets/local_token.xor")
+	return getConfigFile(GetFilePath(GetFiles().Secrets.LocalToken))
 }
 
 // Golang ini configuration loader from a filename.
@@ -284,7 +284,7 @@ func getHttpsClient() *http.Client {
 // certificate relies on legacy Common Name field, use SANs instead" which skips the hostname
 // verification for self-signed certificates.
 func getHttpsClientWithCert() *http.Client {
-	caCert, _ := os.ReadFile("/home/pi/tesla/python/secrets/cert.pem")
+	caCert, _ := os.ReadFile(GetFilePath(GetFiles().Secrets.TeslaCert))
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
