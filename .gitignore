@@ -1,9 +1,5 @@
 **/tests
 **/logs
 **/__pycache__
-*.pem
-*.xor
-*.json
-!log.json
-!file.json
-!cron.json
+**/secrets
+**.vscode

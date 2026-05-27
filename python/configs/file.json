@@ -1,7 +1,7 @@
 {
     "configs": {
-        "config": "./configs/config.xor",
-        "localConfig": "./configs/local_config.xor",
+        "config": "./secrets/config.xor",
+        "localConfig": "./secrets/local_config.xor",
         "cron": "./configs/cron.json",
         "log": "./configs/log.json"
     },

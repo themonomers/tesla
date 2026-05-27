@@ -29,7 +29,6 @@ var SECONDARY_LNG float64
 var R float64 = 3958.8 // Earth radius in miles
 var BASE_WEATHER_URL string
 var BASE_PROXY_URL string
-var CERT string
 var OPENWEATHERMAP_KEY string
 var TIMEZONE string
 var WAIT_TIME time.Duration = 30 // seconds
@@ -73,20 +72,17 @@ func init() {
 	BASE_PROXY_URL, err = c.String("tesla.base_proxy_url")
 	LogError("init(): load base proxy url", err)
 
-	CERT, err = c.String("tesla.certificate")
-	LogError("init(): load tesla certificate", err)
-
 	TIMEZONE, err = c.String("general.timezone")
 	LogError("init(): load timezone", err)
 }
 
 // Retrieves dictionary of configuration values.
 func GetConfig() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/configs/config.xor")
+	return getConfigFile("/home/pi/tesla/python/secrets/config.xor")
 }
 
 func GetLocalEnergyConfig() *config.Config {
-	return getConfigFile("/home/pi/tesla/python/configs/local_config.xor")
+	return getConfigFile("/home/pi/tesla/python/secrets/local_config.xor")
 }
 
 // Retrievies dictionary of access token values.
@@ -313,7 +309,7 @@ func getHttpsClient() *http.Client {
 // certificate relies on legacy Common Name field, use SANs instead" which skips the hostname
 // verification for self-signed certificates.
 func getHttpsClientWithCert() *http.Client {
-	caCert, err := os.ReadFile(CERT)
+	caCert, err := os.ReadFile("/home/pi/tesla/python/secrets/cert.pem")
 	LogError("getHttpsClient(): os.ReadFile", err)
 
 	caCertPool := x509.NewCertPool()

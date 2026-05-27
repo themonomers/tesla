@@ -49,14 +49,14 @@ func FindOpenRow(sheet_id, sheet_name, rng string) int {
 // Get Google Sheet service with edit/delete scope.
 func GetGoogleSheetService() *sheets.Service {
 	ctx := context.Background()
-	b, err := os.ReadFile("/home/pi/tesla/go/common/google_client_secret.json")
+	b, err := os.ReadFile("/home/pi/tesla/go/secrets/google_client_secret.json")
 	LogError("GetGoogleSheetService(): os.ReadFile", err)
 
 	// If modifying these scopes, delete your previously saved gsheet_token.json.
 	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
 	LogError("GetGoogleSheetService(): google.ConfigFromJSON", err)
 
-	client := getClient(config, "/home/pi/tesla/go/common/gsheet_token.json")
+	client := getClient(config, "/home/pi/tesla/go/secrets/gsheet_token.json")
 
 	srv, err := sheets.NewService(ctx, option.WithHTTPClient(client))
 	LogError("GetGoogleSheetService(): sheets.NewService", err)
@@ -67,14 +67,14 @@ func GetGoogleSheetService() *sheets.Service {
 // Get Google Mail service with edit/delete scope.
 func getGoogleMailService() *gmail.Service {
 	ctx := context.Background()
-	b, err := os.ReadFile("/home/pi/tesla/go/common/google_client_secret.json")
+	b, err := os.ReadFile("/home/pi/tesla/go/secrets/google_client_secret.json")
 	LogError("getGoogleMailService(): os.ReadFile", err)
 
 	// If modifying these scopes, delete your previously saved google_token.json.
 	config, err := google.ConfigFromJSON(b, gmail.GmailModifyScope)
 	LogError("getGoogleMailService(): google.ConfigFromJSON", err)
 
-	client := getClient(config, "/home/pi/tesla/go/common/gmail_token.json")
+	client := getClient(config, "/home/pi/tesla/go/secrets/gmail_token.json")
 
 	srv, err := gmail.NewService(ctx, option.WithHTTPClient(client))
 	LogError("getGoogleMailService(): gmail.NewService", err)
