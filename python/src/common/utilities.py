@@ -166,8 +166,7 @@ def get_daily_weather(lat, lng):
 # author: mjhwa@yahoo.com
 ##
 def send_request(method, url, token, payload, cert):
-  if cert:
-    urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
+  urllib3.disable_warnings()
 
   return requests.request(
     method,
