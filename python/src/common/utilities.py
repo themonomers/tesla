@@ -168,13 +168,13 @@ def get_daily_weather(lat, lng):
 def send_request(method, url, token, payload, cert):
   if cert:
     urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
-  
+
   return requests.request(
     method,
     url, 
     **({'json': payload} if payload else {}),
     headers={'authorization': 'Bearer ' + token},
-    **({'verify': cert} if cert else {})
+    **({'verify': cert} if cert else {'verify': False})
   )
 
 

@@ -15,7 +15,7 @@ ACCESS_TOKEN = get_token()['tesla']['access_token']
 config = get_config()
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
-BASE_OWNER_URL = config['tesla']['base_owner_url']
+BASE_FLEET_URL = config['tesla']['base_fleet_url']
 BASE_PROXY_URL = config['tesla']['base_proxy_url']
 CERT = get_filepath('secrets', 'teslaCert')
 
@@ -29,7 +29,7 @@ WAIT_TIME = 30
 # author: mjhwa@yahoo.com 
 ##
 def get_vehicle_data(vin):
-  url = (BASE_PROXY_URL
+  url = (BASE_FLEET_URL
           + '/vehicles/'
           + vin 
           + '/vehicle_data?endpoints='
@@ -43,7 +43,7 @@ def get_vehicle_data(vin):
               + 'drive_state;'
               + 'charge_schedule_data'))
 
-  response = send_get(url, CERT)
+  response = send_get(url)
 
   if response.status_code != 200:
     wake_vehicle(vin)
@@ -60,12 +60,12 @@ def get_vehicle_data(vin):
 # author: mjhwa@yahoo.com
 ##
 def wake_vehicle(vin):
-  url = (BASE_PROXY_URL
+  url = (BASE_FLEET_URL
           + '/vehicles/'
           + vin 
           + '/wake_up')
 
-  return send_post(url, None, CERT)
+  return send_post(url, None, None)
 
 
 ##
@@ -74,10 +74,7 @@ def wake_vehicle(vin):
 # author: mjhwa@yahoo.com
 ##
 def start_charge(vin):
-  if vin == MX_VIN:
-    return send_post(get_url(BASE_OWNER_URL, vin, 'charge_start'), None, None)
-
-  return send_post(get_url(BASE_PROXY_URL, vin, 'charge_start'), None, CERT)
+  return send_post(get_url(vin, 'charge_start'), None, CERT)
 
 
 ##
@@ -86,10 +83,7 @@ def start_charge(vin):
 # author: mjhwa@yahoo.com
 ##
 def stop_charge(vin):
-  if vin == MX_VIN:
-    return send_post(get_url(BASE_OWNER_URL, vin, 'charge_stop'), None, None)
-
-  return send_post(get_url(BASE_PROXY_URL, vin, 'charge_stop'), None, CERT)
+  return send_post(get_url(vin, 'charge_stop'), None, CERT)
 
 
 ##
@@ -112,10 +106,7 @@ def add_charge_schedule(vin, lat, lon, start_time, id):
     'id': id
   }
 
-  if vin == MX_VIN:
-    return send_post(get_url(BASE_OWNER_URL, vin, 'add_charge_schedule'), payload, None)
-
-  return send_post(get_url(BASE_PROXY_URL, vin, 'add_charge_schedule'), payload, CERT)
+  return send_post(get_url(vin, 'add_charge_schedule'), payload, CERT)
 
 
 ##
@@ -128,10 +119,7 @@ def remove_charge_schedule(vin, id):
     'id': id
   }
 
-  if vin == MX_VIN:
-    return send_post(get_url(BASE_OWNER_URL, vin, 'remove_charge_schedule'), payload, None)
-
-  return send_post(get_url(BASE_PROXY_URL, vin, 'remove_charge_schedule'), payload, CERT)
+  return send_post(get_url(vin, 'remove_charge_schedule'), payload, CERT)
   
 
 ##
@@ -144,10 +132,7 @@ def set_charging_amps(vin, amps):
     'charging_amps': amps
   }
 
-  if vin == MX_VIN:
-    return send_post(get_url(BASE_OWNER_URL, vin, 'set_charging_amps'), payload, None)
-
-  return send_post(get_url(BASE_PROXY_URL, vin, 'set_charging_amps'), payload, None)
+  return send_post(get_url(vin, 'set_charging_amps'), payload, CERT)
 
 
 ##
@@ -165,10 +150,7 @@ def set_temp(vin, d_temp, p_temp):
     'passenger_temp': p_temp
   }
 
-  if vin == MX_VIN:
-    return send_post(get_url(BASE_OWNER_URL, vin, 'set_temps'), payload, None)
-
-  return send_post(get_url(BASE_PROXY_URL, vin, 'set_temps'), payload, CERT)
+  return send_post(get_url(vin, 'set_temps'), payload, CERT)
 
 
 ##
@@ -187,20 +169,12 @@ def set_temp(vin, d_temp, p_temp):
 # author: mjhwa@yahoo.com
 ##
 def set_seat_heating(vin, seat, setting):
-  if vin == MX_VIN:
-    payload = {
-      'heater': seat,
-      'level': setting
-    }
-
-    return send_post(get_url(BASE_OWNER_URL, vin, 'remote_seat_heater_request'), payload, None)
-
   payload = {
     'seat_position': seat,
     'level': setting
   }
 
-  return send_post(get_url(BASE_PROXY_URL, vin, 'remote_seat_heater_request'), payload, CERT)
+  return send_post(get_url(vin, 'remote_seat_heater_request'), payload, CERT)
 
 
 ##
@@ -221,7 +195,7 @@ def set_seat_cooling(vin, seat, setting):
     'seat_cooler_level': setting
   }
 
-  return send_post(get_url(BASE_PROXY_URL, vin, 'remote_seat_cooler_request'), payload, CERT)
+  return send_post(get_url(vin, 'remote_seat_cooler_request'), payload, CERT)
 
 
 ##
@@ -240,7 +214,7 @@ def set_seat_climate_auto(vin, enable, seat):
     'auto_seat_position': seat
   }
 
-  return send_post(get_url(BASE_PROXY_URL, vin, 'remote_auto_seat_climate_request'), payload, CERT)
+  return send_post(get_url(vin, 'remote_auto_seat_climate_request'), payload, CERT)
 
 
 ##
@@ -257,7 +231,7 @@ def set_steering_wheel_heating(vin, enable):
     'on': enable
   }
 
-  return send_post(get_url(BASE_PROXY_URL, vin, 'remote_steering_wheel_heater_request'), payload, CERT)
+  return send_post(get_url(vin, 'remote_steering_wheel_heater_request'), payload, CERT)
 
 
 ##
@@ -266,10 +240,7 @@ def set_steering_wheel_heating(vin, enable):
 # author: mjhwa@yahoo.com
 ##
 def start_precondition(vin):
-  if vin == MX_VIN:
-    return send_post(get_url(BASE_OWNER_URL, vin, 'auto_conditioning_start'), None, None)
-
-  return send_post(get_url(BASE_PROXY_URL, vin, 'auto_conditioning_start'), None, CERT)
+  return send_post(get_url(vin, 'auto_conditioning_start'), None, CERT)
 
 
 ##
@@ -278,10 +249,7 @@ def start_precondition(vin):
 # author: mjhwa@yahoo.com
 ##
 def stop_precondition(vin):
-  if vin == MX_VIN:
-    return send_post(get_url(BASE_OWNER_URL, vin, 'auto_conditioning_stop'), None, None)
-
-  return send_post(get_url(BASE_PROXY_URL, vin, 'auto_conditioning_stop'), None, CERT)
+  return send_post(get_url(vin, 'auto_conditioning_stop'), None, CERT)
 
 
 ##
@@ -301,10 +269,7 @@ def schedule_software_update(vin, offset_sec):
       'offset_sec': offset_sec
     }
 
-    if vin == MX_VIN:
-      return send_post(get_url(BASE_OWNER_URL, vin, 'schedule_software_update'), payload, None)
-
-    response = send_post(get_url(BASE_PROXY_URL, vin, 'schedule_software_update'), payload, CERT)
+    response = send_post(get_url(vin, 'schedule_software_update'), payload, CERT)
     if response.status_code != 200:
       wake_vehicle(vin)
       time.sleep(WAIT_TIME)
@@ -315,43 +280,21 @@ def schedule_software_update(vin, offset_sec):
     log().error('schedule_software_update(' + vin + '): ' + str(e))
 
 
-##
-# Retrieves the vehicle ID, which changes from time to time, by the VIN, which 
-# doesn't change.  The vehicle ID is required for many of the API calls.
-# 
-# author: mjhwa@yahoo.com 
-##
-def get_vehicle_id(vin):
-  data = get_vehicle_data(vin)
-
-  return data['response']['id_s']
-
-
 ###
 # Centralize repetitive URL construction.
 #
 # author: mjhwa@yahoo.com
 ##
-def get_url(base, vin, command):
-  url = ''
-  if (base == BASE_OWNER_URL):
-    url = (base
-          + '/vehicles/'
-          + get_vehicle_id(vin)
-          + '/command/'
-          + command)
-  elif (base == BASE_PROXY_URL):
-    url = (base
+def get_url(vin, command):
+  return (BASE_PROXY_URL
           + '/vehicles/'
           + vin 
           + '/command/'
           + command)
-  
-  return url
 
 
-def send_get(url, cert):
-  return send_request('GET', url, ACCESS_TOKEN, None, cert)
+def send_get(url):
+  return send_request('GET', url, ACCESS_TOKEN, None, None)
 
 
 def send_post(url, payload, cert):

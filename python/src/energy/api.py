@@ -12,7 +12,7 @@ ACCESS_TOKEN = get_token()['tesla']['access_token']
 
 config = get_config()
 SITE_ID = config['energy']['site_id']
-BASE_OWNER_URL = config['tesla']['base_owner_url']
+BASE_FLEET_URL = config['tesla']['base_fleet_url']
 TIME_ZONE = config['general']['timezone']
 
 
@@ -23,7 +23,7 @@ TIME_ZONE = config['general']['timezone']
 ##
 def get_site_status():
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_status')).text
+    send_get(get_url('site_status')).text
   )
 
 
@@ -34,7 +34,7 @@ def get_site_status():
 ##
 def get_site_live_status():
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'live_status')).text
+    send_get(get_url('live_status')).text
   )
 
 
@@ -45,7 +45,7 @@ def get_site_live_status():
 ##
 def get_site_info():
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'site_info')).text
+    send_get(get_url('site_info')).text
   )
 
 
@@ -74,7 +74,7 @@ def get_site_history(period, date):
               + '&period=' + period)
 
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
+    send_get(get_url(command)).text
   )
 
 
@@ -85,7 +85,7 @@ def get_site_history(period, date):
 ##
 def get_battery_backup_history():
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'calendar_history?kind=backup')).text
+    send_get(get_url('calendar_history?kind=backup')).text
   )
 
 
@@ -130,7 +130,7 @@ def get_site_tou_history(period, date):
                 '%Y-%m-%dT%H:%M:%SZ'))
 
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
+    send_get(get_url(command)).text
   )
 
 
@@ -159,7 +159,7 @@ def get_battery_charge_history(period, date):
               + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ'))
 
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
+    send_get(get_url(command)).text
   )
 
 
@@ -204,7 +204,7 @@ def get_power_history(period, date):
               + '&period=' + period)
 
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
+    send_get(get_url(command)).text
   )
 
 
@@ -214,7 +214,7 @@ def get_power_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_rate_tariffs():
-  url = (BASE_OWNER_URL
+  url = (BASE_FLEET_URL
           + '/energy_sites/' 
           + 'rate_tariffs')
 
@@ -231,7 +231,7 @@ def get_rate_tariffs():
 ##
 def get_site_tariff():
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'tariff_rate')).text
+    send_get(get_url('tariff_rate')).text
   )
 
 
@@ -242,7 +242,7 @@ def get_site_tariff():
 ##
 def get_backup_time_remaining():
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, 'backup_time_remaining')).text
+    send_get(get_url('backup_time_remaining')).text
   )
 
 
@@ -288,7 +288,7 @@ def get_savings_forecast(period, date):
               + '&tariff=PGE-EV2-A')
 
   return json.loads(
-    send_get(get_url(BASE_OWNER_URL, SITE_ID, command)).text
+    send_get(get_url(command)).text
   )
 
 
@@ -334,7 +334,7 @@ def set_operational_mode(mode):
     'default_real_mode': mode
   }
 
-  return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'operation'), payload)
+  return send_post(get_url('operation'), payload)
 
 
 ##
@@ -368,7 +368,7 @@ def set_grid_import_export(export_rule, disallow_grid_charging):
     'disallow_charge_from_grid_with_solar_installed': disallow_grid_charging
   }
 
-  return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'grid_import_export'), payload)
+  return send_post(get_url('grid_import_export'), payload)
 
 
 ##
@@ -381,7 +381,7 @@ def set_backup_reserve(backup_percent):
     'backup_reserve_percent': backup_percent
   }
 
-  return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'backup'), payload)
+  return send_post(get_url('backup'), payload)
 
 
 ##
@@ -395,7 +395,7 @@ def set_off_grid_vehicle_charging_reserve(percent):
     'off_grid_vehicle_charging_reserve_percent': percent
   }
 
-  return send_post(get_url(BASE_OWNER_URL, SITE_ID, 'off_grid_vehicle_charging_reserve'), payload)
+  return send_post(get_url('off_grid_vehicle_charging_reserve'), payload)
 
 
 ###
@@ -403,10 +403,10 @@ def set_off_grid_vehicle_charging_reserve(percent):
 #
 # author: mjhwa@yahoo.com
 ##
-def get_url(base, site_id, command):
-    return (base
+def get_url(command):
+    return (BASE_FLEET_URL
             + '/energy_sites/' 
-            + site_id 
+            + SITE_ID 
             + '/'
             + command)
 
