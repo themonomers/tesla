@@ -1,4 +1,3 @@
-import teslapy
 import datetime
 import zoneinfo
 import requests
@@ -14,7 +13,9 @@ from common.fileutil import get_filepath
 from datetime import datetime, timedelta
 from io import StringIO
 
-TIME_ZONE = get_config()['general']['timezone']
+config = get_config()
+CLIENT_ID = config['tesla']['client_id']
+TIME_ZONE = config['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 
@@ -41,43 +42,17 @@ EXPIRES_AT = token['tesla']['expires_at']
 
 
 ##
-# Uses https://github.com/tdorssers/TeslaPy. To install, run:  
-# python -m pip install teslapy
-#
-# Acquired tokens are stored in current working directory in 
-# cache.json file for persistence by default.
-#
-# @todo rolling index crypto keys: http://bitly.com/2WXBRNp
-#
-# author: mjhwa@yahoo.com 
-##
-def new_token():
-  with teslapy.Tesla('elon@tesla.com') as tesla:
-      response = tesla.fetch_token()
-
-  expires_at = datetime.fromtimestamp(response['expires_at'], tz=PAC)
-
-  # print outputs to screen
-  print('[tesla]')
-  print('access_token=' + response['access_token'])
-  print('refresh_token=' + response['refresh_token'])
-  print('created_at=' + datetime.strftime(expires_at - timedelta(seconds = response['expires_in']), '%Y-%m-%d %H:%M:%S'))
-  print('expires_at=' + datetime.strftime(expires_at, '%Y-%m-%d %H:%M:%S'))
-
-
-##
 # Get new access and refresh tokens and saves it to an encrypted file.
 #
 # author: mjhwa@yahoo.com 
 ##
 def refresh_token():
-  url = 'https://auth.tesla.com/oauth2/v3/token'
-  
+  url = 'https://fleet-auth.prd.vn.cloud.tesla.com/oauth2/v3/token'
+
   payload = {
   'grant_type': 'refresh_token',
-  'client_id': 'ownerapi',
-  'refresh_token': REFRESH_TOKEN,
-  'scope': 'openid email offline_access'
+  'client_id': CLIENT_ID,
+  'refresh_token': REFRESH_TOKEN
   }
 
   response = json.loads(requests.post(url, json=payload).text)
@@ -87,9 +62,11 @@ def refresh_token():
   # Format output
   message =  '[tesla]\n'
   message += 'access_token=' + (response)['access_token'] + '\n'
+  message += 'id_token=' + (response)['id_token'] + '\n'
   message += 'refresh_token=' + (response)['refresh_token'] + '\n'
   message += 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
   message += 'expires_at=' + datetime.strftime(dt + timedelta(seconds=(response)['expires_in']), '%Y-%m-%d %H:%M:%S') + '\n'
+  log().debug('refreshed tokens: ' + message)
 
   # Encrypt config file
   encrypt(
@@ -125,9 +102,7 @@ def check_token_expiration():
 def main(parser):
   args = parser.parse_args()
 
-  if (args.new):
-    new_token()
-  elif (args.refresh):
+  if (args.refresh):
     refresh_token()
   elif (args.check):
     check_token_expiration()
@@ -138,16 +113,10 @@ def main(parser):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
                     prog='tokenutil.py',
-                    description='API call for the Tesla authentication flow to retrieve new access and refresh tokens, '
+                    description='Use the refresh token to generate a new access token and refresh token, '
                                 'check expiration and refresh if needed.',
                     formatter_class=CustomHelpFormatter)
   group = parser.add_mutually_exclusive_group()
-  group.add_argument(
-                     '-n', 
-                     '--new', 
-                     help='prints a new access and refresh token using web login credentials',
-                     action='store_true'
-                    )
   group.add_argument(
                      '-r', 
                      '--refresh', 
