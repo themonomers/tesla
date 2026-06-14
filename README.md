@@ -7,7 +7,7 @@ Before running the tesla-http-proxy, you need to follow [instructions](https://g
 
 ### /python
 
-Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB. 
+Track Tesla Vehicle data in Google Sheets ([example](https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing)), send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB. 
 ```
 src/
 
@@ -39,9 +39,7 @@ src/
     └── telemetry.py - Write all vehicle data from previous day in Google Sheet
 ```
 
-Vehicle functions read/write to a [Google Sheet](https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing), for example.
-
-Here are the packages needed:
+Packages needed for Python:
   * python3-pip
   * google-api-python-client
   * google-auth-httplib2
@@ -50,7 +48,7 @@ Here are the packages needed:
   * pytz
   * influxdb
 
-Additional packages needed for Tesla Vehicle Command SDK:
+Packages needed for Tesla Vehicle Command SDK:
   * go
   * gcc-arm-linux-gnueabi
 
@@ -59,6 +57,6 @@ These are some older videos I created for [in-depth walk throughs](https://www.y
 
 ### /golang
 
-I've started porting over the python code to golang as another backup, in case Tesla only allows access through the SDK in the future which is written in golang.  I haven't replicated all the functions that I have in Python but I have the majority of the vehicle basics down.  Currently this code is still dependent on the Python ones, e.g. getting auth token and refresh token.  I'll continue to work on filling out the rest of the vehicle functions, energy functions, and making it stand-alone as I have more time.
+I've started porting over the Python code to Golang as another backup.  I haven't replicated all the Python functions but I have the majority completed.  The Golang code is still dependent on the Python ones, e.g. configurations, tokens.  Over time, I'll continue to work on the Golang version to make it stand-alone.
 
-I'm a beginner at golang, and coding overall, so please forgive my design of the golang code and folder structure.
+I'm a beginner at Golang, and coding overall, so please forgive my design of the Golang code and folder structure.
