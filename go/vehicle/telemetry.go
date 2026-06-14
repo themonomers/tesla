@@ -33,7 +33,7 @@ func writeM3Telemetry() {
 	data := GetVehicleData(M3_VIN)
 
 	// write odometer value
-	open_row := common.FindOpenRow(EV_SPREADSHEET_ID, "Telemetry", "A:A")
+	open_row := common.FindOpenRow(EV_SPREADSHEET_ID, "Telemetry!A:A")
 	inputs := &sheets.BatchUpdateValuesRequest{
 		ValueInputOption: "USER_ENTERED",
 	}
@@ -214,7 +214,7 @@ func writeMXTelemetry() {
 	data := GetVehicleData(MX_VIN)
 
 	// write odometer value
-	open_row := common.FindOpenRow(EV_SPREADSHEET_ID, "Telemetry", "V:V")
+	open_row := common.FindOpenRow(EV_SPREADSHEET_ID, "Telemetry!V:V")
 	inputs := &sheets.BatchUpdateValuesRequest{
 		ValueInputOption: "USER_ENTERED",
 	}

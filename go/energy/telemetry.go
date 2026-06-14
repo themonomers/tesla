@@ -302,7 +302,7 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	data := getLocalSystemStatus()
 
 	// write total pack energy value
-	open_row := common.FindOpenRow(ENERGY_SPREADSHEET_ID, "Telemetry-Summary", "A:A")
+	open_row := common.FindOpenRow(ENERGY_SPREADSHEET_ID, "Telemetry!A:A")
 	inputs := &sheets.BatchUpdateValuesRequest{
 		ValueInputOption: "USER_ENTERED",
 	}

@@ -27,14 +27,13 @@ func init() {
 
 // Looks for the next empty cell in a Google Sheet row to avoid overwriting data
 // when reading/writing values.
-func FindOpenRow(sheet_id, sheet_name, rng string) int {
+func FindOpenRow(sheet_id, sheet_range string) int {
 	service := GetGoogleSheetService()
-	rng = sheet_name + "!" + rng
-	resp, err := service.Spreadsheets.Values.Get(sheet_id, rng).Do()
+	resp, err := service.Spreadsheets.Values.Get(sheet_id, sheet_range).Do()
 	if err != nil {
 		slog.Warn("Retry FindOpenRow(): service.Spreadsheets.Values.Get():  " + err.Error())
 		time.Sleep(WAIT_TIME * time.Second)
-		return FindOpenRow(sheet_id, sheet_name, rng)
+		return FindOpenRow(sheet_id, sheet_range)
 	}
 
 	if len(resp.Values) == 0 {
