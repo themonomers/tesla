@@ -381,7 +381,7 @@ def write_energy_data_to_gsheet(date):
 
     inputs = []
     # write total pack energy value
-    open_row = find_open_row(ENERGY_SPREADSHEET_ID, 'Telemetry-Summary','A:A')
+    open_row = find_open_row(ENERGY_SPREADSHEET_ID, 'Telemetry!A:A')
     inputs.append({
       'range': 'Telemetry-Summary!A' + str(open_row),
       'values': [[(datetime.today() - timedelta(1)).strftime('%B %d, %Y')]]

@@ -36,7 +36,7 @@ def write_m3_telemetry():
     
     inputs = []
     # write odometer value
-    open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry','A:A')
+    open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry!A:A')
     inputs.append({
       'range': 'Telemetry!A' + str(open_row),
       'values': [[data['response']['vehicle_state']['odometer']]]
@@ -227,7 +227,7 @@ def write_mx_telemetry():
 
     inputs = []
     # write odometer value
-    open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry','V:V')
+    open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry!V:V')
     inputs.append({
       'range': 'Telemetry!V' + str(open_row),
       'values': [[data['response']['vehicle_state']['odometer']]]
