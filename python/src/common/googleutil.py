@@ -37,24 +37,26 @@ def get_google_sheet_service():
 #
 # author: mjhwa@yahoo.com
 ##
-def find_open_row(sheet_id, sheet_name, range):
-  try:
-    service = get_google_sheet_service()
-    range = sheet_name + '!' + range
-    values = service.spreadsheets().values().get(
-      spreadsheetId=sheet_id,
-      range=range
-    ).execute().get('values', [])
-    service.close()
+def find_open_row(sheet_id, sheet_name, col):
+  while True:
+    try:
+      service = get_google_sheet_service()
+      range = sheet_name + '!' + col
+      values = service.spreadsheets().values().get(
+        spreadsheetId=sheet_id,
+        range=range
+      ).execute().get('values', [])
+      service.close()
 
-    if (values == False):
-      return 1
+      break
+    except Exception as e:
+      log().warning('Retry find_open_row(): ' + str(e))
+      time.sleep(WAIT_TIME)
+      
+  if (values == False):
+    return 1
 
-    return len(values) + 1
-  except Exception as e:
-    log().warning('Retry find_open_row(): ' + str(e))
-    time.sleep(WAIT_TIME)
-    return find_open_row(sheet_id, sheet_name, range)
+  return len(values) + 1
 
 
 ##

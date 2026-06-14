@@ -5,10 +5,11 @@ Registering to use the Fleet API is quick and you just need to clone the Vehicle
 Before running the tesla-http-proxy, you need to follow [instructions](https://github.com/teslamotors/vehicle-command/blob/main/cmd/tesla-control/README.md) to generate a private key in your system keyring and save the public key to a file.  Then you need to pair your public key with your Tesla by getting in your car, enabling bluetooth on your device running these Tesla command-line tools, and using your NFC card.  It seems you only need to generate the private and public key once.  Any Tesla vehicle you have can be paired with that same public key.  On some of the vehicle models, there's no visualization on screen informing you to tap your NFC card which can be confusing.
 
 
-###/python
+### /python
 
 Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB. 
 ```
+src/
 └── common/
     ├── argutil.py - Tools for command line arguments
     ├── configutil.py - Retrieves configuration values
@@ -55,7 +56,7 @@ Additional packages needed for Tesla Vehicle Command SDK:
 These are some older videos I created for [in-depth walk throughs](https://www.youtube.com/watch?v=l1pqhlGSuVg&list=PLgiPnlzk2O712gwiTIquUzdfVlzIMyS2M) of the functionality and code which I'll update over time.
 
 
-###/golang
+### /golang
 
 I've started porting over the python code to golang as another backup, in case Tesla only allows access through the SDK in the future which is written in golang.  I haven't replicated all the functions that I have in Python but I have the majority of the vehicle basics down.  Currently this code is still dependent on the Python ones, e.g. getting auth token and refresh token.  I'll continue to work on filling out the rest of the vehicle functions, energy functions, and making it stand-alone as I have more time.
 
