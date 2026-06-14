@@ -2,7 +2,6 @@ import argparse
 import zoneinfo
 
 from common.configutil import get_config
-from common.logutil import log
 from common.argutil import CustomHelpFormatter
 from common.cronutil import (
   delete_cron, 
