@@ -8,54 +8,34 @@ Before running the tesla-http-proxy, you need to follow [instructions](https://g
 ###/python
 
 Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB. 
-
+```
 └── common/
-
     ├── argutil.py - Tools for command line arguments
-
     ├── configutil.py - Retrieves configuration values
-
     ├── cronutil.py - Crontab tools and retrieving configured cron job commands
-
     ├── crypto.py - Encryption and decryption functions for sensitive files
-
     ├── emailutil.py - Service to send and truncate emails
-
     ├── fileutil.py - Retrieves filepaths for configurations and secrets
-
     ├── googleutil.py - API calls for Google services and utilities
-
     ├── influxdb.py - Access to InfluxDB
-
     ├── logutil.py - Central logging service 
-
     ├── tokenutil.py - API call for the Tesla authentication flow to retrieve new access and refresh tokens, check expiration and refresh if needed
-
     └── utilities.py - Commonly used and helpful tools
 
 └── energy/
-
     ├── api.py - API calls for Tesla Energy products
-
     ├── localtelemetry.py - Write real time energy data using Tesla Gateway API
-
     ├── mode.py - Customizes energy site behavior based on weather
-
     └── telemetry.py - Writes energy data to store for analysis and visualization
 
 └── vehicle/
-
     ├── api.py - API calls for Tesla Vehicles
-
     ├── charge.py - Calculates and sets charging times to complete at a departure time for 2 EV's
-
     ├── climate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
-
     ├── removecron.py - Cleans up crontabs that are meant to exist for each specific day
-
     ├── software.py - Simulates scheduling software updates from the vehicle interface 
-
     └── telemetry.py - Write all vehicle data from previous day in Google Sheet
+```
 
 Vehicle functions read/write to a [Google Sheet](https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing), for example.
 
