@@ -1,4 +1,4 @@
-As of June 12, 2026 the Owner API is fully deprecated.   You can only use the [Tesla Fleet API](https://developer.tesla.com/docs/fleet-api/getting-started/what-is-fleet-api) to get data and the [Tesla Vehicle Command](https://github.com/teslamotors/vehicle-command) to send commands.  
+As of June 12, 2026 the Owner API is fully deprecated.   You can only use the [Tesla Fleet API](https://developer.tesla.com/docs/fleet-api/getting-started/what-is-fleet-api) to get data and the [Tesla Vehicle Command](https://github.com/teslamotors/vehicle-command) to send commands/get data.  
 
 Registering to use the Fleet API is quick and you just need to clone the Vehicle Command repository and send commands to your localhost running [tesla-http-proxy](https://github.com/teslamotors/vehicle-command/tree/main/cmd/tesla-http-proxy).
 

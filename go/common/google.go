@@ -83,7 +83,11 @@ func getClient(config *oauth2.Config, token_filename string) *http.Client {
 	}
 
 	// Automatically refresh token.
-	new_token, _ := config.TokenSource(context.TODO(), tok).Token()
+	new_token, err := config.TokenSource(context.TODO(), tok).Token()
+	if err != nil {
+		slog.Error("getClient(): config.TokenSource(): " + err.Error())
+		os.Exit(1)
+	}
 	saveToken(token_filename, new_token)
 
 	return config.Client(context.Background(), new_token)
@@ -118,7 +122,7 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 
 // Saves a token to a file path.
 func saveToken(path string, token *oauth2.Token) {
-	fmt.Printf("Saving credential file to: %s\n", path)
+	slog.Debug("Saving credential file to: " + path)
 	f, _ := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 
 	defer f.Close()

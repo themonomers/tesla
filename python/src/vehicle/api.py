@@ -15,7 +15,6 @@ ACCESS_TOKEN = get_token()['tesla']['access_token']
 config = get_config()
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
-BASE_FLEET_URL = config['tesla']['base_fleet_url']
 BASE_PROXY_URL = config['tesla']['base_proxy_url']
 CERT = get_filepath('secrets', 'teslaCert')
 
@@ -29,7 +28,7 @@ WAIT_TIME = 30
 # author: mjhwa@yahoo.com 
 ##
 def get_vehicle_data(vin):
-  url = (BASE_FLEET_URL
+  url = (BASE_PROXY_URL
           + '/vehicles/'
           + vin 
           + '/vehicle_data?endpoints='
@@ -60,12 +59,12 @@ def get_vehicle_data(vin):
 # author: mjhwa@yahoo.com
 ##
 def wake_vehicle(vin):
-  url = (BASE_FLEET_URL
+  url = (BASE_PROXY_URL
           + '/vehicles/'
           + vin 
           + '/wake_up')
 
-  return send_post(url, None, None)
+  return send_post(url, None)
 
 
 ##
@@ -74,7 +73,7 @@ def wake_vehicle(vin):
 # author: mjhwa@yahoo.com
 ##
 def start_charge(vin):
-  return send_post(get_url(vin, 'charge_start'), None, CERT)
+  return send_post(get_url(vin, 'charge_start'), None)
 
 
 ##
@@ -83,7 +82,7 @@ def start_charge(vin):
 # author: mjhwa@yahoo.com
 ##
 def stop_charge(vin):
-  return send_post(get_url(vin, 'charge_stop'), None, CERT)
+  return send_post(get_url(vin, 'charge_stop'), None)
 
 
 ##
@@ -106,7 +105,7 @@ def add_charge_schedule(vin, lat, lon, start_time, id):
     'id': id
   }
 
-  return send_post(get_url(vin, 'add_charge_schedule'), payload, CERT)
+  return send_post(get_url(vin, 'add_charge_schedule'), payload)
 
 
 ##
@@ -119,7 +118,7 @@ def remove_charge_schedule(vin, id):
     'id': id
   }
 
-  return send_post(get_url(vin, 'remove_charge_schedule'), payload, CERT)
+  return send_post(get_url(vin, 'remove_charge_schedule'), payload)
   
 
 ##
@@ -132,7 +131,7 @@ def set_charging_amps(vin, amps):
     'charging_amps': amps
   }
 
-  return send_post(get_url(vin, 'set_charging_amps'), payload, CERT)
+  return send_post(get_url(vin, 'set_charging_amps'), payload)
 
 
 ##
@@ -150,7 +149,7 @@ def set_temp(vin, d_temp, p_temp):
     'passenger_temp': p_temp
   }
 
-  return send_post(get_url(vin, 'set_temps'), payload, CERT)
+  return send_post(get_url(vin, 'set_temps'), payload)
 
 
 ##
@@ -174,7 +173,7 @@ def set_seat_heating(vin, seat, setting):
     'level': setting
   }
 
-  return send_post(get_url(vin, 'remote_seat_heater_request'), payload, CERT)
+  return send_post(get_url(vin, 'remote_seat_heater_request'), payload)
 
 
 ##
@@ -195,7 +194,7 @@ def set_seat_cooling(vin, seat, setting):
     'seat_cooler_level': setting
   }
 
-  return send_post(get_url(vin, 'remote_seat_cooler_request'), payload, CERT)
+  return send_post(get_url(vin, 'remote_seat_cooler_request'), payload)
 
 
 ##
@@ -214,7 +213,7 @@ def set_seat_climate_auto(vin, enable, seat):
     'auto_seat_position': seat
   }
 
-  return send_post(get_url(vin, 'remote_auto_seat_climate_request'), payload, CERT)
+  return send_post(get_url(vin, 'remote_auto_seat_climate_request'), payload)
 
 
 ##
@@ -231,7 +230,7 @@ def set_steering_wheel_heating(vin, enable):
     'on': enable
   }
 
-  return send_post(get_url(vin, 'remote_steering_wheel_heater_request'), payload, CERT)
+  return send_post(get_url(vin, 'remote_steering_wheel_heater_request'), payload)
 
 
 ##
@@ -240,7 +239,7 @@ def set_steering_wheel_heating(vin, enable):
 # author: mjhwa@yahoo.com
 ##
 def start_precondition(vin):
-  return send_post(get_url(vin, 'auto_conditioning_start'), None, CERT)
+  return send_post(get_url(vin, 'auto_conditioning_start'), None)
 
 
 ##
@@ -249,7 +248,7 @@ def start_precondition(vin):
 # author: mjhwa@yahoo.com
 ##
 def stop_precondition(vin):
-  return send_post(get_url(vin, 'auto_conditioning_stop'), None, CERT)
+  return send_post(get_url(vin, 'auto_conditioning_stop'), None)
 
 
 ##
@@ -269,7 +268,7 @@ def schedule_software_update(vin, offset_sec):
       'offset_sec': offset_sec
     }
 
-    response = send_post(get_url(vin, 'schedule_software_update'), payload, CERT)
+    response = send_post(get_url(vin, 'schedule_software_update'), payload)
     if response.status_code != 200:
       wake_vehicle(vin)
       time.sleep(WAIT_TIME)
@@ -294,11 +293,11 @@ def get_url(vin, command):
 
 
 def send_get(url):
-  return send_request('GET', url, ACCESS_TOKEN, None, None)
+  return send_request('GET', url, ACCESS_TOKEN, None, CERT)
 
 
-def send_post(url, payload, cert):
-  return send_request('POST', url, ACCESS_TOKEN, payload, cert)
+def send_post(url, payload):
+  return send_request('POST', url, ACCESS_TOKEN, payload, CERT)
 
 
 ##

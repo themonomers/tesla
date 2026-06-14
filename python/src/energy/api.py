@@ -6,15 +6,16 @@ from common.configutil import get_config
 from common.argutil import CustomHelpFormatter
 from common.utilities import print_json, send_request
 from common.tokenutil import get_token
+from common.fileutil import get_filepath
 from datetime import datetime
 
 ACCESS_TOKEN = get_token()['tesla']['access_token']
 
 config = get_config()
 SITE_ID = config['energy']['site_id']
-BASE_FLEET_URL = config['tesla']['base_fleet_url']
+BASE_PROXY_URL = config['tesla']['base_proxy_url']
 TIME_ZONE = config['general']['timezone']
-
+CERT = get_filepath('secrets', 'teslaCert')
 
 ##
 # Gets some quick and basic information.
@@ -214,7 +215,7 @@ def get_power_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_rate_tariffs():
-  url = (BASE_FLEET_URL
+  url = (BASE_PROXY_URL
           + '/energy_sites/' 
           + 'rate_tariffs')
 
@@ -404,7 +405,7 @@ def set_off_grid_vehicle_charging_reserve(percent):
 # author: mjhwa@yahoo.com
 ##
 def get_url(command):
-    return (BASE_FLEET_URL
+    return (BASE_PROXY_URL
             + '/energy_sites/' 
             + SITE_ID 
             + '/'
@@ -412,11 +413,11 @@ def get_url(command):
 
 
 def send_get(url):
-  return send_request('GET', url, ACCESS_TOKEN, None, None)
+  return send_request('GET', url, ACCESS_TOKEN, None, CERT)
 
 
 def send_post(url, payload):
-  return send_request('POST', url, ACCESS_TOKEN, payload, None)
+  return send_request('POST', url, ACCESS_TOKEN, payload, CERT)
 
 
 def main(parser):

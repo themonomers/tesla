@@ -15,27 +15,27 @@ var GetJson = common.GetJson
 var GetConfig = common.GetConfig
 
 var SITE_ID string
-var BASE_OWNER_URL string
+var BASE_PROXY_URL string
 
 func init() {
 	c := GetConfig()
 	SITE_ID, _ = c.String("energy.site_id")
-	BASE_OWNER_URL, _ = c.String("tesla.base_owner_url")
+	BASE_PROXY_URL, _ = c.String("tesla.base_proxy_url")
 }
 
 // Gets some quick and basic information.
 func GetSiteStatus() map[string]any {
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, "site_status")))
+	return GetJson(SendGet(getUrl("site_status")))
 }
 
 // Gets more information as well as live data such as solar production.
 func GetSiteLiveStatus() map[string]any {
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, "live_status")))
+	return GetJson(SendGet(getUrl("live_status")))
 }
 
 // Gets detailed information.
 func GetSiteInfo() map[string]any {
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, "site_info")))
+	return GetJson(SendGet(getUrl("site_info")))
 }
 
 // Gets summary level information about energy imports and exports down to the
@@ -48,12 +48,12 @@ func GetSiteHistory(period string, date time.Time) map[string]any {
 		"&end_date=" + date.UTC().Format("2006-01-02T15:04:05Z") +
 		"&period=" + period
 
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, command)))
+	return GetJson(SendGet(getUrl(command)))
 }
 
 // Get grid outage/battery backup events.
 func GetBatteryBackupHistory() map[string]any {
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, "calendar_history?kind=backup")))
+	return GetJson(SendGet(getUrl("calendar_history?kind=backup")))
 }
 
 // Gets summary level information about energy imports and exports down to the
@@ -68,7 +68,7 @@ func GetSiteTOUHistory(period string, date time.Time) map[string]any {
 		"&end_date=" + e_date.UTC().Format("2006-01-02T15:04:05Z") +
 		"&period=" + period
 
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, command)))
+	return GetJson(SendGet(getUrl(command)))
 }
 
 // Gets the historic battery charge level data in 15 minute increments that's
@@ -81,7 +81,7 @@ func GetBatteryChargeHistory(period string, date time.Time) map[string]any {
 		"&end_date=" + date.UTC().Format("2006-01-02T15:04:05Z") +
 		"&period=" + period
 
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, command)))
+	return GetJson(SendGet(getUrl(command)))
 }
 
 // Gets energy information in 5 minute increments, with ability to query by
@@ -96,12 +96,12 @@ func GetPowerHistory(period string, date time.Time) map[string]any {
 		"&end_date=" + e_date.UTC().Format("2006-01-02T15:04:05Z") +
 		"&period=" + period
 
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, command)))
+	return GetJson(SendGet(getUrl(command)))
 }
 
 // Lists all rate tariffs available in the mobile app.
 func GetRateTariffs() map[string]any {
-	url := BASE_OWNER_URL +
+	url := BASE_PROXY_URL +
 		"/energy_sites/" +
 		"rate_tariffs"
 
@@ -111,7 +111,7 @@ func GetRateTariffs() map[string]any {
 // Lists the tariff selected for your site in the mobile
 // app along with published rates, TOU schedules, etc.
 func GetSiteTariff() map[string]any {
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, "tariff_rate")))
+	return GetJson(SendGet(getUrl("tariff_rate")))
 }
 
 // Gets the data for Solar Value in the mobile app to show estimated
@@ -127,12 +127,12 @@ func GetSavingsForecast(period string, date time.Time) map[string]any {
 		"&period=" + period +
 		"&tariff=PGE-EV2-A"
 
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, command)))
+	return GetJson(SendGet(getUrl(command)))
 }
 
 // Retrieves the estimated time remaining in the powerwall(s).
 func GetBackupTimeRemaining() map[string]any {
-	return GetJson(SendGet(getUrl(BASE_OWNER_URL, SITE_ID, "backup_time_remaining")))
+	return GetJson(SendGet(getUrl("backup_time_remaining")))
 }
 
 // Changes Operational Mode in the mobile app to "Backup-only".
@@ -161,7 +161,7 @@ func setOperationalMode(mode string) *http.Response {
 		"default_real_mode": mode,
 	})
 
-	return SendPost(getUrl(BASE_OWNER_URL, SITE_ID, "operation"), payload)
+	return SendPost(getUrl("operation"), payload)
 }
 
 // Changes Energy Exports in the mobile app to "Everything".
@@ -183,7 +183,7 @@ func setGridImportExport(export_rule string, disallow_grid_charging bool) *http.
 		"disallow_charge_from_grid_with_solar_installed": disallow_grid_charging,
 	})
 
-	return SendPost(getUrl(BASE_OWNER_URL, SITE_ID, "grid_import_export"), payload)
+	return SendPost(getUrl("grid_import_export"), payload)
 
 }
 
@@ -193,7 +193,7 @@ func SetBackupReserve(backup_percent int) *http.Response {
 		"backup_reserve_percent": backup_percent,
 	})
 
-	return SendPost(getUrl(BASE_OWNER_URL, SITE_ID, "backup"), payload)
+	return SendPost(getUrl("backup"), payload)
 }
 
 // Sets off grid vehicle charging reserve % to save for home use.
@@ -203,14 +203,14 @@ func SetOffGridVehicleChargingReserve(percent int) *http.Response {
 		"off_grid_vehicle_charging_reserve_percent                                                                                                                                                         ": percent,
 	})
 
-	return SendPost(getUrl(BASE_OWNER_URL, SITE_ID, "off_grid_vehicle_charging_reserve"), payload)
+	return SendPost(getUrl("off_grid_vehicle_charging_reserve"), payload)
 }
 
 // Centralize repetitive URL construction.
-func getUrl(base, site_id, command string) string {
-	url := base +
+func getUrl(command string) string {
+	url := BASE_PROXY_URL +
 		"/energy_sites/" +
-		site_id +
+		SITE_ID +
 		"/" +
 		command
 
