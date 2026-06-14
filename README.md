@@ -2,58 +2,58 @@ As of June 12, 2026 the Owner API is fully deprecated.   You can only use the [T
 
 Registering to use the Fleet API is quick and you just need to clone the Vehicle Command repository and send commands to your localhost running [tesla-http-proxy](https://github.com/teslamotors/vehicle-command/tree/main/cmd/tesla-http-proxy).
 
-Before running the tesla-http-proxy, you need to follow instructions to generate a private key in your system keyring and save the public key to a file (https://github.com/teslamotors/vehicle-command/blob/main/cmd/tesla-control/README.md).  Then you need to pair your public key with your Tesla by getting in your car, enabling bluetooth on your device running these Tesla command-line tools, and using your NFC card.  It seems you only need to generate the private and public key once.  Any Tesla vehicle you have can be paired with that same public key.  On some of the vehicle models, there's no visualization on screen informing you to tap your NFC card which can be confusing.
+Before running the tesla-http-proxy, you need to follow [instructions](https://github.com/teslamotors/vehicle-command/blob/main/cmd/tesla-control/README.md) to generate a private key in your system keyring and save the public key to a file.  Then you need to pair your public key with your Tesla by getting in your car, enabling bluetooth on your device running these Tesla command-line tools, and using your NFC card.  It seems you only need to generate the private and public key once.  Any Tesla vehicle you have can be paired with that same public key.  On some of the vehicle models, there's no visualization on screen informing you to tap your NFC card which can be confusing.
 
 
-/python
+###/python
 Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB. 
 
-/common
-      argutil.py - Tools for command line arguments
-      configutil.py - Retrieves configuration values
-      cronutil.py - Crontab tools and retrieving configured cron job commands
-      crypto.py - Encryption and decryption functions for sensitive files
-      emailutil.py - Service to send and truncate emails
-      fileutil.py - Retrieves filepaths for configurations and secrets
-      googleutil.py - API calls for Google services and utilities
-      influxdb.py - Access to InfluxDB
-      logutil.py - Central logging service 
-      tokenutil.py - API call for the Tesla authentication flow to retrieve new access and refresh tokens, check expiration and refresh if needed
-      utilities.py - Commonly used and helpful tools
+└── common/
+    ├── argutil.py - Tools for command line arguments
+    ├── configutil.py - Retrieves configuration values
+    ├── cronutil.py - Crontab tools and retrieving configured cron job commands
+    ├── crypto.py - Encryption and decryption functions for sensitive files
+    ├── emailutil.py - Service to send and truncate emails
+    ├── fileutil.py - Retrieves filepaths for configurations and secrets
+    ├── googleutil.py - API calls for Google services and utilities
+    ├── influxdb.py - Access to InfluxDB
+    ├── logutil.py - Central logging service 
+    ├── tokenutil.py - API call for the Tesla authentication flow to retrieve new access and refresh tokens, check expiration and refresh if needed
+    └── utilities.py - Commonly used and helpful tools
 
-/energy
-      api.py - API calls for Tesla Energy products
-      localtelemetry.py - Write real time energy data using Tesla Gateway API
-      mode.py - Customizes energy site behavior based on weather
-      telemetry.py - Writes energy data to store for analysis and visualization
+└── energy/
+    ├── api.py - API calls for Tesla Energy products
+    ├── localtelemetry.py - Write real time energy data using Tesla Gateway API
+    ├── mode.py - Customizes energy site behavior based on weather
+    └── telemetry.py - Writes energy data to store for analysis and visualization
 
-/vehicle
-      api.py - API calls for Tesla Vehicles
-      charge.py - Calculates and sets charging times to complete at a departure time for 2 EV's
-      climate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
-      removecron.py - Cleans up crontabs that are meant to exist for each specific day
-      software.py - Simulates scheduling software updates from the vehicle interface 
-      telemetry.py - Write all vehicle data from previous day in Google Sheet
+└── vehicle/
+    ├── api.py - API calls for Tesla Vehicles
+    ├── charge.py - Calculates and sets charging times to complete at a departure time for 2 EV's
+    ├── climate.py - Sets up crontab for starting the car HVAC based on references stored in a Google Sheet
+    ├── removecron.py - Cleans up crontabs that are meant to exist for each specific day
+    ├── software.py - Simulates scheduling software updates from the vehicle interface 
+    └── telemetry.py - Write all vehicle data from previous day in Google Sheet
 
-Vehicle functions read/write to a [Google Sheet](https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing)
+Vehicle functions read/write to a [Google Sheet](https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing), for example.
 
 Here are the packages needed:
-  python3-pip
-  google-api-python-client
-  google-auth-httplib2
-  google-auth-oauthlib
-  python-crontab
-  pytz
-  influxdb
+  * python3-pip
+  * google-api-python-client
+  * google-auth-httplib2
+  * google-auth-oauthlib
+  * python-crontab
+  * pytz
+  * influxdb
 
 Additional packages needed for Tesla Vehicle Command SDK:
-  go
-  gcc-arm-linux-gnueabi
+  * go
+  * gcc-arm-linux-gnueabi
 
 These are some older videos I created for [in-depth walk throughs](https://www.youtube.com/watch?v=l1pqhlGSuVg&list=PLgiPnlzk2O712gwiTIquUzdfVlzIMyS2M) of the functionality and code which I'll update over time.
 
 
-/golang
+###/golang
 I've started porting over the python code to golang as another backup, in case Tesla only allows access through the SDK in the future which is written in golang.  I haven't replicated all the functions that I have in Python but I have the majority of the vehicle basics down.  Currently this code is still dependent on the Python ones, e.g. getting auth token and refresh token.  I'll continue to work on filling out the rest of the vehicle functions, energy functions, and making it stand-alone as I have more time.
 
 I'm a beginner at golang, and coding overall, so please forgive my design of the golang code and folder structure.
