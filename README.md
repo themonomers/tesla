@@ -10,6 +10,7 @@ Before running the tesla-http-proxy, you need to follow [instructions](https://g
 Track Tesla Vehicle data in Google Sheets, send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB. 
 ```
 src/
+
 └── common/
     ├── argutil.py - Tools for command line arguments
     ├── configutil.py - Retrieves configuration values

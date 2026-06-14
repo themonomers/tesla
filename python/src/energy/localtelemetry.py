@@ -183,10 +183,7 @@ def write_local_live_site_telemetry():
 # author: mjhwa@yahoo.com
 ##
 def get_local_meters_aggregates():
-  url = (BASE_URL
-          + '/meters/aggregates')
-
-  response = send_get(url)
+  response = send_get(get_url('/meters/aggregates'))
 
   # Detect expired local token and re-auth
   resp = json.loads(response.text)
@@ -208,10 +205,7 @@ def get_local_meters_aggregates():
 # author: mjhwa@yahoo.com
 ##
 def get_local_system_status_soe():
-  url = (BASE_URL
-          + '/system_status/soe')
-
-  response = send_get(url)
+  response = send_get(get_url('/system_status/soe'))
 
   # Detect expired local token and re-auth
   resp = json.loads(response.text)    
@@ -232,10 +226,7 @@ def get_local_system_status_soe():
 # author: mjhwa@yahoo.com
 ##
 def get_local_system_status():
-  url = (BASE_URL
-          + '/system_status')
-
-  response = send_get(url)
+  response = send_get(get_url('/system_status'))
 
   # Detect expired local token and re-auth
   resp = json.loads(response.text)    
@@ -248,6 +239,15 @@ def get_local_system_status():
     return get_local_system_status()
 
   return resp
+
+
+###
+# Centralize repetitive URL construction.
+#
+# author: mjhwa@yahoo.com
+##
+def get_url(command):
+  return (BASE_URL + command)
 
 
 def send_get(url):

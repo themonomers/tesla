@@ -405,11 +405,11 @@ def set_off_grid_vehicle_charging_reserve(percent):
 # author: mjhwa@yahoo.com
 ##
 def get_url(command):
-    return (BASE_PROXY_URL
-            + '/energy_sites/' 
-            + SITE_ID 
-            + '/'
-            + command)
+  return (BASE_PROXY_URL
+          + '/energy_sites/' 
+          + SITE_ID 
+          + '/'
+          + command)
 
 
 def send_get(url):
