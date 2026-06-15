@@ -383,12 +383,12 @@ def write_energy_data_to_gsheet(date):
     # write total pack energy value
     open_row = find_open_row(ENERGY_SPREADSHEET_ID, 'Telemetry!A:A')
     inputs.append({
-      'range': 'Telemetry-Summary!A' + str(open_row),
+      'range': 'Telemetry!A' + str(open_row),
       'values': [[(datetime.today() - timedelta(1)).strftime('%B %d, %Y')]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!B' + str(open_row),
+      'range': 'Telemetry!B' + str(open_row),
       'values': [[data['nominal_full_pack_energy']]]
     })
 
@@ -396,7 +396,7 @@ def write_energy_data_to_gsheet(date):
     data = get_site_status()
 
     inputs.append({
-      'range': 'Telemetry-Summary!C' + str(open_row),
+      'range': 'Telemetry!C' + str(open_row),
       'values': [[data['response']['percentage_charged']]]
     })
 
@@ -442,87 +442,87 @@ def write_energy_data_to_gsheet(date):
             cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
 
     inputs.append({
-      'range': 'Telemetry-Summary!F' + str(open_row),
+      'range': 'Telemetry!F' + str(open_row),
       'values': [[datetime.strftime(d, '%B %d, %Y')]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!H' + str(open_row),
+      'range': 'Telemetry!H' + str(open_row),
       'values': [[cumulative_data.get('consumer_energy_imported_from_solar', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!I' + str(open_row),
+      'range': 'Telemetry!I' + str(open_row),
       'values': [[cumulative_data.get('consumer_energy_imported_from_battery', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!J' + str(open_row),
+      'range': 'Telemetry!J' + str(open_row),
       'values': [[cumulative_data.get('consumer_energy_imported_from_grid', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!K' + str(open_row),
+      'range': 'Telemetry!K' + str(open_row),
       'values': [[cumulative_data.get('consumer_energy_imported_from_generator', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!L' + str(open_row),
+      'range': 'Telemetry!L' + str(open_row),
       'values': [[cumulative_data.get('solar_energy_exported', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!M' + str(open_row),
+      'range': 'Telemetry!M' + str(open_row),
       'values': [[cumulative_data.get('battery_energy_exported', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!N' + str(open_row),
+      'range': 'Telemetry!N' + str(open_row),
       'values': [[cumulative_data.get('battery_energy_imported_from_solar', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!O' + str(open_row),
+      'range': 'Telemetry!O' + str(open_row),
       'values': [[cumulative_data.get('battery_energy_imported_from_grid', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!P' + str(open_row),
+      'range': 'Telemetry!P' + str(open_row),
       'values': [[cumulative_data.get('battery_energy_imported_from_generator', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!Q' + str(open_row),
+      'range': 'Telemetry!Q' + str(open_row),
       'values': [[cumulative_data.get('grid_energy_imported', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!R' + str(open_row),
+      'range': 'Telemetry!R' + str(open_row),
       'values': [[cumulative_data.get('grid_energy_exported_from_solar', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!S' + str(open_row),
+      'range': 'Telemetry!S' + str(open_row),
       'values': [[cumulative_data.get('grid_energy_exported_from_battery', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!T' + str(open_row),
+      'range': 'Telemetry!T' + str(open_row),
       'values': [[cumulative_data.get('grid_energy_exported_from_generator', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!U' + str(open_row),
+      'range': 'Telemetry!U' + str(open_row),
       'values': [[cumulative_data.get('grid_services_energy_exported', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!V' + str(open_row),
+      'range': 'Telemetry!V' + str(open_row),
       'values': [[cumulative_data.get('grid_services_energy_imported', 0)]]
     })
 
     inputs.append({
-      'range': 'Telemetry-Summary!W' + str(open_row),
+      'range': 'Telemetry!W' + str(open_row),
       'values': [[cumulative_data.get('generator_energy_exported', 0)]]
     })
 
@@ -567,82 +567,82 @@ def write_energy_data_to_gsheet(date):
                 and d.day == date.day):
 
               inputs.append({
-                'range': 'Telemetry-Summary!AE' + str(open_row),
+                'range': 'Telemetry!AE' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AF' + str(open_row),
+                'range': 'Telemetry!AF' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_battery']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AG' + str(open_row),
+                'range': 'Telemetry!AG' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_grid']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AH' + str(open_row),
+                'range': 'Telemetry!AH' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_generator']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AI' + str(open_row),
+                'range': 'Telemetry!AI' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['solar_energy_exported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AJ' + str(open_row),
+                'range': 'Telemetry!AJ' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_exported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AK' + str(open_row),
+                'range': 'Telemetry!AK' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_solar']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AL' + str(open_row),
+                'range': 'Telemetry!AL' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_grid']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AM' + str(open_row),
+                'range': 'Telemetry!AM' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_generator']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AN' + str(open_row),
+                'range': 'Telemetry!AN' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_imported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AO' + str(open_row),
+                'range': 'Telemetry!AO' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_solar']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AP' + str(open_row),
+                'range': 'Telemetry!AP' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_battery']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AQ' + str(open_row),
+                'range': 'Telemetry!AQ' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_generator']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AR' + str(open_row),
+                'range': 'Telemetry!AR' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_exported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AS' + str(open_row),
+                'range': 'Telemetry!AS' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_imported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!AT' + str(open_row),
+                'range': 'Telemetry!AT' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['generator_energy_exported']]]
               })
 
@@ -678,82 +678,82 @@ def write_energy_data_to_gsheet(date):
                 and d.day == date.day):
 
               inputs.append({
-                'range': 'Telemetry-Summary!BB' + str(open_row),
+                'range': 'Telemetry!BB' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BC' + str(open_row),
+                'range': 'Telemetry!BC' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_battery']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BD' + str(open_row),
+                'range': 'Telemetry!BD' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_grid']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BE' + str(open_row),
+                'range': 'Telemetry!BE' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_generator']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BF' + str(open_row),
+                'range': 'Telemetry!BF' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['solar_energy_exported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BG' + str(open_row),
+                'range': 'Telemetry!BG' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_exported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BH' + str(open_row),
+                'range': 'Telemetry!BH' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_solar']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BI' + str(open_row),
+                'range': 'Telemetry!BI' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_grid']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BJ' + str(open_row),
+                'range': 'Telemetry!BJ' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_generator']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BK' + str(open_row),
+                'range': 'Telemetry!BK' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_imported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BL' + str(open_row),
+                'range': 'Telemetry!BL' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_solar']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BM' + str(open_row),
+                'range': 'Telemetry!BM' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_battery']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BN' + str(open_row),
+                'range': 'Telemetry!BN' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_generator']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BO' + str(open_row),
+                'range': 'Telemetry!BO' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_exported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BP' + str(open_row),
+                'range': 'Telemetry!BP' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_imported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BQ' + str(open_row),
+                'range': 'Telemetry!BQ' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['generator_energy_exported']]]
               })
 
@@ -789,82 +789,82 @@ def write_energy_data_to_gsheet(date):
                 and d.day == date.day):
 
               inputs.append({
-                'range': 'Telemetry-Summary!BY' + str(open_row),
+                'range': 'Telemetry!BY' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!BZ' + str(open_row),
+                'range': 'Telemetry!BZ' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_battery']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CA' + str(open_row),
+                'range': 'Telemetry!CA' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_grid']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CB' + str(open_row),
+                'range': 'Telemetry!CB' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_generator']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CC' + str(open_row),
+                'range': 'Telemetry!CC' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['solar_energy_exported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CD' + str(open_row),
+                'range': 'Telemetry!CD' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_exported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CE' + str(open_row),
+                'range': 'Telemetry!CE' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_solar']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CF' + str(open_row),
+                'range': 'Telemetry!CF' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_grid']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CG' + str(open_row),
+                'range': 'Telemetry!CG' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_generator']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CH' + str(open_row),
+                'range': 'Telemetry!CH' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_imported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CI' + str(open_row),
+                'range': 'Telemetry!CI' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_solar']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CJ' + str(open_row),
+                'range': 'Telemetry!CJ' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_battery']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CK' + str(open_row),
+                'range': 'Telemetry!CK' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_generator']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CL' + str(open_row),
+                'range': 'Telemetry!CL' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_exported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CM' + str(open_row),
+                'range': 'Telemetry!CM' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_imported']]]
               })
 
               inputs.append({
-                'range': 'Telemetry-Summary!CN' + str(open_row),
+                'range': 'Telemetry!CN' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['generator_energy_exported']]]
               })
 
