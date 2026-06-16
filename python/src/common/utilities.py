@@ -183,8 +183,6 @@ BASE_WEATHER_URL = get_uri('openweathermap', 'baseUrl')
 # author: mjhwa@yahoo.com
 ##
 def send_request(method, url, token, payload, cert):
-  urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
-
   return requests.request(
     method,
     url, 
