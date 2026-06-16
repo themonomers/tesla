@@ -4,7 +4,7 @@ import argparse
 
 from common.configutil import get_config
 from common.argutil import CustomHelpFormatter
-from common.utilities import print_json, send_request
+from common.utilities import print_json, send_request, get_uri
 from common.tokenutil import get_token
 from common.fileutil import get_filepath
 from datetime import datetime
@@ -13,8 +13,8 @@ ACCESS_TOKEN = get_token()['tesla']['access_token']
 
 config = get_config()
 SITE_ID = config['energy']['site_id']
-BASE_PROXY_URL = config['tesla']['base_proxy_url']
 TIME_ZONE = config['general']['timezone']
+BASE_PROXY_URL = get_uri('tesla', 'baseProxyUrl')
 CERT = get_filepath('secrets', 'teslaCert')
 
 ##
@@ -216,8 +216,8 @@ def get_power_history(period, date):
 ##
 def get_rate_tariffs():
   url = (BASE_PROXY_URL
-          + '/energy_sites/' 
-          + 'rate_tariffs')
+         + '/api/1/energy_sites/' 
+         + 'rate_tariffs')
 
   return json.loads(
     send_get(url).text
@@ -406,7 +406,7 @@ def set_off_grid_vehicle_charging_reserve(percent):
 ##
 def get_url(command):
   return (BASE_PROXY_URL
-          + '/energy_sites/' 
+          + '/api/1/energy_sites/' 
           + SITE_ID 
           + '/'
           + command)

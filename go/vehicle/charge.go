@@ -22,6 +22,7 @@ var FindStringIn2DArray = common.FindStringIn2DArray
 var GetGoogleSheetService = common.GetGoogleSheetService
 var SendEmail = common.SendEmail
 var GetInLineSub = common.GetInLineSub
+var GetConfig = common.GetConfig
 
 type Range struct {
 	Start time.Time

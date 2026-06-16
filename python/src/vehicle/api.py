@@ -6,7 +6,7 @@ import argparse
 from common.configutil import get_config
 from common.logutil import log
 from common.argutil import CustomHelpFormatter
-from common.utilities import print_json, send_request
+from common.utilities import print_json, send_request, get_uri
 from common.tokenutil import get_token
 from common.fileutil import get_filepath
 
@@ -15,7 +15,7 @@ ACCESS_TOKEN = get_token()['tesla']['access_token']
 config = get_config()
 M3_VIN = config['vehicle']['m3_vin']
 MX_VIN = config['vehicle']['mx_vin']
-BASE_PROXY_URL = config['tesla']['base_proxy_url']
+BASE_PROXY_URL = get_uri('tesla', 'baseProxyUrl')
 CERT = get_filepath('secrets', 'teslaCert')
 
 WAIT_TIME = 30 
@@ -29,7 +29,7 @@ WAIT_TIME = 30
 ##
 def get_vehicle_data(vin):
   url = (BASE_PROXY_URL
-          + '/vehicles/'
+          + '/api/1/vehicles/'
           + vin 
           + '/vehicle_data?endpoints='
           + urllib.parse.quote(
@@ -60,7 +60,7 @@ def get_vehicle_data(vin):
 ##
 def wake_vehicle(vin):
   url = (BASE_PROXY_URL
-          + '/vehicles/'
+          + '/api/1/vehicles/'
           + vin 
           + '/wake_up')
 
@@ -286,7 +286,7 @@ def schedule_software_update(vin, offset_sec):
 ##
 def get_url(vin, command):
   return (BASE_PROXY_URL
-          + '/vehicles/'
+          + '/api/1/vehicles/'
           + vin 
           + '/command/'
           + command)

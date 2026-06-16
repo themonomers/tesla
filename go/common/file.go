@@ -12,6 +12,7 @@ type Configs struct {
 	Config      string `json:"config"`
 	LocalConfig string `json:"localConfig"`
 	Cron        string `json:"cron"`
+	Uri         string `json:"uri"`
 	Log         string `json:"log"`
 }
 

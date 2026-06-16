@@ -10,7 +10,7 @@ import (
 )
 
 var SendRequest = common.SendRequest
-var GetConfig = common.GetConfig
+var GetUri = common.GetUri
 
 var ACCESS_TOKEN string
 var BASE_PROXY_URL string
@@ -20,15 +20,14 @@ func init() {
 	t := common.GetToken()
 	ACCESS_TOKEN, _ = t.String("tesla.access_token")
 
-	c := GetConfig()
-	BASE_PROXY_URL, _ = c.String("tesla.base_proxy_url")
+	BASE_PROXY_URL = GetUri().Tesla.BaseProxyUrl
 }
 
 // Retrieves the vehicle data needed for higher level functions to drive
 // calcuations and actions.
 func GetVehicleData(vin string) map[string]any {
 	var url = BASE_PROXY_URL +
-		"/vehicles/" +
+		"/api/1/vehicles/" +
 		vin +
 		"/vehicle_data?endpoints=" +
 		url.PathEscape(
@@ -56,7 +55,7 @@ func GetVehicleData(vin string) map[string]any {
 // when it's asleep.
 func WakeVehicle(vin string) *http.Response {
 	var url = BASE_PROXY_URL +
-		"/vehicles/" +
+		"/api/1/vehicles/" +
 		vin +
 		"/wake_up"
 
@@ -230,13 +229,11 @@ func ScheduleSoftwareUpdate(vin string, offset_sec int) *http.Response {
 
 // Centralize repetitive URL construction.
 func getUrl(vin, command string) string {
-	url := BASE_PROXY_URL +
-		"/vehicles/" +
+	return (BASE_PROXY_URL +
+		"/api/1/vehicles/" +
 		vin +
 		"/command/" +
-		command
-
-	return url
+		command)
 }
 
 func SendGet(url string) *http.Response {

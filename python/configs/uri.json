@@ -1,0 +1,14 @@
+{
+    "tesla": {
+        "baseProxyUrl": "https://localhost:4443",
+        "baseFleetUrl": "https://fleet-api.prd.na.vn.cloud.tesla.com", 
+        "baseAuthUrl": "https://fleet-auth.prd.vn.cloud.tesla.com/oauth2/v3/token",
+        "userAuthUrl": "https://auth.tesla.com/oauth2/v3/authorize?&locale=en-US&prompt=login&response_type=code&state=db4af3f87"
+    },
+    "tesladeveloper": {
+        "redirectUri": "https://themonomers.github.io/tesla-fleet"
+    },
+    "openweathermap": {
+        "baseUrl": "https://api.openweathermap.org/data/3.0"
+    }
+}

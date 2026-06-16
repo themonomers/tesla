@@ -13,6 +13,7 @@ from common.argutil import CustomHelpFormatter
 from common.googleutil import get_google_sheet_service
 from common.fileutil import get_filepath
 from datetime import datetime, timedelta
+from pathlib import Path
 
 config = get_config()
 PRIMARY_LAT = float(config['vehicle']['primary_lat'])
@@ -20,7 +21,6 @@ PRIMARY_LNG = float(config['vehicle']['primary_lng'])
 SECONDARY_LAT = float(config['vehicle']['secondary_lat'])
 SECONDARY_LNG = float(config['vehicle']['secondary_lng'])
 OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
-BASE_WEATHER_URL = config['weather']['base_url']
 LOG_SPREADSHEET_ID = config['google']['log_spreadsheet_id']
 TIME_ZONE = config['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)
@@ -158,6 +158,23 @@ def get_daily_weather(lat, lng):
     return get_daily_weather(lat, lng)
 
   return json.loads(response.text)
+
+
+##
+# Retrieve configured URL's.
+#
+# author: mjhwa@yahoo.com
+##
+def get_uri(category, option): 
+  project_root = Path(__file__).resolve().parent.parent.parent
+
+  config_path = project_root / get_filepath('configs', 'uri')
+  with open(config_path, "r") as f:
+    config = json.load(f)
+
+  return config.get(category).get(option)
+
+BASE_WEATHER_URL = get_uri('openweathermap', 'baseUrl')
 
 
 ###

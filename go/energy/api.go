@@ -13,6 +13,7 @@ var SendGet = vehicle.SendGet
 var SendPost = vehicle.SendPost
 var GetJson = common.GetJson
 var GetConfig = common.GetConfig
+var GetUri = common.GetUri
 
 var SITE_ID string
 var BASE_PROXY_URL string
@@ -20,7 +21,8 @@ var BASE_PROXY_URL string
 func init() {
 	c := GetConfig()
 	SITE_ID, _ = c.String("energy.site_id")
-	BASE_PROXY_URL, _ = c.String("tesla.base_proxy_url")
+
+	BASE_PROXY_URL = GetUri().Tesla.BaseProxyUrl
 }
 
 // Gets some quick and basic information.
@@ -102,7 +104,7 @@ func GetPowerHistory(period string, date time.Time) map[string]any {
 // Lists all rate tariffs available in the mobile app.
 func GetRateTariffs() map[string]any {
 	url := BASE_PROXY_URL +
-		"/energy_sites/" +
+		"/api/1/energy_sites/" +
 		"rate_tariffs"
 
 	return GetJson(SendGet(url))
@@ -208,11 +210,9 @@ func SetOffGridVehicleChargingReserve(percent int) *http.Response {
 
 // Centralize repetitive URL construction.
 func getUrl(command string) string {
-	url := BASE_PROXY_URL +
-		"/energy_sites/" +
+	return (BASE_PROXY_URL +
+		"/api/1/energy_sites/" +
 		SITE_ID +
 		"/" +
-		command
-
-	return url
+		command)
 }

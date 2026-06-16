@@ -49,9 +49,31 @@ func init() {
 	SECONDARY_LAT, _ = c.Float("vehicle.secondary_lat")
 	SECONDARY_LNG, _ = c.Float("vehicle.secondary_lng")
 	OPENWEATHERMAP_KEY, _ = c.String("weather.openweathermap_key")
-	BASE_WEATHER_URL, _ = c.String("weather.base_url")
-	BASE_PROXY_URL, _ = c.String("tesla.base_proxy_url")
 	TIMEZONE, _ = c.String("general.timezone")
+
+	BASE_WEATHER_URL = GetUri().Openweathermap.BaseUrl
+	BASE_PROXY_URL = GetUri().Tesla.BaseProxyUrl
+}
+
+type Tesla struct {
+	BaseProxyUrl string `json:"baseProxyUrl"`
+	BaseFleetUrl string `json:"baseFleetUrl"`
+	BaseAuthUrl  string `json:"baseAuthUrl"`
+	UserAuthUrl  string `json:"userAuthUrl"`
+}
+
+type Tesladeveloper struct {
+	RedirectUri string `json:"redirectUri"`
+}
+
+type Openweathermap struct {
+	BaseUrl string `json:"baseUrl"`
+}
+
+type Uri struct {
+	Tesla          Tesla          `json:"tesla"`
+	Tesladeveloper Tesladeveloper `json:"tesladeveloper"`
+	Openweathermap Openweathermap `json:"openweathermap"`
 }
 
 // Retrieves dictionary of configuration values.
@@ -70,6 +92,24 @@ func GetToken() *config.Config {
 
 func GetLocalToken() *config.Config {
 	return getConfigFile(GetFilePath(GetFiles().Secrets.LocalToken))
+}
+
+func GetUri() Uri {
+	fileBytes, err := os.ReadFile(GetFilePath(GetFiles().Configs.Uri))
+	if err != nil {
+		slog.Error("GetUri(): os.ReadFile(): " + err.Error())
+	}
+
+	// Initialize the target variable
+	var uri Uri
+
+	// Parse the raw bytes into the struct address
+	err = json.Unmarshal(fileBytes, &uri)
+	if err != nil {
+		slog.Error("GetUri(): json.Unmarshal(): " + err.Error())
+	}
+
+	return uri
 }
 
 // Golang ini configuration loader from a filename.
