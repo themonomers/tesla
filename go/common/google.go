@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -15,15 +14,10 @@ import (
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
+	"gopkg.in/ini.v1"
 )
 
-var CONFIGS map[string]string
 var DELETE_THRESHOLD float64 = 30.0
-
-func init() {
-	c := GetConfig()
-	CONFIGS, _ = c.Settings() // github.com/ridgelines/go-config doesn't support loading by sections so we have to grab everything and loop
-}
 
 // Looks for the next empty cell in a Google Sheet row to avoid overwriting data
 // when reading/writing values.
@@ -133,13 +127,21 @@ func saveToken(path string, token *oauth2.Token) {
 func TruncateEmail() {
 	// get the date for the threshold (days prior)
 	delete_date := time.Now().Add(time.Duration(-DELETE_THRESHOLD * float64(time.Hour) * 24))
-	//	fmt.Println(delete_date)
+	slog.Debug("delete_date: " + delete_date.Format("January 2, 2006 15:04"))
 
-	for index, element := range CONFIGS {
-		if strings.Contains(index, "query.") {
-			deleteEmail(element, delete_date)
-		}
+	encryptedCfgFile, _ := ini.Load(Decrypt(GetFilePath(Cfg.File.Config)))
+	queries, _ := encryptedCfgFile.GetSection("query")
+	// Hash returns a map[string]string of all keys and values in that section
+	for key, value := range queries.KeysHash() {
+		slog.Debug("INI Key: %s, Value: %s\n", key, value)
+		deleteEmail(value, delete_date)
 	}
+	/*
+		for index, element := range CONFIGS {
+			if strings.Contains(index, "query.") {
+				deleteEmail(element, delete_date)
+			}
+		}*/
 }
 
 func deleteEmail(query string, delete_date time.Time) {

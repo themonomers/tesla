@@ -17,6 +17,10 @@ func main() {
 	}
 	defer cleanup() // Ensures files close cleanly on shutdown
 
+	// Load global configuration and token values
+	common.LoadConfig()
+	common.LoadTokenConfig()
+
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		// vehicle
@@ -31,21 +35,21 @@ func main() {
 		case "-startmxprecondition":
 			vehicle.StartMXPrecondition()
 		case "-stopm3precondition":
-			vehicle.StopPreconditionCheck(vehicle.M3_VIN)
+			vehicle.StopPreconditionCheck(common.EncryptedCfg.Vehicle.M3Vin)
 		case "-stopmxprecondition":
-			vehicle.StopPreconditionCheck(vehicle.MX_VIN)
+			vehicle.StopPreconditionCheck(common.EncryptedCfg.Vehicle.MxVin)
 		case "-checkm3charge":
-			vehicle.CheckCharge(vehicle.M3_VIN)
+			vehicle.CheckCharge(common.EncryptedCfg.Vehicle.M3Vin)
 		case "-checkmxcharge":
-			vehicle.CheckCharge(vehicle.MX_VIN)
+			vehicle.CheckCharge(common.EncryptedCfg.Vehicle.MxVin)
 		case "-schedulem3update":
-			vehicle.ScheduleUpdate(vehicle.M3_VIN, common.GetTomorrowTime("2:30"))
+			vehicle.ScheduleUpdate(common.EncryptedCfg.Vehicle.M3Vin, common.GetTomorrowTime("2:30"))
 		case "-schedulemxupdate":
-			vehicle.ScheduleUpdate(vehicle.MX_VIN, common.GetTomorrowTime("1:30"))
+			vehicle.ScheduleUpdate(common.EncryptedCfg.Vehicle.MxVin, common.GetTomorrowTime("1:30"))
 		case "-schedulem3softwareupdate":
-			vehicle.ScheduleSoftwareUpdate(vehicle.M3_VIN, 0)
+			vehicle.ScheduleSoftwareUpdate(common.EncryptedCfg.Vehicle.M3Vin, 0)
 		case "-schedulemxsoftwareupdate":
-			vehicle.ScheduleSoftwareUpdate(vehicle.MX_VIN, 0)
+			vehicle.ScheduleSoftwareUpdate(common.EncryptedCfg.Vehicle.MxVin, 0)
 		case "-removeteslacron":
 			vehicle.RemoveTeslaCron()
 		// energy

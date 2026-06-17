@@ -2,7 +2,7 @@ import pytz
 import zoneinfo
 import argparse
 
-from common.configutil import get_config
+from common.configutil import encrypted_config, config
 from common.logutil import log
 from common.argutil import CustomHelpFormatter
 from energy.api import (
@@ -20,10 +20,9 @@ from common.emailutil import send_email
 from common.influxdb import get_db_client
 from datetime import datetime, timedelta
 
-config = get_config()
-ENERGY_SPREADSHEET_ID = config['google']['energy_spreadsheet_id']
-SUMMARY_SHEET_ID = config['google']['summary_sheet_id']
-EMAIL_1 = config['notification']['email_1']
+ENERGY_SPREADSHEET_ID = encrypted_config['google']['energy_spreadsheet_id']
+SUMMARY_SHEET_ID = encrypted_config['google']['summary_sheet_id']
+EMAIL_1 = encrypted_config['notification']['email_1']
 
 TIME_ZONE = config['general']['timezone']
 PAC = zoneinfo.ZoneInfo(TIME_ZONE)

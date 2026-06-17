@@ -11,21 +11,7 @@ import (
 
 var SendRequest = common.SendRequest
 
-var LOCAL_ACCESS_TOKEN string
-var BASE_URL string
-var TIMEZONE string
 var WAIT_TIME time.Duration = 30 // seconds
-
-func init() {
-	t := common.GetLocalToken()
-	LOCAL_ACCESS_TOKEN, _ = t.String("tesla.token")
-
-	c := common.GetLocalConfig()
-	BASE_URL, _ = c.String("energy.base_url")
-
-	c = GetConfig()
-	TIMEZONE, _ = c.String("general.timezone")
-}
 
 // Writes live energy data to InfluxDB, accessed locally
 // from the Tesla Energy Gateway.
@@ -89,7 +75,7 @@ func WriteLiveSiteTelemetry() {
 // Retrieves site energy data locally from the Tesla
 // Energy Gateway.
 func getLocalMetersAggregates() map[string]any {
-	url := BASE_URL +
+	url := common.LocalCfg.Energy.BaseUrl +
 		"/meters/aggregates"
 
 	resp := sendGet(url)
@@ -105,7 +91,7 @@ func getLocalMetersAggregates() map[string]any {
 // Retrieves battery charge state locally from the Tesla
 // Energy Gateway.
 func getLocalSystemStatusSOE() map[string]any {
-	url := BASE_URL +
+	url := common.LocalCfg.Energy.BaseUrl +
 		"/system_status/soe"
 
 	resp := sendGet(url)
@@ -120,7 +106,7 @@ func getLocalSystemStatusSOE() map[string]any {
 
 // Provides information on batteries and inverters.
 func getLocalSystemStatus() map[string]any {
-	url := BASE_URL +
+	url := common.LocalCfg.Energy.BaseUrl +
 		"/system_status"
 
 	resp := sendGet(url)
@@ -137,7 +123,7 @@ func getLocalSystemStatus() map[string]any {
 // local Tesla Gateway that sometimes gives less digits and
 // breaks the time parsing function.
 func splitTimestamp(timestamp string) time.Time {
-	loc, _ := time.LoadLocation(TIMEZONE)
+	loc, _ := time.LoadLocation(common.LocalCfg.General.Timezone)
 
 	t, err := time.ParseInLocation("2006-01-02T15:04:05.000000-07:00", timestamp, loc)
 	if err != nil {
@@ -148,5 +134,5 @@ func splitTimestamp(timestamp string) time.Time {
 }
 
 func sendGet(url string) *http.Response {
-	return SendRequest("GET", url, LOCAL_ACCESS_TOKEN, nil)
+	return SendRequest("GET", url, common.LocalTokenCfg.Tesla.Token, nil)
 }

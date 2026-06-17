@@ -14,10 +14,8 @@ src/
 └── common/
     ├── argutil.py - Tools for command line arguments
     ├── configutil.py - Retrieves configuration values
-    ├── cronutil.py - Crontab tools and retrieving configured cron job commands
     ├── crypto.py - Encryption and decryption functions for sensitive files
     ├── emailutil.py - Service to send and truncate emails
-    ├── fileutil.py - Retrieves filepaths for configurations and secrets
     ├── googleutil.py - API calls for Google services and utilities
     ├── influxdb.py - Access to InfluxDB
     ├── logutil.py - Central logging service 

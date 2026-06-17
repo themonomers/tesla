@@ -2,27 +2,27 @@ import datetime
 import zoneinfo
 import requests
 import json
-import configparser
 import argparse
 import urllib
 
-from common.configutil import get_config
+from common.configutil import (
+  encrypted_config, 
+  config, 
+  get_filepath, 
+  get_config)
 from common.logutil import log
 from common.argutil import CustomHelpFormatter
-from common.crypto import encrypt, decrypt
-from common.fileutil import get_filepath
-from common.utilities import get_uri
+from common.crypto import encrypt
 from datetime import datetime, timedelta
-from io import StringIO
 
-config = get_config()
-CLIENT_ID = config['tesla']['client_id']
-CLIENT_SECRET = config['tesla']['client_secret']
-TIME_ZONE = config['general']['timezone']
-PAC = zoneinfo.ZoneInfo(TIME_ZONE)
-BASE_AUTH_URL = get_uri('tesla', 'baseAuthUrl')
-BASE_FLEET_URL = get_uri('tesla', 'baseFleetUrl')
-REDIRECT_URI = get_uri('tesladeveloper', 'redirectUri')
+CLIENT_ID = encrypted_config['tesla']['client_id']
+CLIENT_SECRET = encrypted_config['tesla']['client_secret']
+
+PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
+BASE_AUTH_URL = config['uri']['tesla_base_auth_url']
+BASE_FLEET_URL = config['uri']['tesla_base_fleet_url']
+USER_AUTH_URL = config['uri']['tesla_user_auth_url']
+REDIRECT_URI = config['uri']['tesladeveloper_redirect_uri']
 SCOPE = 'openid offline_access vehicle_device_data vehicle_location vehicle_cmds vehicle_charging_cmds vehicle_specs energy_device_data energy_cmds'
 
 ##
@@ -31,16 +31,7 @@ SCOPE = 'openid offline_access vehicle_device_data vehicle_location vehicle_cmds
 # author: mjhwa@yahoo.com
 ##
 def get_token():
-  buffer = StringIO(
-    decrypt(get_filepath('secrets', 'token'), get_filepath('secrets', 'teslaKey'))
-  )
-  config = configparser.ConfigParser()
-  config.sections()
-  config.read_file(buffer)
-  values = {s:dict(config.items(s)) for s in config.sections()}
-  buffer.close()
-  
-  return values
+  return get_config(get_filepath('token'), get_filepath('tesla_key'))
 
 token = get_token()
 REFRESH_TOKEN = token['tesla']['refresh_token']
@@ -76,8 +67,8 @@ def refresh_token():
   # Encrypt config file
   encrypt(
     message,
-    get_filepath('secrets', 'token'),
-    get_filepath('secrets', 'teslaKey')
+    get_filepath('token'),
+    get_filepath('tesla_key')
   )
 
 
@@ -113,7 +104,7 @@ def check_token_expiration():
 ##
 def new_token():
   print('Please go to this URL: \n')
-  url = (get_uri('tesla', 'userAuthUrl')
+  url = (USER_AUTH_URL
         + '&client_id=' + urllib.parse.quote(CLIENT_ID, safe='')
         + '&redirect_uri=' + urllib.parse.quote(REDIRECT_URI, safe='')
         + '&scope=' + urllib.parse.quote(SCOPE, safe=''))

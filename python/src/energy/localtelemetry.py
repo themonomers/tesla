@@ -4,14 +4,12 @@ import json
 import zoneinfo
 import time
 import os
-import configparser
 
 from common.logutil import log
-from common.crypto import encrypt, decrypt
+from common.crypto import encrypt
 from common.influxdb import get_db_client
-from common.fileutil import get_filepath
+from common.configutil import get_filepath, get_config
 from datetime import datetime
-from io import StringIO
 
 WAIT_TIME = 30  # seconds
 
@@ -23,23 +21,13 @@ WAIT_TIME = 30  # seconds
 # author: mjhwa@yahoo.com
 ##
 def get_local_config():
-  buffer = StringIO(
-    decrypt(get_filepath('configs', 'localConfig'), get_filepath('secrets', 'teslaKey'))
-  )
-  config = configparser.ConfigParser()
-  config.sections()
-  config.read_file(buffer)
-  values = {s:dict(config.items(s)) for s in config.sections()}
-  buffer.close()
-
-  return values
+  return get_config(get_filepath('local_config'), get_filepath('tesla_key'))
 
 local_config = get_local_config()
 USERNAME = local_config['energy']['email']
 PASSWORD = local_config['energy']['password']
 BASE_URL = local_config['energy']['base_url']
-TIME_ZONE = local_config['general']['timezone']
-PAC = zoneinfo.ZoneInfo(TIME_ZONE)
+PAC = zoneinfo.ZoneInfo(local_config['general']['timezone'])
 
 
 ##
@@ -51,20 +39,11 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 def get_local_token():
   # Check for the file which stores the latest local token
   if os.path.exists(
-    get_filepath('secrets', 'localToken')
+    get_filepath('local_token')
   ) == False:
     auth_local_token()
 
-  buffer = StringIO(
-    decrypt(get_filepath('secrets', 'localToken'), get_filepath('secrets', 'teslaKey'))
-  )
-  config = configparser.ConfigParser()
-  config.sections()
-  config.read_file(buffer)
-  values = {s:dict(config.items(s)) for s in config.sections()}
-  buffer.close()
-
-  return values
+  return get_config(get_filepath('local_token'), get_filepath('tesla_key'))
 
 LOCAL_TOKEN = get_local_token()['tesla']['token']
 
@@ -94,8 +73,8 @@ def auth_local_token():
   # Encrypt config file
   encrypt(
     message,
-    get_filepath('secrets', 'localToken'),
-    get_filepath('secrets', 'teslaKey')
+    get_filepath('local_token'),
+    get_filepath('tesla_key')
   )
 
 

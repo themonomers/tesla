@@ -1,18 +1,17 @@
 import time
 
-from common.configutil import get_config
+from common.configutil import encrypted_config
 from common.logutil import log
 from vehicle.api import get_vehicle_data
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
 from datetime import datetime
 
-config = get_config()
-M3_VIN = config['vehicle']['m3_vin']
-MX_VIN = config['vehicle']['mx_vin']
-EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
-TELEMETRY_SHEET_ID = config['google']['telemetry_sheet_id']
-EMAIL_1 = config['notification']['email_1']
+M3_VIN = encrypted_config['vehicle']['m3_vin']
+MX_VIN = encrypted_config['vehicle']['mx_vin']
+EV_SPREADSHEET_ID = encrypted_config['google']['ev_spreadsheet_id']
+TELEMETRY_SHEET_ID = encrypted_config['google']['telemetry_sheet_id']
+EMAIL_1 = encrypted_config['notification']['email_1']
 
 WAIT_TIME = 30 
 

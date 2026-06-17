@@ -12,18 +12,6 @@ import (
 
 var GetDBClient = common.GetDBClient
 
-var ENERGY_SPREADSHEET_ID string
-var SUMMARY_SHEET_ID int64
-var EMAIL_1 string
-
-func init() {
-	c := GetConfig()
-	ENERGY_SPREADSHEET_ID, _ = c.String("google.energy_spreadsheet_id")
-	summary_sheet_id, _ := c.String("google.summary_sheet_id")
-	SUMMARY_SHEET_ID, _ = strconv.ParseInt(summary_sheet_id, 10, 64)
-	EMAIL_1, _ = c.String("notification.email_1")
-}
-
 // Write the data for the previous day based on a cron job that runs just after
 // midnight to ensure we get a full day's worth of data.
 func WriteEnergyTelemetry() {
@@ -39,7 +27,7 @@ func WriteEnergyTelemetry() {
 	message := ("Energy telemetry successfully logged on " +
 		time.Now().Format("January 2, 2006 15:04:05") +
 		".")
-	common.SendEmail(EMAIL_1, "Energy Telemetry Logged", message, "")
+	common.SendEmail(common.EncryptedCfg.Notification.Email1, "Energy Telemetry Logged", message, "")
 }
 
 // This writes solar and battery data in 5 minute increments in InfluxDB
@@ -302,7 +290,7 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	data := getLocalSystemStatus()
 
 	// write total pack energy value
-	open_row := common.FindOpenRow(ENERGY_SPREADSHEET_ID, "Telemetry!A:A")
+	open_row := common.FindOpenRow(common.EncryptedCfg.Google.EnergySpreadsheetId, "Telemetry!A:A")
 	inputs := &sheets.BatchUpdateValuesRequest{
 		ValueInputOption: "USER_ENTERED",
 	}
@@ -328,14 +316,14 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	copy_paste_requests := &sheets.CopyPasteRequest{
 		PasteType: "PASTE_NORMAL",
 		Source: &sheets.GridRange{
-			SheetId:          SUMMARY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    4,
 			EndRowIndex:      5,
 			StartColumnIndex: 3,
 			EndColumnIndex:   4,
 		},
 		Destination: &sheets.GridRange{
-			SheetId:          SUMMARY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    int64(open_row) - 1,
 			EndRowIndex:      int64(open_row),
 			StartColumnIndex: 3,
@@ -454,14 +442,14 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	copy_paste_requests = &sheets.CopyPasteRequest{
 		PasteType: "PASTE_NORMAL",
 		Source: &sheets.GridRange{
-			SheetId:          SUMMARY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    4,
 			EndRowIndex:      5,
 			StartColumnIndex: 23,
 			EndColumnIndex:   29,
 		},
 		Destination: &sheets.GridRange{
-			SheetId:          SUMMARY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    int64(open_row) - 1,
 			EndRowIndex:      int64(open_row),
 			StartColumnIndex: 23,
@@ -568,14 +556,14 @@ func WriteEnergyDataToGsheet(date time.Time) {
 						copy_paste_requests = &sheets.CopyPasteRequest{
 							PasteType: "PASTE_NORMAL",
 							Source: &sheets.GridRange{
-								SheetId:          SUMMARY_SHEET_ID,
+								SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 								StartRowIndex:    4,
 								EndRowIndex:      5,
 								StartColumnIndex: 46,
 								EndColumnIndex:   52,
 							},
 							Destination: &sheets.GridRange{
-								SheetId:          SUMMARY_SHEET_ID,
+								SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 								StartRowIndex:    int64(open_row) - 1,
 								EndRowIndex:      int64(open_row),
 								StartColumnIndex: 46,
@@ -676,14 +664,14 @@ func WriteEnergyDataToGsheet(date time.Time) {
 						copy_paste_requests = &sheets.CopyPasteRequest{
 							PasteType: "PASTE_NORMAL",
 							Source: &sheets.GridRange{
-								SheetId:          SUMMARY_SHEET_ID,
+								SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 								StartRowIndex:    4,
 								EndRowIndex:      5,
 								StartColumnIndex: 69,
 								EndColumnIndex:   75,
 							},
 							Destination: &sheets.GridRange{
-								SheetId:          SUMMARY_SHEET_ID,
+								SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 								StartRowIndex:    int64(open_row) - 1,
 								EndRowIndex:      int64(open_row),
 								StartColumnIndex: 69,
@@ -784,14 +772,14 @@ func WriteEnergyDataToGsheet(date time.Time) {
 						copy_paste_requests = &sheets.CopyPasteRequest{
 							PasteType: "PASTE_NORMAL",
 							Source: &sheets.GridRange{
-								SheetId:          SUMMARY_SHEET_ID,
+								SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 								StartRowIndex:    4,
 								EndRowIndex:      5,
 								StartColumnIndex: 92,
 								EndColumnIndex:   98,
 							},
 							Destination: &sheets.GridRange{
-								SheetId:          SUMMARY_SHEET_ID,
+								SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 								StartRowIndex:    int64(open_row) - 1,
 								EndRowIndex:      int64(open_row),
 								StartColumnIndex: 92,
@@ -809,14 +797,14 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	copy_paste_requests = &sheets.CopyPasteRequest{
 		PasteType: "PASTE_NORMAL",
 		Source: &sheets.GridRange{
-			SheetId:          SUMMARY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    4,
 			EndRowIndex:      5,
 			StartColumnIndex: 99,
 			EndColumnIndex:   115,
 		},
 		Destination: &sheets.GridRange{
-			SheetId:          SUMMARY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    int64(open_row) - 1,
 			EndRowIndex:      int64(open_row),
 			StartColumnIndex: 99,
@@ -830,14 +818,14 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	copy_paste_requests = &sheets.CopyPasteRequest{
 		PasteType: "PASTE_NORMAL",
 		Source: &sheets.GridRange{
-			SheetId:          SUMMARY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    int64(open_row) - 2,
 			EndRowIndex:      int64(open_row) - 1,
 			StartColumnIndex: 116,
 			EndColumnIndex:   121,
 		},
 		Destination: &sheets.GridRange{
-			SheetId:          SUMMARY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    int64(open_row) - 1,
 			EndRowIndex:      int64(open_row),
 			StartColumnIndex: 116,
@@ -848,11 +836,11 @@ func WriteEnergyDataToGsheet(date time.Time) {
 
 	// batch write data and formula copies to sheet
 	srv := common.GetGoogleSheetService()
-	_, err := srv.Spreadsheets.Values.BatchUpdate(ENERGY_SPREADSHEET_ID, inputs).Do()
+	_, err := srv.Spreadsheets.Values.BatchUpdate(common.EncryptedCfg.Google.EnergySpreadsheetId, inputs).Do()
 	if err != nil {
 		slog.Error("WriteEnergyDataToGsheet(): srv.Spreadsheets.Values.BatchUpdate(): " + err.Error())
 	}
-	_, err = srv.Spreadsheets.BatchUpdate(ENERGY_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
+	_, err = srv.Spreadsheets.BatchUpdate(common.EncryptedCfg.Google.EnergySpreadsheetId, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
 	if err != nil {
 		slog.Error("WriteEnergyDataToGsheet(): srv.Spreadsheets.BatchUpdate(): " + err.Error())
 	}

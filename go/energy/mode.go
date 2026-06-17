@@ -7,16 +7,7 @@ import (
 	"github.com/themonomers/tesla/go/common"
 )
 
-var PRIMARY_LAT float64
-var PRIMARY_LNG float64
 var PCT_THRESHOLD float64 = 0.5
-
-func init() {
-	c := GetConfig()
-	PRIMARY_LAT, _ = c.Float("vehicle.primary_lat")
-	PRIMARY_LNG, _ = c.Float("vehicle.primary_lng")
-	EMAIL_1, _ = c.String("notification.email_1")
-}
 
 // Set to run on an early morning cron job (before sunrise) that will
 // check today and tomorrow's weather and if more than a certain percentage
@@ -27,7 +18,7 @@ func init() {
 // control modes while also recharging the battery to 100%.
 func SetEnergyModeBasedOnWeather() {
 	// get weather forecast
-	wdata := common.GetDailyWeather(PRIMARY_LAT, PRIMARY_LNG)
+	wdata := common.GetDailyWeather(common.EncryptedCfg.Vehicle.PrimaryLat, common.EncryptedCfg.Vehicle.PrimaryLng)
 	check_dates := []time.Time{time.Now(), time.Now().Add(time.Duration(24 * time.Hour))}
 	var msg = ""
 
@@ -87,7 +78,7 @@ func SetEnergyModeBasedOnWeather() {
 	// 100% and send email, otherwise set to normal backup reserve of 35%
 	if msg != "" {
 		SetBackupReserve(100)
-		common.SendEmail(EMAIL_1, "Energy:  Setting Backup Reserve to 100%", msg, "")
+		common.SendEmail(common.EncryptedCfg.Notification.Email1, "Energy:  Setting Backup Reserve to 100%", msg, "")
 	} else {
 		SetBackupReserve(35)
 	}

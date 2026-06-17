@@ -6,15 +6,6 @@ import (
 	"time"
 )
 
-var SENDER_EMAIL string
-var SENDER_PASSWORD string
-
-func init() {
-	c := GetConfig()
-	SENDER_EMAIL, _ = c.String("notification.sender_email")
-	SENDER_PASSWORD, _ = c.String("notification.sender_password")
-}
-
 // Send email via Google SMTP.
 func SendEmail(to, subject, message, cc string) {
 	tos := []string{to}
@@ -24,8 +15,8 @@ func SendEmail(to, subject, message, cc string) {
 		"\r\n" +
 		message)
 
-	auth := smtp.PlainAuth("", SENDER_EMAIL, SENDER_PASSWORD, "smtp.gmail.com")
-	err := smtp.SendMail("smtp.gmail.com:587", auth, SENDER_EMAIL, tos, msg)
+	auth := smtp.PlainAuth("", EncryptedCfg.Notification.SenderEmail, EncryptedCfg.Notification.SenderPassword, "smtp.gmail.com")
+	err := smtp.SendMail("smtp.gmail.com:587", auth, EncryptedCfg.Notification.SenderEmail, tos, msg)
 	if err != nil {
 		slog.Warn("Retry SendEmail(): smtp.SendMail(): " + err.Error())
 		time.Sleep(WAIT_TIME * time.Second)

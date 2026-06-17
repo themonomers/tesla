@@ -4,26 +4,27 @@ import json
 import datetime
 import zoneinfo
 import time
-import urllib3
 import argparse
 
-from common.configutil import get_config
+from common.configutil import (
+  encrypted_config, 
+  config, 
+  get_filepath)
 from common.logutil import log
 from common.argutil import CustomHelpFormatter
 from common.googleutil import get_google_sheet_service
-from common.fileutil import get_filepath
 from datetime import datetime, timedelta
-from pathlib import Path
+from crontab import CronTab
 
-config = get_config()
-PRIMARY_LAT = float(config['vehicle']['primary_lat'])
-PRIMARY_LNG = float(config['vehicle']['primary_lng'])
-SECONDARY_LAT = float(config['vehicle']['secondary_lat'])
-SECONDARY_LNG = float(config['vehicle']['secondary_lng'])
-OPENWEATHERMAP_KEY = config['weather']['openweathermap_key']
-LOG_SPREADSHEET_ID = config['google']['log_spreadsheet_id']
-TIME_ZONE = config['general']['timezone']
-PAC = zoneinfo.ZoneInfo(TIME_ZONE)
+PRIMARY_LAT = float(encrypted_config['vehicle']['primary_lat'])
+PRIMARY_LNG = float(encrypted_config['vehicle']['primary_lng'])
+SECONDARY_LAT = float(encrypted_config['vehicle']['secondary_lat'])
+SECONDARY_LNG = float(encrypted_config['vehicle']['secondary_lng'])
+OPENWEATHERMAP_KEY = encrypted_config['weather']['openweathermap_key']
+LOG_SPREADSHEET_ID = encrypted_config['google']['log_spreadsheet_id']
+
+PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
+BASE_WEATHER_URL = config['uri']['openweathermap_base_url']
 
 R = 3958.8  #Earth radius in miles
 WAIT_TIME = 30  # seconds
@@ -160,23 +161,6 @@ def get_daily_weather(lat, lng):
   return json.loads(response.text)
 
 
-##
-# Retrieve configured URL's.
-#
-# author: mjhwa@yahoo.com
-##
-def get_uri(category, option): 
-  project_root = Path(__file__).resolve().parent.parent.parent
-
-  config_path = project_root / get_filepath('configs', 'uri')
-  with open(config_path, "r") as f:
-    config = json.load(f)
-
-  return config.get(category).get(option)
-
-BASE_WEATHER_URL = get_uri('openweathermap', 'baseUrl')
-
-
 ###
 # Centralize repetitive HTTP Request calls.
 #
@@ -190,6 +174,33 @@ def send_request(method, url, token, payload, cert):
     headers={'authorization': 'Bearer ' + token},
     **({'verify': cert} if cert else {})
   )
+
+
+##
+# Removes crontab for a single command.
+#
+# author: mjhwa@yahoo.com
+##
+def delete_cron(command):
+  cron = CronTab(user='pi')
+  job = cron.find_command(command)
+  cron.remove(job)
+  cron.write()
+
+
+##
+# Creates crontab entry for a single command.
+#
+# author: mjhwa@yahoo.com
+##
+def create_cron(command, month, day, hour, minute):
+  cron = CronTab(user='pi')
+  job = cron.new(command=command)
+  job.month.on(month)
+  job.day.on(day)
+  job.hour.on(hour)
+  job.minute.on(minute)
+  cron.write()
 
 
 ##
@@ -235,7 +246,7 @@ def load_log_into_gsheet(days_to_load):
     count = 0
     threshold = get_today_time('00:00') - timedelta(days_to_load)
 
-    with open(get_filepath('logs', 'filename'), 'r') as file:
+    with open(get_filepath('log_filename'), 'r') as file:
       for line in file:
         # Remove trailing newline characters
         clean_line = line.strip()

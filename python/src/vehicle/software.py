@@ -1,21 +1,19 @@
 import argparse
 import zoneinfo
 
-from common.configutil import get_config
+from common.configutil import encrypted_config, config
 from common.argutil import CustomHelpFormatter
-from common.cronutil import (
-  delete_cron, 
-  create_cron, 
-  get_cron
-)
-from common.utilities import get_today_time, get_tomorrow_time
+from common.utilities import (
+  get_today_time, 
+  get_tomorrow_time,
+  delete_cron,
+  create_cron)
 from datetime import datetime
 
-config = get_config()
-M3_VIN = config['vehicle']['m3_vin']
-MX_VIN = config['vehicle']['mx_vin']
-TIME_ZONE = config['general']['timezone']
-PAC = zoneinfo.ZoneInfo(TIME_ZONE)
+M3_VIN = encrypted_config['vehicle']['m3_vin']
+MX_VIN = encrypted_config['vehicle']['mx_vin']
+
+PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
 
 
 ##
@@ -25,8 +23,8 @@ PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 # author: mjhwa@yahoo.com
 ##
 def schedule_update(vin, time):
-  delete_cron(get_cron('api', 'schedule_software_update') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
-  create_cron(get_cron('api', 'schedule_software_update') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
+  delete_cron(config['cron']['api_schedule_software_update'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
+  create_cron(config['cron']['api_schedule_software_update'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
               time.month, 
               time.day, 
               time.hour, 

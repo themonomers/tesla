@@ -4,7 +4,7 @@ import logging.config
 import json
 import sys
 
-from common.fileutil import get_filepath
+from common.configutil import get_filepath
 
 
 ##
@@ -27,9 +27,9 @@ class ExitOnErrorHandler(logging.FileHandler):
 
 system_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(system_path)
-with open(get_filepath('configs', 'log'), 'r') as f:
+with open(get_filepath('log_config'), 'r') as f:
   config = json.load(f)
-config['handlers']['exitOnErrorHandler']['filename'] = get_filepath('logs', 'filename')
+config['handlers']['exitOnErrorHandler']['filename'] = get_filepath('log_filename')
 logging.config.dictConfig(config)
 
 logger = logging.getLogger(__name__)

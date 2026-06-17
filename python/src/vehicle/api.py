@@ -3,20 +3,23 @@ import time
 import urllib.parse
 import argparse
 
-from common.configutil import get_config
+from common.configutil import (
+  encrypted_config, 
+  config, 
+  get_filepath)
 from common.logutil import log
 from common.argutil import CustomHelpFormatter
-from common.utilities import print_json, send_request, get_uri
-from common.tokenutil import get_token
-from common.fileutil import get_filepath
+from common.utilities import print_json, send_request
+from common.tokenutil import token
 
-ACCESS_TOKEN = get_token()['tesla']['access_token']
+ACCESS_TOKEN = token['tesla']['access_token']
 
-config = get_config()
-M3_VIN = config['vehicle']['m3_vin']
-MX_VIN = config['vehicle']['mx_vin']
-BASE_PROXY_URL = get_uri('tesla', 'baseProxyUrl')
-CERT = get_filepath('secrets', 'teslaCert')
+M3_VIN = encrypted_config['vehicle']['m3_vin']
+MX_VIN = encrypted_config['vehicle']['mx_vin']
+
+BASE_PROXY_URL = config['uri']['tesla_base_proxy_url']
+
+CERT = get_filepath('tesla_cert')
 
 WAIT_TIME = 30 
 

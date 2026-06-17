@@ -1,7 +1,7 @@
 import time
 import argparse
 
-from common.configutil import get_config
+from common.configutil import encrypted_config, config
 from common.logutil import log
 from common.argutil import CustomHelpFormatter
 from vehicle.api import (
@@ -14,25 +14,21 @@ from vehicle.api import (
 from vehicle.climate import set_precondition
 from common.googleutil import get_google_sheet_service
 from common.emailutil import send_email
-from common.cronutil import (
-  delete_cron, 
-  create_cron, 
-  get_cron
-)
 from common.utilities import (
   is_vehicle_at_primary, 
   is_vehicle_at_secondary, 
-  get_tomorrow_time
+  get_tomorrow_time,
+  delete_cron,
+  create_cron
 )
 from datetime import timedelta, datetime
 from collections import namedtuple
 
-config = get_config()
-M3_VIN = config['vehicle']['m3_vin']
-MX_VIN = config['vehicle']['mx_vin']
-EV_SPREADSHEET_ID = config['google']['ev_spreadsheet_id']
-EMAIL_1 = config['notification']['email_1']
-EMAIL_2 = config['notification']['email_2']
+M3_VIN = encrypted_config['vehicle']['m3_vin']
+MX_VIN = encrypted_config['vehicle']['mx_vin']
+EV_SPREADSHEET_ID = encrypted_config['google']['ev_spreadsheet_id']
+EMAIL_1 = encrypted_config['notification']['email_1']
+EMAIL_2 = encrypted_config['notification']['email_2']
 
 MX_FULL_CHARGE_RATE_AT_PRIMARY = 25  # (mi/hr)
 M3_FULL_CHARGE_RATE_AT_PRIMARY = 37  # (mi/hr)
@@ -339,8 +335,8 @@ def schedule_backup_charging(data, start_time):
 
   if (is_vehicle_at_primary(data)):
     # create backup charging start crontab at target time tomorrow
-    delete_cron(get_cron('charge', 'check') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'))
-    create_cron(get_cron('charge', 'check') + ('m3' if vin == M3_VIN else 'mx') + get_cron('redirect'), 
+    delete_cron(config['cron']['charge_check'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
+    create_cron(config['cron']['charge_check'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
                 start_time.month, 
                 start_time.day, 
                 start_time.hour, 

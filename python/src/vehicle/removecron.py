@@ -1,4 +1,4 @@
-from common.cronutil import delete_cron, get_cron
+from common.utilities import delete_cron, config
 
 
 ##
@@ -12,12 +12,12 @@ def main():
   values = ['m3', 'mx']
 
   for val in values:
-    delete_cron(get_cron('climate', 'start') + val + get_cron('redirect'))
-    delete_cron(get_cron('climate', 'stop') + val + get_cron('redirect'))
+    delete_cron(config['cron']['climate_start'] + val + ' ' + config['cron']['redirect'])
+    delete_cron(config['cron']['climate_stop'] + val + ' ' + config['cron']['redirect'])
 
-    delete_cron(get_cron('charge', 'check') + val + get_cron('redirect'))
+    delete_cron(config['cron']['charge_check'] + val + ' ' + config['cron']['redirect'])
 
-    delete_cron(get_cron('api', 'schedule_software_update') + val + get_cron('redirect'))
+    delete_cron(config['cron']['api_schedule_software_update'] + val + ' ' + config['cron']['redirect'])
 
 
 if __name__ == "__main__":

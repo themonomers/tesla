@@ -1,11 +1,10 @@
-from common.configutil import get_config
+from common.configutil import encrypted_config
 from influxdb import InfluxDBClient
 
-config = get_config()
-INFLUX_HOST = config['influxdb']['host']
-INFLUX_PORT = config['influxdb']['port']
-INFLUX_USER = config['influxdb']['user']
-INFLUX_PASSWORD = config['influxdb']['password']
+INFLUX_HOST = encrypted_config['influxdb']['host']
+INFLUX_PORT = encrypted_config['influxdb']['port']
+INFLUX_USER = encrypted_config['influxdb']['user']
+INFLUX_PASSWORD = encrypted_config['influxdb']['password']
 
 
 ##

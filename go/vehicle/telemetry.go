@@ -9,18 +9,6 @@ import (
 	"google.golang.org/api/sheets/v4"
 )
 
-var TELEMETRY_SHEET_ID int64
-
-func init() {
-	c := GetConfig()
-	M3_VIN, _ = c.String("vehicle.m3_vin")
-	MX_VIN, _ = c.String("vehicle.mx_vin")
-	EV_SPREADSHEET_ID, _ = c.String("google.ev_spreadsheet_id")
-	telemetry_sheet_id, _ := c.String("google.telemetry_sheet_id")
-	TELEMETRY_SHEET_ID, _ = strconv.ParseInt(telemetry_sheet_id, 10, 64)
-	EMAIL_1, _ = c.String("notification.email_1")
-}
-
 func WriteVehicleTelemetry() {
 	writeM3Telemetry()
 	writeMXTelemetry()
@@ -30,10 +18,10 @@ func WriteVehicleTelemetry() {
 // efficiency, etc. into a Google Sheet for tracking, analysis, and graphs.
 func writeM3Telemetry() {
 	// get rollup of vehicle data
-	data := GetVehicleData(M3_VIN)
+	data := GetVehicleData(common.EncryptedCfg.Vehicle.M3Vin)
 
 	// write odometer value
-	open_row := common.FindOpenRow(EV_SPREADSHEET_ID, "Telemetry!A:A")
+	open_row := common.FindOpenRow(common.EncryptedCfg.Google.EvSpreadsheetId, "Telemetry!A:A")
 	inputs := &sheets.BatchUpdateValuesRequest{
 		ValueInputOption: "USER_ENTERED",
 	}
@@ -52,14 +40,14 @@ func writeM3Telemetry() {
 	copy_paste_requests := &sheets.CopyPasteRequest{
 		PasteType: "PASTE_NORMAL",
 		Source: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    2,
 			EndRowIndex:      3,
 			StartColumnIndex: 2,
 			EndColumnIndex:   7,
 		},
 		Destination: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    int64(open_row) - 2,
 			EndRowIndex:      int64(open_row) - 1,
 			StartColumnIndex: 2,
@@ -82,14 +70,14 @@ func writeM3Telemetry() {
 	copy_paste_requests = &sheets.CopyPasteRequest{
 		PasteType: "PASTE_NORMAL",
 		Source: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    2,
 			EndRowIndex:      3,
 			StartColumnIndex: 13,
 			EndColumnIndex:   14,
 		},
 		Destination: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    int64(open_row) - 2,
 			EndRowIndex:      int64(open_row) - 1,
 			StartColumnIndex: 13,
@@ -137,14 +125,14 @@ func writeM3Telemetry() {
 	copy_paste_requests = &sheets.CopyPasteRequest{
 		PasteType: "PASTE_NORMAL",
 		Source: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    2,
 			EndRowIndex:      3,
 			StartColumnIndex: 9,
 			EndColumnIndex:   12,
 		},
 		Destination: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    int64(open_row) - 2,
 			EndRowIndex:      int64(open_row) - 1,
 			StartColumnIndex: 9,
@@ -193,11 +181,11 @@ func writeM3Telemetry() {
 
 	// batch write data and formula copies to sheet
 	srv := GetGoogleSheetService()
-	_, err := srv.Spreadsheets.Values.BatchUpdate(EV_SPREADSHEET_ID, inputs).Do()
+	_, err := srv.Spreadsheets.Values.BatchUpdate(common.EncryptedCfg.Google.EvSpreadsheetId, inputs).Do()
 	if err != nil {
 		slog.Error("WriteM3Telemetry(): srv.Spreadsheets.Values.BatchUpdate(): " + err.Error())
 	}
-	_, err = srv.Spreadsheets.BatchUpdate(EV_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
+	_, err = srv.Spreadsheets.BatchUpdate(common.EncryptedCfg.Google.EvSpreadsheetId, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
 	if err != nil {
 		slog.Error("WriteM3Telemetry(): srv.Spreadsheets.BatchUpdate(): " + err.Error())
 	}
@@ -206,15 +194,15 @@ func writeM3Telemetry() {
 	message := "Model 3 telemetry successfully logged on " +
 		time.Now().Format("January 2, 2006 15:04:05") +
 		"."
-	SendEmail(EMAIL_1, "Model 3 Telemetry Logged", message, "")
+	SendEmail(common.EncryptedCfg.Notification.Email1, "Model 3 Telemetry Logged", message, "")
 }
 
 func writeMXTelemetry() {
 	// get rollup of vehicle data
-	data := GetVehicleData(MX_VIN)
+	data := GetVehicleData(common.EncryptedCfg.Vehicle.MxVin)
 
 	// write odometer value
-	open_row := common.FindOpenRow(EV_SPREADSHEET_ID, "Telemetry!V:V")
+	open_row := common.FindOpenRow(common.EncryptedCfg.Google.EvSpreadsheetId, "Telemetry!V:V")
 	inputs := &sheets.BatchUpdateValuesRequest{
 		ValueInputOption: "USER_ENTERED",
 	}
@@ -233,14 +221,14 @@ func writeMXTelemetry() {
 	copy_paste_requests := &sheets.CopyPasteRequest{
 		PasteType: "PASTE_NORMAL",
 		Source: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    2,
 			EndRowIndex:      3,
 			StartColumnIndex: 23,
 			EndColumnIndex:   28,
 		},
 		Destination: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    int64(open_row) - 2,
 			EndRowIndex:      int64(open_row) - 1,
 			StartColumnIndex: 23,
@@ -263,14 +251,14 @@ func writeMXTelemetry() {
 	copy_paste_requests = &sheets.CopyPasteRequest{
 		PasteType: "PASTE_NORMAL",
 		Source: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    2,
 			EndRowIndex:      3,
 			StartColumnIndex: 34,
 			EndColumnIndex:   35,
 		},
 		Destination: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    int64(open_row) - 2,
 			EndRowIndex:      int64(open_row) - 1,
 			StartColumnIndex: 34,
@@ -318,14 +306,14 @@ func writeMXTelemetry() {
 	copy_paste_requests = &sheets.CopyPasteRequest{
 		PasteType: "PASTE_NORMAL",
 		Source: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    2,
 			EndRowIndex:      3,
 			StartColumnIndex: 30,
 			EndColumnIndex:   33,
 		},
 		Destination: &sheets.GridRange{
-			SheetId:          TELEMETRY_SHEET_ID,
+			SheetId:          common.EncryptedCfg.Google.TelemetrySheetId,
 			StartRowIndex:    int64(open_row) - 2,
 			EndRowIndex:      int64(open_row) - 1,
 			StartColumnIndex: 30,
@@ -374,11 +362,11 @@ func writeMXTelemetry() {
 
 	// batch write data and formula copies to sheet
 	srv := GetGoogleSheetService()
-	_, err := srv.Spreadsheets.Values.BatchUpdate(EV_SPREADSHEET_ID, inputs).Do()
+	_, err := srv.Spreadsheets.Values.BatchUpdate(common.EncryptedCfg.Google.EvSpreadsheetId, inputs).Do()
 	if err != nil {
 		slog.Error("WriteMXTelemetry(): srv.Spreadsheets.Values.BatchUpdate(): " + err.Error())
 	}
-	_, err = srv.Spreadsheets.BatchUpdate(EV_SPREADSHEET_ID, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
+	_, err = srv.Spreadsheets.BatchUpdate(common.EncryptedCfg.Google.EvSpreadsheetId, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
 	if err != nil {
 		slog.Error("WriteMXTelemetry(): srv.Spreadsheets.BatchUpdate(): " + err.Error())
 	}
@@ -387,5 +375,5 @@ func writeMXTelemetry() {
 	message := "Model X telemetry successfully logged on " +
 		time.Now().Format("January 2, 2006 15:04:05") +
 		"."
-	SendEmail(EMAIL_1, "Model X Telemetry Logged", message, "")
+	SendEmail(common.EncryptedCfg.Notification.Email1, "Model X Telemetry Logged", message, "")
 }

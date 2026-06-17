@@ -10,7 +10,7 @@ func Decrypt(read_fn string) []byte {
 	message, _ := os.ReadFile(read_fn)
 
 	// read key
-	key, _ := os.ReadFile(GetFilePath(GetFiles().Secrets.TeslaKey))
+	key, _ := os.ReadFile(GetFilePath(Cfg.File.TeslaKey))
 
 	// decrypt with key
 	result := []byte{}

@@ -22,33 +22,17 @@ var FindStringIn2DArray = common.FindStringIn2DArray
 var GetGoogleSheetService = common.GetGoogleSheetService
 var SendEmail = common.SendEmail
 var GetInLineSub = common.GetInLineSub
-var GetConfig = common.GetConfig
 
 type Range struct {
 	Start time.Time
 	End   time.Time
 }
 
-var M3_VIN string
-var MX_VIN string
-var EV_SPREADSHEET_ID string
-var EMAIL_1 string
-var EMAIL_2 string
-
 var MX_FULL_CHARGE_RATE_AT_PRIMARY float64 = 25   // (mi/hr)
 var M3_FULL_CHARGE_RATE_AT_PRIMARY float64 = 37   // (mi/hr)
 var MX_FULL_CHARGE_RATE_AT_SECONDARY float64 = 20 // (mi/hr)
 var M3_FULL_CHARGE_RATE_AT_SECONDARY float64 = 30 // (mi/hr)
 var EARLIEST_CHARGING_START_TIME string = "00:00"
-
-func init() {
-	c := GetConfig()
-	M3_VIN, _ = c.String("vehicle.m3_vin")
-	MX_VIN, _ = c.String("vehicle.mx_vin")
-	EV_SPREADSHEET_ID, _ = c.String("google.ev_spreadsheet_id")
-	EMAIL_1, _ = c.String("notification.email_1")
-	EMAIL_2, _ = c.String("notification.email_2")
-}
 
 // Checks to see if the vehicles are plugged in, inferred from the charge
 // port door status, and sends an email to notify if it's not.  Also sets
@@ -61,7 +45,7 @@ func init() {
 func NotifyIsTeslaPluggedIn() {
 	// get charging configuration info
 	srv := GetGoogleSheetService()
-	charge_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Charge!A3:C11").Do()
+	charge_config, err := srv.Spreadsheets.Values.Get(common.EncryptedCfg.Google.EvSpreadsheetId, "Charge!A3:C11").Do()
 	if err != nil {
 		slog.Warn("Retry getting configuration info from Google Sheets: " + err.Error())
 		time.Sleep(WAIT_TIME * time.Second)
@@ -69,7 +53,7 @@ func NotifyIsTeslaPluggedIn() {
 	}
 
 	// get climate configuration info
-	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
+	climate_config, err := srv.Spreadsheets.Values.Get(common.EncryptedCfg.Google.EvSpreadsheetId, "Climate!A3:P22").Do()
 	if err != nil {
 		slog.Warn("Retry getting configuration info from Google Sheets: " + err.Error())
 		time.Sleep(WAIT_TIME * time.Second)
@@ -77,8 +61,8 @@ func NotifyIsTeslaPluggedIn() {
 	}
 
 	// get all vehicle data to avoid repeat API calls
-	m3_data := GetVehicleData(M3_VIN)
-	mx_data := GetVehicleData(MX_VIN)
+	m3_data := GetVehicleData(common.EncryptedCfg.Vehicle.M3Vin)
+	mx_data := GetVehicleData(common.EncryptedCfg.Vehicle.MxVin)
 
 	// send email notification if the car is not plugged in
 	charge_port_door_open := m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool)
@@ -89,7 +73,7 @@ func NotifyIsTeslaPluggedIn() {
 		battery_range,
 		charge_port_door_open,
 		charge_config.Values[8][1],
-		EMAIL_1,
+		common.EncryptedCfg.Notification.Email1,
 		"")
 
 	charge_port_door_open = mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_port_door_open"].(bool)
@@ -100,8 +84,8 @@ func NotifyIsTeslaPluggedIn() {
 		battery_range,
 		charge_port_door_open,
 		charge_config.Values[8][2],
-		EMAIL_2,
-		EMAIL_1)
+		common.EncryptedCfg.Notification.Email2,
+		common.EncryptedCfg.Notification.Email1)
 
 	// set cars for scheduled charging by daily charge time preference
 	day_of_week := time.Now().AddDate(0, 0, 1).Format("Monday")
@@ -131,14 +115,14 @@ func NotifyIsTeslaPluggedIn() {
 		m3_charge_start_time,
 		m3_target_finish_time,
 		m3_climate_start_time,
-		EMAIL_1,
+		common.EncryptedCfg.Notification.Email1,
 		"")
 	sendScheduledChargeMessage("Model X",
 		mx_data,
 		mx_charge_start_time,
 		mx_target_finish_time,
 		mx_climate_start_time,
-		EMAIL_1,
+		common.EncryptedCfg.Notification.Email1,
 		"")
 }
 
@@ -148,8 +132,8 @@ func NotifyIsTeslaPluggedIn() {
 // again.
 func ChargeEarliest() {
 	// get all vehicle data to avoid repeat API calls
-	m3_data := GetVehicleData(M3_VIN)
-	mx_data := GetVehicleData(MX_VIN)
+	m3_data := GetVehicleData(common.EncryptedCfg.Vehicle.M3Vin)
+	mx_data := GetVehicleData(common.EncryptedCfg.Vehicle.MxVin)
 
 	finish_times := calculateFinishTime(m3_data, mx_data)
 	m3_finish_time := finish_times["m3_finish_time"]
@@ -179,14 +163,14 @@ func ChargeEarliest() {
 				m3_start_time,
 				m3_finish_time,
 				time.Time{},
-				EMAIL_1,
+				common.EncryptedCfg.Notification.Email1,
 				"")
 			sendScheduledChargeMessage("Model X",
 				mx_data,
 				mx_start_time,
 				mx_finish_time,
 				time.Time{},
-				EMAIL_1,
+				common.EncryptedCfg.Notification.Email1,
 				"")
 		} else {
 			fmt.Println("No email confirmation")
@@ -235,9 +219,9 @@ func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_targe
 		// Remove any previous scheduled charging by this program, temporarily set to
 		// id=1, until I can figure out how to view the list of charge schedules and
 		// their corresponding ID's.
-		RemoveChargeSchedule(M3_VIN, 1)
-		AddChargeSchedule(M3_VIN, m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
-		StopCharge(M3_VIN) // for some reason charging starts sometimes after scheduled charging API is called
+		RemoveChargeSchedule(common.EncryptedCfg.Vehicle.M3Vin, 1)
+		AddChargeSchedule(common.EncryptedCfg.Vehicle.M3Vin, m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
+		StopCharge(common.EncryptedCfg.Vehicle.M3Vin) // for some reason charging starts sometimes after scheduled charging API is called
 
 		scheduleBackupCharging(m3_data, start_time.Add(10*time.Minute))
 
@@ -280,9 +264,9 @@ func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_targe
 
 		total_minutes := (start_time.Hour() * 60) + start_time.Minute()
 
-		RemoveChargeSchedule(MX_VIN, 1)
-		AddChargeSchedule(MX_VIN, mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
-		StopCharge(MX_VIN) // for some reason charging starts sometimes after scheduled charging API is called
+		RemoveChargeSchedule(common.EncryptedCfg.Vehicle.MxVin, 1)
+		AddChargeSchedule(common.EncryptedCfg.Vehicle.MxVin, mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
+		StopCharge(common.EncryptedCfg.Vehicle.MxVin) // for some reason charging starts sometimes after scheduled charging API is called
 
 		scheduleBackupCharging(mx_data, start_time.Add(10*time.Minute))
 

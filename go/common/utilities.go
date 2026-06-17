@@ -11,139 +11,14 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/go-ini/ini"
-	"github.com/ridgelines/go-config"
 )
 
-var ACCESS_TOKEN string
-var LOCAL_ACCESS_TOKEN string
-var M3_VIN string
-var MX_VIN string
-var PRIMARY_LAT float64
-var PRIMARY_LNG float64
-var SECONDARY_LAT float64
-var SECONDARY_LNG float64
-var R float64 = 3958.8 // Earth radius in miles
-var BASE_WEATHER_URL string
-var BASE_PROXY_URL string
-var OPENWEATHERMAP_KEY string
-var TIMEZONE string
+var R float64 = 3958.8           // Earth radius in miles
 var WAIT_TIME time.Duration = 30 // seconds
-
-func init() {
-	t := GetToken()
-	ACCESS_TOKEN, _ = t.String("tesla.access_token")
-
-	t = GetLocalToken()
-	LOCAL_ACCESS_TOKEN, _ = t.String("tesla.token")
-
-	c := GetConfig()
-	M3_VIN, _ = c.String("vehicle.m3_vin")
-	MX_VIN, _ = c.String("vehicle.mx_vin")
-	PRIMARY_LAT, _ = c.Float("vehicle.primary_lat")
-	PRIMARY_LNG, _ = c.Float("vehicle.primary_lng")
-	SECONDARY_LAT, _ = c.Float("vehicle.secondary_lat")
-	SECONDARY_LNG, _ = c.Float("vehicle.secondary_lng")
-	OPENWEATHERMAP_KEY, _ = c.String("weather.openweathermap_key")
-	TIMEZONE, _ = c.String("general.timezone")
-
-	BASE_WEATHER_URL = GetUri().Openweathermap.BaseUrl
-	BASE_PROXY_URL = GetUri().Tesla.BaseProxyUrl
-}
-
-type Tesla struct {
-	BaseProxyUrl string `json:"baseProxyUrl"`
-	BaseFleetUrl string `json:"baseFleetUrl"`
-	BaseAuthUrl  string `json:"baseAuthUrl"`
-	UserAuthUrl  string `json:"userAuthUrl"`
-}
-
-type Tesladeveloper struct {
-	RedirectUri string `json:"redirectUri"`
-}
-
-type Openweathermap struct {
-	BaseUrl string `json:"baseUrl"`
-}
-
-type Uri struct {
-	Tesla          Tesla          `json:"tesla"`
-	Tesladeveloper Tesladeveloper `json:"tesladeveloper"`
-	Openweathermap Openweathermap `json:"openweathermap"`
-}
-
-// Retrieves dictionary of configuration values.
-func GetConfig() *config.Config {
-	return getConfigFile(GetFilePath(GetFiles().Configs.Config))
-}
-
-func GetLocalConfig() *config.Config {
-	return getConfigFile(GetFilePath(GetFiles().Configs.LocalConfig))
-}
-
-// Retrievies dictionary of access token values.
-func GetToken() *config.Config {
-	return getConfigFile(GetFilePath(GetFiles().Secrets.Token))
-}
-
-func GetLocalToken() *config.Config {
-	return getConfigFile(GetFilePath(GetFiles().Secrets.LocalToken))
-}
-
-func GetUri() Uri {
-	fileBytes, err := os.ReadFile(GetFilePath(GetFiles().Configs.Uri))
-	if err != nil {
-		slog.Error("GetUri(): os.ReadFile(): " + err.Error())
-	}
-
-	// Initialize the target variable
-	var uri Uri
-
-	// Parse the raw bytes into the struct address
-	err = json.Unmarshal(fileBytes, &uri)
-	if err != nil {
-		slog.Error("GetUri(): json.Unmarshal(): " + err.Error())
-	}
-
-	return uri
-}
-
-// Golang ini configuration loader from a filename.
-func getConfigFile(read_fn string) *config.Config {
-	iniFile := newINIFile(Decrypt(read_fn))
-	env := config.NewStatic(iniFile)
-	c := config.NewConfig([]config.Provider{env})
-	err := c.Load()
-	if err != nil {
-		slog.Error("getConfigFile(): c.Load(): " + err.Error())
-	}
-
-	return c
-}
-
-// Replaces the github.com/ridgelines/go-config function, which only
-// takes a filename (string), with the loading function from the
-// github.com/go-ini/ini function which also takes raw data ([]byte).
-// This avoids having to read the encrypted file, decrypt it, and write
-// it to the file system.
-func newINIFile(data []byte) map[string]string {
-	settings := map[string]string{}
-
-	config, _ := ini.Load(data)
-
-	for _, section := range config.Sections() {
-		for _, key := range section.Keys() {
-			token := fmt.Sprintf("%s.%s", section.Name(), key.Name())
-			settings[token] = key.String()
-		}
-	}
-
-	return settings
-}
 
 // Calculates if the distance of the car is greater than 0.25 miles away from the
 // primary location.  The calculation uses Haversine Formula expressed in terms of a
@@ -153,11 +28,11 @@ func newINIFile(data []byte) map[string]string {
 // and NASA's Jet Propulsion Laboratory as described on the U.S. Census Bureau
 // Web site.
 func IsVehicleAtPrimary(data map[string]any) bool {
-	return isVehicleAtLocation(data, PRIMARY_LAT, PRIMARY_LNG)
+	return isVehicleAtLocation(data, EncryptedCfg.Vehicle.PrimaryLat, EncryptedCfg.Vehicle.PrimaryLng)
 }
 
 func IsVehicleAtSecondary(data map[string]any) bool {
-	return isVehicleAtLocation(data, SECONDARY_LAT, SECONDARY_LNG)
+	return isVehicleAtLocation(data, EncryptedCfg.Vehicle.SecondaryLat, EncryptedCfg.Vehicle.SecondaryLng)
 }
 
 func isVehicleAtLocation(data map[string]any, lat float64, lng float64) bool {
@@ -191,7 +66,7 @@ func toRad(x float64) float64 {
 // Helps format the charging or preconditioning time by defaulting the date.
 func GetTomorrowTime(t string) time.Time {
 	now := time.Now()
-	loc, _ := time.LoadLocation(TIMEZONE)
+	loc, _ := time.LoadLocation(Cfg.General.Timezone)
 
 	date, _ := time.ParseInLocation("2006-1-2 15:4", strconv.Itoa(now.Year())+"-"+strconv.Itoa(int(now.Month()))+"-"+strconv.Itoa(now.Day())+" "+t, loc)
 
@@ -200,7 +75,7 @@ func GetTomorrowTime(t string) time.Time {
 
 func GetTodayTime(t string) time.Time {
 	now := time.Now()
-	loc, _ := time.LoadLocation(TIMEZONE)
+	loc, _ := time.LoadLocation(Cfg.General.Timezone)
 
 	date, _ := time.ParseInLocation("2006-1-2 15:4", strconv.Itoa(now.Year())+"-"+strconv.Itoa(int(now.Month()))+"-"+strconv.Itoa(now.Day())+" "+t, loc)
 
@@ -210,11 +85,11 @@ func GetTodayTime(t string) time.Time {
 // Uses a free weather service with API to look up data by zipcode or other
 // attributes.  Gets current weather conditions.
 func GetCurrentWeather(lat, lng float64) map[string]any {
-	url := BASE_WEATHER_URL +
+	url := Cfg.Uri.OpenweathermapBaseUrl +
 		"/onecall" +
 		"?lat=" + strconv.FormatFloat(lat, 'f', -1, 64) +
 		"&lon=" + strconv.FormatFloat(lng, 'f', -1, 64) +
-		"&appid=" + OPENWEATHERMAP_KEY +
+		"&appid=" + EncryptedCfg.Weather.OpenweathermapKey +
 		"&exclude=minutely,hourly,daily,alerts" +
 		"&units=metric"
 
@@ -236,11 +111,11 @@ func GetCurrentWeather(lat, lng float64) map[string]any {
 // longitude or other attributes.  Gets daily weather conditions for
 // today + 7 days, and hourly weather conditions for 48 hours.
 func GetDailyWeather(lat, lng float64) map[string]any {
-	url := BASE_WEATHER_URL +
+	url := Cfg.Uri.OpenweathermapBaseUrl +
 		"/onecall" +
 		"?lat=" + strconv.FormatFloat(lat, 'f', -1, 64) +
 		"&lon=" + strconv.FormatFloat(lng, 'f', -1, 64) +
-		"&appid=" + OPENWEATHERMAP_KEY +
+		"&appid=" + EncryptedCfg.Weather.OpenweathermapKey +
 		"&exclude=current,minutely,alerts" +
 		"&units=metric"
 
@@ -289,6 +164,14 @@ func FindStringIn2DArray(arr [][]any, target string) []int64 {
 	return i
 }
 
+// Retrieves absolute filepath based on standardized file structure.
+func GetFilePath(file string) string {
+	cwd, _ := os.Getwd()
+	parent := filepath.Dir(cwd)
+
+	return parent + "/python" + strings.TrimPrefix(file, ".")
+}
+
 // Centralize repetitive request posts.
 func SendRequest(method, url, token string, payload []byte) *http.Response {
 	var resp *http.Response
@@ -298,13 +181,13 @@ func SendRequest(method, url, token string, payload []byte) *http.Response {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("authorization", "Bearer "+token)
 	switch token {
-	case ACCESS_TOKEN:
-		if strings.HasPrefix(url, BASE_PROXY_URL) {
+	case TokenCfg.Tesla.AccessToken:
+		if strings.HasPrefix(url, Cfg.Uri.TeslaBaseProxyUrl) {
 			resp, _ = getHttpsClientWithCert().Do(req)
 		} else {
 			resp, _ = http.DefaultClient.Do(req)
 		}
-	case LOCAL_ACCESS_TOKEN:
+	case LocalTokenCfg.Tesla.Token:
 		resp, _ = getHttpsClient().Do(req)
 	}
 
@@ -324,7 +207,7 @@ func getHttpsClient() *http.Client {
 // certificate relies on legacy Common Name field, use SANs instead" which skips the hostname
 // verification for self-signed certificates.
 func getHttpsClientWithCert() *http.Client {
-	caCert, _ := os.ReadFile(GetFilePath(GetFiles().Secrets.TeslaCert))
+	caCert, _ := os.ReadFile(GetFilePath(Cfg.File.TeslaCert))
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
@@ -384,9 +267,9 @@ func GetInLineSub(prefix, vin, suffix string) string {
 	var s string
 
 	switch vin {
-	case M3_VIN:
+	case EncryptedCfg.Vehicle.M3Vin:
 		s = prefix + "m3" + suffix
-	case MX_VIN:
+	case EncryptedCfg.Vehicle.MxVin:
 		s = prefix + "mx" + suffix
 	}
 

@@ -2,20 +2,24 @@ import json
 import pytz
 import argparse
 
-from common.configutil import get_config
+from common.configutil import (
+  encrypted_config, 
+  config, 
+  get_filepath)
 from common.argutil import CustomHelpFormatter
-from common.utilities import print_json, send_request, get_uri
-from common.tokenutil import get_token
-from common.fileutil import get_filepath
+from common.utilities import print_json, send_request
+from common.tokenutil import token
 from datetime import datetime
 
-ACCESS_TOKEN = get_token()['tesla']['access_token']
+ACCESS_TOKEN = token['tesla']['access_token']
 
-config = get_config()
-SITE_ID = config['energy']['site_id']
+SITE_ID = encrypted_config['energy']['site_id']
+
 TIME_ZONE = config['general']['timezone']
-BASE_PROXY_URL = get_uri('tesla', 'baseProxyUrl')
-CERT = get_filepath('secrets', 'teslaCert')
+BASE_PROXY_URL = config['uri']['tesla_base_proxy_url']
+
+CERT = get_filepath('tesla_cert')
+
 
 ##
 # Gets some quick and basic information.

@@ -10,23 +10,13 @@ import (
 )
 
 var SendRequest = common.SendRequest
-var GetUri = common.GetUri
 
-var ACCESS_TOKEN string
-var BASE_PROXY_URL string
 var WAIT_TIME time.Duration = 30 // seconds
-
-func init() {
-	t := common.GetToken()
-	ACCESS_TOKEN, _ = t.String("tesla.access_token")
-
-	BASE_PROXY_URL = GetUri().Tesla.BaseProxyUrl
-}
 
 // Retrieves the vehicle data needed for higher level functions to drive
 // calcuations and actions.
 func GetVehicleData(vin string) map[string]any {
-	var url = BASE_PROXY_URL +
+	var url = common.Cfg.Uri.TeslaBaseProxyUrl +
 		"/api/1/vehicles/" +
 		vin +
 		"/vehicle_data?endpoints=" +
@@ -54,7 +44,7 @@ func GetVehicleData(vin string) map[string]any {
 // Function to repeatedly run (after a certain wait time) to wake the vehicle up
 // when it's asleep.
 func WakeVehicle(vin string) *http.Response {
-	var url = BASE_PROXY_URL +
+	var url = common.Cfg.Uri.TeslaBaseProxyUrl +
 		"/api/1/vehicles/" +
 		vin +
 		"/wake_up"
@@ -229,7 +219,7 @@ func ScheduleSoftwareUpdate(vin string, offset_sec int) *http.Response {
 
 // Centralize repetitive URL construction.
 func getUrl(vin, command string) string {
-	return (BASE_PROXY_URL +
+	return (common.Cfg.Uri.TeslaBaseProxyUrl +
 		"/api/1/vehicles/" +
 		vin +
 		"/command/" +
@@ -237,9 +227,9 @@ func getUrl(vin, command string) string {
 }
 
 func SendGet(url string) *http.Response {
-	return SendRequest("GET", url, ACCESS_TOKEN, nil)
+	return SendRequest("GET", url, common.TokenCfg.Tesla.AccessToken, nil)
 }
 
 func SendPost(url string, payload []byte) *http.Response {
-	return SendRequest("POST", url, ACCESS_TOKEN, payload)
+	return SendRequest("POST", url, common.TokenCfg.Tesla.AccessToken, payload)
 }

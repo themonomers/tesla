@@ -11,15 +11,6 @@ import (
 
 var GetTodayTime = common.GetTodayTime
 
-var PRIMARY_LAT float64
-var PRIMARY_LNG float64
-
-func init() {
-	c := GetConfig()
-	PRIMARY_LAT, _ = c.Float("vehicle.primary_lat")
-	PRIMARY_LNG, _ = c.Float("vehicle.primary_lng")
-}
-
 // Creates a trigger to precondition the cabin for the following morning,
 // based on if the car is at the primary location and if "Eco Mode" is off
 // similar to how Nest thermostats work for vacation scenarios.  With the
@@ -65,7 +56,7 @@ func SetPrecondition(data map[string]any, eco_mode string, start_time time.Time)
 func StartM3Precondition() {
 	// get configuration info
 	srv := GetGoogleSheetService()
-	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
+	climate_config, err := srv.Spreadsheets.Values.Get(common.EncryptedCfg.Google.EvSpreadsheetId, "Climate!A3:P22").Do()
 	if err != nil {
 		slog.Error("StartM3Precondition(): srv.Spreadsheets.Values.Get(): " + err.Error())
 	}
@@ -76,7 +67,7 @@ func StartM3Precondition() {
 	}
 
 	// get local weather
-	wdata := common.GetCurrentWeather(PRIMARY_LAT, PRIMARY_LNG)
+	wdata := common.GetCurrentWeather(common.EncryptedCfg.Vehicle.PrimaryLat, common.EncryptedCfg.Vehicle.PrimaryLng)
 
 	// get today's day of week to compare against Google Sheet temp preferences
 	// for that day
@@ -145,13 +136,13 @@ func StartM3Precondition() {
 	}
 
 	// no need to execute the car is not at primary location
-	data := GetVehicleData(M3_VIN)
+	data := GetVehicleData(common.EncryptedCfg.Vehicle.M3Vin)
 	if IsVehicleAtPrimary(data) {
 		// send command to start auto conditioning
-		StartPrecondition(M3_VIN)
+		StartPrecondition(common.EncryptedCfg.Vehicle.M3Vin)
 
 		// set driver and passenger temps
-		SetTemp(M3_VIN, d_temp, p_temp)
+		SetTemp(common.EncryptedCfg.Vehicle.M3Vin, d_temp, p_temp)
 
 		// set seat heater settings
 		for i := 0; i < len(seats); i++ {
@@ -161,21 +152,21 @@ func StartM3Precondition() {
 
 			switch mode {
 			case "heat":
-				SetSeatHeating(M3_VIN, i, seats[i])
+				SetSeatHeating(common.EncryptedCfg.Vehicle.M3Vin, i, seats[i])
 			case "cool":
-				SetSeatCooling(M3_VIN, i+1, seats[i])
+				SetSeatCooling(common.EncryptedCfg.Vehicle.M3Vin, i+1, seats[i])
 			}
 		}
 
 		// create crontab to stop preconditioning at preferred time later in the day
-		setupStopCron(M3_VIN, stop_time)
+		setupStopCron(common.EncryptedCfg.Vehicle.M3Vin, stop_time)
 	}
 }
 
 func StartMXPrecondition() {
 	// get configuration info
 	srv := GetGoogleSheetService()
-	climate_config, err := srv.Spreadsheets.Values.Get(EV_SPREADSHEET_ID, "Climate!A3:P22").Do()
+	climate_config, err := srv.Spreadsheets.Values.Get(common.EncryptedCfg.Google.EvSpreadsheetId, "Climate!A3:P22").Do()
 	if err != nil {
 		slog.Error("StartMXPrecondition(): srv.Spreadsheets.Values.Get(): " + err.Error())
 	}
@@ -186,7 +177,7 @@ func StartMXPrecondition() {
 	}
 
 	// get local weather
-	wdata := common.GetCurrentWeather(PRIMARY_LAT, PRIMARY_LNG)
+	wdata := common.GetCurrentWeather(common.EncryptedCfg.Vehicle.PrimaryLat, common.EncryptedCfg.Vehicle.PrimaryLng)
 
 	// get today's day of week to compare against Google Sheet temp preferences
 	// for that day
@@ -243,24 +234,24 @@ func StartMXPrecondition() {
 	}
 
 	// no need to execute if the car is not at primary location
-	data := GetVehicleData(MX_VIN)
+	data := GetVehicleData(common.EncryptedCfg.Vehicle.MxVin)
 	if IsVehicleAtPrimary(data) {
 		// send command to start auto conditioning
-		StartPrecondition(MX_VIN)
+		StartPrecondition(common.EncryptedCfg.Vehicle.MxVin)
 
 		// set driver and passenger temps
-		SetTemp(MX_VIN, d_temp, p_temp)
+		SetTemp(common.EncryptedCfg.Vehicle.MxVin, d_temp, p_temp)
 
 		// set seat heater settings
 		for i := 0; i < len(seats); i++ {
 			if i == 3 {
 				continue // # skip index 3 as it's not assigned in the API
 			}
-			SetSeatHeating(MX_VIN, i, seats[i])
+			SetSeatHeating(common.EncryptedCfg.Vehicle.MxVin, i, seats[i])
 		}
 
 		// create crontab to stop preconditioning at preferred time later in the day
-		setupStopCron(MX_VIN, stop_time)
+		setupStopCron(common.EncryptedCfg.Vehicle.MxVin, stop_time)
 	}
 }
 

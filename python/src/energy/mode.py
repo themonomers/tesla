@@ -1,14 +1,13 @@
-from common.configutil import get_config
-from common.logutil import log
 from energy.api import set_backup_reserve
+from common.configutil import encrypted_config
+from common.logutil import log
 from common.emailutil import send_email
 from common.utilities import get_daily_weather
 from datetime import datetime, date, timedelta
 
-config = get_config()
-PRIMARY_LAT = float(config['vehicle']['primary_lat'])
-PRIMARY_LNG = float(config['vehicle']['primary_lng'])
-EMAIL_1 = config['notification']['email_1']
+PRIMARY_LAT = float(encrypted_config['vehicle']['primary_lat'])
+PRIMARY_LNG = float(encrypted_config['vehicle']['primary_lng'])
+EMAIL_1 = encrypted_config['notification']['email_1']
 
 PCT_THRESHOLD = 0.5
 
