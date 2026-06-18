@@ -16,9 +16,13 @@ var WAIT_TIME time.Duration = 30 // seconds
 // Retrieves the vehicle data needed for higher level functions to drive
 // calcuations and actions.
 func GetVehicleData(vin string) map[string]any {
-	var url = common.Cfg.Uri.TeslaBaseProxyUrl +
-		"/api/1/vehicles/" +
-		vin +
+	for vehicle(vin)["response"].(map[string]any)["state"].(string) != "online" {
+		WakeVehicle(vin)
+		time.Sleep(WAIT_TIME * time.Second)
+		return GetVehicleData(vin)
+	}
+
+	var url = getUrl(vin, "") +
 		"/vehicle_data?endpoints=" +
 		url.PathEscape(
 			"location_data;"+
@@ -30,23 +34,18 @@ func GetVehicleData(vin string) map[string]any {
 				"closures_state;"+
 				"drive_state")
 
-	resp := SendGet(url)
+	return common.GetJson(SendGet(url))
+}
 
-	if resp.StatusCode != 200 {
-		WakeVehicle(vin)
-		time.Sleep(WAIT_TIME * time.Second)
-		return GetVehicleData(vin)
-	}
-
-	return common.GetJson(resp)
+// Returns vehicle state, "online" or "asleep" or "offline", and other information.
+func vehicle(vin string) map[string]any {
+	return common.GetJson(SendGet(getUrl(vin, "")))
 }
 
 // Function to repeatedly run (after a certain wait time) to wake the vehicle up
 // when it's asleep.
 func WakeVehicle(vin string) *http.Response {
-	var url = common.Cfg.Uri.TeslaBaseProxyUrl +
-		"/api/1/vehicles/" +
-		vin +
+	var url = getUrl(vin, "") +
 		"/wake_up"
 
 	return SendPost(url, nil)
@@ -203,27 +202,32 @@ func StopPrecondition(vin string) *http.Response {
 //
 // offset_sec: seconds from now, e.g. 2 minutes from now = 60 * 2 = 120
 func ScheduleSoftwareUpdate(vin string, offset_sec int) *http.Response {
-	payload, _ := json.Marshal(map[string]any{
-		"offset_sec": offset_sec,
-	})
-
-	resp := SendPost(getUrl(vin, "schedule_software_update"), payload)
-	if resp.StatusCode != 200 {
+	for vehicle(vin)["response"].(map[string]any)["state"].(string) != "online" {
 		WakeVehicle(vin)
 		time.Sleep(WAIT_TIME * time.Second)
 		return ScheduleSoftwareUpdate(vin, offset_sec)
 	}
 
-	return resp
+	payload, _ := json.Marshal(map[string]any{
+		"offset_sec": offset_sec,
+	})
+
+	return SendPost(getUrl(vin, "schedule_software_update"), payload)
 }
 
 // Centralize repetitive URL construction.
 func getUrl(vin, command string) string {
+	if command != "" {
+		return (common.Cfg.Uri.TeslaBaseProxyUrl +
+			"/api/1/vehicles/" +
+			vin +
+			"/command/" +
+			command)
+	}
+
 	return (common.Cfg.Uri.TeslaBaseProxyUrl +
 		"/api/1/vehicles/" +
-		vin +
-		"/command/" +
-		command)
+		vin)
 }
 
 func SendGet(url string) *http.Response {

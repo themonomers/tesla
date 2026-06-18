@@ -1,32 +1,23 @@
 import argparse
 import vehicle.api as api
 
-from common.configutil import encrypted_config, config
-from common.logutil import log
-from common.argutil import CustomHelpFormatter
 from vehicle.api import (
   get_vehicle_data, 
   set_temp, 
   set_seat_heating, 
-  set_seat_cooling, 
-)
+  set_seat_cooling)
 from common.googleutil import get_google_sheet_service
 from common.utilities import (
   is_vehicle_at_primary, 
   get_today_time, 
   get_current_weather,
   delete_cron,
-  create_cron
-)
+  create_cron)
+from common.argutil import CustomHelpFormatter
+from common.logutil import log
+from common.configutil import config
+from common import constants
 from datetime import datetime
-
-M3_VIN = encrypted_config['vehicle']['m3_vin']
-MX_VIN = encrypted_config['vehicle']['mx_vin']
-EV_SPREADSHEET_ID = encrypted_config['google']['ev_spreadsheet_id'] 
-PRIMARY_LAT = float(encrypted_config['vehicle']['primary_lat'])
-PRIMARY_LNG = float(encrypted_config['vehicle']['primary_lng'])
-
-WAIT_TIME = 30 
 
 
 ##
@@ -50,8 +41,8 @@ def set_precondition(data, eco_mode, start_time):
     # check if the car is with 0.25 miles of the primary location
     if (is_vehicle_at_primary(data)):
       # create precondition start crontab at preferred time tomorrow
-      delete_cron(config['cron']['climate_start'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
-      create_cron(config['cron']['climate_start'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
+      delete_cron(config['cron']['climate_start'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
+      create_cron(config['cron']['climate_start'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
                   start_time.month, 
                   start_time.day, 
                   start_time.hour, 
@@ -78,7 +69,7 @@ def start_m3_precondition():
     # get configuration info
     service = get_google_sheet_service()
     climate_config = service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
+      spreadsheetId=constants.EV_SPREADSHEET_ID, 
       range='Climate!A3:P22'
     ).execute().get('values', [])
     service.close()
@@ -87,7 +78,7 @@ def start_m3_precondition():
     if (climate_config[19][1] == 'on'): return
     
     # get local weather
-    wdata = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
+    wdata = get_current_weather(constants.PRIMARY_LAT, constants.PRIMARY_LNG)
     log().debug('temp: ' + str(wdata['current']['temp']))
     
     log().debug('cold temp threshold: ' + climate_config[17][1])
@@ -147,22 +138,22 @@ def start_m3_precondition():
     log().debug('p_temp: ' + str(p_temp))
     log().debug('seats: ' + str(seats))
     # no need to execute if the car is not at primary location
-    data = get_vehicle_data(M3_VIN)
+    data = get_vehicle_data(constants.M3_VIN)
     if (is_vehicle_at_primary(data)):
       # send command to start auto conditioning
-      api.start_precondition(M3_VIN)
+      api.start_precondition(constants.M3_VIN)
 
       # set driver and passenger temps
-      set_temp(M3_VIN, d_temp, p_temp)
+      set_temp(constants.M3_VIN, d_temp, p_temp)
       
       # set seat heater settings
       for index, item in enumerate(seats):
         if (index == 3):
           continue # skip index 3 as it's not assigned in the API
-        set_seat_cooling(M3_VIN, int(index + 1), int(item)) if mode == 'cool' else set_seat_heating(M3_VIN, int(index), int(item))
+        set_seat_cooling(constants.M3_VIN, int(index + 1), int(item)) if mode == 'cool' else set_seat_heating(constants.M3_VIN, int(index), int(item))
 
       # create crontab to stop preconditioning at preferred time later in the day
-      setup_stop_cron(M3_VIN, stop_time)
+      setup_stop_cron(constants.M3_VIN, stop_time)
   except Exception as e:
     log().error('start_m3_precondition(): ' + str(e))
 
@@ -172,7 +163,7 @@ def start_mx_precondition():
     # get configuration info
     service = get_google_sheet_service()
     climate_config = service.spreadsheets().values().get(
-      spreadsheetId=EV_SPREADSHEET_ID, 
+      spreadsheetId=constants.EV_SPREADSHEET_ID, 
       range='Climate!A3:P22'
     ).execute().get('values', [])
     service.close()
@@ -181,7 +172,7 @@ def start_mx_precondition():
     if (climate_config[19][10] == 'on'): return
     
     # get local weather
-    wdata = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
+    wdata = get_current_weather(constants.PRIMARY_LAT, constants.PRIMARY_LNG)
     log().debug('temp: ' + str(wdata['current']['temp']))    
 
     log().debug('cold temp threshold: ' + climate_config[17][10])
@@ -232,27 +223,27 @@ def start_mx_precondition():
     log().debug('p_temp: ' + str(p_temp))
     log().debug('seats: ' + str(seats))
     # no need to execute if the car is not at primary location
-    data = get_vehicle_data(MX_VIN)
+    data = get_vehicle_data(constants.MX_VIN)
     if (is_vehicle_at_primary(data)):
       # send command to start auto conditioning
-      api.start_precondition(MX_VIN)
+      api.start_precondition(constants.MX_VIN)
 
       # set driver and passenger temps
-      set_temp(MX_VIN, d_temp, p_temp)
+      set_temp(constants.MX_VIN, d_temp, p_temp)
 
       # set seat heater settings
       for index, item in enumerate(seats):
-        set_seat_heating(MX_VIN, int(index), int(item))
+        set_seat_heating(constants.MX_VIN, int(index), int(item))
       
       # create crontab to stop preconditioning at preferred time later in the day
-      setup_stop_cron(MX_VIN, stop_time)
+      setup_stop_cron(constants.MX_VIN, stop_time)
   except Exception as e: 
     log().error('start_mx_precondition(): ' + str(e))
 
 
 def setup_stop_cron(vin, stop_time):
-  delete_cron(config['cron']['climate_stop'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
-  create_cron(config['cron']['climate_stop'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
+  delete_cron(config['cron']['climate_stop'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
+  create_cron(config['cron']['climate_stop'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
               stop_time.month, 
               stop_time.day, 
               stop_time.hour, 
@@ -288,9 +279,9 @@ def main(parser):
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   elif (args.stop):
     if args.stop[0] == 'm3':
-      stop_precondition(M3_VIN)
+      stop_precondition(constants.M3_VIN)
     elif args.stop[0] == 'mx':
-      stop_precondition(MX_VIN)
+      stop_precondition(constants.MX_VIN)
     else:
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   else:

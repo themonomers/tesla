@@ -1,10 +1,6 @@
 import pytz
-import zoneinfo
 import argparse
 
-from common.configutil import encrypted_config, config
-from common.logutil import log
-from common.argutil import CustomHelpFormatter
 from energy.api import (
   get_site_status, 
   get_site_history, 
@@ -12,20 +8,19 @@ from energy.api import (
   get_power_history, 
   get_savings_forecast, 
   get_battery_charge_history, 
-  get_battery_backup_history
-)
+  get_battery_backup_history)
 from energy.localtelemetry import get_local_system_status
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
 from common.influxdb import get_db_client
+from common.argutil import CustomHelpFormatter
+from common.logutil import log
+from common.configutil import encrypted_config
+from common import constants
 from datetime import datetime, timedelta
 
 ENERGY_SPREADSHEET_ID = encrypted_config['google']['energy_spreadsheet_id']
 SUMMARY_SHEET_ID = encrypted_config['google']['summary_sheet_id']
-EMAIL_1 = encrypted_config['notification']['email_1']
-
-TIME_ZONE = config['general']['timezone']
-PAC = zoneinfo.ZoneInfo(TIME_ZONE)
 
 
 ##
@@ -115,7 +110,7 @@ def write_energy_summary_to_db(date):
         date.minute, 
         date.second,
         date.microsecond
-      ).replace(tzinfo=PAC)),
+      ).replace(tzinfo=constants.PAC)),
       'fields': {
         'value': float(data['nominal_full_pack_energy'])
       }
@@ -137,7 +132,7 @@ def write_energy_summary_to_db(date):
         date.minute, 
         date.second,
         date.microsecond
-      ).replace(tzinfo=PAC)),
+      ).replace(tzinfo=constants.PAC)),
       'fields': {
         'value': float(data['response']['percentage_charged'])
       }
@@ -182,7 +177,7 @@ def write_energy_summary_to_db(date):
           0, 
           0, 
           0
-        ).replace(tzinfo=PAC)),
+        ).replace(tzinfo=constants.PAC)),
         'fields': {
           'value': float(value)
         }
@@ -200,7 +195,7 @@ def write_energy_summary_to_db(date):
       d = local.localize(d, is_dst=None)
 
       # timestamp in data is in UTC, convert to local time
-      d_local = d.astimezone(pytz.timezone(TIME_ZONE))
+      d_local = d.astimezone(pytz.timezone(constants.TIME_ZONE))
 
       # need to adjust an additional -1 days because of the lag in 
       # availability of this data
@@ -313,7 +308,7 @@ def write_energy_tou_summary_to_db(date):
           0, 
           0, 
           0
-        ).replace(tzinfo=PAC)),
+        ).replace(tzinfo=constants.PAC)),
         'fields': {
           'value': float(value)
         }
@@ -351,7 +346,7 @@ def write_energy_tou_summary_to_db(date):
                     0, 
                     0, 
                     0
-                  ).replace(tzinfo=PAC)),
+                  ).replace(tzinfo=constants.PAC)),
                   'fields': {
                     'value': float(value_2)
                   }
@@ -960,7 +955,7 @@ def write_battery_backup_history_to_db():
     data = get_battery_backup_history()
 
     json_body = []
-    local = pytz.timezone(TIME_ZONE)
+    local = pytz.timezone(constants.TIME_ZONE)
 
     # get existing list of backup events saved to DB
     client = get_db_client()
@@ -1053,7 +1048,7 @@ def main(parser):
     message = ('Energy telemetry successfully logged on '
               + datetime.today().strftime('%B %d, %Y %H:%M:%S')
               + '.')
-    send_email('Energy Telemetry Logged', message, EMAIL_1, '', '', '')
+    send_email('Energy Telemetry Logged', message, constants.EMAIL_1, '', '', '')
   else:
     date = None
     if (args.date):

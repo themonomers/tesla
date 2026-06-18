@@ -3,14 +3,13 @@ import time
 
 from common.logutil import log
 from common.configutil import get_filepath
+from common.constants import WAIT_TIME
 from apiclient import discovery
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-
-WAIT_TIME = 30
 
 
 ##

@@ -14,6 +14,7 @@ src/
 └── common/
     ├── argutil.py - Tools for command line arguments
     ├── configutil.py - Retrieves configuration values
+    ├── constants.py - Holds shared constants
     ├── crypto.py - Encryption and decryption functions for sensitive files
     ├── emailutil.py - Service to send and truncate emails
     ├── googleutil.py - API calls for Google services and utilities

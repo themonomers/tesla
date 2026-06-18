@@ -2,23 +2,13 @@ import json
 import pytz
 import argparse
 
-from common.configutil import (
-  encrypted_config, 
-  config, 
-  get_filepath)
-from common.argutil import CustomHelpFormatter
 from common.utilities import print_json, send_request
-from common.tokenutil import token
+from common.argutil import CustomHelpFormatter
+from common.configutil import encrypted_config
+from common import constants
 from datetime import datetime
 
-ACCESS_TOKEN = token['tesla']['access_token']
-
 SITE_ID = encrypted_config['energy']['site_id']
-
-TIME_ZONE = config['general']['timezone']
-BASE_PROXY_URL = config['uri']['tesla_base_proxy_url']
-
-CERT = get_filepath('tesla_cert')
 
 
 ##
@@ -61,7 +51,7 @@ def get_site_info():
 # author: mjhwa@yahoo.com
 ##
 def get_site_history(period, date):
-  local = pytz.timezone(TIME_ZONE)
+  local = pytz.timezone(constants.TIME_ZONE)
   date = local.localize(datetime(
     date.year, 
     date.month, 
@@ -101,7 +91,7 @@ def get_battery_backup_history():
 # author: mjhwa@yahoo.com
 ##
 def get_site_tou_history(period, date):
-  local = pytz.timezone(TIME_ZONE)
+  local = pytz.timezone(constants.TIME_ZONE)
   s_date = local.localize(datetime(
     date.year,
     date.month,
@@ -146,7 +136,7 @@ def get_site_tou_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_battery_charge_history(period, date):
-  local = pytz.timezone(TIME_ZONE)
+  local = pytz.timezone(constants.TIME_ZONE)
   date = local.localize(datetime(
     date.year,
     date.month,
@@ -175,7 +165,7 @@ def get_battery_charge_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_power_history(period, date):
-  local = pytz.timezone(TIME_ZONE)
+  local = pytz.timezone(constants.TIME_ZONE)
   s_date = local.localize(datetime(
     date.year,
     date.month,
@@ -219,7 +209,7 @@ def get_power_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_rate_tariffs():
-  url = (BASE_PROXY_URL
+  url = (constants.BASE_PROXY_URL
          + '/api/1/energy_sites/' 
          + 'rate_tariffs')
 
@@ -258,7 +248,7 @@ def get_backup_time_remaining():
 # author: mjhwa@yahoo.com
 ##
 def get_savings_forecast(period, date):
-  local = pytz.timezone(TIME_ZONE)
+  local = pytz.timezone(constants.TIME_ZONE)
   s_date = local.localize(datetime(
     date.year,
     date.month,
@@ -409,7 +399,7 @@ def set_off_grid_vehicle_charging_reserve(percent):
 # author: mjhwa@yahoo.com
 ##
 def get_url(command):
-  return (BASE_PROXY_URL
+  return (constants.BASE_PROXY_URL
           + '/api/1/energy_sites/' 
           + SITE_ID 
           + '/'
@@ -417,11 +407,11 @@ def get_url(command):
 
 
 def send_get(url):
-  return send_request('GET', url, ACCESS_TOKEN, None, CERT)
+  return send_request('GET', url, constants.ACCESS_TOKEN, None, constants.CERT)
 
 
 def send_post(url, payload):
-  return send_request('POST', url, ACCESS_TOKEN, payload, CERT)
+  return send_request('POST', url, constants.ACCESS_TOKEN, payload, constants.CERT)
 
 
 def main(parser):

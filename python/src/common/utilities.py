@@ -2,32 +2,26 @@ import requests
 import math
 import json
 import datetime
-import zoneinfo
 import time
 import argparse
 
+from common.googleutil import get_google_sheet_service
+from common.argutil import CustomHelpFormatter
+from common.logutil import log
 from common.configutil import (
   encrypted_config, 
   config, 
   get_filepath)
-from common.logutil import log
-from common.argutil import CustomHelpFormatter
-from common.googleutil import get_google_sheet_service
+from common import constants
 from datetime import datetime, timedelta
 from crontab import CronTab
 
-PRIMARY_LAT = float(encrypted_config['vehicle']['primary_lat'])
-PRIMARY_LNG = float(encrypted_config['vehicle']['primary_lng'])
 SECONDARY_LAT = float(encrypted_config['vehicle']['secondary_lat'])
 SECONDARY_LNG = float(encrypted_config['vehicle']['secondary_lng'])
 OPENWEATHERMAP_KEY = encrypted_config['weather']['openweathermap_key']
 LOG_SPREADSHEET_ID = encrypted_config['google']['log_spreadsheet_id']
-
-PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
 BASE_WEATHER_URL = config['uri']['openweathermap_base_url']
-
 R = 3958.8  #Earth radius in miles
-WAIT_TIME = 30  # seconds
 
 
 ##
@@ -42,7 +36,7 @@ WAIT_TIME = 30  # seconds
 # author: mjhwa@yahoo.com
 ##
 def is_vehicle_at_primary(data):
-  return is_vehicle_at_location(data, PRIMARY_LAT, PRIMARY_LNG)
+  return is_vehicle_at_location(data, constants.PRIMARY_LAT, constants.PRIMARY_LNG)
 
 
 def is_vehicle_at_secondary(data):
@@ -90,26 +84,26 @@ def to_rad(x):
 ##
 def get_tomorrow_time(time):
   return datetime.strptime(
-      str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).year)
+      str((datetime.now() + timedelta(1)).replace(tzinfo=constants.PAC).year)
     + '-'
-    + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).month)
+    + str((datetime.now() + timedelta(1)).replace(tzinfo=constants.PAC).month)
     + '-'
-    + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).day)
+    + str((datetime.now() + timedelta(1)).replace(tzinfo=constants.PAC).day)
     + 'T'
     + time, '%Y-%m-%dT%H:%M'
-  ).replace(tzinfo=PAC)
+  ).replace(tzinfo=constants.PAC)
 
 
 def get_today_time(time):
   return datetime.strptime(
-      str(datetime.now().replace(tzinfo=PAC).year)
+      str(datetime.now().replace(tzinfo=constants.PAC).year)
     + '-'
-    + str(datetime.now().replace(tzinfo=PAC).month)
+    + str(datetime.now().replace(tzinfo=constants.PAC).month)
     + '-'
-    + str(datetime.now().replace(tzinfo=PAC).day)
+    + str(datetime.now().replace(tzinfo=constants.PAC).day)
     + 'T'
     + time, '%Y-%m-%dT%H:%M'
-  ).replace(tzinfo=PAC)
+  ).replace(tzinfo=constants.PAC)
 
 
 ##
@@ -130,7 +124,7 @@ def get_current_weather(lat, lng):
   response = requests.get(url)
 
   if (response.status_code != 200):
-    time.sleep(WAIT_TIME)
+    time.sleep(constants.WAIT_TIME)
     return get_current_weather(lat, lng)
 
   return json.loads(response.text)
@@ -155,7 +149,7 @@ def get_daily_weather(lat, lng):
   response = requests.get(url)
 
   if (response.status_code != 200):
-    time.sleep(WAIT_TIME)
+    time.sleep(constants.WAIT_TIME)
     return get_daily_weather(lat, lng)
 
   return json.loads(response.text)
@@ -260,7 +254,7 @@ def load_log_into_gsheet(days_to_load):
           level = parts[2]
           message = " ".join(parts[3:])
 
-          log_date = datetime.strptime(str(timestamp), '%Y-%m-%d %H:%M:%S').replace(tzinfo=PAC)
+          log_date = datetime.strptime(str(timestamp), '%Y-%m-%d %H:%M:%S').replace(tzinfo=constants.PAC)
           if log_date > threshold:
             # write this into Google Sheet
             inputs.append({
@@ -302,10 +296,10 @@ def main(parser):
   args = parser.parse_args()
 
   if (args.current):
-    data = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
+    data = get_current_weather(constants.PRIMARY_LAT, constants.PRIMARY_LNG)
     print_json(data, 0)
   elif (args.daily):
-    data = get_daily_weather(PRIMARY_LAT, PRIMARY_LNG)
+    data = get_daily_weather(constants.PRIMARY_LAT, constants.PRIMARY_LNG)
     print_json(data, 0)
   elif (args.load):
     load_log_into_gsheet(args.load[0])

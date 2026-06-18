@@ -3,10 +3,11 @@ import os
 import time
 import argparse
 
-from common.configutil import encrypted_config
-from common.logutil import log
-from common.argutil import CustomHelpFormatter
 from common.googleutil import get_google_mail_service
+from common.argutil import CustomHelpFormatter
+from common.logutil import log
+from common.configutil import encrypted_config
+from common.constants import WAIT_TIME
 from email.mime.image import MIMEImage
 from email.message import EmailMessage
 from datetime import datetime, timedelta
@@ -14,8 +15,6 @@ from datetime import datetime, timedelta
 SENDER_EMAIL = encrypted_config['notification']['sender_email']
 SENDER_PASSWORD = encrypted_config['notification']['sender_password']
 QUERIES = encrypted_config['query']
-
-WAIT_TIME = 30
 DELETE_THRESHOLD = 30
 
 

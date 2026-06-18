@@ -1,16 +1,12 @@
 import time
 import argparse
 
-from common.configutil import encrypted_config, config
-from common.logutil import log
-from common.argutil import CustomHelpFormatter
 from vehicle.api import (
   get_vehicle_data, 
   add_charge_schedule, 
   remove_charge_schedule, 
   start_charge, 
-  stop_charge
-)
+  stop_charge)
 from vehicle.climate import set_precondition
 from common.googleutil import get_google_sheet_service
 from common.emailutil import send_email
@@ -19,23 +15,20 @@ from common.utilities import (
   is_vehicle_at_secondary, 
   get_tomorrow_time,
   delete_cron,
-  create_cron
-)
+  create_cron)
+from common.argutil import CustomHelpFormatter
+from common.logutil import log
+from common.configutil import encrypted_config, config
+from common import constants
 from datetime import timedelta, datetime
 from collections import namedtuple
 
-M3_VIN = encrypted_config['vehicle']['m3_vin']
-MX_VIN = encrypted_config['vehicle']['mx_vin']
-EV_SPREADSHEET_ID = encrypted_config['google']['ev_spreadsheet_id']
-EMAIL_1 = encrypted_config['notification']['email_1']
 EMAIL_2 = encrypted_config['notification']['email_2']
-
 MX_FULL_CHARGE_RATE_AT_PRIMARY = 25  # (mi/hr)
 M3_FULL_CHARGE_RATE_AT_PRIMARY = 37  # (mi/hr)
 MX_FULL_CHARGE_RATE_AT_SECONDARY = 20  # (mi/hr)
 M3_FULL_CHARGE_RATE_AT_SECONDARY = 30  # (mi/hr)
 EARLIEST_CHARGING_START_TIME = '00:00'
-WAIT_TIME = 30 
 
 
 ##
@@ -56,24 +49,24 @@ def notify_is_tesla_plugged_in():
       # get charging configuration info
       service = get_google_sheet_service()
       charge_config = service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
+        spreadsheetId=constants.EV_SPREADSHEET_ID, 
         range='Charge!A3:C11'
       ).execute().get('values', [])
 
       # get climate configuration info
       climate_config = service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
+        spreadsheetId=constants.EV_SPREADSHEET_ID, 
         range='Climate!A3:P22'
       ).execute().get('values', [])
       service.close()
     except Exception as e:
       log().warning('Retry getting configuration info from Google Sheets: ' + str(e))
-      time.sleep(WAIT_TIME)
+      time.sleep(constants.WAIT_TIME)
       notify_is_tesla_plugged_in()
 
     # get all vehicle data to avoid repeat API calls
-    m3_data = get_vehicle_data(M3_VIN)
-    mx_data = get_vehicle_data(MX_VIN)
+    m3_data = get_vehicle_data(constants.M3_VIN)
+    mx_data = get_vehicle_data(constants.MX_VIN)
 
     # send email notification if the car is not plugged in
     charge_port_door_open = m3_data['response']['charge_state']['charge_port_door_open']
@@ -84,7 +77,7 @@ def notify_is_tesla_plugged_in():
                             battery_range, 
                             charge_port_door_open, 
                             charge_config[8][1],
-                            EMAIL_1,
+                            constants.EMAIL_1,
                             '',
                             '') 
 
@@ -98,7 +91,7 @@ def notify_is_tesla_plugged_in():
                             charge_config[8][2],
                             EMAIL_2,
                             '',
-                            EMAIL_1) 
+                            constants.EMAIL_1) 
 
     # set cars for scheduled charging by daily charge time preference
     day_of_week = (datetime.today() + timedelta(1)).strftime('%A')
@@ -126,7 +119,7 @@ def notify_is_tesla_plugged_in():
                                   m3_charge_start_time,
                                   m3_target_finish_time,
                                   m3_climate_start_time,
-                                  EMAIL_1,
+                                  constants.EMAIL_1,
                                   '',
                                   '')
     send_scheduled_charge_message('Model X',
@@ -134,7 +127,7 @@ def notify_is_tesla_plugged_in():
                                   mx_charge_start_time,
                                   mx_target_finish_time,
                                   mx_climate_start_time,
-                                  EMAIL_1,
+                                  constants.EMAIL_1,
                                   '',
                                   '')
   except Exception as e:
@@ -179,9 +172,9 @@ def schedule_m3_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
     # Remove any previous scheduled charging by this program, temporarily set to
     # id=1, until I can figure out how to view the list of charge schedules and
     # their corresponding ID's.
-    remove_charge_schedule(M3_VIN, 1)
-    add_charge_schedule(M3_VIN, m3_data['response']['drive_state']['latitude'], m3_data['response']['drive_state']['longitude'], total_minutes, 1)
-    stop_charge(M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
+    remove_charge_schedule(constants.M3_VIN, 1)
+    add_charge_schedule(constants.M3_VIN, m3_data['response']['drive_state']['latitude'], m3_data['response']['drive_state']['longitude'], total_minutes, 1)
+    stop_charge(constants.M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
     schedule_backup_charging(m3_data, start_time + timedelta(minutes = 10))
 
@@ -218,9 +211,9 @@ def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
 
     total_minutes = (start_time.hour * 60) + start_time.minute
 
-    remove_charge_schedule(MX_VIN, 1)
-    add_charge_schedule(MX_VIN, mx_data['response']['drive_state']['latitude'], mx_data['response']['drive_state']['longitude'], total_minutes, 1)
-    stop_charge(MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
+    remove_charge_schedule(constants.MX_VIN, 1)
+    add_charge_schedule(constants.MX_VIN, mx_data['response']['drive_state']['latitude'], mx_data['response']['drive_state']['longitude'], total_minutes, 1)
+    stop_charge(constants.MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
     schedule_backup_charging(mx_data, start_time + timedelta(minutes = 10))
 
@@ -239,8 +232,8 @@ def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
 ##
 def charge_earliest():
   # get all vehicle data to avoid repeat API calls
-  m3_data = get_vehicle_data(M3_VIN)
-  mx_data = get_vehicle_data(MX_VIN)
+  m3_data = get_vehicle_data(constants.M3_VIN)
+  mx_data = get_vehicle_data(constants.MX_VIN)
 
   finish_times = calculate_finish_time(m3_data, mx_data)
   m3_finish_time = finish_times['m3_finish_time']
@@ -264,7 +257,7 @@ def charge_earliest():
                                     m3_start_time,
                                     m3_finish_time,
                                     None,
-                                    EMAIL_1,
+                                    constants.EMAIL_1,
                                     '',
                                     '')
       send_scheduled_charge_message('Model X',
@@ -272,7 +265,7 @@ def charge_earliest():
                                     mx_start_time,
                                     mx_finish_time,
                                     None,
-                                    EMAIL_1,
+                                    constants.EMAIL_1,
                                     '',
                                     '')
     else:
@@ -335,8 +328,8 @@ def schedule_backup_charging(data, start_time):
 
   if (is_vehicle_at_primary(data)):
     # create backup charging start crontab at target time tomorrow
-    delete_cron(config['cron']['charge_check'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
-    create_cron(config['cron']['charge_check'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
+    delete_cron(config['cron']['charge_check'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
+    create_cron(config['cron']['charge_check'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
                 start_time.month, 
                 start_time.day, 
                 start_time.hour, 
@@ -665,9 +658,9 @@ def main(parser):
     notify_is_tesla_plugged_in()
   elif (args.check):
     if args.check[0] == 'm3':
-      check_charge(M3_VIN)
+      check_charge(constants.M3_VIN)
     elif args.check[0] == 'mx':
-      check_charge(MX_VIN)
+      check_charge(constants.MX_VIN)
     else:
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   elif (args.earliest):

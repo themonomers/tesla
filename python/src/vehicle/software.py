@@ -1,19 +1,14 @@
 import argparse
-import zoneinfo
 
-from common.configutil import encrypted_config, config
-from common.argutil import CustomHelpFormatter
 from common.utilities import (
   get_today_time, 
   get_tomorrow_time,
   delete_cron,
   create_cron)
+from common.argutil import CustomHelpFormatter
+from common.configutil import config
+from common import constants
 from datetime import datetime
-
-M3_VIN = encrypted_config['vehicle']['m3_vin']
-MX_VIN = encrypted_config['vehicle']['mx_vin']
-
-PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
 
 
 ##
@@ -23,8 +18,8 @@ PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
 # author: mjhwa@yahoo.com
 ##
 def schedule_update(vin, time):
-  delete_cron(config['cron']['api_schedule_software_update'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
-  create_cron(config['cron']['api_schedule_software_update'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
+  delete_cron(config['cron']['api_schedule_software_update'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
+  create_cron(config['cron']['api_schedule_software_update'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
               time.month, 
               time.day, 
               time.hour, 
@@ -41,13 +36,13 @@ def main(parser):
       parser.error(f"'{args.schedule_update[1]}' is not a valid time (HH:MM)")
 
     time = get_today_time(time_str)
-    if (time < datetime.now().replace(tzinfo=PAC)):
+    if (time < datetime.now().replace(tzinfo=constants.PAC)):
       time = get_tomorrow_time(time_str)
 
     if args.schedule_update[0] == 'm3':
-      schedule_update(M3_VIN, time)
+      schedule_update(constants.M3_VIN, time)
     elif args.schedule_update[0] == 'mx':
-      schedule_update(MX_VIN, time)
+      schedule_update(constants.MX_VIN, time)
     else:
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   else:

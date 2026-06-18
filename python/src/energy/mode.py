@@ -1,13 +1,9 @@
 from energy.api import set_backup_reserve
-from common.configutil import encrypted_config
-from common.logutil import log
 from common.emailutil import send_email
 from common.utilities import get_daily_weather
+from common.logutil import log
+from common import constants
 from datetime import datetime, date, timedelta
-
-PRIMARY_LAT = float(encrypted_config['vehicle']['primary_lat'])
-PRIMARY_LNG = float(encrypted_config['vehicle']['primary_lng'])
-EMAIL_1 = encrypted_config['notification']['email_1']
 
 PCT_THRESHOLD = 0.5
 
@@ -26,7 +22,7 @@ PCT_THRESHOLD = 0.5
 def set_energy_mode_based_on_weather():
   try:
     # get weather forecast
-    wdata = get_daily_weather(PRIMARY_LAT, PRIMARY_LNG)
+    wdata = get_daily_weather(constants.PRIMARY_LAT, constants.PRIMARY_LNG)
     check_dates = [date.today(), (date.today() + timedelta(1))]
     msg = ''
 
@@ -81,7 +77,7 @@ def set_energy_mode_based_on_weather():
       set_backup_reserve(100)
       send_email('Energy:  Setting Backup Reserve to 100%', 
                  msg, 
-                 EMAIL_1,
+                 constants.EMAIL_1,
                  '', 
                  '',
                  '')

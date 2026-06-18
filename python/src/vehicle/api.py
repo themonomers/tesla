@@ -3,25 +3,10 @@ import time
 import urllib.parse
 import argparse
 
-from common.configutil import (
-  encrypted_config, 
-  config, 
-  get_filepath)
-from common.logutil import log
-from common.argutil import CustomHelpFormatter
 from common.utilities import print_json, send_request
-from common.tokenutil import token
-
-ACCESS_TOKEN = token['tesla']['access_token']
-
-M3_VIN = encrypted_config['vehicle']['m3_vin']
-MX_VIN = encrypted_config['vehicle']['mx_vin']
-
-BASE_PROXY_URL = config['uri']['tesla_base_proxy_url']
-
-CERT = get_filepath('tesla_cert')
-
-WAIT_TIME = 30 
+from common.argutil import CustomHelpFormatter
+from common.logutil import log
+from common import constants
 
 
 ##
@@ -31,28 +16,33 @@ WAIT_TIME = 30
 # author: mjhwa@yahoo.com 
 ##
 def get_vehicle_data(vin):
-  url = (BASE_PROXY_URL
-          + '/api/1/vehicles/'
-          + vin 
-          + '/vehicle_data?endpoints='
-          + urllib.parse.quote(
-              'location_data;'
-              + 'charge_state;'
-              + 'climate_state;'
-              + 'vehicle_state;'
-              + 'gui_settings;'
-              + 'vehicle_config;'
-              + 'drive_state;'
-              + 'charge_schedule_data'))
-
-  response = send_get(url)
-
-  if response.status_code != 200:
+  while vehicle(vin)['response']['state'] != 'online':
     wake_vehicle(vin)
-    time.sleep(WAIT_TIME)
+    time.sleep(constants.WAIT_TIME)
     return get_vehicle_data(vin)
 
-  return json.loads(response.text)
+  url = (get_url(vin)
+        + '/vehicle_data?endpoints='
+        + urllib.parse.quote(
+            'location_data;'
+            + 'charge_state;'
+            + 'climate_state;'
+            + 'vehicle_state;'
+            + 'gui_settings;'
+            + 'vehicle_config;'
+            + 'drive_state;'
+            + 'charge_schedule_data'))
+
+  return json.loads(send_get(url).text)
+
+
+##
+# Returns vehicle state, "online" or "asleep" or "offline", and other information.
+#
+# author: mjhwa@yahoo.com
+##
+def vehicle(vin):
+  return json.loads(send_get(get_url(vin)).text)
 
 
 ##
@@ -62,10 +52,8 @@ def get_vehicle_data(vin):
 # author: mjhwa@yahoo.com
 ##
 def wake_vehicle(vin):
-  url = (BASE_PROXY_URL
-          + '/api/1/vehicles/'
-          + vin 
-          + '/wake_up')
+  url = (get_url(vin)
+        + '/wake_up')
 
   return send_post(url, None)
 
@@ -267,17 +255,16 @@ def stop_precondition(vin):
 ##
 def schedule_software_update(vin, offset_sec):
   try:
+    while vehicle(vin)['response']['state'] != 'online':
+      wake_vehicle(vin)
+      time.sleep(constants.WAIT_TIME)
+      return schedule_software_update(vin, offset_sec)
+
     payload = {
       'offset_sec': offset_sec
     }
 
-    response = send_post(get_url(vin, 'schedule_software_update'), payload)
-    if response.status_code != 200:
-      wake_vehicle(vin)
-      time.sleep(WAIT_TIME)
-      return schedule_software_update(vin, offset_sec)
-
-    return response 
+    return send_post(get_url(vin, 'schedule_software_update'), payload)
   except Exception as e:
     log().error('schedule_software_update(' + vin + '): ' + str(e))
 
@@ -287,20 +274,25 @@ def schedule_software_update(vin, offset_sec):
 #
 # author: mjhwa@yahoo.com
 ##
-def get_url(vin, command):
-  return (BASE_PROXY_URL
+def get_url(vin, command=None):
+  if command is not None:
+    return (constants.BASE_PROXY_URL
+            + '/api/1/vehicles/'
+            + vin 
+            + '/command/'
+            + command)
+
+  return (constants.BASE_PROXY_URL
           + '/api/1/vehicles/'
-          + vin 
-          + '/command/'
-          + command)
+          + vin)
 
 
 def send_get(url):
-  return send_request('GET', url, ACCESS_TOKEN, None, CERT)
+  return send_request('GET', url, constants.ACCESS_TOKEN, None, constants.CERT)
 
 
 def send_post(url, payload):
-  return send_request('POST', url, ACCESS_TOKEN, payload, CERT)
+  return send_request('POST', url, constants.ACCESS_TOKEN, payload, constants.CERT)
 
 
 ##
@@ -324,9 +316,9 @@ def main(parser):
     print_all_vehicle_data(args.print[0])
   elif (args.schedule_software_update):
     if args.schedule_software_update[0] == 'm3':
-      schedule_software_update(M3_VIN, 0)
+      schedule_software_update(constants.M3_VIN, 0)
     elif args.schedule_software_update[0] == 'mx':
-      schedule_software_update(MX_VIN, 0)
+      schedule_software_update(constants.MX_VIN, 0)
     else:
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   else:

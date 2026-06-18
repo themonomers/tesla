@@ -1,29 +1,29 @@
 import datetime
-import zoneinfo
 import requests
 import json
 import argparse
 import urllib
+import zoneinfo
 
+from common.crypto import encrypt
+from common.argutil import CustomHelpFormatter
+from common.logutil import log
 from common.configutil import (
   encrypted_config, 
   config, 
   get_filepath, 
   get_config)
-from common.logutil import log
-from common.argutil import CustomHelpFormatter
-from common.crypto import encrypt
 from datetime import datetime, timedelta
 
 CLIENT_ID = encrypted_config['tesla']['client_id']
 CLIENT_SECRET = encrypted_config['tesla']['client_secret']
-
-PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
 BASE_AUTH_URL = config['uri']['tesla_base_auth_url']
 BASE_FLEET_URL = config['uri']['tesla_base_fleet_url']
 USER_AUTH_URL = config['uri']['tesla_user_auth_url']
 REDIRECT_URI = config['uri']['tesladeveloper_redirect_uri']
 SCOPE = 'openid offline_access vehicle_device_data vehicle_location vehicle_cmds vehicle_charging_cmds vehicle_specs energy_device_data energy_cmds'
+PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
+
 
 ##
 # Retrievies dictionary of access token values.

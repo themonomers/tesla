@@ -5,13 +5,12 @@ import zoneinfo
 import time
 import os
 
-from common.logutil import log
-from common.crypto import encrypt
 from common.influxdb import get_db_client
+from common.crypto import encrypt
+from common.logutil import log
 from common.configutil import get_filepath, get_config
+from common.constants import WAIT_TIME
 from datetime import datetime
-
-WAIT_TIME = 30  # seconds
 
 
 ##
