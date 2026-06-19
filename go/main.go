@@ -24,6 +24,10 @@ func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		// vehicle
+		case "-vehiclem3":
+			fmt.Println(vehicle.Vehicle(common.EncryptedCfg.Vehicle.M3Vin))
+		case "-vehiclemx":
+			fmt.Println(vehicle.Vehicle(common.EncryptedCfg.Vehicle.MxVin))
 		case "-notify":
 			vehicle.NotifyIsTeslaPluggedIn()
 		case "-earliest":
@@ -74,10 +78,8 @@ func main() {
 		// maintenance
 		case "-truncateemail":
 			common.TruncateEmail()
-		/*
-			case "-truncatelog":
-				common.TruncateLog()
-		*/
+		case "-gsheettoken":
+			fmt.Println(common.FindOpenRow(common.EncryptedCfg.Google.EvSpreadsheetId, "Telemetry!A:A"))
 		default:
 			printUsage()
 		}
@@ -89,6 +91,8 @@ func main() {
 func printUsage() {
 	fmt.Println("Usage:  ")
 	fmt.Println("\n## Vehicle ##") // vehicle
+	fmt.Println("-vehiclem3")
+	fmt.Println("-vehiclemx")
 	fmt.Println("-notify")
 	fmt.Println("-earliest")
 	fmt.Println("-writevehicletelemetry")
@@ -115,5 +119,4 @@ func printUsage() {
 	fmt.Println("-importoutagetodb")
 	fmt.Println("\n## Maintenance ##") // maintenance
 	fmt.Println("-truncateemail")
-	fmt.Println("-truncatelog")
 }

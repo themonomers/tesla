@@ -1,4 +1,5 @@
 **/tests
+*_test.go
 **/logs
 **/__pycache__
 **/secrets

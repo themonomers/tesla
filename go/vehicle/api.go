@@ -12,11 +12,12 @@ import (
 var SendRequest = common.SendRequest
 
 var WAIT_TIME time.Duration = 30 // seconds
+var VEHICLE_STATE_ONLINE = "online"
 
 // Retrieves the vehicle data needed for higher level functions to drive
 // calcuations and actions.
 func GetVehicleData(vin string) map[string]any {
-	for vehicle(vin)["response"].(map[string]any)["state"].(string) != "online" {
+	for Vehicle(vin)["response"].(map[string]any)["state"].(string) != VEHICLE_STATE_ONLINE {
 		WakeVehicle(vin)
 		time.Sleep(WAIT_TIME * time.Second)
 		return GetVehicleData(vin)
@@ -38,7 +39,7 @@ func GetVehicleData(vin string) map[string]any {
 }
 
 // Returns vehicle state, "online" or "asleep" or "offline", and other information.
-func vehicle(vin string) map[string]any {
+func Vehicle(vin string) map[string]any {
 	return common.GetJson(SendGet(getUrl(vin, "")))
 }
 
@@ -202,7 +203,7 @@ func StopPrecondition(vin string) *http.Response {
 //
 // offset_sec: seconds from now, e.g. 2 minutes from now = 60 * 2 = 120
 func ScheduleSoftwareUpdate(vin string, offset_sec int) *http.Response {
-	for vehicle(vin)["response"].(map[string]any)["state"].(string) != "online" {
+	for Vehicle(vin)["response"].(map[string]any)["state"].(string) != VEHICLE_STATE_ONLINE {
 		WakeVehicle(vin)
 		time.Sleep(WAIT_TIME * time.Second)
 		return ScheduleSoftwareUpdate(vin, offset_sec)
