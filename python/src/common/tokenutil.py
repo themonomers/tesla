@@ -21,7 +21,8 @@ BASE_AUTH_URL = config['uri']['tesla_base_auth_url']
 BASE_FLEET_URL = config['uri']['tesla_base_fleet_url']
 USER_AUTH_URL = config['uri']['tesla_user_auth_url']
 REDIRECT_URI = config['uri']['tesladeveloper_redirect_uri']
-SCOPE = 'openid offline_access vehicle_device_data vehicle_location vehicle_cmds vehicle_charging_cmds vehicle_specs energy_device_data energy_cmds'
+SCOPE = ('openid offline_access vehicle_device_data vehicle_location vehicle_cmds vehicle_charging_cmds '
+         'vehicle_specs energy_device_data energy_cmds')
 PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
 
 
@@ -56,12 +57,13 @@ def refresh_token():
   dt = datetime.now().replace(tzinfo=PAC)
 
   # Format output
-  message =  '[tesla]\n'
-  message += 'access_token=' + (response)['access_token'] + '\n'
-  message += 'id_token=' + (response)['id_token'] + '\n'
-  message += 'refresh_token=' + (response)['refresh_token'] + '\n'
-  message += 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
-  message += 'expires_at=' + datetime.strftime(dt + timedelta(seconds=(response)['expires_in']), '%Y-%m-%d %H:%M:%S') + '\n'
+  message = ( '[tesla]\n'
+            + 'access_token=' + (response)['access_token'] + '\n'
+            + 'id_token=' + (response)['id_token'] + '\n'
+            + 'refresh_token=' + (response)['refresh_token'] + '\n'
+            + 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
+            + 'expires_at=' + datetime.strftime(dt + timedelta(seconds=(response)['expires_in']), 
+                                                '%Y-%m-%d %H:%M:%S') + '\n')
   log().debug('refreshed tokens: ' + message)
 
   # Encrypt config file
@@ -133,12 +135,13 @@ def new_token():
 
   dt = datetime.now().replace(tzinfo=PAC)
 
-  message =  '[tesla]\n'
-  message += 'access_token=' + (response)['access_token'] + '\n'
-  message += 'id_token=' + (response)['id_token'] + '\n'
-  message += 'refresh_token=' + (response)['refresh_token'] + '\n'
-  message += 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
-  message += 'expires_at=' + datetime.strftime(dt + timedelta(seconds=(response)['expires_in']), '%Y-%m-%d %H:%M:%S') + '\n'
+  message = ( '[tesla]\n'
+            + 'access_token=' + (response)['access_token'] + '\n'
+            + 'id_token=' + (response)['id_token'] + '\n'
+            + 'refresh_token=' + (response)['refresh_token'] + '\n'
+            + 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
+            + 'expires_at=' + datetime.strftime(dt + timedelta(seconds=(response)['expires_in']), 
+                                                '%Y-%m-%d %H:%M:%S') + '\n')
   log().debug('tokens: ' + message)
 
   f = open('tesla_token.ini', 'wb')

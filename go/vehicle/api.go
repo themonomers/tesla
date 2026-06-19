@@ -217,17 +217,16 @@ func ScheduleSoftwareUpdate(vin string, offset_sec int) *http.Response {
 
 // Centralize repetitive URL construction.
 func getUrl(vin, command string) string {
+	url := (common.Cfg.Uri.TeslaBaseProxyUrl +
+		"/api/1/vehicles/" +
+		vin)
+
 	if command != "" {
-		return (common.Cfg.Uri.TeslaBaseProxyUrl +
-			"/api/1/vehicles/" +
-			vin +
-			"/command/" +
+		url += ("/command/" +
 			command)
 	}
 
-	return (common.Cfg.Uri.TeslaBaseProxyUrl +
-		"/api/1/vehicles/" +
-		vin)
+	return url
 }
 
 func SendGet(url string) *http.Response {

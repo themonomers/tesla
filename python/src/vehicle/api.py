@@ -8,6 +8,8 @@ from common.argutil import CustomHelpFormatter
 from common.logutil import log
 from common import constants
 
+VEHICLE_STATE_ONLINE = 'online'
+
 
 ##
 # Retrieves the vehicle data needed for higher level functions to drive 
@@ -16,7 +18,7 @@ from common import constants
 # author: mjhwa@yahoo.com 
 ##
 def get_vehicle_data(vin):
-  while vehicle(vin)['response']['state'] != 'online':
+  if vehicle(vin)['response']['state'] != VEHICLE_STATE_ONLINE:
     wake_vehicle(vin)
     time.sleep(constants.WAIT_TIME)
     return get_vehicle_data(vin)
@@ -255,7 +257,7 @@ def stop_precondition(vin):
 ##
 def schedule_software_update(vin, offset_sec):
   try:
-    while vehicle(vin)['response']['state'] != 'online':
+    if vehicle(vin)['response']['state'] != VEHICLE_STATE_ONLINE:
       wake_vehicle(vin)
       time.sleep(constants.WAIT_TIME)
       return schedule_software_update(vin, offset_sec)
@@ -275,16 +277,15 @@ def schedule_software_update(vin, offset_sec):
 # author: mjhwa@yahoo.com
 ##
 def get_url(vin, command=None):
+  url = (constants.BASE_PROXY_URL
+         + '/api/1/vehicles/'
+         + vin)
+
   if command is not None:
-    return (constants.BASE_PROXY_URL
-            + '/api/1/vehicles/'
-            + vin 
-            + '/command/'
+    url += ('/command/'
             + command)
 
-  return (constants.BASE_PROXY_URL
-          + '/api/1/vehicles/'
-          + vin)
+  return url
 
 
 def send_get(url):
@@ -321,6 +322,8 @@ def main(parser):
       schedule_software_update(constants.MX_VIN, 0)
     else:
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
+  elif(args.vehicle_info):
+    print_json(vehicle(args.vehicle_info[0]), 0)
   else:
     parser.print_help()
 
@@ -346,6 +349,14 @@ if __name__ == "__main__":
                           '\'mx\'',
                      nargs=1,
                      metavar='VEHICLE'
+                    )
+  group.add_argument(
+                     '-v', 
+                     '--vehicle_info', 
+                     help='returns vehicle state, "online" or "asleep" or "offline", and other information; VIN is the '
+                          'Vehicle Identification Number you can find on the car or in the mobile app',
+                     nargs=1,
+                     metavar='VIN'
                     )
 
   main(parser)

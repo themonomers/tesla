@@ -18,8 +18,14 @@ from datetime import datetime
 # author: mjhwa@yahoo.com
 ##
 def schedule_update(vin, time):
-  delete_cron(config['cron']['api_schedule_software_update'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
-  create_cron(config['cron']['api_schedule_software_update'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
+  delete_cron(config['cron']['api_schedule_software_update'] 
+              + ('m3' if vin == constants.M3_VIN else 'mx') 
+              + ' ' 
+              + config['cron']['redirect'])
+  create_cron(config['cron']['api_schedule_software_update'] 
+              + ('m3' if vin == constants.M3_VIN else 'mx') 
+              + ' ' 
+              + config['cron']['redirect'], 
               time.month, 
               time.day, 
               time.hour, 

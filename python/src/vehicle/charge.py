@@ -173,7 +173,11 @@ def schedule_m3_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
     # id=1, until I can figure out how to view the list of charge schedules and
     # their corresponding ID's.
     remove_charge_schedule(constants.M3_VIN, 1)
-    add_charge_schedule(constants.M3_VIN, m3_data['response']['drive_state']['latitude'], m3_data['response']['drive_state']['longitude'], total_minutes, 1)
+    add_charge_schedule(constants.M3_VIN, 
+                        m3_data['response']['drive_state']['latitude'], 
+                        m3_data['response']['drive_state']['longitude'], 
+                        total_minutes, 
+                        1)
     stop_charge(constants.M3_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
     schedule_backup_charging(m3_data, start_time + timedelta(minutes = 10))
@@ -212,7 +216,11 @@ def schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_fini
     total_minutes = (start_time.hour * 60) + start_time.minute
 
     remove_charge_schedule(constants.MX_VIN, 1)
-    add_charge_schedule(constants.MX_VIN, mx_data['response']['drive_state']['latitude'], mx_data['response']['drive_state']['longitude'], total_minutes, 1)
+    add_charge_schedule(constants.MX_VIN, 
+                        mx_data['response']['drive_state']['latitude'], 
+                        mx_data['response']['drive_state']['longitude'], 
+                        total_minutes, 
+                        1)
     stop_charge(constants.MX_VIN) # for some reason charging starts sometimes after scheduled charging API is called
 
     schedule_backup_charging(mx_data, start_time + timedelta(minutes = 10))
@@ -291,7 +299,11 @@ def schedule_earliest_charging(data):
     # id=1, until I can figure out how to view the list of charge schedules and
     # their corresponding ID's.
     remove_charge_schedule(vin, 1)
-    add_charge_schedule(vin, data['response']['drive_state']['latitude'], data['response']['drive_state']['longitude'], total_minutes, 1)
+    add_charge_schedule(vin, 
+                        data['response']['drive_state']['latitude'], 
+                        data['response']['drive_state']['longitude'], 
+                        total_minutes, 
+                        1)
     stop_charge(vin) # for some reason charging starts sometimes after scheduled charging API is called
 
     schedule_backup_charging(data, start_time + timedelta(minutes = 10))
@@ -328,8 +340,14 @@ def schedule_backup_charging(data, start_time):
 
   if (is_vehicle_at_primary(data)):
     # create backup charging start crontab at target time tomorrow
-    delete_cron(config['cron']['charge_check'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
-    create_cron(config['cron']['charge_check'] + ('m3' if vin == constants.M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
+    delete_cron(config['cron']['charge_check'] 
+                + ('m3' if vin == constants.M3_VIN else 'mx') 
+                + ' ' 
+                + config['cron']['redirect'])
+    create_cron(config['cron']['charge_check'] 
+                + ('m3' if vin == constants.M3_VIN else 'mx') 
+                + ' ' 
+                + config['cron']['redirect'], 
                 start_time.month, 
                 start_time.day, 
                 start_time.hour, 
