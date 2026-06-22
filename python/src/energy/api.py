@@ -5,7 +5,11 @@ import argparse
 from common.utilities import print_json, send_request
 from common.argutil import CustomHelpFormatter
 from common.configutil import encrypted_config
-from common import constants
+from common.constants import (
+  TIME_ZONE,
+  BASE_PROXY_URL,
+  ACCESS_TOKEN,
+  CERT)
 from datetime import datetime
 
 SITE_ID = encrypted_config['energy']['site_id']
@@ -51,7 +55,7 @@ def get_site_info():
 # author: mjhwa@yahoo.com
 ##
 def get_site_history(period, date):
-  local = pytz.timezone(constants.TIME_ZONE)
+  local = pytz.timezone(TIME_ZONE)
   date = local.localize(datetime(
     date.year, 
     date.month, 
@@ -91,7 +95,7 @@ def get_battery_backup_history():
 # author: mjhwa@yahoo.com
 ##
 def get_site_tou_history(period, date):
-  local = pytz.timezone(constants.TIME_ZONE)
+  local = pytz.timezone(TIME_ZONE)
   s_date = local.localize(datetime(
     date.year,
     date.month,
@@ -136,7 +140,7 @@ def get_site_tou_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_battery_charge_history(period, date):
-  local = pytz.timezone(constants.TIME_ZONE)
+  local = pytz.timezone(TIME_ZONE)
   date = local.localize(datetime(
     date.year,
     date.month,
@@ -165,7 +169,7 @@ def get_battery_charge_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_power_history(period, date):
-  local = pytz.timezone(constants.TIME_ZONE)
+  local = pytz.timezone(TIME_ZONE)
   s_date = local.localize(datetime(
     date.year,
     date.month,
@@ -209,7 +213,7 @@ def get_power_history(period, date):
 # author: mjhwa@yahoo.com
 ##
 def get_rate_tariffs():
-  url = (constants.BASE_PROXY_URL
+  url = (BASE_PROXY_URL
          + '/api/1/energy_sites/' 
          + 'rate_tariffs')
 
@@ -248,7 +252,7 @@ def get_backup_time_remaining():
 # author: mjhwa@yahoo.com
 ##
 def get_savings_forecast(period, date):
-  local = pytz.timezone(constants.TIME_ZONE)
+  local = pytz.timezone(TIME_ZONE)
   s_date = local.localize(datetime(
     date.year,
     date.month,
@@ -399,7 +403,7 @@ def set_off_grid_vehicle_charging_reserve(percent):
 # author: mjhwa@yahoo.com
 ##
 def get_url(command):
-  return (constants.BASE_PROXY_URL
+  return (BASE_PROXY_URL
           + '/api/1/energy_sites/' 
           + SITE_ID 
           + '/'
@@ -407,11 +411,11 @@ def get_url(command):
 
 
 def send_get(url):
-  return send_request('GET', url, constants.ACCESS_TOKEN, None, constants.CERT)
+  return send_request('GET', url, ACCESS_TOKEN, None, CERT)
 
 
 def send_post(url, payload):
-  return send_request('POST', url, constants.ACCESS_TOKEN, payload, constants.CERT)
+  return send_request('POST', url, ACCESS_TOKEN, payload, CERT)
 
 
 def main(parser):

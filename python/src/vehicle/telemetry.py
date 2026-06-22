@@ -5,7 +5,12 @@ from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
 from common.logutil import log
 from common.configutil import encrypted_config
-from common import constants
+from common.constants import (
+  M3_VIN,
+  MX_VIN,
+  EV_SPREADSHEET_ID,
+  WAIT_TIME,
+  EMAIL_1)
 from datetime import datetime
 
 TELEMETRY_SHEET_ID = encrypted_config['google']['telemetry_sheet_id']
@@ -20,17 +25,17 @@ TELEMETRY_SHEET_ID = encrypted_config['google']['telemetry_sheet_id']
 def write_m3_telemetry():
   try:
     # get rollup of vehicle data
-    data = get_vehicle_data(constants.M3_VIN)  
+    data = get_vehicle_data(M3_VIN)  
 
     # check for empty data and retry
     if data is None:
       log().warning('Retry write_m3_telemetry() due to empty data set: ' + str(data))
-      time.sleep(constants.WAIT_TIME)
+      time.sleep(WAIT_TIME)
       write_m3_telemetry()
     
     inputs = []
     # write odometer value
-    open_row = find_open_row(constants.EV_SPREADSHEET_ID, 'Telemetry!A:A')
+    open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry!A:A')
     inputs.append({
       'range': 'Telemetry!A' + str(open_row),
       'values': [[data['response']['vehicle_state']['odometer']]]
@@ -190,11 +195,11 @@ def write_m3_telemetry():
     # batch write data and formula copies to sheet
     service = get_google_sheet_service()
     service.spreadsheets().values().batchUpdate(
-      spreadsheetId=constants.EV_SPREADSHEET_ID, 
+      spreadsheetId=EV_SPREADSHEET_ID, 
       body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
     ).execute()
     service.spreadsheets().batchUpdate(
-      spreadsheetId=constants.EV_SPREADSHEET_ID, 
+      spreadsheetId=EV_SPREADSHEET_ID, 
       body={'requests': requests}
     ).execute()
     service.close()
@@ -203,7 +208,7 @@ def write_m3_telemetry():
     message = ('Model 3 telemetry successfully logged on ' 
                + datetime.today().strftime('%B %d, %Y %H:%M:%S') 
                + '.')
-    send_email('Model 3 Telemetry Logged', message, constants.EMAIL_1, '', '', '')
+    send_email('Model 3 Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
     log().error('write_m3_telemetry(): ' + str(e))
 
@@ -211,17 +216,17 @@ def write_m3_telemetry():
 def write_mx_telemetry():
   try:
     # get rollup of vehicle data
-    data = get_vehicle_data(constants.MX_VIN)  
+    data = get_vehicle_data(MX_VIN)  
     
     # check for empty data and retry
     if data is None:
       log().warning('Retry write_mx_telemetry() due to empty data set: ' + str(data))
-      time.sleep(constants.WAIT_TIME)
+      time.sleep(WAIT_TIME)
       write_mx_telemetry()
 
     inputs = []
     # write odometer value
-    open_row = find_open_row(constants.EV_SPREADSHEET_ID, 'Telemetry!V:V')
+    open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry!V:V')
     inputs.append({
       'range': 'Telemetry!V' + str(open_row),
       'values': [[data['response']['vehicle_state']['odometer']]]
@@ -380,11 +385,11 @@ def write_mx_telemetry():
     # batch write data and formula copies to sheet
     service = get_google_sheet_service()
     service.spreadsheets().values().batchUpdate(
-      spreadsheetId=constants.EV_SPREADSHEET_ID, 
+      spreadsheetId=EV_SPREADSHEET_ID, 
       body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
     ).execute()
     service.spreadsheets().batchUpdate(
-      spreadsheetId=constants.EV_SPREADSHEET_ID, 
+      spreadsheetId=EV_SPREADSHEET_ID, 
       body={'requests': requests}
     ).execute()
     service.close()
@@ -393,7 +398,7 @@ def write_mx_telemetry():
     message = ('Model X telemetry successfully logged on ' 
                + datetime.today().strftime('%B %d, %Y %H:%M:%S') 
                + '.')
-    send_email('Model X Telemetry Logged', message, constants.EMAIL_1, '', '', '')
+    send_email('Model X Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
     log().error('write_mx_telemetry(): ' + str(e))
 

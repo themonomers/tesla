@@ -12,7 +12,11 @@ from common.configutil import (
   encrypted_config, 
   config, 
   get_filepath)
-from common import constants
+from common.constants import (
+  PRIMARY_LAT, 
+  PRIMARY_LNG, 
+  PAC, 
+  WAIT_TIME)
 from datetime import datetime, timedelta
 from crontab import CronTab
 
@@ -36,7 +40,7 @@ R = 3958.8  #Earth radius in miles
 # author: mjhwa@yahoo.com
 ##
 def is_vehicle_at_primary(data):
-  return is_vehicle_at_location(data, constants.PRIMARY_LAT, constants.PRIMARY_LNG)
+  return is_vehicle_at_location(data, PRIMARY_LAT, PRIMARY_LNG)
 
 
 def is_vehicle_at_secondary(data):
@@ -84,26 +88,26 @@ def to_rad(x):
 ##
 def get_tomorrow_time(time):
   return datetime.strptime(
-      str((datetime.now() + timedelta(1)).replace(tzinfo=constants.PAC).year)
+      str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).year)
     + '-'
-    + str((datetime.now() + timedelta(1)).replace(tzinfo=constants.PAC).month)
+    + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).month)
     + '-'
-    + str((datetime.now() + timedelta(1)).replace(tzinfo=constants.PAC).day)
+    + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).day)
     + 'T'
     + time, '%Y-%m-%dT%H:%M'
-  ).replace(tzinfo=constants.PAC)
+  ).replace(tzinfo=PAC)
 
 
 def get_today_time(time):
   return datetime.strptime(
-      str(datetime.now().replace(tzinfo=constants.PAC).year)
+      str(datetime.now().replace(tzinfo=PAC).year)
     + '-'
-    + str(datetime.now().replace(tzinfo=constants.PAC).month)
+    + str(datetime.now().replace(tzinfo=PAC).month)
     + '-'
-    + str(datetime.now().replace(tzinfo=constants.PAC).day)
+    + str(datetime.now().replace(tzinfo=PAC).day)
     + 'T'
     + time, '%Y-%m-%dT%H:%M'
-  ).replace(tzinfo=constants.PAC)
+  ).replace(tzinfo=PAC)
 
 
 ##
@@ -124,7 +128,7 @@ def get_current_weather(lat, lng):
   response = requests.get(url)
 
   if (response.status_code != 200):
-    time.sleep(constants.WAIT_TIME)
+    time.sleep(WAIT_TIME)
     return get_current_weather(lat, lng)
 
   return json.loads(response.text)
@@ -149,7 +153,7 @@ def get_daily_weather(lat, lng):
   response = requests.get(url)
 
   if (response.status_code != 200):
-    time.sleep(constants.WAIT_TIME)
+    time.sleep(WAIT_TIME)
     return get_daily_weather(lat, lng)
 
   return json.loads(response.text)
@@ -254,7 +258,7 @@ def load_log_into_gsheet(days_to_load):
           level = parts[2]
           message = " ".join(parts[3:])
 
-          log_date = datetime.strptime(str(timestamp), '%Y-%m-%d %H:%M:%S').replace(tzinfo=constants.PAC)
+          log_date = datetime.strptime(str(timestamp), '%Y-%m-%d %H:%M:%S').replace(tzinfo=PAC)
           if log_date > threshold:
             # write this into Google Sheet
             inputs.append({
@@ -296,10 +300,10 @@ def main(parser):
   args = parser.parse_args()
 
   if (args.current):
-    data = get_current_weather(constants.PRIMARY_LAT, constants.PRIMARY_LNG)
+    data = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
     print_json(data, 0)
   elif (args.daily):
-    data = get_daily_weather(constants.PRIMARY_LAT, constants.PRIMARY_LNG)
+    data = get_daily_weather(PRIMARY_LAT, PRIMARY_LNG)
     print_json(data, 0)
   elif (args.load):
     load_log_into_gsheet(args.load[0])

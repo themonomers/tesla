@@ -7,7 +7,10 @@ from common.utilities import (
   create_cron)
 from common.argutil import CustomHelpFormatter
 from common.configutil import config
-from common import constants
+from common.constants import (
+  M3_VIN,
+  MX_VIN,
+  PAC)
 from datetime import datetime
 
 
@@ -19,11 +22,11 @@ from datetime import datetime
 ##
 def schedule_update(vin, time):
   delete_cron(config['cron']['api_schedule_software_update'] 
-              + ('m3' if vin == constants.M3_VIN else 'mx') 
+              + ('m3' if vin == M3_VIN else 'mx') 
               + ' ' 
               + config['cron']['redirect'])
   create_cron(config['cron']['api_schedule_software_update'] 
-              + ('m3' if vin == constants.M3_VIN else 'mx') 
+              + ('m3' if vin == M3_VIN else 'mx') 
               + ' ' 
               + config['cron']['redirect'], 
               time.month, 
@@ -42,13 +45,13 @@ def main(parser):
       parser.error(f"'{args.schedule_update[1]}' is not a valid time (HH:MM)")
 
     time = get_today_time(time_str)
-    if (time < datetime.now().replace(tzinfo=constants.PAC)):
+    if (time < datetime.now().replace(tzinfo=PAC)):
       time = get_tomorrow_time(time_str)
 
     if args.schedule_update[0] == 'm3':
-      schedule_update(constants.M3_VIN, time)
+      schedule_update(M3_VIN, time)
     elif args.schedule_update[0] == 'mx':
-      schedule_update(constants.MX_VIN, time)
+      schedule_update(MX_VIN, time)
     else:
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   else:

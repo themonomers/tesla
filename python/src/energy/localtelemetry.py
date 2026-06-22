@@ -7,10 +7,13 @@ import os
 
 from common.influxdb import get_db_client
 from common.crypto import encrypt
+from common.tokenutil import TESLA_KEY
 from common.logutil import log
 from common.configutil import get_filepath, get_config
 from common.constants import WAIT_TIME
 from datetime import datetime
+
+LOCAL_TOKEN = get_filepath('local_token')
 
 
 ##
@@ -20,7 +23,7 @@ from datetime import datetime
 # author: mjhwa@yahoo.com
 ##
 def get_local_config():
-  return get_config(get_filepath('local_config'), get_filepath('tesla_key'))
+  return get_config(get_filepath('local_config'), TESLA_KEY)
 
 local_config = get_local_config()
 USERNAME = local_config['energy']['email']
@@ -37,12 +40,10 @@ PAC = zoneinfo.ZoneInfo(local_config['general']['timezone'])
 ##
 def get_local_token():
   # Check for the file which stores the latest local token
-  if os.path.exists(
-    get_filepath('local_token')
-  ) == False:
+  if os.path.exists(LOCAL_TOKEN) == False:
     auth_local_token()
 
-  return get_config(get_filepath('local_token'), get_filepath('tesla_key'))
+  return get_config(LOCAL_TOKEN, TESLA_KEY)
 
 LOCAL_TOKEN = get_local_token()['tesla']['token']
 
@@ -54,9 +55,6 @@ LOCAL_TOKEN = get_local_token()['tesla']['token']
 # author: mjhwa@yahoo.com
 ##
 def auth_local_token():
-  url = (BASE_URL
-          + '/login/Basic')
-
   payload = {
     'username': 'customer',
     'email': USERNAME,
@@ -64,16 +62,12 @@ def auth_local_token():
     'force_sm_off': False
   }
 
-  response = json.loads(send_request('POST', url, LOCAL_TOKEN, payload).text)
+  response = json.loads(send_request('POST', get_url('/login/Basic'), LOCAL_TOKEN, payload).text)
 
   message = '[tesla]\n' + 'token=' + response['token'] + '\n'
 
   # Encrypt config file
-  encrypt(
-    message,
-    get_filepath('local_token'),
-    get_filepath('tesla_key')
-  )
+  encrypt(message, LOCAL_TOKEN, TESLA_KEY)
 
 
 ##

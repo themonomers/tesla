@@ -24,6 +24,8 @@ REDIRECT_URI = config['uri']['tesladeveloper_redirect_uri']
 SCOPE = ('openid offline_access vehicle_device_data vehicle_location vehicle_cmds vehicle_charging_cmds '
          'vehicle_specs energy_device_data energy_cmds')
 PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
+TOKEN = get_filepath('token')
+TESLA_KEY = get_filepath('tesla_key')
 
 
 ##
@@ -32,7 +34,7 @@ PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
 # author: mjhwa@yahoo.com
 ##
 def get_token():
-  return get_config(get_filepath('token'), get_filepath('tesla_key'))
+  return get_config(TOKEN, TESLA_KEY)
 
 token = get_token()
 REFRESH_TOKEN = token['tesla']['refresh_token']
@@ -67,11 +69,7 @@ def refresh_token():
   log().debug('refreshed tokens: ' + message)
 
   # Encrypt config file
-  encrypt(
-    message,
-    get_filepath('token'),
-    get_filepath('tesla_key')
-  )
+  encrypt(message, TOKEN, TESLA_KEY)
 
 
 ##

@@ -2,7 +2,10 @@ from energy.api import set_backup_reserve
 from common.emailutil import send_email
 from common.utilities import get_daily_weather
 from common.logutil import log
-from common import constants
+from common.constants import (
+  PRIMARY_LAT,
+  PRIMARY_LNG,
+  EMAIL_1)
 from datetime import datetime, date, timedelta
 
 PCT_THRESHOLD = 0.5
@@ -22,7 +25,7 @@ PCT_THRESHOLD = 0.5
 def set_energy_mode_based_on_weather():
   try:
     # get weather forecast
-    wdata = get_daily_weather(constants.PRIMARY_LAT, constants.PRIMARY_LNG)
+    wdata = get_daily_weather(PRIMARY_LAT, PRIMARY_LNG)
     check_dates = [date.today(), (date.today() + timedelta(1))]
     msg = ''
 
@@ -77,7 +80,7 @@ def set_energy_mode_based_on_weather():
       set_backup_reserve(100)
       send_email('Energy:  Setting Backup Reserve to 100%', 
                  msg, 
-                 constants.EMAIL_1,
+                 EMAIL_1,
                  '', 
                  '',
                  '')

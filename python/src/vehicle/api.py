@@ -6,7 +6,13 @@ import argparse
 from common.utilities import print_json, send_request
 from common.argutil import CustomHelpFormatter
 from common.logutil import log
-from common import constants
+from common.constants import (
+  WAIT_TIME,
+  BASE_PROXY_URL,
+  ACCESS_TOKEN,
+  CERT,
+  M3_VIN,
+  MX_VIN)
 
 VEHICLE_STATE_ONLINE = 'online'
 
@@ -20,7 +26,7 @@ VEHICLE_STATE_ONLINE = 'online'
 def get_vehicle_data(vin):
   if vehicle(vin)['response']['state'] != VEHICLE_STATE_ONLINE:
     wake_vehicle(vin)
-    time.sleep(constants.WAIT_TIME)
+    time.sleep(WAIT_TIME)
     return get_vehicle_data(vin)
 
   url = (get_url(vin)
@@ -259,7 +265,7 @@ def schedule_software_update(vin, offset_sec):
   try:
     if vehicle(vin)['response']['state'] != VEHICLE_STATE_ONLINE:
       wake_vehicle(vin)
-      time.sleep(constants.WAIT_TIME)
+      time.sleep(WAIT_TIME)
       return schedule_software_update(vin, offset_sec)
 
     payload = {
@@ -277,7 +283,7 @@ def schedule_software_update(vin, offset_sec):
 # author: mjhwa@yahoo.com
 ##
 def get_url(vin, command=None):
-  url = (constants.BASE_PROXY_URL
+  url = (BASE_PROXY_URL
          + '/api/1/vehicles/'
          + vin)
 
@@ -289,11 +295,11 @@ def get_url(vin, command=None):
 
 
 def send_get(url):
-  return send_request('GET', url, constants.ACCESS_TOKEN, None, constants.CERT)
+  return send_request('GET', url, ACCESS_TOKEN, None, CERT)
 
 
 def send_post(url, payload):
-  return send_request('POST', url, constants.ACCESS_TOKEN, payload, constants.CERT)
+  return send_request('POST', url, ACCESS_TOKEN, payload, CERT)
 
 
 ##
@@ -317,9 +323,9 @@ def main(parser):
     print_all_vehicle_data(args.print[0])
   elif (args.schedule_software_update):
     if args.schedule_software_update[0] == 'm3':
-      schedule_software_update(constants.M3_VIN, 0)
+      schedule_software_update(M3_VIN, 0)
     elif args.schedule_software_update[0] == 'mx':
-      schedule_software_update(constants.MX_VIN, 0)
+      schedule_software_update(MX_VIN, 0)
     else:
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
   elif(args.vehicle_info):
