@@ -17,7 +17,7 @@ def main():
 
     delete_cron(config['cron']['charge_check'] + val + ' ' + config['cron']['redirect'])
 
-    delete_cron(config['cron']['api_schedule_software_update'] + val + ' ' + config['cron']['redirect'])
+    delete_cron(config['cron']['software_update'] + val + ' ' + config['cron']['redirect'])
 
 
 if __name__ == "__main__":

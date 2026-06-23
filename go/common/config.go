@@ -21,11 +21,11 @@ type AppConfig struct {
 		LogFilename      string `ini:"log_filename"`
 	} `ini:"file"`
 	Cron struct {
-		ChargeCheck               string `ini:"charge_check"`
-		ClimateStart              string `ini:"climate_start"`
-		ClimateStop               string `ini:"climate_stop"`
-		ApiScheduleSoftwareUpdate string `ini:"api_schedule_software_update"`
-		Redirect                  string `ini:"redirect"`
+		ChargeCheck    string `ini:"charge_check"`
+		ClimateStart   string `ini:"climate_start"`
+		ClimateStop    string `ini:"climate_stop"`
+		SoftwareUpdate string `ini:"software_update"`
+		Redirect       string `ini:"redirect"`
 	} `ini:"cron"`
 	Uri struct {
 		TeslaBaseProxyUrl         string `ini:"tesla_base_proxy_url"`
