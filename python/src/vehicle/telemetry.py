@@ -408,5 +408,5 @@ def main():
   write_mx_telemetry()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   main()

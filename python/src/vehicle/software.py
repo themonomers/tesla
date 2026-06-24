@@ -52,7 +52,7 @@ def main(parser):
     parser.print_help()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   parser = argparse.ArgumentParser(
                     prog='software.py',
                     description='Manage vehicle software.',

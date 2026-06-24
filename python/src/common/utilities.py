@@ -254,9 +254,9 @@ def load_log_into_gsheet(days_to_load):
         
         # Extract fields based on index positions
         if len(parts) >= 4:
-          timestamp = f"{parts[0]} {parts[1]}"
+          timestamp = f'{parts[0]} {parts[1]}'
           level = parts[2]
-          message = " ".join(parts[3:])
+          message = ' '.join(parts[3:])
 
           log_date = datetime.strptime(str(timestamp), '%Y-%m-%d %H:%M:%S').replace(tzinfo=PAC)
           if log_date > threshold:
@@ -311,7 +311,7 @@ def main(parser):
     parser.print_help()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   parser = argparse.ArgumentParser(
                     prog='utilities.py',
                     description='Commonly used and helpful tools.',

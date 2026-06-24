@@ -569,8 +569,8 @@ def calculate_finish_time(m3_data, mx_data):
   m3_finish_time = get_tomorrow_time(EARLIEST_CHARGING_START_TIME) + timedelta(hours = m3_charging_time)
 
   finish_times = {
-      "mx_finish_time": mx_finish_time,
-      "m3_finish_time": m3_finish_time
+      'mx_finish_time': mx_finish_time,
+      'm3_finish_time': m3_finish_time
   }
 
   return finish_times
@@ -603,8 +603,8 @@ def calculate_miles_needed(m3_data, mx_data):
   if (m3_target_range - m3_current_range) > 0: m3_miles_needed = m3_target_range - m3_current_range
 
   miles_needed = {
-      "mx_miles_needed": mx_miles_needed,
-      "m3_miles_needed": m3_miles_needed
+      'mx_miles_needed': mx_miles_needed,
+      'm3_miles_needed': m3_miles_needed
   }
   
   return miles_needed
@@ -683,7 +683,7 @@ def main(parser):
     parser.print_help()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   parser = argparse.ArgumentParser(
                     prog='charge.py',
                     description='Calculates and sets charging times to complete at a departure time for 2 EV\'s.',

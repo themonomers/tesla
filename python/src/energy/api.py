@@ -463,7 +463,7 @@ def main(parser):
   print_json(data, 0)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   parser = argparse.ArgumentParser(
                     prog='api.py',
                     description='API calls for Tesla Energy products.',

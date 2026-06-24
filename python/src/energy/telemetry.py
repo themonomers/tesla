@@ -1076,7 +1076,7 @@ def main(parser):
       write_battery_backup_history_to_db()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   parser = argparse.ArgumentParser(
                     prog='telemetry.py',
                     description='Writes energy data to store for analysis and visualization.',

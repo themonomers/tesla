@@ -83,7 +83,7 @@ def main(parser):
     parser.print_help()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   parser = argparse.ArgumentParser(
                     prog='crypto.py',
                     description='Encryption and decryption functions for sensitive files.',

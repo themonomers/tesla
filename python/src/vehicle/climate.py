@@ -294,7 +294,7 @@ def main(parser):
     parser.print_help()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   parser = argparse.ArgumentParser(
                     prog='climate.py',
                     description='Sets up crontab for starting the car HVAC based on references stored in a Google Sheet.',

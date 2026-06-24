@@ -49,9 +49,9 @@ EXPIRES_AT = token['tesla']['expires_at']
 ##
 def refresh_token():
   payload = {
-  'grant_type': 'refresh_token',
-  'client_id': CLIENT_ID,
-  'refresh_token': REFRESH_TOKEN
+    'grant_type': 'refresh_token',
+    'client_id': CLIENT_ID,
+    'refresh_token': REFRESH_TOKEN
   }
 
   response = json.loads(requests.post(BASE_AUTH_URL, json=payload).text)
@@ -120,13 +120,13 @@ def new_token():
     print('\nExecuting code exchange to generate tokens...')
 
   payload = {
-      "grant_type": "authorization_code",
-      "client_id": CLIENT_ID,
-      "client_secret": CLIENT_SECRET,
-      "code": code,
-      "audience": BASE_FLEET_URL,
-      "redirect_uri": REDIRECT_URI,
-      "scope:": SCOPE
+    'grant_type': 'authorization_code',
+    'client_id': CLIENT_ID,
+    'client_secret': CLIENT_SECRET,
+    'code': code,
+    'audience': BASE_FLEET_URL,
+    'redirect_uri': REDIRECT_URI,
+    'scope:': SCOPE
   }
 
   response = json.loads(requests.post(BASE_AUTH_URL, json=payload).text)
@@ -164,7 +164,7 @@ def main(parser):
     parser.print_help()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   parser = argparse.ArgumentParser(
                     prog='tokenutil.py',
                     description='Tesla authentication flow to retrieve new access and refresh token '

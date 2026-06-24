@@ -334,7 +334,7 @@ def main(parser):
     parser.print_help()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   parser = argparse.ArgumentParser(
                     prog='api.py',
                     description='API calls for Tesla Vehicles (Pre-2021 Model X and S).',

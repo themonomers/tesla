@@ -20,5 +20,5 @@ def main():
     delete_cron(config['cron']['software_update'] + val + ' ' + config['cron']['redirect'])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   main()

@@ -267,5 +267,5 @@ def main():
   write_local_live_site_telemetry()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   main()
