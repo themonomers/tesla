@@ -1,8 +1,10 @@
 import time
+import argparse
 
 from vehicle.api import get_vehicle_data
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
+from common.argutil import CustomHelpFormatter
 from common.logutil import log
 from common.configutil import encrypted_config
 from common.constants import (
@@ -403,10 +405,42 @@ def write_mx_telemetry():
     log().error('write_mx_telemetry(): ' + str(e))
 
 
-def main():
-  write_m3_telemetry()
-  write_mx_telemetry()
+def main(parser):
+  args = parser.parse_args()
+
+  if (args.write_all):
+    write_m3_telemetry()
+    write_mx_telemetry()
+  elif (args.write_vehicle):
+    if args.write_vehicle[0] == 'm3':
+      write_m3_telemetry()
+    elif args.write_vehicle[0] == 'mx':
+      write_mx_telemetry()
+    else:
+      parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
+  else:
+    parser.print_help()
 
 
 if __name__ == '__main__':
-  main()
+  parser = argparse.ArgumentParser(
+                    prog='telemetry.py',
+                    description='Read/write the vehicle data into a Google Sheet for tracking, analysis, and graphs.',
+                    formatter_class=CustomHelpFormatter)
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument(
+                     '-a', 
+                     '--write_all', 
+                     help='writes telemetry for all vehicles',
+                     action='store_true'
+                    )
+  group.add_argument(
+                     '-v', 
+                     '--write_vehicle', 
+                     help='writes telemetry for a specific vehicle; VEHICLE can be \'m3\' or '
+                          '\'mx\'',
+                     nargs=1,
+                     metavar='VEHICLE'
+                    )
+
+  main(parser)
