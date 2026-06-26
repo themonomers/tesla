@@ -1083,7 +1083,7 @@ if __name__ == '__main__':
                     formatter_class=CustomHelpFormatter)
   parser.add_argument(
                       '-a', 
-                      '--all', 
+                      '--write_all', 
                       help='writes all energy data from previous day as part of an automated routine',
                       action='store_true'
                      )
