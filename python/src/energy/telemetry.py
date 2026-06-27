@@ -1027,7 +1027,7 @@ def main(parser):
              args.data_to_gsheet, 
              args.battery_charge_to_db,
              args.outage_to_db]
-  if args.all and any(options):
+  if args.write_all and any(options):
     parser.error('-a, --all cannot be used with any other options')
 
   if ((args.detail_to_db or 
@@ -1039,7 +1039,7 @@ def main(parser):
     parser.error('--date (m/d/yyyy) is required when --detail_to_db, --summary_to_db, --tou_summary_to_db, '
                  '--data_to_gsheet, or --battery_charge_to_db is used')
 
-  if (args.all):
+  if (args.write_all):
     write_energy_detail_to_db(datetime.today() - timedelta(1))
     write_energy_summary_to_db(datetime.today() - timedelta(1))
     write_battery_charge_to_db(datetime.today() - timedelta(1))
