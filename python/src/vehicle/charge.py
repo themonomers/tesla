@@ -325,7 +325,8 @@ def check_charge(vin):
     data = get_vehicle_data(vin)
 
     if (is_vehicle_at_primary(data) and 
-        (data['response']['charge_state']['charging_state'] != CHARGING_STATE_CHARGING)):
+        (data['response']['charge_state']['charging_state'] != CHARGING_STATE_CHARGING) and
+        (data['response']['charge_state']['charging_state'] != CHARGING_STATE_COMPLETE)):
       log().warning('check_charge(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
       start_charge(vin)
   except Exception as e:
