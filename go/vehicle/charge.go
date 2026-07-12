@@ -308,7 +308,8 @@ func CheckCharge(vin string) {
 	data := GetVehicleData(vin)
 
 	if IsVehicleAtPrimary(data) &&
-		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Charging" {
+		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Charging" &&
+		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" {
 		slog.Warn("checkCharge(" + vin + "): Scheduled charging failed to start.  Starting backup charging.")
 		StartCharge(vin)
 	}
