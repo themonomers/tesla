@@ -33,6 +33,8 @@ var M3_FULL_CHARGE_RATE_AT_PRIMARY float64 = 37   // (mi/hr)
 var MX_FULL_CHARGE_RATE_AT_SECONDARY float64 = 20 // (mi/hr)
 var M3_FULL_CHARGE_RATE_AT_SECONDARY float64 = 30 // (mi/hr)
 var EARLIEST_CHARGING_START_TIME string = "00:00"
+var CHARGING_STATE_COMPLETE = "Complete"
+var CHARGING_STATE_CHARGING = "Charging"
 
 // Checks to see if the vehicles are plugged in, inferred from the charge
 // port door status, and sends an email to notify if it's not.  Also sets
@@ -186,7 +188,7 @@ func ChargeEarliest() {
 func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_target_finish_time time.Time, mx_target_finish_time time.Time) time.Time {
 	var start_time time.Time
 
-	if m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" {
+	if m3_data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != CHARGING_STATE_COMPLETE {
 		// get calculated start time depending on location of cars
 		if IsVehicleAtPrimary(m3_data) &&
 			IsVehicleAtPrimary(mx_data) {
@@ -234,7 +236,7 @@ func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_targe
 func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_target_finish_time time.Time, mx_target_finish_time time.Time) time.Time {
 	var start_time time.Time
 
-	if mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" {
+	if mx_data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != CHARGING_STATE_COMPLETE {
 		// get calculated start time depending on location of cars
 		if IsVehicleAtPrimary(mx_data) &&
 			IsVehicleAtPrimary(m3_data) {
@@ -282,7 +284,7 @@ func scheduleEarliestCharging(data map[string]any) time.Time {
 
 	vin := data["response"].(map[string]any)["vin"].(string)
 
-	if data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" &&
+	if data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != CHARGING_STATE_COMPLETE &&
 		IsVehicleAtPrimary(data) {
 		start_time = GetTomorrowTime(EARLIEST_CHARGING_START_TIME)
 		total_minutes := (start_time.Hour() * 60) + start_time.Minute()
@@ -308,8 +310,10 @@ func CheckCharge(vin string) {
 	data := GetVehicleData(vin)
 
 	if IsVehicleAtPrimary(data) &&
-		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Charging" &&
-		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != "Complete" {
+		data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != CHARGING_STATE_CHARGING &&
+		(data["response"].(map[string]any)["charge_state"].(map[string]any)["charging_state"].(string) != CHARGING_STATE_COMPLETE ||
+			data["response"].(map[string]any)["charge_state"].(map[string]any)["battery_level"].(float64) <=
+				data["response"].(map[string]any)["charge_state"].(map[string]any)["charge_limit_soc"].(float64)) {
 		slog.Warn("checkCharge(" + vin + "): Scheduled charging failed to start.  Starting backup charging.")
 		StartCharge(vin)
 	}
