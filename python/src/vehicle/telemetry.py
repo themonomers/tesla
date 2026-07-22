@@ -29,8 +29,8 @@ def write_m3_telemetry():
     # get rollup of vehicle data
     data = get_vehicle_data(M3_VIN)  
 
-    # check for empty data and retry
-    if data is None:
+    # check for missing data and retry
+    if not any(get_check_list(data)):
       log().warning('Retry write_m3_telemetry() due to empty data set: ' + str(data))
       time.sleep(WAIT_TIME)
       write_m3_telemetry()
@@ -122,9 +122,9 @@ def write_m3_telemetry():
     # in or charging state is complete, the starting range is equal to the 
     # eod range because it won't charge
     if (
-      (starting_range < eod_range) 
-      or (data['response']['charge_state']['charge_port_door_open'] == False) 
-      or (data['response']['charge_state']['charging_state'] == 'Complete')
+      (starting_range < eod_range) or 
+      (data['response']['charge_state']['charge_port_door_open'] == False) or
+      (data['response']['charge_state']['charging_state'] == 'Complete')
     ):
       starting_range = eod_range
     
@@ -220,9 +220,9 @@ def write_mx_telemetry():
     # get rollup of vehicle data
     data = get_vehicle_data(MX_VIN)  
     
-    # check for empty data and retry
-    if data is None:
-      log().warning('Retry write_mx_telemetry() due to empty data set: ' + str(data))
+    # check for missing data and retry
+    if not any(get_check_list(data)):
+      log().warning('Retry write_mx_telemetry() due to missing data: ' + str(data))
       time.sleep(WAIT_TIME)
       write_mx_telemetry()
 
@@ -312,9 +312,9 @@ def write_mx_telemetry():
     # in or charging state is complete, the starting range is equal to the 
     # eod range because it won't charge
     if (
-      (starting_range < eod_range) 
-      or (data['response']['charge_state']['charge_port_door_open'] == False) 
-      or (data['response']['charge_state']['charging_state'] == 'Complete')
+      (starting_range < eod_range) or
+      (data['response']['charge_state']['charge_port_door_open'] == False) or
+      (data['response']['charge_state']['charging_state'] == 'Complete')
     ):
       starting_range = eod_range
     
@@ -403,6 +403,25 @@ def write_mx_telemetry():
     send_email('Model X Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
     log().error('write_mx_telemetry(): ' + str(e))
+
+
+##
+# List of data points to check for missing data in the vehicle response. 
+#
+# author: mjhwa@yahoo.com
+##
+def get_check_list(data):
+  return [
+    data["response"]["charge_state"]["battery_range"],
+    data["response"]["charge_state"]["battery_level"],
+    data['response']['charge_state']['charge_limit_soc'],
+    data['response']['climate_state']['inside_temp'],
+    data['response']['climate_state']['outside_temp'],
+    data['response']['vehicle_state']['tpms_pressure_fl'],
+    data['response']['vehicle_state']['tpms_pressure_fr'],
+    data['response']['vehicle_state']['tpms_pressure_rl'],
+    data['response']['vehicle_state']['tpms_pressure_rr']
+  ]
 
 
 def main(parser):
