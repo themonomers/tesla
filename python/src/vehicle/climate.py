@@ -264,10 +264,10 @@ def setup_stop_cron(vin, stop_time):
 def stop_precondition(vin):
   try:
     data = get_vehicle_data(vin)
-    if (is_vehicle_at_primary(data) and 
-        data['response']['drive_state']['shift_state'] != 'D' and
-        data['response']['drive_state']['shift_state'] != 'R' and
-        data['response']['drive_state']['shift_state'] != 'N'): # only execute if the car is at primary location and in park
+    if (is_vehicle_at_primary(data)
+        and data['response']['drive_state']['shift_state'] != 'D'
+        and data['response']['drive_state']['shift_state'] != 'R'
+        and data['response']['drive_state']['shift_state'] != 'N'): # only execute if the car is at primary location and in park
       api.stop_precondition(vin)
   except Exception as e:
     log().error('stop_precondition(' + vin + '): ' + str(e))

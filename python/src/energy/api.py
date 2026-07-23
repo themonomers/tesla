@@ -421,12 +421,12 @@ def send_post(url, payload):
 def main(parser):
   args = parser.parse_args()
 
-  if ((args.site_history or 
-       args.site_tou_history or
-       args.battery_charge_history or
-       args.power_history or
-       args.savings_forecast) and 
-       not args.date):
+  if ((args.site_history
+       or args.site_tou_history
+       or args.battery_charge_history
+       or args.power_history
+       or args.savings_forecast) 
+       and not args.date):
     parser.error('--date (m/d/yyyy) is required when --site_history, --site_tou_history, --battery_charge_history, '
                  '--power_history, or --savings_forecast is used')
 

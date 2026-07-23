@@ -215,7 +215,7 @@ def print_json(json_obj, level):
     for key in json_obj:
 
       value = json_obj[key]
-      if ((isinstance(value, dict) == True) or (isinstance(value, list) == True)):
+      if (isinstance(value, dict) == True or isinstance(value, list) == True):
         print(offset + key)
         print_json(value, level + 1)
       else:

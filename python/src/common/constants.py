@@ -12,6 +12,7 @@ MX_VIN = encrypted_config['vehicle']['mx_vin']
 PRIMARY_LAT = float(encrypted_config['vehicle']['primary_lat'])
 PRIMARY_LNG = float(encrypted_config['vehicle']['primary_lng'])
 EV_SPREADSHEET_ID = encrypted_config['google']['ev_spreadsheet_id'] 
+CHARGING_STATE_COMPLETE = 'Complete'
 
 #Tesla
 ACCESS_TOKEN = token['tesla']['access_token']

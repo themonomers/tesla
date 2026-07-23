@@ -12,7 +12,8 @@ from common.constants import (
   MX_VIN,
   EV_SPREADSHEET_ID,
   WAIT_TIME,
-  EMAIL_1)
+  EMAIL_1,
+  CHARGING_STATE_COMPLETE)
 from datetime import datetime
 
 TELEMETRY_SHEET_ID = encrypted_config['google']['telemetry_sheet_id']
@@ -121,11 +122,9 @@ def write_m3_telemetry():
     # if the starting range is less than eod range or the car is not plugged 
     # in or charging state is complete, the starting range is equal to the 
     # eod range because it won't charge
-    if (
-      (starting_range < eod_range) or 
-      (data['response']['charge_state']['charge_port_door_open'] == False) or
-      (data['response']['charge_state']['charging_state'] == 'Complete')
-    ):
+    if (starting_range < eod_range 
+        or data['response']['charge_state']['charge_port_door_open'] == False
+        or data['response']['charge_state']['charging_state'] == CHARGING_STATE_COMPLETE):
       starting_range = eod_range
     
     # write the starting_range for the next day   
@@ -311,11 +310,9 @@ def write_mx_telemetry():
     # if the starting range is less than eod range or the car is not plugged 
     # in or charging state is complete, the starting range is equal to the 
     # eod range because it won't charge
-    if (
-      (starting_range < eod_range) or
-      (data['response']['charge_state']['charge_port_door_open'] == False) or
-      (data['response']['charge_state']['charging_state'] == 'Complete')
-    ):
+    if (starting_range < eod_range
+        or data['response']['charge_state']['charge_port_door_open'] == False
+        or data['response']['charge_state']['charging_state'] == CHARGING_STATE_COMPLETE):
       starting_range = eod_range
     
     # write the starting_range for the next day   

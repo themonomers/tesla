@@ -45,11 +45,9 @@ def write_energy_detail_to_db(date):
         '%Y-%m-%d'
       )
 
-      if (
-        d.year == date.year
-        and d.month == date.month
-        and d.day == date.day
-      ):
+      if (d.year == date.year
+          and d.month == date.month
+          and d.day == date.day):
         for key, value in x.items():
           if (key != 'timestamp'):
             json_body.append({
@@ -157,13 +155,11 @@ def write_energy_summary_to_db(date):
           and d.month == date.month
           and d.day == date.day):
         for key, value in items.items():
-          if (
-            (key != 'timestamp')
-            and (key != 'raw_timestamp')
-            and (key != 'grid_services_energy_exported')
-            and (key != 'grid_services_energy_imported')
-            and (key != 'generator_energy_exported')
-          ):
+          if (key != 'timestamp'
+              and key != 'raw_timestamp'
+              and key != 'grid_services_energy_exported'
+              and key != 'grid_services_energy_imported'
+              and key != 'generator_energy_exported'):
             cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
     
     for key, value in cumulative_data.items():
@@ -205,7 +201,6 @@ def write_energy_summary_to_db(date):
       if (d_local.year == (date - timedelta(1)).year
           and d_local.month == (date - timedelta(1)).month
           and d_local.day == (date - timedelta(1)).day):
-
         json_body.append({
           'measurement': 'energy_summary',
           'tags': {
@@ -294,7 +289,7 @@ def write_energy_tou_summary_to_db(date):
           and d.month == date.month
           and d.day == date.day):
         for key, value in items.items():
-          if (key != 'timestamp') and (key != 'raw_timestamp'):
+          if key != 'timestamp' and key != 'raw_timestamp':
             cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
 
     for key, value in cumulative_data.items():
@@ -335,7 +330,7 @@ def write_energy_tou_summary_to_db(date):
               and d.month == date.month
               and d.day == date.day):
             for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
-              if ((key_2 != 'timestamp') and (key_2 != 'raw_timestamp')):
+              if key_2 != 'timestamp' and key_2 != 'raw_timestamp':
                 json_body.append({
                   'measurement': key_1,
                   'tags': {
@@ -435,7 +430,7 @@ def write_energy_data_to_gsheet(date):
           and d.month == date.month
           and d.day == date.day):
         for key, value in items.items():
-          if (key != 'timestamp') and (key != 'raw_timestamp'):
+          if key != 'timestamp' and key != 'raw_timestamp':
             cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
 
     inputs.append({
@@ -562,7 +557,6 @@ def write_energy_data_to_gsheet(date):
             if (d.year == date.year
                 and d.month == date.month
                 and d.day == date.day):
-
               inputs.append({
                 'range': 'Telemetry!AE' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
@@ -673,7 +667,6 @@ def write_energy_data_to_gsheet(date):
             if (d.year == date.year
                 and d.month == date.month
                 and d.day == date.day):
-
               inputs.append({
                 'range': 'Telemetry!BB' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
@@ -784,7 +777,6 @@ def write_energy_data_to_gsheet(date):
             if (d.year == date.year
                 and d.month == date.month
                 and d.day == date.day):
-
               inputs.append({
                 'range': 'Telemetry!BY' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
@@ -983,12 +975,12 @@ def write_battery_backup_history_to_db():
         for item in db:
           for j in range(len(item)):
             dt = datetime.strptime(item[j]['time'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.utc)
-            dt = dt.astimezone(pytz.timezone('US/Pacific'))
+            dt = dt.astimezone(pytz.timezone(TIME_ZONE))
 
             if start == dt:
               skip = True  # event already in DB, skip
 
-        if ((duration != -1) and (start != '')) and skip != True:
+        if duration != -1 and start != '' and skip != True:
           json_body.append({
             'measurement': 'backup',
             'tags': {
@@ -1030,12 +1022,12 @@ def main(parser):
   if args.write_all and any(options):
     parser.error('-a, --all cannot be used with any other options')
 
-  if ((args.detail_to_db or 
-       args.summary_to_db or 
-       args.tou_summary_to_db or
-       args.data_to_gsheet or
-       args.battery_charge_to_db) and 
-       not args.date):
+  if ((args.detail_to_db 
+       or args.summary_to_db
+       or args.tou_summary_to_db
+       or args.data_to_gsheet
+       or args.battery_charge_to_db)
+       and not args.date):
     parser.error('--date (m/d/yyyy) is required when --detail_to_db, --summary_to_db, --tou_summary_to_db, '
                  '--data_to_gsheet, or --battery_charge_to_db is used')
 
