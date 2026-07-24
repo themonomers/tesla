@@ -54,12 +54,12 @@ def get_site_info():
 #
 # author: mjhwa@yahoo.com
 ##
-def get_site_history(period, date):
+def get_site_history(period, target_date):
   local = pytz.timezone(TIME_ZONE)
-  date = local.localize(datetime(
-    date.year, 
-    date.month, 
-    date.day, 
+  e_date = local.localize(datetime(
+    target_date.year, 
+    target_date.month, 
+    target_date.day, 
     23, 
     59, 
     59, 
@@ -69,7 +69,7 @@ def get_site_history(period, date):
   command = ('calendar_history'
               + '?kind=energy'
               + '&end_date=' 
-              + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
+              + datetime.strftime(e_date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
               + '&period=' + period)
 
   return json.loads(
@@ -94,12 +94,12 @@ def get_battery_backup_history():
 #
 # author: mjhwa@yahoo.com
 ##
-def get_site_tou_history(period, date):
+def get_site_tou_history(period, target_date):
   local = pytz.timezone(TIME_ZONE)
   s_date = local.localize(datetime(
-    date.year,
-    date.month,
-    date.day,
+    target_date.year,
+    target_date.month,
+    target_date.day,
     0,
     0,
     0,
@@ -107,9 +107,9 @@ def get_site_tou_history(period, date):
   ), is_dst=None)
 
   e_date = local.localize(datetime(
-    date.year,
-    date.month,
-    date.day,
+    target_date.year,
+    target_date.month,
+    target_date.day,
     23,
     59,
     59,
@@ -139,12 +139,12 @@ def get_site_tou_history(period, date):
 #
 # author: mjhwa@yahoo.com
 ##
-def get_battery_charge_history(period, date):
+def get_battery_charge_history(period, target_date):
   local = pytz.timezone(TIME_ZONE)
-  date = local.localize(datetime(
-    date.year,
-    date.month,
-    date.day,
+  e_date = local.localize(datetime(
+    target_date.year,
+    target_date.month,
+    target_date.day,
     23,
     59,
     59,
@@ -155,7 +155,7 @@ def get_battery_charge_history(period, date):
               + '?kind=soe'
               + '&period=' + period
               + '&end_date='
-              + datetime.strftime(date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ'))
+              + datetime.strftime(e_date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ'))
 
   return json.loads(
     send_get(get_url(command)).text
@@ -168,12 +168,12 @@ def get_battery_charge_history(period, date):
 #
 # author: mjhwa@yahoo.com
 ##
-def get_power_history(period, date):
+def get_power_history(period, target_date):
   local = pytz.timezone(TIME_ZONE)
   s_date = local.localize(datetime(
-    date.year,
-    date.month,
-    date.day,
+    target_date.year,
+    target_date.month,
+    target_date.day,
     0,
     0,
     0,
@@ -181,9 +181,9 @@ def get_power_history(period, date):
   ), is_dst=None)
 
   e_date = local.localize(datetime(
-    date.year,
-    date.month,
-    date.day,
+    target_date.year,
+    target_date.month,
+    target_date.day,
     23,
     59,
     59,
@@ -251,12 +251,12 @@ def get_backup_time_remaining():
 #
 # author: mjhwa@yahoo.com
 ##
-def get_savings_forecast(period, date):
+def get_savings_forecast(period, target_date):
   local = pytz.timezone(TIME_ZONE)
   s_date = local.localize(datetime(
-    date.year,
-    date.month,
-    date.day,
+    target_date.year,
+    target_date.month,
+    target_date.day,
     0,
     0,
     0,
@@ -264,9 +264,9 @@ def get_savings_forecast(period, date):
   ), is_dst=None)
 
   e_date = local.localize(datetime(
-    date.year,
-    date.month,
-    date.day,
+    target_date.year,
+    target_date.month,
+    target_date.day,
     23,
     59,
     59,
@@ -426,13 +426,13 @@ def main(parser):
        or args.battery_charge_history
        or args.power_history
        or args.savings_forecast) 
-       and not args.date):
-    parser.error('--date (m/d/yyyy) is required when --site_history, --site_tou_history, --battery_charge_history, '
+       and not args.target_date):
+    parser.error('--target_date (m/d/yyyy) is required when --site_history, --site_tou_history, --battery_charge_history, '
                  '--power_history, or --savings_forecast is used')
 
-  date = None
-  if args.date:
-    date = datetime.strptime(args.date[0].strftime('%m/%d/%Y'), '%m/%d/%Y') 
+  target_date = None
+  if args.target_date:
+    target_date = datetime.strptime(args.target_date[0].strftime('%m/%d/%Y'), '%m/%d/%Y') 
 
   data = {}
   if args.site_status:
@@ -448,15 +448,15 @@ def main(parser):
   elif args.site_tariff:
     data = get_site_tariff()
   elif args.site_history:
-    data = get_site_history('day', date)
+    data = get_site_history('day', target_date)
   elif args.site_tou_history:
-    data = get_site_tou_history('day', date)
+    data = get_site_tou_history('day', target_date)
   elif args.battery_charge_history:
-    data = get_battery_charge_history('day', date)
+    data = get_battery_charge_history('day', target_date)
   elif args.power_history:
-    data = get_power_history('day', date)
+    data = get_power_history('day', target_date)
   elif args.savings_forecast:
-    data = get_savings_forecast('day', date)
+    data = get_savings_forecast('day', target_date)
   else:
     parser.print_help()
 
@@ -539,7 +539,7 @@ if __name__ == '__main__':
                     )
   parser.add_argument(
                       '-d', 
-                      '--date', 
+                      '--target_date', 
                       help='DATE of data lookup in m/d/yyyy format',
                       type=lambda d: datetime.strptime(d, '%m/%d/%Y'),
                       nargs=1,

@@ -33,10 +33,10 @@ SUMMARY_SHEET_ID = encrypted_config['google']['summary_sheet_id']
 #
 # author: mjhwa@yahoo.com
 ##
-def write_energy_detail_to_db(date):
+def write_energy_detail_to_db(target_date):
   try:
     # get time series data
-    data = get_power_history('day', date)
+    data = get_power_history('day', target_date)
 
     json_body = []
     for x in data['response']['time_series']:
@@ -45,9 +45,7 @@ def write_energy_detail_to_db(date):
         '%Y-%m-%d'
       )
 
-      if (d.year == date.year
-          and d.month == date.month
-          and d.day == date.day):
+      if d.date() == target_date.date():
         for key, value in x.items():
           if key != 'timestamp':
             json_body.append({
@@ -91,7 +89,7 @@ def write_energy_detail_to_db(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def write_energy_summary_to_db(date):
+def write_energy_summary_to_db(target_date):
   try:
     # get local battery data
     data = get_local_system_status()  
@@ -104,13 +102,13 @@ def write_energy_summary_to_db(date):
         'source': 'total_pack_energy'
       },
       'time': str(datetime(
-        date.year, 
-        date.month, 
-        date.day, 
-        date.hour, 
-        date.minute, 
-        date.second,
-        date.microsecond
+        target_date.year, 
+        target_date.month, 
+        target_date.day, 
+        target_date.hour, 
+        target_date.minute, 
+        target_date.second,
+        target_date.microsecond
       ).replace(tzinfo=PAC)),
       'fields': {
         'value': float(data['nominal_full_pack_energy'])
@@ -126,13 +124,13 @@ def write_energy_summary_to_db(date):
         'source': 'percentage_charged'
       },
       'time': str(datetime(
-        date.year, 
-        date.month, 
-        date.day, 
-        date.hour, 
-        date.minute, 
-        date.second,
-        date.microsecond
+        target_date.year, 
+        target_date.month, 
+        target_date.day, 
+        target_date.hour, 
+        target_date.minute, 
+        target_date.second,
+        target_date.microsecond
       ).replace(tzinfo=PAC)),
       'fields': {
         'value': float(data['response']['percentage_charged'])
@@ -140,7 +138,7 @@ def write_energy_summary_to_db(date):
     })
 
     # get solar data
-    data = get_site_history('day', date)
+    data = get_site_history('day', target_date)
 
     # write solar data
     cumulative_data = {}
@@ -151,9 +149,7 @@ def write_energy_summary_to_db(date):
         '%Y-%m-%d'
       )
 
-      if (d.year == date.year
-          and d.month == date.month
-          and d.day == date.day):
+      if d.date() == target_date.date():
         for key, value in items.items():
           if key not in {'timestamp',
                          'raw_timestamp',
@@ -169,9 +165,9 @@ def write_energy_summary_to_db(date):
           'source': key
         },
         'time': str(datetime(
-          date.year, 
-          date.month, 
-          date.day, 
+          target_date.year, 
+          target_date.month, 
+          target_date.day, 
           0, 
           0, 
           0, 
@@ -183,7 +179,7 @@ def write_energy_summary_to_db(date):
       })
 
     # get solar value 
-    data = get_savings_forecast('day', date)
+    data = get_savings_forecast('day', target_date)
 
     for i in range(len(data['response'])):
       d = datetime.strptime(
@@ -198,9 +194,7 @@ def write_energy_summary_to_db(date):
 
       # need to adjust an additional -1 days because of the lag in 
       # availability of this data
-      if (d_local.year == (date - timedelta(1)).year
-          and d_local.month == (date - timedelta(1)).month
-          and d_local.day == (date - timedelta(1)).day):
+      if d_local.date() == (target_date - timedelta(1)).date():
         json_body.append({
           'measurement': 'energy_summary',
           'tags': {
@@ -227,10 +221,10 @@ def write_energy_summary_to_db(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def write_battery_charge_to_db(date):
+def write_battery_charge_to_db(target_date):
   try:
     # get battery charge history data
-    data = get_battery_charge_history('day', date)
+    data = get_battery_charge_history('day', target_date)
 
     json_body = []
     dt = ''
@@ -269,12 +263,12 @@ def write_battery_charge_to_db(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def write_energy_tou_summary_to_db(date):
+def write_energy_tou_summary_to_db(target_date):
   try:
     json_body = []
 
     # get solar data for all day
-    data = get_site_history('day', date)
+    data = get_site_history('day', target_date)
 
     # write solar data for all day
     cumulative_data = {}
@@ -285,9 +279,7 @@ def write_energy_tou_summary_to_db(date):
         '%Y-%m-%d'
       )
 
-      if (d.year == date.year
-          and d.month == date.month
-          and d.day == date.day):
+      if d.date() == target_date.date():
         for key, value in items.items():
           if key not in {'timestamp', 'raw_timestamp'}:
             cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
@@ -299,9 +291,9 @@ def write_energy_tou_summary_to_db(date):
           'source': key
         },
         'time': str(datetime(
-          date.year, 
-          date.month, 
-          date.day, 
+          target_date.year, 
+          target_date.month, 
+          target_date.day, 
           0, 
           0, 
           0, 
@@ -313,7 +305,7 @@ def write_energy_tou_summary_to_db(date):
       })
 
     # get solar data for TOU
-    data = get_site_tou_history('day', date)
+    data = get_site_tou_history('day', target_date)
 
     # write solar data for TOU
     for key_1, value_1 in data['response'].items():
@@ -324,9 +316,7 @@ def write_energy_tou_summary_to_db(date):
             '%Y-%m-%d'
           )
 
-          if (d.year == date.year
-              and d.month == date.month
-              and d.day == date.day):
+          if d.date() == target_date.date():
             for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
               if key_2 not in {'timestamp', 'raw_timestamp'}:
                 json_body.append({
@@ -335,9 +325,9 @@ def write_energy_tou_summary_to_db(date):
                     'source': key_2
                   },
                   'time': str(datetime(
-                    date.year, 
-                    date.month, 
-                    date.day, 
+                    target_date.year, 
+                    target_date.month, 
+                    target_date.day, 
                     0, 
                     0, 
                     0, 
@@ -364,7 +354,7 @@ def write_energy_tou_summary_to_db(date):
 #
 # author: mjhwa@yahoo.com
 ##
-def write_energy_data_to_gsheet(date):
+def write_energy_data_to_gsheet(target_date):
   try:
     # get local battery data
     data = get_local_system_status()
@@ -413,7 +403,7 @@ def write_energy_data_to_gsheet(date):
     })
 
     # get solar data for all day
-    data = get_site_history('day', date)
+    data = get_site_history('day', target_date)
 
     # write solar data for all day
     cumulative_data = {}
@@ -424,9 +414,7 @@ def write_energy_data_to_gsheet(date):
         '%Y-%m-%d'
       )
 
-      if (d.year == date.year
-          and d.month == date.month
-          and d.day == date.day):
+      if d.date() == target_date.date():
         for key, value in items.items():
           if key not in {'timestamp', 'raw_timestamp'}:
             cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
@@ -538,7 +526,7 @@ def write_energy_data_to_gsheet(date):
     })
 
     # get solar data for TOU
-    data = get_site_tou_history('day', date)
+    data = get_site_tou_history('day', target_date)
 
     # skip if system set to self-powered
     if data['response']:
@@ -552,9 +540,7 @@ def write_energy_data_to_gsheet(date):
               '%Y-%m-%d'
             )
 
-            if (d.year == date.year
-                and d.month == date.month
-                and d.day == date.day):
+            if d.date() == target_date.date():
               inputs.append({
                 'range': 'Telemetry!AE' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
@@ -662,9 +648,7 @@ def write_energy_data_to_gsheet(date):
               '%Y-%m-%d'
             )
 
-            if (d.year == date.year
-                and d.month == date.month
-                and d.day == date.day):
+            if d.date() == target_date.date():
               inputs.append({
                 'range': 'Telemetry!BB' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
@@ -772,9 +756,7 @@ def write_energy_data_to_gsheet(date):
               '%Y-%m-%d'
             )
       
-            if (d.year == date.year
-                and d.month == date.month
-                and d.day == date.day):
+            if d.date() == target_date.date():
               inputs.append({
                 'range': 'Telemetry!BY' + str(open_row),
                 'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
@@ -1025,8 +1007,8 @@ def main(parser):
        or args.tou_summary_to_db
        or args.data_to_gsheet
        or args.battery_charge_to_db)
-       and not args.date):
-    parser.error('--date (m/d/yyyy) is required when --detail_to_db, --summary_to_db, --tou_summary_to_db, '
+       and not args.target_date):
+    parser.error('--target_date (m/d/yyyy) is required when --detail_to_db, --summary_to_db, --tou_summary_to_db, '
                  '--data_to_gsheet, or --battery_charge_to_db is used')
 
   if args.write_all:
@@ -1043,24 +1025,24 @@ def main(parser):
               + '.')
     send_email('Energy Telemetry Logged', message, EMAIL_1, '', '', '')
   else:
-    date = None
-    if args.date:
-      date = datetime.strptime(args.date[0].strftime('%m/%d/%Y'), '%m/%d/%Y') 
+    target_date = None
+    if args.target_date:
+      target_date = datetime.strptime(args.target_date[0].strftime('%m/%d/%Y'), '%m/%d/%Y') 
 
     if args.detail_to_db:
-      write_energy_detail_to_db(date)
+      write_energy_detail_to_db(target_date)
     
     if args.summary_to_db:
-      write_energy_summary_to_db(date)
+      write_energy_summary_to_db(target_date)
 
     if args.tou_summary_to_db:
-      write_energy_tou_summary_to_db(date)
+      write_energy_tou_summary_to_db(target_date)
 
     if args.data_to_gsheet:
-      write_energy_data_to_gsheet(date)
+      write_energy_data_to_gsheet(target_date)
 
     if args.battery_charge_to_db:
-      write_battery_charge_to_db(date)
+      write_battery_charge_to_db(target_date)
 
     if args.outage_to_db:
       write_battery_backup_history_to_db()
@@ -1117,7 +1099,7 @@ if __name__ == '__main__':
                      )
   parser.add_argument(
                       '-d', 
-                      '--date', 
+                      '--target_date', 
                       help='DATE of data import in m/d/yyyy format',
                       type=lambda d: datetime.strptime(d, '%m/%d/%Y'),
                       nargs=1,

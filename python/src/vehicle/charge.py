@@ -644,17 +644,17 @@ def send_scheduled_charge_message(vehicle, data, charge_start_time, finish_time,
                 + str(data['response']['charge_state']['battery_level']) + '%, '
                 + str(round(data['response']['charge_state']['battery_range'])) + ' miles of estimated range.\n\n')
   
-  if climate_start_time != None:
-    message += ('Preconditioning is set to start at ' + climate_start_time.strftime('%B %d, %Y %H:%M') + '.')
+  if climate_start_time is not None:
+    message += 'Preconditioning is set to start at ' + climate_start_time.strftime('%B %d, %Y %H:%M') + '.'
 
-  if charge_start_time != None or climate_start_time != None:
-    if charge_start_time != None and climate_start_time != None:
-      subject = vehicle + ' Set to Charge and Precondition'
-    elif charge_start_time != None and climate_start_time == None:
-      subject = vehicle + ' Set to Charge'
-    elif charge_start_time == None and climate_start_time != None:
-      subject = vehicle + ' Set to Precondition'
+  if charge_start_time is not None and climate_start_time is not None:
+    subject = vehicle + ' Set to Charge and Precondition'
+  elif charge_start_time is not None:
+    subject = vehicle + ' Set to Charge'
+  elif climate_start_time is not None:
+    subject = vehicle + ' Set to Precondition'
 
+  if subject and message:
     send_email(subject, 
                message, 
                to,

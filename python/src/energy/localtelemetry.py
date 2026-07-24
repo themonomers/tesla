@@ -14,6 +14,7 @@ from common.constants import WAIT_TIME
 from datetime import datetime
 
 LOCAL_TOKEN = get_filepath('local_token')
+EXPIRED_TOKEN_MESSAGE = 'Invalid bearer token'
 
 
 ##
@@ -159,7 +160,7 @@ def get_local_meters_aggregates():
   # Detect expired local token and re-auth
   resp = json.loads(response.text)
   if 'message' in resp:
-    if resp['message'] == 'Invalid bearer token':
+    if resp['message'] == EXPIRED_TOKEN_MESSAGE:
       auth_local_token()
       write_local_live_site_telemetry()
   elif response.status_code != 200:
@@ -181,7 +182,7 @@ def get_local_system_status_soe():
   # Detect expired local token and re-auth
   resp = json.loads(response.text)    
   if 'message' in resp:
-    if resp['message'] == 'Invalid bearer token':
+    if resp['message'] == EXPIRED_TOKEN_MESSAGE:
       auth_local_token()
       write_local_live_site_telemetry()
   elif response.status_code != 200:
@@ -202,7 +203,7 @@ def get_local_system_status():
   # Detect expired local token and re-auth
   resp = json.loads(response.text)    
   if 'message' in resp:
-    if resp['message'] == 'Invalid bearer token':
+    if resp['message'] == EXPIRED_TOKEN_MESSAGE:
       auth_local_token()
       write_local_live_site_telemetry()
   elif response.status_code != 200:
