@@ -310,7 +310,7 @@ def send_post(url, payload):
 def print_all_vehicle_data(vin):
   data = get_vehicle_data(vin)
 
-  if ('error' in data):
+  if 'error' in data:
     raise Exception (data['error'])
 
   print_json(data, 0)
@@ -319,16 +319,16 @@ def print_all_vehicle_data(vin):
 def main(parser):
   args = parser.parse_args()
 
-  if (args.print):
+  if args.print:
     print_all_vehicle_data(args.print[0])
-  elif (args.schedule_software_update):
+  elif args.schedule_software_update:
     if args.schedule_software_update[0] == 'm3':
       schedule_software_update(M3_VIN, 0)
     elif args.schedule_software_update[0] == 'mx':
       schedule_software_update(MX_VIN, 0)
     else:
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
-  elif(args.vehicle_info):
+  elif args.vehicle_info:
     print_json(vehicle(args.vehicle_info[0]), 0)
   else:
     parser.print_help()

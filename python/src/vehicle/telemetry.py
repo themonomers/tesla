@@ -123,7 +123,7 @@ def write_m3_telemetry():
     # in or charging state is complete, the starting range is equal to the 
     # eod range because it won't charge
     if (starting_range < eod_range 
-        or data['response']['charge_state']['charge_port_door_open'] == False
+        or not data['response']['charge_state']['charge_port_door_open']
         or data['response']['charge_state']['charging_state'] == CHARGING_STATE_COMPLETE):
       starting_range = eod_range
     
@@ -311,7 +311,7 @@ def write_mx_telemetry():
     # in or charging state is complete, the starting range is equal to the 
     # eod range because it won't charge
     if (starting_range < eod_range
-        or data['response']['charge_state']['charge_port_door_open'] == False
+        or not data['response']['charge_state']['charge_port_door_open']
         or data['response']['charge_state']['charging_state'] == CHARGING_STATE_COMPLETE):
       starting_range = eod_range
     
@@ -424,10 +424,10 @@ def get_check_list(data):
 def main(parser):
   args = parser.parse_args()
 
-  if (args.write_all):
+  if args.write_all:
     write_m3_telemetry()
     write_mx_telemetry()
-  elif (args.write_vehicle):
+  elif args.write_vehicle:
     if args.write_vehicle[0] == 'm3':
       write_m3_telemetry()
     elif args.write_vehicle[0] == 'mx':

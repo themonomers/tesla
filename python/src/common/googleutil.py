@@ -45,7 +45,7 @@ def find_open_row(sheet_id, sheet_range):
     ).execute().get('values', [])
     service.close()
 
-    if (values == False):
+    if not values:
       return 1
 
     return len(values) + 1

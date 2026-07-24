@@ -89,7 +89,7 @@ def check_token_expiration():
     log().debug('refresh date: ' + str(refresh_date))
     log().debug('now: ' + str(datetime.today()))
 
-    if (datetime.today() >= refresh_date):
+    if datetime.today() >= refresh_date:
       refresh_token()
   except Exception as e:
     log().error('check_token_expiration(): ' + str(e))
@@ -154,11 +154,11 @@ def new_token():
 def main(parser):
   args = parser.parse_args()
 
-  if (args.new):
+  if args.new:
     new_token()
-  elif (args.refresh):
+  elif args.refresh:
     refresh_token()
-  elif (args.check):
+  elif args.check:
     check_token_expiration()
   else:
     parser.print_help()

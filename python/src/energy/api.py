@@ -431,31 +431,31 @@ def main(parser):
                  '--power_history, or --savings_forecast is used')
 
   date = None
-  if (args.date):
+  if args.date:
     date = datetime.strptime(args.date[0].strftime('%m/%d/%Y'), '%m/%d/%Y') 
 
   data = {}
-  if (args.site_status):
+  if args.site_status:
     data = get_site_status()
-  elif (args.site_live_status):
+  elif args.site_live_status:
     data = get_site_live_status()
-  elif (args.site_info):
+  elif args.site_info:
     data = get_site_info()
-  elif (args.battery_backup_history):
+  elif args.battery_backup_history:
     data = get_battery_backup_history()
-  elif (args.backup_time_remaining):
+  elif args.backup_time_remaining:
     data = get_backup_time_remaining()
-  elif (args.site_tariff):
+  elif args.site_tariff:
     data = get_site_tariff()
-  elif (args.site_history):
+  elif args.site_history:
     data = get_site_history('day', date)
-  elif (args.site_tou_history):
+  elif args.site_tou_history:
     data = get_site_tou_history('day', date)
-  elif (args.battery_charge_history):
+  elif args.battery_charge_history:
     data = get_battery_charge_history('day', date)
-  elif (args.power_history):
+  elif args.power_history:
     data = get_power_history('day', date)
-  elif (args.savings_forecast):
+  elif args.savings_forecast:
     data = get_savings_forecast('day', date)
   else:
     parser.print_help()

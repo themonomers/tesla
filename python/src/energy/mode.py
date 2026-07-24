@@ -58,7 +58,7 @@ def set_energy_mode_based_on_weather():
               forecast += str(dt) + ': ' + weather + '\n'
 
               # count how many 'Rain' hours there are
-              if (weather == 'Rain'):
+              if weather == 'Rain':
                 rain += 1
 
               # count how many total hours there are between sunrise and sunset
@@ -66,7 +66,7 @@ def set_energy_mode_based_on_weather():
 
 				  # if the ratio of rain to non-rain hours is greater than a specified
 				  # percentage, prep content for email
-          if ((float(rain) / float(total)) > PCT_THRESHOLD): 
+          if float(rain) / float(total) > PCT_THRESHOLD: 
             msg += 'Greater than ' + str(int(PCT_THRESHOLD * 100))
             msg += '% rain forecasted, setting backup reserve to 100%\n'
             msg += 'Percent rain: ' 
@@ -76,7 +76,7 @@ def set_energy_mode_based_on_weather():
 	  # if the ratio of rain to non-rain hours for today or tomorrow
 	  # is greater than a specified percentage, set backup reserve to
 	  # 100% and send email, otherwise set to normal backup reserve of 35%
-    if (msg != ''):
+    if msg:
       set_backup_reserve(100)
       send_email('Energy:  Setting Backup Reserve to 100%', 
                  msg, 

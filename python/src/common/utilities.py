@@ -54,7 +54,7 @@ def is_vehicle_at_location(data, lat, lng):
                      lat, lng)
   
     # check if the car is more than a quarter of a mile away 
-    if (d < 0.25):
+    if d < 0.25:
       return True
     else:
       return False
@@ -127,7 +127,7 @@ def get_current_weather(lat, lng):
 
   response = requests.get(url)
 
-  if (response.status_code != 200):
+  if response.status_code != 200:
     time.sleep(WAIT_TIME)
     return get_current_weather(lat, lng)
 
@@ -152,7 +152,7 @@ def get_daily_weather(lat, lng):
 
   response = requests.get(url)
 
-  if (response.status_code != 200):
+  if response.status_code != 200:
     time.sleep(WAIT_TIME)
     return get_daily_weather(lat, lng)
 
@@ -211,19 +211,19 @@ def print_json(json_obj, level):
   offset = ''
   offset += '  ' * level
 
-  if (isinstance(json_obj, dict) == True):
+  if isinstance(json_obj, dict):
     for key in json_obj:
 
       value = json_obj[key]
-      if (isinstance(value, dict) == True or isinstance(value, list) == True):
+      if isinstance(value, dict) or isinstance(value, list):
         print(offset + key)
         print_json(value, level + 1)
       else:
         print (offset + key + ' = ' + str(value))
-  elif (isinstance(json_obj, list) == True):
+  elif isinstance(json_obj, list):
     for x in json_obj:
 
-      if (isinstance(x, list) == True):
+      if isinstance(x, list):
         for key, value in x.items():
           print(offset + key)
           print_json(value, level + 1)
@@ -299,13 +299,13 @@ def load_log_into_gsheet(days_to_load):
 def main(parser):
   args = parser.parse_args()
 
-  if (args.current):
+  if args.current:
     data = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
     print_json(data, 0)
-  elif (args.daily):
+  elif args.daily:
     data = get_daily_weather(PRIMARY_LAT, PRIMARY_LNG)
     print_json(data, 0)
-  elif (args.load):
+  elif args.load:
     load_log_into_gsheet(args.load[0])
   else:
     parser.print_help()

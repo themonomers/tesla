@@ -49,7 +49,7 @@ def write_energy_detail_to_db(date):
           and d.month == date.month
           and d.day == date.day):
         for key, value in x.items():
-          if (key != 'timestamp'):
+          if key != 'timestamp':
             json_body.append({
               'measurement': 'energy_detail',
               'tags': {
@@ -155,11 +155,11 @@ def write_energy_summary_to_db(date):
           and d.month == date.month
           and d.day == date.day):
         for key, value in items.items():
-          if (key != 'timestamp'
-              and key != 'raw_timestamp'
-              and key != 'grid_services_energy_exported'
-              and key != 'grid_services_energy_imported'
-              and key != 'generator_energy_exported'):
+          if key not in {'timestamp',
+                         'raw_timestamp',
+                         'grid_services_energy_exported', 
+                         'grid_services_energy_imported', 
+                         'generator_energy_exported'}:            
             cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
     
     for key, value in cumulative_data.items():
@@ -289,7 +289,7 @@ def write_energy_tou_summary_to_db(date):
           and d.month == date.month
           and d.day == date.day):
         for key, value in items.items():
-          if key != 'timestamp' and key != 'raw_timestamp':
+          if key not in {'timestamp', 'raw_timestamp'}:
             cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
 
     for key, value in cumulative_data.items():
@@ -317,9 +317,7 @@ def write_energy_tou_summary_to_db(date):
 
     # write solar data for TOU
     for key_1, value_1 in data['response'].items():
-      if (key_1 == 'off_peak'
-          or key_1 == 'partial_peak'
-          or key_1 == 'peak'):
+      if key_1 in {'off_peak', 'partial_peak', 'peak'}:
         for i in range(len(data['response'][key_1]['time_series'])):
           d = datetime.strptime(
             data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
@@ -330,7 +328,7 @@ def write_energy_tou_summary_to_db(date):
               and d.month == date.month
               and d.day == date.day):
             for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
-              if key_2 != 'timestamp' and key_2 != 'raw_timestamp':
+              if key_2 not in {'timestamp', 'raw_timestamp'}:
                 json_body.append({
                   'measurement': key_1,
                   'tags': {
@@ -430,7 +428,7 @@ def write_energy_data_to_gsheet(date):
           and d.month == date.month
           and d.day == date.day):
         for key, value in items.items():
-          if key != 'timestamp' and key != 'raw_timestamp':
+          if key not in {'timestamp', 'raw_timestamp'}:
             cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
 
     inputs.append({
@@ -543,11 +541,11 @@ def write_energy_data_to_gsheet(date):
     data = get_site_tou_history('day', date)
 
     # skip if system set to self-powered
-    if (data['response'] != ''):
+    if data['response']:
 
       # write solar data for off peak
       for key_1, value_1 in data['response'].items():
-        if (key_1 == 'off_peak'):
+        if key_1 == 'off_peak':
           for i in range(len(data['response'][key_1]['time_series'])):
             d = datetime.strptime(
               data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
@@ -657,7 +655,7 @@ def write_energy_data_to_gsheet(date):
                   'pasteType': 'PASTE_NORMAL'
                 }
               })
-        elif (key_1 == 'partial_peak'):
+        elif key_1 == 'partial_peak':
           for i in range(len(data['response'][key_1]['time_series'])):
             d = datetime.strptime(
               data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
@@ -767,7 +765,7 @@ def write_energy_data_to_gsheet(date):
                   'pasteType': 'PASTE_NORMAL'
                 }
               })
-        elif (key_1 == 'peak'):
+        elif key_1 == 'peak':
           for i in range(len(data['response'][key_1]['time_series'])):
             d = datetime.strptime(
               data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
@@ -963,10 +961,10 @@ def write_battery_backup_history_to_db():
       skip = False
 
       for key, value in data['response']['events'][i].items():
-        if (key == 'duration'):
+        if key == 'duration':
           duration = float(value) / 1000 / 60 / 60
 
-        if (key == 'timestamp'):
+        if key == 'timestamp':
           start = value[0:len(value) - 6:1]
           start = local.localize(
                   datetime.strptime(start, '%Y-%m-%dT%H:%M:%S')
@@ -980,7 +978,7 @@ def write_battery_backup_history_to_db():
             if start == dt:
               skip = True  # event already in DB, skip
 
-        if duration != -1 and start != '' and skip != True:
+        if duration != -1 and start and not skip:
           json_body.append({
             'measurement': 'backup',
             'tags': {
@@ -1031,7 +1029,7 @@ def main(parser):
     parser.error('--date (m/d/yyyy) is required when --detail_to_db, --summary_to_db, --tou_summary_to_db, '
                  '--data_to_gsheet, or --battery_charge_to_db is used')
 
-  if (args.write_all):
+  if args.write_all:
     write_energy_detail_to_db(datetime.today() - timedelta(1))
     write_energy_summary_to_db(datetime.today() - timedelta(1))
     write_battery_charge_to_db(datetime.today() - timedelta(1))
@@ -1046,25 +1044,25 @@ def main(parser):
     send_email('Energy Telemetry Logged', message, EMAIL_1, '', '', '')
   else:
     date = None
-    if (args.date):
+    if args.date:
       date = datetime.strptime(args.date[0].strftime('%m/%d/%Y'), '%m/%d/%Y') 
 
-    if (args.detail_to_db):
+    if args.detail_to_db:
       write_energy_detail_to_db(date)
     
-    if (args.summary_to_db):
+    if args.summary_to_db:
       write_energy_summary_to_db(date)
 
-    if (args.tou_summary_to_db):
+    if args.tou_summary_to_db:
       write_energy_tou_summary_to_db(date)
 
-    if (args.data_to_gsheet):
+    if args.data_to_gsheet:
       write_energy_data_to_gsheet(date)
 
-    if (args.battery_charge_to_db):
+    if args.battery_charge_to_db:
       write_battery_charge_to_db(date)
 
-    if (args.outage_to_db):
+    if args.outage_to_db:
       write_battery_backup_history_to_db()
 
 

@@ -36,7 +36,7 @@ def send_email(subject, body, to, cc, bcc, filename):
     if bcc:
       msg['Bcc'] = bcc
 
-    if (filename != ''):
+    if filename:
       f = file( # type: ignore
         os.path.join(
           os.path.dirname(os.path.abspath(__file__)),
@@ -82,7 +82,7 @@ def truncate_email(query):
                  q=query
                ).execute()
 
-    if ('messages' not in messages):
+    if 'messages' not in messages:
       return
    
     # Loop through all the messages returned
@@ -98,7 +98,7 @@ def truncate_email(query):
 
       # Check if the email date is older than the delete date threshold and
       # move to trash
-      if (email_date < delete_date):
+      if email_date < delete_date:
         log().debug(str(email_date) + ' ' + str(message['payload']['headers'][8]))
         message = service.users().messages().trash(
                     userId='me',
@@ -113,7 +113,7 @@ def truncate_email(query):
 def main(parser):
   args = parser.parse_args()
 
-  if (args.truncate):
+  if args.truncate:
     for key in QUERIES:
       truncate_email(QUERIES[key])
   else:

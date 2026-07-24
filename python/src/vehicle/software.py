@@ -32,14 +32,14 @@ def schedule_update(vin, time):
 def main(parser):
   args = parser.parse_args()
 
-  if (args.schedule_update):
+  if args.schedule_update:
     try:
       time_str = datetime.strptime(args.schedule_update[1], '%H:%M').strftime('%H:%M')
     except ValueError:
       parser.error(f"'{args.schedule_update[1]}' is not a valid time (HH:MM)")
 
     time = get_today_time(time_str)
-    if (time < datetime.now().replace(tzinfo=PAC)):
+    if time < datetime.now().replace(tzinfo=PAC):
       time = get_tomorrow_time(time_str)
 
     if args.schedule_update[0] == 'm3':

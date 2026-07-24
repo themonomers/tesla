@@ -40,7 +40,7 @@ PAC = zoneinfo.ZoneInfo(local_config['general']['timezone'])
 ##
 def get_local_token():
   # Check for the file which stores the latest local token
-  if os.path.exists(LOCAL_TOKEN) == False:
+  if not os.path.exists(LOCAL_TOKEN):
     auth_local_token()
 
   return get_config(LOCAL_TOKEN, TESLA_KEY)
@@ -158,11 +158,11 @@ def get_local_meters_aggregates():
 
   # Detect expired local token and re-auth
   resp = json.loads(response.text)
-  if ('message' in resp):
-    if (resp['message'] == 'Invalid bearer token'):
+  if 'message' in resp:
+    if resp['message'] == 'Invalid bearer token':
       auth_local_token()
       write_local_live_site_telemetry()
-  elif (response.status_code != 200):
+  elif response.status_code != 200:
     time.sleep(WAIT_TIME)
     return get_local_meters_aggregates()
 
@@ -180,11 +180,11 @@ def get_local_system_status_soe():
 
   # Detect expired local token and re-auth
   resp = json.loads(response.text)    
-  if ('message' in resp):
-    if (resp['message'] == 'Invalid bearer token'):
+  if 'message' in resp:
+    if resp['message'] == 'Invalid bearer token':
       auth_local_token()
       write_local_live_site_telemetry()
-  elif (response.status_code != 200):
+  elif response.status_code != 200:
     time.sleep(WAIT_TIME)
     return get_local_system_status_soe()
 
@@ -201,11 +201,11 @@ def get_local_system_status():
 
   # Detect expired local token and re-auth
   resp = json.loads(response.text)    
-  if ('message' in resp):
-    if (resp['message'] == 'Invalid bearer token'):
+  if 'message' in resp:
+    if resp['message'] == 'Invalid bearer token':
       auth_local_token()
       write_local_live_site_telemetry()
-  elif (response.status_code != 200):
+  elif response.status_code != 200:
     time.sleep(WAIT_TIME)
     return get_local_system_status()
 
@@ -250,9 +250,9 @@ def send_request(method, url, token, payload):
 # author: mjhwa@yahoo.com
 ##
 def split_timestamp(timestamp):
-  if (timestamp.split('.', 1)[1].find('-') > -1):
+  if timestamp.split('.', 1)[1].find('-') > -1:
     timestamp = timestamp.split('.', 1)[0] + '-' + timestamp.split('.', 1)[1].split('-', 1)[1]
-  elif (timestamp.split('.', 1)[1].find('+') > -1):
+  elif timestamp.split('.', 1)[1].find('+') > -1:
     timestamp = timestamp.split('.', 1)[0] + '+' + timestamp.split('.', 1)[1].split('+', 1)[1]
   
   return datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S%z')

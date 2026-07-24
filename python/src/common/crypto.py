@@ -11,7 +11,7 @@ from itertools import cycle
 ##
 def encrypt_file(read_fn, write_fn, token_fn):
   # Check to see that the filenames are different
-  if (read_fn == write_fn):
+  if read_fn == write_fn:
     raise Exception('Read and write filenames cannot be the same')
 
   # Open unencrypted file
@@ -35,7 +35,7 @@ def encrypt(message, write_fn, token_fn):
   key_file.close()
 
   # Check type to convert to bytes
-  if (isinstance(message, bytes) == False):
+  if not isinstance(message, bytes):
     message = message.encode('utf-8')
 
   # Encrypt with key
@@ -70,11 +70,11 @@ def decrypt(read_fn, token_fn):
 def main(parser):
   args = parser.parse_args()
 
-  if (args.decrypt):
+  if args.decrypt:
     token_fn = args.decrypt[0]
     source_fn = args.decrypt[1]
     print(decrypt(source_fn, token_fn))
-  elif (args.encrypt):
+  elif args.encrypt:
     token_fn = args.encrypt[0]
     input_fn = args.encrypt[1]
     target_fn = args.encrypt[2]

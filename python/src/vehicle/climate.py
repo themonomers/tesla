@@ -42,9 +42,9 @@ def set_precondition(data, eco_mode, start_time):
 
   # check if eco mode is off first so we don't have to even call the 
   # Tesla API if we don't have to
-  if (eco_mode == 'off'):
+  if eco_mode == 'off':
     # check if the car is with 0.25 miles of the primary location
-    if (is_vehicle_at_primary(data)):
+    if is_vehicle_at_primary(data):
       # create precondition start crontab at preferred time tomorrow
       delete_cron(config['cron']['climate_start'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
       create_cron(config['cron']['climate_start'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
@@ -80,7 +80,7 @@ def start_m3_precondition():
     service.close()
 
     # check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
-    if (climate_config[19][1] == 'on'): return
+    if climate_config[19][1] == 'on': return
     
     # get local weather
     wdata = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
@@ -98,7 +98,7 @@ def start_m3_precondition():
     
     # compare temp readings and threshold to determine heating or cooling temps 
     # to use
-    if (wdata['current']['temp'] < float(climate_config[17][1])):
+    if wdata['current']['temp'] < float(climate_config[17][1]):
       # get pre-heat preferences  
       try:
         d_temp = float(climate_config[dow_index[0]][1])
@@ -119,7 +119,7 @@ def start_m3_precondition():
         stop_time = get_today_time(climate_config[dow_index[0]][9])  
 
       mode = 'heat'
-    elif (wdata['current']['temp'] > float(climate_config[18][1])):
+    elif wdata['current']['temp'] > float(climate_config[18][1]):
       # get pre-cool preferences
       try:
         d_temp = float(climate_config[dow_index[1]][1])
@@ -144,7 +144,7 @@ def start_m3_precondition():
     log().debug('seats: ' + str(seats))
     # no need to execute if the car is not at primary location
     data = get_vehicle_data(M3_VIN)
-    if (is_vehicle_at_primary(data)):
+    if is_vehicle_at_primary(data):
       # send command to start auto conditioning
       api.start_precondition(M3_VIN)
 
@@ -153,7 +153,7 @@ def start_m3_precondition():
       
       # set seat heater settings
       for index, item in enumerate(seats):
-        if (index == 3):
+        if index == 3:
           continue # skip index 3 as it's not assigned in the API
         set_seat_cooling(M3_VIN, int(index + 1), 
                          int(item)) if mode == 'cool' else set_seat_heating(M3_VIN, int(index), int(item))
@@ -175,7 +175,7 @@ def start_mx_precondition():
     service.close()
 
     # check if eco mode is on first so we don't have to even call the Tesla API if we don't have to
-    if (climate_config[19][10] == 'on'): return
+    if climate_config[19][10] == 'on': return
     
     # get local weather
     wdata = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
@@ -192,7 +192,7 @@ def start_mx_precondition():
     
     # compare temp readings and threshold to determine heating or cooling temps 
     # to use
-    if (wdata['current']['temp'] < float(climate_config[17][10])):
+    if wdata['current']['temp'] < float(climate_config[17][10]):
       # get pre-heat preferences
       try:
         d_temp = float(climate_config[dow_index[0]][10])
@@ -207,7 +207,7 @@ def start_mx_precondition():
         return
       else:
         stop_time = get_today_time(climate_config[dow_index[0]][15])
-    elif (wdata['current']['temp'] > float(climate_config[18][10])):
+    elif wdata['current']['temp'] > float(climate_config[18][10]):
       # get pre-cool preferences
       try:
         d_temp = float(climate_config[dow_index[1]][10])
@@ -230,7 +230,7 @@ def start_mx_precondition():
     log().debug('seats: ' + str(seats))
     # no need to execute if the car is not at primary location
     data = get_vehicle_data(MX_VIN)
-    if (is_vehicle_at_primary(data)):
+    if is_vehicle_at_primary(data):
       # send command to start auto conditioning
       api.start_precondition(MX_VIN)
 
@@ -265,9 +265,7 @@ def stop_precondition(vin):
   try:
     data = get_vehicle_data(vin)
     if (is_vehicle_at_primary(data)
-        and data['response']['drive_state']['shift_state'] != 'D'
-        and data['response']['drive_state']['shift_state'] != 'R'
-        and data['response']['drive_state']['shift_state'] != 'N'): # only execute if the car is at primary location and in park
+        and data['response']['drive_state']['shift_state'] not in {'D', 'R', 'N'}): # only execute if the car is at primary location and in park
       api.stop_precondition(vin)
   except Exception as e:
     log().error('stop_precondition(' + vin + '): ' + str(e))
@@ -276,14 +274,14 @@ def stop_precondition(vin):
 def main(parser):
   args = parser.parse_args()
 
-  if (args.start):
+  if args.start:
     if args.start[0] == 'm3':
       start_m3_precondition()
     elif args.start[0] == 'mx':
       start_mx_precondition()
     else:
       parser.error('invalid VEHICLE type, must be \'m3\' or \'mx\'')
-  elif (args.stop):
+  elif args.stop:
     if args.stop[0] == 'm3':
       stop_precondition(M3_VIN)
     elif args.stop[0] == 'mx':
