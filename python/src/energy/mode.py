@@ -38,7 +38,7 @@ def set_energy_mode_based_on_weather():
       for _, val_2 in enumerate(wdata['daily']):
         dt = datetime.fromtimestamp(val_2['dt'])
 
-        if dt.date() == val_1.date():
+        if dt.date() == val_1:
           sunrise = datetime.fromtimestamp(val_2['sunrise'])
           sunset = datetime.fromtimestamp(val_2['sunset'])
 
@@ -47,7 +47,7 @@ def set_energy_mode_based_on_weather():
           for _, val_3 in enumerate(wdata['hourly']):
             dt = datetime.fromtimestamp(val_3['dt'])
 
-            if (dt.date() == val_1.date()
+            if (dt.date() == val_1
                 and dt.hour >= sunrise.hour
                 and dt.hour <= sunset.hour):
               weather = val_3['weather'][0]['main']
