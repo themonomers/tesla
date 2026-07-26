@@ -258,6 +258,12 @@ def load_log_into_gsheet(days_to_load):
           level = parts[2]
           message = ' '.join(parts[3:])
 
+          # Check to see if a timestamp to skip if it's not, i.e. a strack trace
+          try:
+            datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+          except ValueError:
+            continue
+
           log_date = datetime.strptime(str(timestamp), '%Y-%m-%d %H:%M:%S').replace(tzinfo=PAC)
           if log_date > threshold:
             # write this into Google Sheet
