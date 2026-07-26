@@ -58,7 +58,7 @@ def send_email(subject, body, to, cc='', bcc='', filename=None):
     server.send_message(msg)
     server.close()
   except Exception as e:
-    log().warning('Retry send_email(): ' + str(e))
+    log().warning('Retry send_email(): %s', e)
     time.sleep(WAIT_TIME)
     send_email(subject, body, to, cc, bcc, filename)
 
@@ -73,7 +73,7 @@ def truncate_email(query):
   try:
     # get the date for the threshold (days prior)
     delete_date = datetime.today() - timedelta(DELETE_THRESHOLD)
-    log().debug('threshold: ' + str(delete_date))
+    log().debug('threshold: %s', delete_date)
 
     # Call the Gmail API and get the messages based on query
     service = get_google_mail_service()
@@ -93,10 +93,10 @@ def truncate_email(query):
       # Check if the email date is older than the delete date threshold and
       # move to trash
       if email_date < delete_date:
-        log().debug(str(email_date) + ' ' + str(message['payload']['headers'][8]))
+        log().debug('%s %s', email_date, message['payload']['headers'][8])
         message = service.users().messages().trash(userId='me', id=item['id']).execute() 
   except Exception as e:
-    log().error('truncate_email(): ' + str(e))
+    log().error('truncate_email(): %s', e, exc_info=True)
   finally:
     service.close()
 

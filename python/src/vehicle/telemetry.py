@@ -33,7 +33,7 @@ def write_m3_telemetry():
 
     # check for missing data and retry
     if not any(get_check_list(data)):
-      log().warning('Retry write_m3_telemetry() due to empty data set: ' + str(data))
+      log().warning('Retry write_m3_telemetry() due to empty data set: %s', data)
       time.sleep(WAIT_TIME)
       write_m3_telemetry()
     
@@ -198,7 +198,7 @@ def write_m3_telemetry():
     message = f'Model 3 telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
     send_email('Model 3 Telemetry Logged', message, EMAIL_1)
   except Exception as e:
-    log().error('write_m3_telemetry(): ' + str(e))
+    log().error('write_m3_telemetry(): %s', e, exc_info=True)
 
 
 def write_mx_telemetry():
@@ -208,7 +208,7 @@ def write_mx_telemetry():
     
     # check for missing data and retry
     if not any(get_check_list(data)):
-      log().warning('Retry write_mx_telemetry() due to missing data: ' + str(data))
+      log().warning('Retry write_mx_telemetry() due to missing data: %s', data)
       time.sleep(WAIT_TIME)
       write_mx_telemetry()
 
@@ -373,7 +373,7 @@ def write_mx_telemetry():
     message = f'Model X telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
     send_email('Model X Telemetry Logged', message, EMAIL_1)
   except Exception as e:
-    log().error('write_mx_telemetry(): ' + str(e))
+    log().error('write_mx_telemetry(): %s', e, exc_info=True)
 
 
 ##

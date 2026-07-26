@@ -276,7 +276,7 @@ def schedule_software_update(vin, offset_sec):
 
     return send_post(get_url(vin, 'schedule_software_update'), payload)
   except Exception as e:
-    log().error('schedule_software_update(' + vin + '): ' + str(e))
+    log().error('schedule_software_update(%s): %s', vin, e, exc_info=True)
 
 
 ###

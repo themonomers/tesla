@@ -70,7 +70,7 @@ def notify_is_tesla_plugged_in():
       ).execute().get('values', [])
       service.close()
     except Exception as e:
-      log().warning('Retry getting configuration info from Google Sheets: ' + str(e))
+      log().warning('Retry getting configuration info from Google Sheets: %s', e)
       time.sleep(WAIT_TIME)
       notify_is_tesla_plugged_in()
 
@@ -143,7 +143,7 @@ def notify_is_tesla_plugged_in():
       EMAIL_1
     )
   except Exception as e:
-    log().error('notify_is_tesla_plugged_in(): ' + str(e))
+    log().error('notify_is_tesla_plugged_in(): %s', e, exc_info=True)
     
 
 ##
@@ -340,10 +340,10 @@ def check_charge(vin):
         or data['response']['charge_state']['battery_level'] <= data['response']['charge_state']['charge_limit_soc']
       )
     ):
-      log().warning('check_charge(' + vin + '): Scheduled charging failed to start.  Starting backup charging.')
+      log().warning('check_charge(%s): Scheduled charging failed to start.  Starting backup charging.', vin)
       start_charge(vin)
   except Exception as e:
-    log().error('check_charge(' + vin + '): ' + str(e))
+    log().error('check_charge(%s): %s', vin, e, exc_info=True)
 
 
 ##
@@ -660,7 +660,7 @@ def send_plugged_in_message(vehicle, battery_level, battery_range, charge_port_d
         f'-Your {vehicle}'
       )
       send_email(f'Please Plug In Your {vehicle}', message, to, cc, bcc)
-      log().debug('send email: ' + message)
+      log().debug('send email: %s', message)
 
 
 def send_scheduled_charge_message(vehicle, data, charge_start_time, finish_time, climate_start_time, to, cc='', bcc=''):

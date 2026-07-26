@@ -50,7 +50,7 @@ def find_open_row(sheet_id, sheet_range):
 
     return len(values) + 1
   except Exception as e:
-    log().warning('Retry find_open_row(): ' + str(e))
+    log().warning('Retry find_open_row(): %s', e)
     time.sleep(WAIT_TIME)
     return find_open_row(sheet_id, sheet_range)
 

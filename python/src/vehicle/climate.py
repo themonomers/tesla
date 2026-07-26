@@ -90,10 +90,10 @@ def start_m3_precondition():
     
     # get local weather
     wdata = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
-    log().debug('temp: ' + str(wdata['current']['temp']))
+    log().debug('temp: %s', wdata['current']['temp'])
     
-    log().debug('cold temp threshold: ' + climate_config[17][1])
-    log().debug('hot temp threshold: ' + climate_config[18][1])
+    log().debug('cold temp threshold: %s', climate_config[17][1])
+    log().debug('hot temp threshold: %s', climate_config[18][1])
 
     # get today's day of week to compare against Google Sheet temp preferences 
     # for that day
@@ -145,9 +145,9 @@ def start_m3_precondition():
     else:
       return # outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 
-    log().debug('d_temp: ' + str(d_temp))
-    log().debug('p_temp: ' + str(p_temp))
-    log().debug('seats: ' + str(seats))
+    log().debug('d_temp: %s', d_temp)
+    log().debug('p_temp: %s', p_temp)
+    log().debug('seats: %s', seats)
     # no need to execute if the car is not at primary location
     data = get_vehicle_data(M3_VIN)
     if is_vehicle_at_primary(data):
@@ -170,7 +170,7 @@ def start_m3_precondition():
       # create crontab to stop preconditioning at preferred time later in the day
       setup_stop_cron(M3_VIN, stop_time)
   except Exception as e:
-    log().error('start_m3_precondition(): ' + str(e))
+    log().error('start_m3_precondition(): %s', e, exc_info=True)
 
 
 def start_mx_precondition():
@@ -188,10 +188,10 @@ def start_mx_precondition():
     
     # get local weather
     wdata = get_current_weather(PRIMARY_LAT, PRIMARY_LNG)
-    log().debug('temp: ' + str(wdata['current']['temp']))    
+    log().debug('temp: %s', wdata['current']['temp'])    
 
-    log().debug('cold temp threshold: ' + climate_config[17][10])
-    log().debug('hot temp threshold: ' + climate_config[18][10])
+    log().debug('cold temp threshold: %s', climate_config[17][10])
+    log().debug('hot temp threshold: %s', climate_config[18][10])
 
     # get today's day of week to compare against Google Sheet temp preferences 
     # for that day
@@ -234,9 +234,9 @@ def start_mx_precondition():
     else:
       return # outside temp is within cold and hot thresholds so no preconditioning required; inside and outside car temp readings seem to be inaccurate until the HVAC runs
 
-    log().debug('d_temp: ' + str(d_temp))
-    log().debug('p_temp: ' + str(p_temp))
-    log().debug('seats: ' + str(seats))
+    log().debug('d_temp: %s', d_temp)
+    log().debug('p_temp: %s', p_temp)
+    log().debug('seats: %s', seats)
     # no need to execute if the car is not at primary location
     data = get_vehicle_data(MX_VIN)
     if is_vehicle_at_primary(data):
@@ -253,7 +253,7 @@ def start_mx_precondition():
       # create crontab to stop preconditioning at preferred time later in the day
       setup_stop_cron(MX_VIN, stop_time)
   except Exception as e: 
-    log().error('start_mx_precondition(): ' + str(e))
+    log().error('start_mx_precondition(): %s', e, exc_info=True)
 
 
 def setup_stop_cron(vin, stop_time):
@@ -282,7 +282,7 @@ def stop_precondition(vin):
     ): # only execute if the car is at primary location and in park
       api.stop_precondition(vin)
   except Exception as e:
-    log().error('stop_precondition(' + vin + '): ' + str(e))
+    log().error('stop_precondition(%s): %s', vin, e, exc_info=True)
 
 
 def main(parser):

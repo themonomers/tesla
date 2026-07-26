@@ -65,7 +65,7 @@ def is_vehicle_at_location(data, lat, lng):
     else:
       return False
   except Exception as e:
-    log().warning('is_vehicle_at_location(): ' + str(e))
+    log().warning('is_vehicle_at_location(): %s', e)
     return False
 
 
@@ -293,7 +293,7 @@ def load_log_into_gsheet(days_to_load):
 
     file.close()
   except Exception as e:
-    log().error('load_log_into_gsheet(): ' + str(e))
+    log().error('load_log_into_gsheet(): %s', e, exc_info=True)
 
 
 def main(parser):

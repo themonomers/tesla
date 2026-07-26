@@ -71,7 +71,7 @@ def refresh_token():
     f'expires_at={dt + timedelta(seconds=response["expires_in"]):%Y-%m-%d %H:%M:%S}\n'
   )
 
-  log().debug('refreshed tokens: ' + message)
+  log().debug('refreshed tokens: %s', message)
 
   # Encrypt config file
   encrypt(message, TOKEN, TESLA_KEY)
@@ -91,13 +91,13 @@ def check_token_expiration():
     # get the refresh date 1 hours and 5 minutes prior
     # the additional 5 minutes is because of crontab timing
     refresh_date = expiration_date - timedelta(hours=1, minutes=5)
-    log().debug('refresh date: ' + str(refresh_date))
-    log().debug('now: ' + str(datetime.today()))
+    log().debug('refresh date: %s', refresh_date)
+    log().debug('now: %s', datetime.today())
 
     if datetime.today() >= refresh_date:
       refresh_token()
   except Exception as e:
-    log().error('check_token_expiration(): ' + str(e))
+    log().error('check_token_expiration(): %s', e, exc_info=True)
 
 
 ##
@@ -150,7 +150,7 @@ def new_token():
     f'expires_at={dt + timedelta(seconds=response["expires_in"]):%Y-%m-%d %H:%M:%S}\n'
   )
 
-  log().debug('tokens: ' + message)
+  log().debug('tokens: %s', message)
 
   f = open('tesla_token.ini', 'wb')
   f.write(str.encode(message))

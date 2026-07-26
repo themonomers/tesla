@@ -145,7 +145,7 @@ def write_local_live_site_telemetry():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log().error('write_local_live_site_telemetry(): ' + str(e))
+    log().error('write_local_live_site_telemetry(): %s', e, exc_info=True)
 
 
 ##

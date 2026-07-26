@@ -74,7 +74,7 @@ def write_energy_detail_to_db(target_date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log().error('write_energy_detail_to_db(): ' + str(e))
+    log().error('write_energy_detail_to_db(): %s', e, exc_info=True)
 
 
 ##
@@ -203,7 +203,7 @@ def write_energy_summary_to_db(target_date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log().error('write_energy_summary_to_db(): ' + str(e))
+    log().error('write_energy_summary_to_db(): %s', e, exc_info=True)
 
 
 ##
@@ -244,7 +244,7 @@ def write_battery_charge_to_db(target_date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log().error('write_battery_charge_to_db(): ' + str(e))
+    log().error('write_battery_charge_to_db(): %s', e, exc_info=True)
 
 
 ##
@@ -332,7 +332,7 @@ def write_energy_tou_summary_to_db(target_date):
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log().error('write_energy_tou_summary_to_db(): ' + str(e))
+    log().error('write_energy_tou_summary_to_db(): %s', e, exc_info=True)
 
 
 ##
@@ -900,7 +900,7 @@ def write_energy_data_to_gsheet(target_date):
     ).execute()
     service.close()
   except Exception as e:
-    log().error('write_energy_data_to_gsheet(): ' + str(e))
+    log().error('write_energy_data_to_gsheet(): %s', e, exc_info=True)
 
 
 ##
@@ -959,7 +959,7 @@ def write_battery_backup_history_to_db():
     client.write_points(json_body)
     client.close()
   except Exception as e:
-    log().error('write_battery_backup_history_to_db(): ' + str(e))
+    log().error('write_battery_backup_history_to_db(): %s', e, exc_info=True)
 
 
 ##
