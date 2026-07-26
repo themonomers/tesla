@@ -12,7 +12,8 @@ from common.constants import (
   ACCESS_TOKEN,
   CERT,
   M3_VIN,
-  MX_VIN)
+  MX_VIN
+)
 
 VEHICLE_STATE_ONLINE = 'online'
 
@@ -30,14 +31,14 @@ def get_vehicle_data(vin):
     return get_vehicle_data(vin)
 
   endpoints = [
-      'location_data',
-      'charge_state',
-      'climate_state',
-      'vehicle_state',
-      'gui_settings',
-      'vehicle_config',
-      'drive_state',
-      'charge_schedule_data',
+    'location_data',
+    'charge_state',
+    'climate_state',
+    'vehicle_state',
+    'gui_settings',
+    'vehicle_config',
+    'drive_state',
+    'charge_schedule_data'
   ]
   encoded_endpoints = urllib.parse.quote(';'.join(endpoints))
 
@@ -287,7 +288,7 @@ def get_url(vin, command=None):
   url = f'{BASE_PROXY_URL}/api/1/vehicles/{vin}'
 
   if command is not None:
-      url += f'/command/{command}'
+    url += f'/command/{command}'
   
   return url
 
@@ -334,33 +335,34 @@ def main(parser):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-                    prog='api.py',
-                    description='API calls for Tesla Vehicles (Pre-2021 Model X and S).',
-                    formatter_class=CustomHelpFormatter)
+    prog='api.py',
+    description='API calls for Tesla Vehicles.',
+    formatter_class=CustomHelpFormatter
+  )
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                     '-p', 
-                     '--print', 
-                     help='prints all the vehicle data; VIN is the Vehicle Identification Number you can find on the '
-                          'car or in the mobile app',
-                     nargs=1,
-                     metavar='VIN'
-                    )
+    '-p', 
+    '--print', 
+    help='prints all the vehicle data; VIN is the Vehicle Identification Number you can find on the '
+         'car or in the mobile app',
+    nargs=1,
+    metavar='VIN'
+  )
   group.add_argument(
-                     '-s', 
-                     '--schedule_software_update', 
-                     help='mimics scheduling a software update from the vehicle interface; VEHICLE can be \'m3\' or '
-                          '\'mx\'',
-                     nargs=1,
-                     metavar='VEHICLE'
-                    )
+    '-s', 
+    '--schedule_software_update', 
+    help='mimics scheduling a software update from the vehicle interface; VEHICLE can be \'m3\' or '
+         '\'mx\'',
+    nargs=1,
+    metavar='VEHICLE'
+  )
   group.add_argument(
-                     '-v', 
-                     '--vehicle_info', 
-                     help='returns vehicle state, "online" or "asleep" or "offline", and other information; VIN is the '
-                          'Vehicle Identification Number you can find on the car or in the mobile app',
-                     nargs=1,
-                     metavar='VIN'
-                    )
+    '-v', 
+    '--vehicle_info', 
+    help='returns vehicle state, "online" or "asleep" or "offline", and other information; VIN is the '
+         'Vehicle Identification Number you can find on the car or in the mobile app',
+    nargs=1,
+    metavar='VIN'
+  )
 
   main(parser)

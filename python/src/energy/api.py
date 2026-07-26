@@ -9,7 +9,8 @@ from common.constants import (
   TIME_ZONE,
   BASE_PROXY_URL,
   ACCESS_TOKEN,
-  CERT)
+  CERT
+)
 from datetime import datetime
 
 SITE_ID = encrypted_config['energy']['site_id']
@@ -66,10 +67,12 @@ def get_site_history(period, target_date):
     0
   ), is_dst=None)
 
-  command = (f'calendar_history'
-             f'?kind=energy'
-             f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
-             f'&period={period}')
+  command = (
+    f'calendar_history'
+    f'?kind=energy'
+    f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+    f'&period={period}'
+  )
 
   return json.loads(
     send_get(get_url(command)).text
@@ -115,11 +118,13 @@ def get_site_tou_history(period, target_date):
     0
   ), is_dst=None)
 
-  command = (f'calendar_history'
-             f'?kind=time_of_use_energy'
-             f'&period={period}'
-             f'&start_date={s_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
-             f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}')
+  command = (
+    f'calendar_history'
+    f'?kind=time_of_use_energy'
+    f'&period={period}'
+    f'&start_date={s_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+    f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+  )
 
   return json.loads(
     send_get(get_url(command)).text
@@ -144,10 +149,12 @@ def get_battery_charge_history(period, target_date):
     0
   ), is_dst=None)
 
-  command = (f'calendar_history'
-             f'?kind=soe'
-             f'&period={period}'
-             f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}')
+  command = (
+    f'calendar_history'
+    f'?kind=soe'
+    f'&period={period}'
+    f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+  )
 
   return json.loads(
     send_get(get_url(command)).text
@@ -182,11 +189,13 @@ def get_power_history(period, target_date):
     0
   ), is_dst=None)
 
-  command = (f'calendar_history'
-             f'?kind=power'
-             f'&period={period}'
-             f'&start_date={s_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
-             f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}')
+  command = (
+    f'calendar_history'
+    f'?kind=power'
+    f'&period={period}'
+    f'&start_date={s_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+    f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+  )
 
   return json.loads(
     send_get(get_url(command)).text
@@ -257,12 +266,14 @@ def get_savings_forecast(period, target_date):
     0
   ), is_dst=None)
 
-  command = (f'calendar_history'
-             f'?kind=savings'
-             f'&period={period}'
-             f'&start_date={s_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
-             f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
-             f'&tariff=PGE-EV2-A')
+  command = (
+    f'calendar_history'
+    f'?kind=savings'
+    f'&period={period}'
+    f'&start_date={s_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+    f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+    f'&tariff=PGE-EV2-A'
+  )
 
   return json.loads(
     send_get(get_url(command)).text
@@ -395,14 +406,20 @@ def send_post(url, payload):
 def main(parser):
   args = parser.parse_args()
 
-  if ((args.site_history
-       or args.site_tou_history
-       or args.battery_charge_history
-       or args.power_history
-       or args.savings_forecast) 
-       and not args.target_date):
-    parser.error('--target_date (m/d/yyyy) is required when --site_history, --site_tou_history, --battery_charge_history, '
-                 '--power_history, or --savings_forecast is used')
+  if (
+      (
+        args.site_history
+        or args.site_tou_history
+        or args.battery_charge_history
+        or args.power_history
+        or args.savings_forecast
+      ) 
+      and not args.target_date
+  ):
+    parser.error(
+      '--target_date (m/d/yyyy) is required when --site_history, --site_tou_history, --battery_charge_history, '
+      '--power_history, or --savings_forecast is used'
+    )
 
   target_date = None
   if args.target_date:
@@ -439,85 +456,86 @@ def main(parser):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-                    prog='api.py',
-                    description='API calls for Tesla Energy products.',
-                    formatter_class=CustomHelpFormatter)
+    prog='api.py',
+    description='API calls for Tesla Energy products.',
+    formatter_class=CustomHelpFormatter
+  )
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                     '-s', 
-                     '--site_status', 
-                     help='prints site summary information, e.g. Gateway ID',
-                     action='store_true'
-                    )
+    '-s', 
+    '--site_status', 
+    help='prints site summary information, e.g. Gateway ID',
+    action='store_true'
+  )
   group.add_argument(
-                     '-l', 
-                     '--site_live_status', 
-                     help='prints live data of load, grid, solar, battery, etc.',
-                     action='store_true'
-                    )
+    '-l', 
+    '--site_live_status', 
+    help='prints live data of load, grid, solar, battery, etc.',
+    action='store_true'
+  )
   group.add_argument(
-                     '-i', 
-                     '--site_info', 
-                     help='prints site configuration and setting details',
-                     action='store_true'
-                    )
+    '-i', 
+    '--site_info', 
+    help='prints site configuration and setting details',
+    action='store_true'
+  )
   group.add_argument(
-                     '-b', 
-                     '--battery_backup_history', 
-                     help='prints grid outage/battery backup events',
-                     action='store_true'
-                    )
+    '-b', 
+    '--battery_backup_history', 
+    help='prints grid outage/battery backup events',
+    action='store_true'
+  )
   group.add_argument(
-                     '-r', 
-                     '--backup_time_remaining', 
-                     help='prints estimated hours of battery backup left',
-                     action='store_true'
-                    )
+    '-r', 
+    '--backup_time_remaining', 
+    help='prints estimated hours of battery backup left',
+    action='store_true'
+  )
   group.add_argument(
-                     '-t', 
-                     '--site_tariff', 
-                     help='lists the utility provider\'s rate plan (tariff) selected for your site in the mobile app '
-                          'along with published rates, TOU schedules, etc.',
-                     action='store_true'
-                    )
+    '-t', 
+    '--site_tariff', 
+    help='lists the utility provider\'s rate plan (tariff) selected for your site in the mobile app '
+         'along with published rates, TOU schedules, etc.',
+    action='store_true'
+  )
   group.add_argument(
-                     '-y', 
-                     '--site_history', 
-                     help='prints summary level information about energy imports and exports down to the day',
-                     action='store_true'
-                    )
+    '-y', 
+    '--site_history', 
+    help='prints summary level information about energy imports and exports down to the day',
+    action='store_true'
+  )
   group.add_argument(
-                     '-u', 
-                     '--site_tou_history', 
-                     help='prints summary level information about energy imports and exports down to the day, separated '
-                          'by time of use (peak, partial peak, and off peak)',
-                     action='store_true'
-                    )
+    '-u', 
+    '--site_tou_history', 
+    help='prints summary level information about energy imports and exports down to the day, separated '
+         'by time of use (peak, partial peak, and off peak)',
+    action='store_true'
+  )
   group.add_argument(
-                     '-c', 
-                     '--battery_charge_history', 
-                     help='prints battery charge level history in 15 minute increments shown on the mobile app',
-                     action='store_true'
-                    )
+    '-c', 
+    '--battery_charge_history', 
+    help='prints battery charge level history in 15 minute increments shown on the mobile app',
+    action='store_true'
+  )
   group.add_argument(
-                     '-p', 
-                     '--power_history', 
-                     help='prints energy information in 5 minute increments',
-                     action='store_true'
-                    )
+    '-p', 
+    '--power_history', 
+    help='prints energy information in 5 minute increments',
+    action='store_true'
+  )
   group.add_argument(
-                     '-f', 
-                     '--savings_forecast', 
-                     help='prints data for Solar Value (estimated cost savings)',
-                     action='store_true'
-                    )
+    '-f', 
+    '--savings_forecast', 
+    help='prints data for Solar Value (estimated cost savings)',
+    action='store_true'
+  )
   parser.add_argument(
-                      '-d', 
-                      '--target_date', 
-                      help='DATE of data lookup in m/d/yyyy format',
-                      type=lambda d: datetime.strptime(d, '%m/%d/%Y'),
-                      nargs=1,
-                      metavar='DATE'
-                     )
+    '-d', 
+    '--target_date', 
+    help='DATE of data lookup in m/d/yyyy format',
+    type=lambda d: datetime.strptime(d, '%m/%d/%Y'),
+    nargs=1,
+    metavar='DATE'
+  )
 
   main(parser)

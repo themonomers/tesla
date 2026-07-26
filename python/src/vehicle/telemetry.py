@@ -13,7 +13,8 @@ from common.constants import (
   EV_SPREADSHEET_ID,
   WAIT_TIME,
   EMAIL_1,
-  CHARGING_STATE_COMPLETE)
+  CHARGING_STATE_COMPLETE
+)
 from datetime import datetime
 
 TELEMETRY_SHEET_ID = encrypted_config['google']['telemetry_sheet_id']
@@ -112,9 +113,11 @@ def write_m3_telemetry():
     # if the starting range is less than eod range or the car is not plugged 
     # in or charging state is complete, the starting range is equal to the 
     # eod range because it won't charge
-    if (starting_range < eod_range 
-        or not data['response']['charge_state']['charge_port_door_open']
-        or data['response']['charge_state']['charging_state'] == CHARGING_STATE_COMPLETE):
+    if (
+      starting_range < eod_range 
+      or not data['response']['charge_state']['charge_port_door_open']
+      or data['response']['charge_state']['charging_state'] == CHARGING_STATE_COMPLETE
+    ):
       starting_range = eod_range
     
     # write the starting_range for the next day   
@@ -193,7 +196,7 @@ def write_m3_telemetry():
     
     # send email notification
     message = f'Model 3 telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
-    send_email('Model 3 Telemetry Logged', message, EMAIL_1, '', '', '')
+    send_email('Model 3 Telemetry Logged', message, EMAIL_1)
   except Exception as e:
     log().error('write_m3_telemetry(): ' + str(e))
 
@@ -285,9 +288,11 @@ def write_mx_telemetry():
     # if the starting range is less than eod range or the car is not plugged 
     # in or charging state is complete, the starting range is equal to the 
     # eod range because it won't charge
-    if (starting_range < eod_range
-        or not data['response']['charge_state']['charge_port_door_open']
-        or data['response']['charge_state']['charging_state'] == CHARGING_STATE_COMPLETE):
+    if (
+      starting_range < eod_range
+      or not data['response']['charge_state']['charge_port_door_open']
+      or data['response']['charge_state']['charging_state'] == CHARGING_STATE_COMPLETE
+    ):
       starting_range = eod_range
     
     # write the starting_range for the next day   
@@ -366,7 +371,7 @@ def write_mx_telemetry():
     
     # send email notification
     message = f'Model X telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
-    send_email('Model X Telemetry Logged', message, EMAIL_1, '', '', '')
+    send_email('Model X Telemetry Logged', message, EMAIL_1)
   except Exception as e:
     log().error('write_mx_telemetry(): ' + str(e))
 
@@ -391,14 +396,18 @@ def get_check_list(data):
 
 
 def get_battery_capacity(data):
-  return (data['response']['charge_state']['battery_range']
-          / (data['response']['charge_state']['battery_level'] / 100.0))
+  return (
+    data['response']['charge_state']['battery_range']
+    / (data['response']['charge_state']['battery_level'] / 100.0)
+  )
 
 
 def get_starting_range(data):
-  return (data['response']['charge_state']['battery_range']
-          / (data['response']['charge_state']['battery_level'] / 100.0) 
-          * (data['response']['charge_state']['charge_limit_soc'] / 100.0))
+  return (
+    data['response']['charge_state']['battery_range']
+    / (data['response']['charge_state']['battery_level'] / 100.0) 
+    * (data['response']['charge_state']['charge_limit_soc'] / 100.0)
+  )
 
 
 def main(parser):
@@ -420,23 +429,24 @@ def main(parser):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-                    prog='telemetry.py',
-                    description='Read/write the vehicle data into a Google Sheet for tracking, analysis, and graphs.',
-                    formatter_class=CustomHelpFormatter)
+    prog='telemetry.py',
+    description='Read/write the vehicle data into a Google Sheet for tracking, analysis, and graphs.',
+    formatter_class=CustomHelpFormatter
+  )
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                     '-a', 
-                     '--write_all', 
-                     help='writes telemetry for all vehicles',
-                     action='store_true'
-                    )
+    '-a', 
+    '--write_all', 
+    help='writes telemetry for all vehicles',
+    action='store_true'
+  )
   group.add_argument(
-                     '-v', 
-                     '--write_vehicle', 
-                     help='writes telemetry for a specific vehicle; VEHICLE can be \'m3\' or '
-                          '\'mx\'',
-                     nargs=1,
-                     metavar='VEHICLE'
-                    )
+    '-v', 
+    '--write_vehicle', 
+    help='writes telemetry for a specific vehicle; VEHICLE can be \'m3\' or '
+         '\'mx\'',
+    nargs=1,
+    metavar='VEHICLE'
+  )
 
   main(parser)

@@ -5,14 +5,16 @@ from vehicle.api import (
   get_vehicle_data, 
   set_temp, 
   set_seat_heating, 
-  set_seat_cooling)
+  set_seat_cooling
+)
 from common.googleutil import get_google_sheet_service
 from common.utilities import (
   is_vehicle_at_primary, 
   get_today_time, 
   get_current_weather,
   delete_cron,
-  create_cron)
+  create_cron
+)
 from common.argutil import CustomHelpFormatter
 from common.logutil import log
 from common.configutil import config
@@ -21,7 +23,8 @@ from common.constants import (
   MX_VIN,
   EV_SPREADSHEET_ID,
   PRIMARY_LAT,
-  PRIMARY_LNG)
+  PRIMARY_LNG
+)
 from datetime import datetime
 
 
@@ -47,11 +50,13 @@ def set_precondition(data, eco_mode, start_time):
     if is_vehicle_at_primary(data):
       # create precondition start crontab at preferred time tomorrow
       delete_cron(f'{config["cron"]["climate_start"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}')
-      create_cron(f'{config["cron"]["climate_start"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}',
-                  start_time.month,
-                  start_time.day,
-                  start_time.hour,
-                  start_time.minute)
+      create_cron(
+        f'{config["cron"]["climate_start"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}',
+        start_time.month,
+        start_time.day,
+        start_time.hour,
+        start_time.minute
+      )
 
       return start_time
   return None
@@ -156,8 +161,11 @@ def start_m3_precondition():
       for index, item in enumerate(seats):
         if index == 3:
           continue # skip index 3 as it's not assigned in the API
-        set_seat_cooling(M3_VIN, int(index + 1), 
-                         int(item)) if mode == 'cool' else set_seat_heating(M3_VIN, int(index), int(item))
+
+        if mode == 'cool':
+            set_seat_cooling(M3_VIN, int(index + 1), int(item))
+        else:
+            set_seat_heating(M3_VIN, int(index), int(item))
 
       # create crontab to stop preconditioning at preferred time later in the day
       setup_stop_cron(M3_VIN, stop_time)
@@ -250,11 +258,13 @@ def start_mx_precondition():
 
 def setup_stop_cron(vin, stop_time):
   delete_cron(f'{config["cron"]["climate_stop"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}')
-  create_cron(f'{config["cron"]["climate_stop"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}',
-              stop_time.month,
-              stop_time.day,
-              stop_time.hour,
-              stop_time.minute)
+  create_cron(
+    f'{config["cron"]["climate_stop"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}',
+    stop_time.month,
+    stop_time.day,
+    stop_time.hour,
+    stop_time.minute
+  )
 
 
 ##
@@ -266,8 +276,10 @@ def setup_stop_cron(vin, stop_time):
 def stop_precondition(vin):
   try:
     data = get_vehicle_data(vin)
-    if (is_vehicle_at_primary(data)
-        and data['response']['drive_state']['shift_state'] not in {'D', 'R', 'N'}): # only execute if the car is at primary location and in park
+    if (
+      is_vehicle_at_primary(data)
+      and data['response']['drive_state']['shift_state'] not in {'D', 'R', 'N'}
+    ): # only execute if the car is at primary location and in park
       api.stop_precondition(vin)
   except Exception as e:
     log().error('stop_precondition(' + vin + '): ' + str(e))
@@ -296,23 +308,24 @@ def main(parser):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-                    prog='climate.py',
-                    description='Sets up crontab for starting the car HVAC based on references stored in a Google Sheet.',
-                    formatter_class=CustomHelpFormatter)
+    prog='climate.py',
+    description='Sets up crontab for starting the car HVAC based on references stored in a Google Sheet.',
+    formatter_class=CustomHelpFormatter
+  )
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                     '-t', 
-                     '--start', 
-                     help='starts pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
-                     nargs=1,
-                     metavar='VEHICLE'
-                    )
+    '-t', 
+    '--start', 
+    help='starts pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
+    nargs=1,
+    metavar='VEHICLE'
+  )
   group.add_argument(
-                     '-p', 
-                     '--stop', 
-                     help='stops pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
-                     nargs=1,
-                     metavar='VEHICLE'
-                    )
+    '-p', 
+    '--stop', 
+    help='stops pre-conditioning for a vehicle; VEHICLE can be \'m3\' or \'mx\'',
+    nargs=1,
+    metavar='VEHICLE'
+  )
 
   main(parser)

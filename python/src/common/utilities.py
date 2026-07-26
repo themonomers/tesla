@@ -12,12 +12,14 @@ from common.logutil import log
 from common.configutil import (
   encrypted_config, 
   config, 
-  get_filepath)
+  get_filepath
+)
 from common.constants import (
   PRIMARY_LAT, 
   PRIMARY_LNG, 
   PAC, 
-  WAIT_TIME)
+  WAIT_TIME
+)
 from datetime import datetime, timedelta
 from crontab import CronTab
 
@@ -50,9 +52,12 @@ def is_vehicle_at_secondary(data):
 
 def is_vehicle_at_location(data, lat, lng):
   try:
-    d = get_distance(data['response']['drive_state']['latitude'], 
-                     data['response']['drive_state']['longitude'], 
-                     lat, lng)
+    d = get_distance(
+      data['response']['drive_state']['latitude'], 
+      data['response']['drive_state']['longitude'], 
+      lat, 
+      lng
+    )
   
     # check if the car is more than a quarter of a mile away 
     if d < 0.25:
@@ -68,18 +73,20 @@ def get_distance(car_lat, car_lng, x_lat, x_lng):
   diff_lat = to_rad(car_lat - x_lat)
   diff_lng = to_rad(car_lng - x_lng)  
   
-  a = ((math.sin(diff_lat/2) * math.sin(diff_lat/2)) 
-        + math.cos(x_lat) 
-        * math.cos(car_lat) 
-        * (math.sin(diff_lng/2) * math.sin(diff_lng/2)))
-  c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+  a = (
+    (math.sin(diff_lat / 2) * math.sin(diff_lat / 2)) 
+    + math.cos(x_lat) 
+    * math.cos(car_lat) 
+    * (math.sin(diff_lng / 2) * math.sin(diff_lng / 2))
+  )
+  c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
   d = R * c
   
   return d
 
 
 def to_rad(x):
-  return x * math.pi/180
+  return x * math.pi / 180
 
 
 ##
@@ -109,11 +116,11 @@ def get_today_time(time_str):
 ##
 def get_current_weather(lat, lng):
   params = {
-      'lat': lat,
-      'lon': lng,
-      'appid': OPENWEATHERMAP_KEY,
-      'exclude': 'minutely,hourly,daily,alerts',
-      'units': 'metric'
+    'lat': lat,
+    'lon': lng,
+    'appid': OPENWEATHERMAP_KEY,
+    'exclude': 'minutely,hourly,daily,alerts',
+    'units': 'metric'
   }
   url = f'{BASE_WEATHER_URL}/onecall?{urllib.parse.urlencode(params)}'
 
@@ -135,11 +142,11 @@ def get_current_weather(lat, lng):
 ##
 def get_daily_weather(lat, lng):
   params = {
-      'lat': lat,
-      'lon': lng,
-      'appid': OPENWEATHERMAP_KEY,
-      'exclude': 'current,minutely,alerts',
-      'units': 'metric'
+    'lat': lat,
+    'lon': lng,
+    'appid': OPENWEATHERMAP_KEY,
+    'exclude': 'current,minutely,alerts',
+    'units': 'metric'
   }
   url = f'{BASE_WEATHER_URL}/onecall?{urllib.parse.urlencode(params)}'
 
@@ -274,8 +281,8 @@ def load_log_into_gsheet(days_to_load):
       service = get_google_sheet_service()
 
       service.spreadsheets().values().batchClear(
-          spreadsheetId=LOG_SPREADSHEET_ID, 
-          body={'ranges': 'log!A2:C'}
+        spreadsheetId=LOG_SPREADSHEET_ID, 
+        body={'ranges': 'log!A2:C'}
       ).execute()
 
       service.spreadsheets().values().batchUpdate(
@@ -306,31 +313,32 @@ def main(parser):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-                    prog='utilities.py',
-                    description='Commonly used and helpful tools.',
-                    formatter_class=CustomHelpFormatter)
+    prog='utilities.py',
+    description='Commonly used and helpful tools.',
+    formatter_class=CustomHelpFormatter
+  )
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                     '-c', 
-                     '--current', 
-                     help='prints current weather conditions at a configured primary location',
-                     action='store_true'
-                    )
+    '-c', 
+    '--current', 
+    help='prints current weather conditions at a configured primary location',
+    action='store_true'
+  )
   group.add_argument(
-                     '-d', 
-                     '--daily', 
-                     help='prints weather conditions for today + 7 days, and hourly weather conditions for 48 hours '
-                          'at a configured primary location',
-                     action='store_true'
-                    )
+    '-d', 
+    '--daily', 
+    help='prints weather conditions for today + 7 days, and hourly weather conditions for 48 hours '
+         'at a configured primary location',
+    action='store_true'
+  )
   group.add_argument(
-                     '-l', 
-                     '--load', 
-                     help='load log file into Google Sheet for ease of viewing and analysis; DAYS are the number of days '
-                          'of log entry history to load into Google Sheet',
-                     type=int,
-                     nargs=1,
-                     metavar='DAYS'
-                    )
+    '-l', 
+    '--load', 
+    help='load log file into Google Sheet for ease of viewing and analysis; DAYS are the number of days '
+         'of log entry history to load into Google Sheet',
+    type=int,
+    nargs=1,
+    metavar='DAYS'
+  )
 
   main(parser)

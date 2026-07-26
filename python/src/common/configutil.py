@@ -14,9 +14,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 ##
 def get_config(read_fn, token_fn=None):
   if token_fn is not None:
-    buffer = StringIO(
-      decrypt(read_fn, token_fn)
-    )
+    buffer = StringIO(decrypt(read_fn, token_fn))
   else: 
     buffer = StringIO(read_fn.read_text())
 

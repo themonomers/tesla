@@ -65,7 +65,7 @@ def auth_local_token():
 
   response = json.loads(send_request('POST', get_url('/login/Basic'), LOCAL_TOKEN, payload).text)
 
-  message = '[tesla]\n' + 'token=' + response['token'] + '\n'
+  message = f'[tesla]\ntoken={response["token"]}\n'
 
   # Encrypt config file
   encrypt(message, LOCAL_TOKEN, TESLA_KEY)

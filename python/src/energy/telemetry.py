@@ -8,7 +8,8 @@ from energy.api import (
   get_power_history, 
   get_savings_forecast, 
   get_battery_charge_history, 
-  get_battery_backup_history)
+  get_battery_backup_history
+)
 from energy.localtelemetry import get_local_system_status
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
@@ -19,7 +20,8 @@ from common.configutil import encrypted_config
 from common.constants import (
   PAC,
   TIME_ZONE,
-  EMAIL_1)
+  EMAIL_1
+)
 from datetime import datetime, timedelta
 
 ENERGY_SPREADSHEET_ID = encrypted_config['google']['energy_spreadsheet_id']
@@ -40,10 +42,7 @@ def write_energy_detail_to_db(target_date):
 
     json_body = []
     for x in data['response']['time_series']:
-      d = datetime.strptime(
-        x['timestamp'].split('T',1)[0],
-        '%Y-%m-%d'
-      )
+      d = datetime.strptime(x['timestamp'].split('T',1)[0], '%Y-%m-%d')
 
       if d.date() == target_date.date():
         for key, value in x.items():
@@ -65,11 +64,7 @@ def write_energy_detail_to_db(target_date):
           },
           'time': x['timestamp'],
           'fields': {
-            'value': float(
-              x['grid_power']
-              + x['battery_power']
-              + x['solar_power']
-            )
+            'value': float(x['grid_power'] + x['battery_power'] + x['solar_power'])
           }
         })
 
@@ -144,18 +139,17 @@ def write_energy_summary_to_db(target_date):
     cumulative_data = {}
 
     for items in data['response']['time_series']:
-      d = datetime.strptime(
-        items['timestamp'].split('T',1)[0], 
-        '%Y-%m-%d'
-      )
+      d = datetime.strptime(items['timestamp'].split('T',1)[0], '%Y-%m-%d')
 
       if d.date() == target_date.date():
         for key, value in items.items():
-          if key not in {'timestamp',
-                         'raw_timestamp',
-                         'grid_services_energy_exported', 
-                         'grid_services_energy_imported', 
-                         'generator_energy_exported'}:            
+          if key not in {
+            'timestamp',
+            'raw_timestamp',
+            'grid_services_energy_exported', 
+            'grid_services_energy_imported', 
+            'generator_energy_exported'
+          }:            
             cumulative_data[key] = float(cumulative_data.get(key, 0)) + float(value)
     
     for key, value in cumulative_data.items():
@@ -182,10 +176,7 @@ def write_energy_summary_to_db(target_date):
     data = get_savings_forecast('day', target_date)
 
     for i in range(len(data['response'])):
-      d = datetime.strptime(
-        data['response'][i]['timestamp'].split('T',1)[0], 
-        '%Y-%m-%d'
-      )
+      d = datetime.strptime(data['response'][i]['timestamp'].split('T',1)[0], '%Y-%m-%d')
       local = pytz.timezone('UTC')
       d = local.localize(d, is_dst=None)
 
@@ -274,10 +265,7 @@ def write_energy_tou_summary_to_db(target_date):
     cumulative_data = {}
 
     for items in data['response']['time_series']:
-      d = datetime.strptime(
-        items['timestamp'].split('T',1)[0], 
-        '%Y-%m-%d'
-      )
+      d = datetime.strptime(items['timestamp'].split('T',1)[0], '%Y-%m-%d')
 
       if d.date() == target_date.date():
         for key, value in items.items():
@@ -308,7 +296,7 @@ def write_energy_tou_summary_to_db(target_date):
     data = get_site_tou_history('day', target_date)
 
     # write solar data for TOU
-    for key_1, value_1 in data['response'].items():
+    for key_1, _ in data['response'].items():
       if key_1 in {'off_peak', 'partial_peak', 'peak'}:
         for i in range(len(data['response'][key_1]['time_series'])):
           d = datetime.strptime(
@@ -409,10 +397,7 @@ def write_energy_data_to_gsheet(target_date):
     cumulative_data = {}
 
     for items in data['response']['time_series']:
-      d = datetime.strptime(
-        items['timestamp'].split('T',1)[0], 
-        '%Y-%m-%d'
-      )
+      d = datetime.strptime(items['timestamp'].split('T',1)[0], '%Y-%m-%d')
 
       if d.date() == target_date.date():
         for key, value in items.items():
@@ -532,7 +517,7 @@ def write_energy_data_to_gsheet(target_date):
     if data['response']:
 
       # write solar data for off peak
-      for key_1, value_1 in data['response'].items():
+      for key_1, _ in data['response'].items():
         if key_1 == 'off_peak':
           for i in range(len(data['response'][key_1]['time_series'])):
             d = datetime.strptime(
@@ -948,9 +933,7 @@ def write_battery_backup_history_to_db():
 
         if key == 'timestamp':
           start = value[0:len(value) - 6:1]
-          start = local.localize(
-                  datetime.strptime(start, '%Y-%m-%dT%H:%M:%S')
-                  , is_dst=None)
+          start = local.localize(datetime.strptime(start, '%Y-%m-%dT%H:%M:%S'), is_dst=None)
 
         for item in db:
           for j in range(len(item)):
@@ -993,23 +976,31 @@ def main(parser):
     parser.print_help()
     return
 
-  options = [args.detail_to_db, 
-             args.summary_to_db, 
-             args.tou_summary_to_db, 
-             args.data_to_gsheet, 
-             args.battery_charge_to_db,
-             args.outage_to_db]
+  options = [
+    args.detail_to_db, 
+    args.summary_to_db, 
+    args.tou_summary_to_db, 
+    args.data_to_gsheet, 
+    args.battery_charge_to_db,
+    args.outage_to_db
+  ]
   if args.write_all and any(options):
     parser.error('-a, --all cannot be used with any other options')
 
-  if ((args.detail_to_db 
-       or args.summary_to_db
-       or args.tou_summary_to_db
-       or args.data_to_gsheet
-       or args.battery_charge_to_db)
-       and not args.target_date):
-    parser.error('--target_date (m/d/yyyy) is required when --detail_to_db, --summary_to_db, --tou_summary_to_db, '
-                 '--data_to_gsheet, or --battery_charge_to_db is used')
+  if (
+      (
+        args.detail_to_db 
+        or args.summary_to_db
+        or args.tou_summary_to_db
+        or args.data_to_gsheet
+        or args.battery_charge_to_db
+      )
+      and not args.target_date
+  ):
+    parser.error(
+      '--target_date (m/d/yyyy) is required when --detail_to_db, --summary_to_db, --tou_summary_to_db, '
+      '--data_to_gsheet, or --battery_charge_to_db is used'
+    )
 
   if args.write_all:
     write_energy_detail_to_db(datetime.today() - timedelta(1))
@@ -1020,10 +1011,8 @@ def main(parser):
     write_battery_backup_history_to_db()
 
     # send email notification
-    message = ('Energy telemetry successfully logged on '
-              + datetime.today().strftime('%B %d, %Y %H:%M:%S')
-              + '.')
-    send_email('Energy Telemetry Logged', message, EMAIL_1, '', '', '')
+    message = f'Energy telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
+    send_email('Energy Telemetry Logged', message, EMAIL_1)
   else:
     target_date = None
     if args.target_date:
@@ -1050,60 +1039,61 @@ def main(parser):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-                    prog='telemetry.py',
-                    description='Writes energy data to store for analysis and visualization.',
-                    formatter_class=CustomHelpFormatter)
+    prog='telemetry.py',
+    description='Writes energy data to store for analysis and visualization.',
+    formatter_class=CustomHelpFormatter
+  )
   parser.add_argument(
-                      '-a', 
-                      '--write_all', 
-                      help='writes all energy data from previous day as part of an automated routine',
-                      action='store_true'
-                     )
+    '-a', 
+    '--write_all', 
+    help='writes all energy data from previous day as part of an automated routine',
+    action='store_true'
+  )
   parser.add_argument(
-                      '-e', 
-                      '--detail_to_db', 
-                      help='writes energy data to InfluxDB in 5 minute increments for Home, Solar, Powerall, and Grid',
-                      action='store_true'
-                     )
+    '-e', 
+    '--detail_to_db', 
+    help='writes energy data to InfluxDB in 5 minute increments for Home, Solar, Powerall, and Grid',
+    action='store_true'
+  )
   parser.add_argument(
-                      '-s', 
-                      '--summary_to_db', 
-                      help='writes energy data to InfluxDB of daily totals for Home, Solar, Powerall, and Grid',
-                      action='store_true'
-                     )
+    '-s', 
+    '--summary_to_db', 
+    help='writes energy data to InfluxDB of daily totals for Home, Solar, Powerall, and Grid',
+    action='store_true'
+  )
   parser.add_argument(
-                      '-t', 
-                      '--tou_summary_to_db', 
-                      help='writes energy data to InfluxDB of TOU (off peak, partial peak, and peak) breakdowns of '
-                           'Solar, Powerall, Grid, etc., Energy Value, and Solar Offset',
-                      action='store_true'
-                     )
+    '-t', 
+    '--tou_summary_to_db', 
+    help='writes energy data to InfluxDB of TOU (off peak, partial peak, and peak) breakdowns of '
+         'Solar, Powerall, Grid, etc., Energy Value, and Solar Offset',
+    action='store_true'
+  )
   parser.add_argument(
-                      '-g', 
-                      '--data_to_gsheet', 
-                      help='writes energy data to Google Sheet of TOU (off peak, partial peak, and peak) breakdowns of '
-                           'Solar, Powerall, Grid, etc., Energy Value, and Solar Offset',
-                      action='store_true'
-                     )
+    '-g', 
+    '--data_to_gsheet', 
+    help='writes energy data to Google Sheet of TOU (off peak, partial peak, and peak) breakdowns of '
+         'Solar, Powerall, Grid, etc., Energy Value, and Solar Offset',
+    action='store_true'
+  )
   parser.add_argument(
-                      '-b', 
-                      '--battery_charge_to_db', 
-                      help='writes battery charge state history to InfluxDB in 15 minute increments',
-                      action='store_true'
-                     )
+    '-b', 
+    '--battery_charge_to_db', 
+    help='writes battery charge state history to InfluxDB in 15 minute increments',
+    action='store_true'
+  )
   parser.add_argument(
-                      '-o', 
-                      '--outage_to_db', 
-                      help='writes system backup history/grid outages to InfluxDB',
-                      action='store_true'
-                     )
+    '-o', 
+    '--outage_to_db', 
+    help='writes system backup history/grid outages to InfluxDB',
+    action='store_true'
+  )
   parser.add_argument(
-                      '-d', 
-                      '--target_date', 
-                      help='DATE of data import in m/d/yyyy format',
-                      type=lambda d: datetime.strptime(d, '%m/%d/%Y'),
-                      nargs=1,
-                      metavar='DATE'
-                     )
+    '-d', 
+    '--target_date', 
+    help='DATE of data import in m/d/yyyy format',
+    type=lambda d: datetime.strptime(d, '%m/%d/%Y'),
+    nargs=1,
+    metavar='DATE'
+  )
 
   main(parser)

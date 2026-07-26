@@ -23,7 +23,7 @@ DELETE_THRESHOLD = 30
 #
 # author: mjhwa@yahoo.com
 ##
-def send_email(subject, body, to, cc, bcc, filename):
+def send_email(subject, body, to, cc='', bcc='', filename=None):
   try:
     msg = EmailMessage()
     msg.set_content(body)
@@ -77,10 +77,7 @@ def truncate_email(query):
 
     # Call the Gmail API and get the messages based on query
     service = get_google_mail_service()
-    messages = service.users().messages().list(
-                 userId='me',
-                 q=query
-               ).execute()
+    messages = service.users().messages().list(userId='me', q=query).execute()
 
     if 'messages' not in messages:
       return
@@ -88,22 +85,16 @@ def truncate_email(query):
     # Loop through all the messages returned
     for item in messages['messages']:
       log().debug(item['id'])
-      message = service.users().messages().get(
-                  userId='me',
-                  id=item['id']
-                ).execute()
+      message = service.users().messages().get(userId='me', id=item['id']).execute()
 
-      email_date = datetime.fromtimestamp(int(message['internalDate'])/1000)
+      email_date = datetime.fromtimestamp(int(message['internalDate']) / 1000)
       log().debug(email_date)
 
       # Check if the email date is older than the delete date threshold and
       # move to trash
       if email_date < delete_date:
         log().debug(str(email_date) + ' ' + str(message['payload']['headers'][8]))
-        message = service.users().messages().trash(
-                    userId='me',
-                    id=item['id']
-                  ).execute() 
+        message = service.users().messages().trash(userId='me', id=item['id']).execute() 
   except Exception as e:
     log().error('truncate_email(): ' + str(e))
   finally:
@@ -122,14 +113,15 @@ def main(parser):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-                    prog='emailutil.py',
-                    description='Service to send and truncate emails.',
-                    formatter_class=CustomHelpFormatter)
+    prog='emailutil.py',
+    description='Service to send and truncate emails.',
+    formatter_class=CustomHelpFormatter
+  )
   parser.add_argument(
-                      '-t', 
-                      '--truncate', 
-                      help='deletes emails matching a pattern and older than a configured threshold',
-                      action='store_true'
-                     )
+    '-t', 
+    '--truncate', 
+    help='deletes emails matching a pattern and older than a configured threshold',
+    action='store_true'
+  )
 
   main(parser)

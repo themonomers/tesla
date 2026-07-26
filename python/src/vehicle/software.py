@@ -4,13 +4,15 @@ from common.utilities import (
   get_today_time, 
   get_tomorrow_time,
   delete_cron,
-  create_cron)
+  create_cron
+)
 from common.argutil import CustomHelpFormatter
 from common.configutil import config
 from common.constants import (
   M3_VIN,
   MX_VIN,
-  PAC)
+  PAC
+)
 from datetime import datetime
 
 
@@ -22,11 +24,13 @@ from datetime import datetime
 ##
 def schedule_update(vin, start_time):
   delete_cron(f'{config["cron"]["software_update"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}')
-  create_cron(f'{config["cron"]["software_update"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}',
-              start_time.month,
-              start_time.day,
-              start_time.hour,
-              start_time.minute)
+  create_cron(
+    f'{config["cron"]["software_update"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}',
+    start_time.month,
+    start_time.day,
+    start_time.hour,
+    start_time.minute
+  )
 
 
 def main(parser):
@@ -54,18 +58,19 @@ def main(parser):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-                    prog='software.py',
-                    description='Manage vehicle software.',
-                    formatter_class=CustomHelpFormatter)
+    prog='software.py',
+    description='Manage vehicle software.',
+    formatter_class=CustomHelpFormatter
+  )
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                     '-s', 
-                     '--schedule_update', 
-                     help='mimics scheduling a software update from the vehicle interface; VEHICLE can be \'m3\' or '
-                          '\'mx\', TIME is in 24-hour format and if it\'s before the current time it will schedule it '
-                          'for the following day',
-                     nargs=2,
-                     metavar=('VEHICLE', 'TIME')
-                    )
+    '-s', 
+    '--schedule_update', 
+    help='mimics scheduling a software update from the vehicle interface; VEHICLE can be \'m3\' or '
+         '\'mx\', TIME is in 24-hour format and if it\'s before the current time it will schedule it '
+         'for the following day',
+    nargs=2,
+    metavar=('VEHICLE', 'TIME')
+  )
 
   main(parser)

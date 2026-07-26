@@ -12,7 +12,8 @@ from common.configutil import (
   encrypted_config, 
   config, 
   get_filepath, 
-  get_config)
+  get_config
+)
 from datetime import datetime, timedelta
 
 CLIENT_ID = encrypted_config['tesla']['client_id']
@@ -21,8 +22,10 @@ BASE_AUTH_URL = config['uri']['tesla_base_auth_url']
 BASE_FLEET_URL = config['uri']['tesla_base_fleet_url']
 USER_AUTH_URL = config['uri']['tesla_user_auth_url']
 REDIRECT_URI = config['uri']['tesladeveloper_redirect_uri']
-SCOPE = ('openid offline_access vehicle_device_data vehicle_location vehicle_cmds vehicle_charging_cmds '
-         'vehicle_specs energy_device_data energy_cmds')
+SCOPE = (
+  'openid offline_access vehicle_device_data vehicle_location vehicle_cmds vehicle_charging_cmds '
+  'vehicle_specs energy_device_data energy_cmds'
+)
 PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
 TOKEN = get_filepath('token')
 TESLA_KEY = get_filepath('tesla_key')
@@ -59,12 +62,14 @@ def refresh_token():
   dt = datetime.now().replace(tzinfo=PAC)
 
   # Format output
-  message = (f'[tesla]\n'
-             f'access_token={response["access_token"]}\n'
-             f'id_token={response["id_token"]}\n'
-             f'refresh_token={response["refresh_token"]}\n'
-             f'created_at={dt:%Y-%m-%d %H:%M:%S}\n'
-             f'expires_at={dt + timedelta(seconds=response["expires_in"]):%Y-%m-%d %H:%M:%S}\n')
+  message = (
+    f'[tesla]\n'
+    f'access_token={response["access_token"]}\n'
+    f'id_token={response["id_token"]}\n'
+    f'refresh_token={response["refresh_token"]}\n'
+    f'created_at={dt:%Y-%m-%d %H:%M:%S}\n'
+    f'expires_at={dt + timedelta(seconds=response["expires_in"]):%Y-%m-%d %H:%M:%S}\n'
+  )
 
   log().debug('refreshed tokens: ' + message)
 
@@ -106,9 +111,9 @@ def new_token():
   print('Please go to this URL: \n')
 
   params = {
-      'client_id': CLIENT_ID,
-      'redirect_uri': REDIRECT_URI,
-      'scope': SCOPE
+    'client_id': CLIENT_ID,
+    'redirect_uri': REDIRECT_URI,
+    'scope': SCOPE
   }
   url = f'{USER_AUTH_URL}&{urllib.parse.urlencode(params)}'
 
@@ -136,12 +141,14 @@ def new_token():
 
   dt = datetime.now().replace(tzinfo=PAC)
 
-  message = (f'[tesla]\n'
-             f'access_token={response["access_token"]}\n'
-             f'id_token={response["id_token"]}\n'
-             f'refresh_token={response["refresh_token"]}\n'
-             f'created_at={dt:%Y-%m-%d %H:%M:%S}\n'
-             f'expires_at={dt + timedelta(seconds=response["expires_in"]):%Y-%m-%d %H:%M:%S}\n')
+  message = (
+    f'[tesla]\n'
+    f'access_token={response["access_token"]}\n'
+    f'id_token={response["id_token"]}\n'
+    f'refresh_token={response["refresh_token"]}\n'
+    f'created_at={dt:%Y-%m-%d %H:%M:%S}\n'
+    f'expires_at={dt + timedelta(seconds=response["expires_in"]):%Y-%m-%d %H:%M:%S}\n'
+  )
 
   log().debug('tokens: ' + message)
 
@@ -149,9 +156,11 @@ def new_token():
   f.write(str.encode(message))
   f.close()
 
-  print('\nTokens saved in current working directory in tesla_token.ini.  Never share these tokens with anyone, '
-        'as it acts as a digital "valet key" that allows third-party services or malicious actors to track your '
-        'car\'s location, control climate settings, and even unlock or drive your vehicle without a physical key.')
+  print(
+    '\nTokens saved in current working directory in tesla_token.ini.  Never share these tokens with anyone, '
+    'as it acts as a digital "valet key" that allows third-party services or malicious actors to track your '
+    'car\'s location, control climate settings, and even unlock or drive your vehicle without a physical key.'
+  )
 
 
 def main(parser):
@@ -169,28 +178,29 @@ def main(parser):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-                    prog='tokenutil.py',
-                    description='Tesla authentication flow to retrieve new access and refresh token '
-                                'and check expiration and refresh if needed.',
-                    formatter_class=CustomHelpFormatter)
+    prog='tokenutil.py',
+    description='Tesla authentication flow to retrieve new access and refresh token '
+                'and check expiration and refresh if needed.',
+    formatter_class=CustomHelpFormatter
+  )
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-                     '-n', 
-                     '--new', 
-                     help='gets new access and refresh token using web login credentials and saves them to a file',
-                     action='store_true'
-                    )
+    '-n', 
+    '--new', 
+    help='gets new access and refresh token using web login credentials and saves them to a file',
+    action='store_true'
+  )
   group.add_argument(
-                     '-r', 
-                     '--refresh', 
-                     help='gets new tokens using the refresh token and saves them to an encrypted file',
-                     action='store_true'
-                    )
+    '-r', 
+    '--refresh', 
+    help='gets new tokens using the refresh token and saves them to an encrypted file',
+    action='store_true'
+  )
   group.add_argument(
-                     '-c', 
-                     '--check', 
-                     help='checks to see if tokens are expiring and refreshes them and saves them to an encrypted file',
-                     action='store_true'
-                    )
+    '-c', 
+    '--check', 
+    help='checks to see if tokens are expiring and refreshes them and saves them to an encrypted file',
+    action='store_true'
+  )
 
   main(parser)

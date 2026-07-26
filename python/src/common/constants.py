@@ -4,7 +4,8 @@ from common.tokenutil import token
 from common.configutil import (
   encrypted_config, 
   config,
-  get_filepath)
+  get_filepath
+)
 
 # Vehicle
 M3_VIN = encrypted_config['vehicle']['m3_vin']

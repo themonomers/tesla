@@ -5,7 +5,8 @@ from common.logutil import log
 from common.constants import (
   PRIMARY_LAT,
   PRIMARY_LNG,
-  EMAIL_1)
+  EMAIL_1
+)
 from datetime import datetime, date, timedelta
 
 PCT_THRESHOLD = 0.5
@@ -47,9 +48,7 @@ def set_energy_mode_based_on_weather():
           for _, val_3 in enumerate(wdata['hourly']):
             dt = datetime.fromtimestamp(val_3['dt'])
 
-            if (dt.date() == val_1
-                and dt.hour >= sunrise.hour
-                and dt.hour <= sunset.hour):
+            if dt.date() == val_1 and sunrise.hour <= dt.hour <= sunset.hour:
               weather = val_3['weather'][0]['main']
               forecast += f'{dt}: {weather}\n'
 
@@ -72,12 +71,7 @@ def set_energy_mode_based_on_weather():
 	  # 100% and send email, otherwise set to normal backup reserve of 35%
     if msg:
       set_backup_reserve(100)
-      send_email('Energy:  Setting Backup Reserve to 100%', 
-                 msg, 
-                 EMAIL_1,
-                 '', 
-                 '',
-                 '')
+      send_email('Energy:  Setting Backup Reserve to 100%', msg, EMAIL_1)
     else:
       set_backup_reserve(35)
   except Exception as e:
