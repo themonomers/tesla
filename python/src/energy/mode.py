@@ -51,7 +51,7 @@ def set_energy_mode_based_on_weather():
                 and dt.hour >= sunrise.hour
                 and dt.hour <= sunset.hour):
               weather = val_3['weather'][0]['main']
-              forecast += str(dt) + ': ' + weather + '\n'
+              forecast += f'{dt}: {weather}\n'
 
               # count how many 'Rain' hours there are
               if weather == 'Rain':
@@ -63,11 +63,9 @@ def set_energy_mode_based_on_weather():
 				  # if the ratio of rain to non-rain hours is greater than a specified
 				  # percentage, prep content for email
           if float(rain) / float(total) > PCT_THRESHOLD: 
-            msg += 'Greater than ' + str(int(PCT_THRESHOLD * 100))
-            msg += '% rain forecasted, setting backup reserve to 100%\n'
-            msg += 'Percent rain: ' 
-            msg += str(round(float(rain) / float(total) * 100, 1)) + '%\n'
-            msg += forecast + '\n'
+            msg += f'Greater than {int(PCT_THRESHOLD * 100)}% rain forecasted, setting backup reserve to 100%\n'
+            msg += f'Percent rain: {round(float(rain) / float(total) * 100, 1)}%\n'
+            msg += f'{forecast}\n'
 
 	  # if the ratio of rain to non-rain hours for today or tomorrow
 	  # is greater than a specified percentage, set backup reserve to

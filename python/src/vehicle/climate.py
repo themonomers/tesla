@@ -46,12 +46,13 @@ def set_precondition(data, eco_mode, start_time):
     # check if the car is with 0.25 miles of the primary location
     if is_vehicle_at_primary(data):
       # create precondition start crontab at preferred time tomorrow
-      delete_cron(config['cron']['climate_start'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
-      create_cron(config['cron']['climate_start'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
-                  start_time.month, 
-                  start_time.day, 
-                  start_time.hour, 
+      delete_cron(f'{config["cron"]["climate_start"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}')
+      create_cron(f'{config["cron"]["climate_start"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}',
+                  start_time.month,
+                  start_time.day,
+                  start_time.hour,
                   start_time.minute)
+
       return start_time
   return None
 
@@ -248,12 +249,13 @@ def start_mx_precondition():
 
 
 def setup_stop_cron(vin, stop_time):
-  delete_cron(config['cron']['climate_stop'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
-  create_cron(config['cron']['climate_stop'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
-              stop_time.month, 
-              stop_time.day, 
-              stop_time.hour, 
+  delete_cron(f'{config["cron"]["climate_stop"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}')
+  create_cron(f'{config["cron"]["climate_stop"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}',
+              stop_time.month,
+              stop_time.day,
+              stop_time.hour,
               stop_time.minute)
+
 
 ##
 # Sends command to stop vehicle preconditioning based on a previously scheduled

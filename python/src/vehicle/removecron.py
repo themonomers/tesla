@@ -12,12 +12,12 @@ def main():
   values = ['m3', 'mx']
 
   for val in values:
-    delete_cron(config['cron']['climate_start'] + val + ' ' + config['cron']['redirect'])
-    delete_cron(config['cron']['climate_stop'] + val + ' ' + config['cron']['redirect'])
+    delete_cron(f'{config["cron"]["climate_start"]}{val} {config["cron"]["redirect"]}')
+    delete_cron(f'{config["cron"]["climate_stop"]}{val} {config["cron"]["redirect"]}')
 
-    delete_cron(config['cron']['charge_check'] + val + ' ' + config['cron']['redirect'])
+    delete_cron(f'{config["cron"]["charge_check"]}{val} {config["cron"]["redirect"]}')
 
-    delete_cron(config['cron']['software_update'] + val + ' ' + config['cron']['redirect'])
+    delete_cron(f'{config["cron"]["software_update"]}{val} {config["cron"]["redirect"]}')
 
 
 if __name__ == '__main__':

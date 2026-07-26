@@ -40,13 +40,13 @@ def write_m3_telemetry():
     # write odometer value
     open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry!A:A')
     inputs.append({
-      'range': 'Telemetry!A' + str(open_row),
+      'range': f'Telemetry!A{open_row}',
       'values': [[data['response']['vehicle_state']['odometer']]]
     })
    
     # write date stamp
     inputs.append({
-      'range': 'Telemetry!B' + str(open_row),
+      'range': f'Telemetry!B{open_row}',
       'values': [[datetime.today().strftime('%B %d, %Y')]]
     })
 
@@ -74,12 +74,8 @@ def write_m3_telemetry():
 
     # write max battery capacity
     inputs.append({
-      'range': 'Telemetry!M' + str((open_row - 1)), 
-      'values': [[(
-        data['response']['charge_state']['battery_range']
-        / (data['response']['charge_state']['battery_level'] 
-           / 100.0)
-      )]]
+      'range': f'Telemetry!M{open_row - 1}',
+      'values': [[get_battery_capacity(data)]]
     })
     
     # copy down battery degradation % formula
@@ -105,18 +101,12 @@ def write_m3_telemetry():
 
     # write target SoC %
     inputs.append({
-      'range': 'Telemetry!O' + str(open_row), 
-      'values': [[data['response']['charge_state']['charge_limit_soc']/100.0]]
+      'range': f'Telemetry!O{open_row}',
+      'values': [[data['response']['charge_state']['charge_limit_soc'] / 100.0]]
     })
     
     # write data for efficiency calculation
-    starting_range = (
-      data['response']['charge_state']['battery_range']
-      / (data['response']['charge_state']['battery_level'] 
-         / 100.0) 
-      * (data['response']['charge_state']['charge_limit_soc'] 
-         / 100.0)
-    )
+    starting_range = get_starting_range(data)
     eod_range = data['response']['charge_state']['battery_range']
     
     # if the starting range is less than eod range or the car is not plugged 
@@ -129,11 +119,11 @@ def write_m3_telemetry():
     
     # write the starting_range for the next day   
     inputs.append({
-      'range': 'Telemetry!H' + str(open_row), 
+      'range': f'Telemetry!H{open_row}',
       'values': [[starting_range]]
     })
     inputs.append({
-      'range': 'Telemetry!I' + str(open_row - 1), 
+      'range': f'Telemetry!I{open_row - 1}',
       'values': [[eod_range]]
     })
  
@@ -159,37 +149,33 @@ def write_m3_telemetry():
     })
     
     # write temperature data into telemetry sheet
-    inside_temp = (data['response']['climate_state']['inside_temp'] 
-                   * 9/5 
-                   + 32)  #convert to Fahrenheit
-    outside_temp = (data['response']['climate_state']['outside_temp'] 
-                    * 9/5 
-                    + 32)
+    inside_temp = data['response']['climate_state']['inside_temp'] * 9/5 + 32
+    outside_temp = data['response']['climate_state']['outside_temp'] * 9/5 + 32
 
     inputs.append({
-      'range': 'Telemetry!P' + str(open_row - 1), 
+      'range': f'Telemetry!P{open_row - 1}',
       'values': [[inside_temp]]
     })
     inputs.append({
-      'range': 'Telemetry!Q' + str(open_row - 1), 
+      'range': f'Telemetry!Q{open_row - 1}',
       'values': [[outside_temp]]
     })
 
     # write tire pressure data into telemetry sheet
     inputs.append({
-      'range': 'Telemetry!R' + str(open_row - 1), 
+      'range': f'Telemetry!R{open_row - 1}',
       'values': [[data['response']['vehicle_state']['tpms_pressure_fl'] * 14.5038]]
     })
     inputs.append({
-      'range': 'Telemetry!S' + str(open_row - 1), 
+      'range': f'Telemetry!S{open_row - 1}',
       'values': [[data['response']['vehicle_state']['tpms_pressure_fr'] * 14.5038]]
     })
     inputs.append({
-      'range': 'Telemetry!T' + str(open_row - 1), 
+      'range': f'Telemetry!T{open_row - 1}',
       'values': [[data['response']['vehicle_state']['tpms_pressure_rl'] * 14.5038]]
     })
     inputs.append({
-      'range': 'Telemetry!U' + str(open_row - 1), 
+      'range': f'Telemetry!U{open_row - 1}',
       'values': [[data['response']['vehicle_state']['tpms_pressure_rr'] * 14.5038]]
     })
 
@@ -206,9 +192,7 @@ def write_m3_telemetry():
     service.close()
     
     # send email notification
-    message = ('Model 3 telemetry successfully logged on ' 
-               + datetime.today().strftime('%B %d, %Y %H:%M:%S') 
-               + '.')
+    message = f'Model 3 telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
     send_email('Model 3 Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
     log().error('write_m3_telemetry(): ' + str(e))
@@ -229,13 +213,13 @@ def write_mx_telemetry():
     # write odometer value
     open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry!V:V')
     inputs.append({
-      'range': 'Telemetry!V' + str(open_row),
+      'range': f'Telemetry!V{open_row}',
       'values': [[data['response']['vehicle_state']['odometer']]]
     })
    
     # write date stamp
     inputs.append({
-      'range': 'Telemetry!W' + str(open_row),
+      'range': f'Telemetry!W{open_row}',
       'values': [[datetime.today().strftime('%B %d, %Y')]]
     })
 
@@ -263,12 +247,8 @@ def write_mx_telemetry():
 
     # write max battery capacity
     inputs.append({
-      'range': 'Telemetry!AH' + str((open_row - 1)), 
-      'values': [[(
-        data['response']['charge_state']['battery_range'] 
-        / (data['response']['charge_state']['battery_level'] 
-           / 100.0)
-      )]]
+      'range': f'Telemetry!AH{open_row - 1}',
+      'values': [[get_battery_capacity(data)]]
     })
     
     # copy down battery degradation % formula
@@ -294,17 +274,12 @@ def write_mx_telemetry():
 
     # write target SoC %
     inputs.append({
-      'range': 'Telemetry!AJ' + str(open_row), 
-      'values': [[data['response']['charge_state']['charge_limit_soc']/100.0]]
+      'range': f'Telemetry!AJ{open_row}',
+      'values': [[data['response']['charge_state']['charge_limit_soc'] / 100.0]]
     })
     
     # write data for efficiency calculation
-    starting_range = (
-      data['response']['charge_state']['battery_range'] 
-      / (data['response']['charge_state']['battery_level'] 
-         / 100.0) 
-      * (data['response']['charge_state']['charge_limit_soc']
-         / 100.0))
+    starting_range = get_starting_range(data)
     eod_range = data['response']['charge_state']['battery_range']
     
     # if the starting range is less than eod range or the car is not plugged 
@@ -317,11 +292,11 @@ def write_mx_telemetry():
     
     # write the starting_range for the next day   
     inputs.append({
-      'range': 'Telemetry!AC' + str(open_row), 
+      'range': f'Telemetry!AC{open_row}',
       'values': [[starting_range]]
     })
     inputs.append({
-      'range': 'Telemetry!AD' + str(open_row - 1), 
+      'range': f'Telemetry!AD{open_row - 1}',
       'values': [[eod_range]]
     })
  
@@ -347,37 +322,33 @@ def write_mx_telemetry():
     })
     
     # write temperature data into telemetry sheet
-    inside_temp = (data['response']['climate_state']['inside_temp'] 
-                   * 9/5 
-                   + 32)  #convert to Fahrenheit
-    outside_temp = (data['response']['climate_state']['outside_temp'] 
-                    * 9/5 
-                    + 32)
+    inside_temp = data['response']['climate_state']['inside_temp'] * 9/5 + 32
+    outside_temp = data['response']['climate_state']['outside_temp'] * 9/5 + 32
 
     inputs.append({
-      'range': 'Telemetry!AK' + str(open_row - 1), 
+      'range': f'Telemetry!AK{open_row - 1}',
       'values': [[inside_temp]]
     })
     inputs.append({
-      'range': 'Telemetry!AL' + str(open_row - 1), 
+      'range': f'Telemetry!AL{open_row - 1}',
       'values': [[outside_temp]]
     })
 
     # write tire pressure data into telemetry sheet
     inputs.append({
-      'range': 'Telemetry!AM' + str(open_row - 1), 
+      'range': f'Telemetry!AM{open_row - 1}',
       'values': [[data['response']['vehicle_state']['tpms_pressure_fl'] * 14.5038]]
     })
     inputs.append({
-      'range': 'Telemetry!AN' + str(open_row - 1), 
+      'range': f'Telemetry!AN{open_row - 1}',
       'values': [[data['response']['vehicle_state']['tpms_pressure_fr'] * 14.5038]]
     })
     inputs.append({
-      'range': 'Telemetry!AO' + str(open_row - 1), 
+      'range': f'Telemetry!AO{open_row - 1}',
       'values': [[data['response']['vehicle_state']['tpms_pressure_rl'] * 14.5038]]
     })
     inputs.append({
-      'range': 'Telemetry!AP' + str(open_row - 1), 
+      'range': f'Telemetry!AP{open_row - 1}',
       'values': [[data['response']['vehicle_state']['tpms_pressure_rr'] * 14.5038]]
     })
 
@@ -394,9 +365,7 @@ def write_mx_telemetry():
     service.close()
     
     # send email notification
-    message = ('Model X telemetry successfully logged on ' 
-               + datetime.today().strftime('%B %d, %Y %H:%M:%S') 
-               + '.')
+    message = f'Model X telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
     send_email('Model X Telemetry Logged', message, EMAIL_1, '', '', '')
   except Exception as e:
     log().error('write_mx_telemetry(): ' + str(e))
@@ -419,6 +388,17 @@ def get_check_list(data):
     data['response']['vehicle_state']['tpms_pressure_rl'],
     data['response']['vehicle_state']['tpms_pressure_rr']
   ]
+
+
+def get_battery_capacity(data):
+  return (data['response']['charge_state']['battery_range']
+          / (data['response']['charge_state']['battery_level'] / 100.0))
+
+
+def get_starting_range(data):
+  return (data['response']['charge_state']['battery_range']
+          / (data['response']['charge_state']['battery_level'] / 100.0) 
+          * (data['response']['charge_state']['charge_limit_soc'] / 100.0))
 
 
 def main(parser):

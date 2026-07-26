@@ -4,6 +4,7 @@ import json
 import datetime
 import time
 import argparse
+import urllib
 
 from common.googleutil import get_google_sheet_service
 from common.argutil import CustomHelpFormatter
@@ -86,28 +87,18 @@ def to_rad(x):
 #
 # author: mjhwa@yahoo.com
 ##
-def get_tomorrow_time(time):
-  return datetime.strptime(
-      str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).year)
-    + '-'
-    + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).month)
-    + '-'
-    + str((datetime.now() + timedelta(1)).replace(tzinfo=PAC).day)
-    + 'T'
-    + time, '%Y-%m-%dT%H:%M'
-  ).replace(tzinfo=PAC)
+def get_tomorrow_time(time_str):
+  tomorrow = datetime.now(PAC) + timedelta(days=1)
+  hours, minutes = map(int, time_str.split(':'))
+  
+  return datetime(tomorrow.year, tomorrow.month, tomorrow.day, hours, minutes, tzinfo=PAC)
 
 
-def get_today_time(time):
-  return datetime.strptime(
-      str(datetime.now().replace(tzinfo=PAC).year)
-    + '-'
-    + str(datetime.now().replace(tzinfo=PAC).month)
-    + '-'
-    + str(datetime.now().replace(tzinfo=PAC).day)
-    + 'T'
-    + time, '%Y-%m-%dT%H:%M'
-  ).replace(tzinfo=PAC)
+def get_today_time(time_str):
+  today = datetime.now(PAC)
+  hours, minutes = map(int, time_str.split(':'))
+  
+  return datetime(today.year, today.month, today.day, hours, minutes, tzinfo=PAC)
 
 
 ##
@@ -117,13 +108,14 @@ def get_today_time(time):
 # author: mjhwa@yahoo.com
 ##
 def get_current_weather(lat, lng):
-  url = (BASE_WEATHER_URL
-          + '/onecall'
-          + '?lat=' + str(lat)
-          + '&lon=' + str(lng)
-          + '&appid=' + OPENWEATHERMAP_KEY
-          + '&exclude=minutely,hourly,daily,alerts'
-          + '&units=metric')
+  params = {
+      'lat': lat,
+      'lon': lng,
+      'appid': OPENWEATHERMAP_KEY,
+      'exclude': 'minutely,hourly,daily,alerts',
+      'units': 'metric'
+  }
+  url = f'{BASE_WEATHER_URL}/onecall?{urllib.parse.urlencode(params)}'
 
   response = requests.get(url)
 
@@ -142,13 +134,14 @@ def get_current_weather(lat, lng):
 # author: mjhwa@yahoo.com
 ##
 def get_daily_weather(lat, lng):
-  url = (BASE_WEATHER_URL
-          + '/onecall'
-          + '?lat=' + str(lat)
-          + '&lon=' + str(lng)
-          + '&appid=' + OPENWEATHERMAP_KEY
-          + '&exclude=current,minutely,alerts'
-          + '&units=metric')
+  params = {
+      'lat': lat,
+      'lon': lng,
+      'appid': OPENWEATHERMAP_KEY,
+      'exclude': 'current,minutely,alerts',
+      'units': 'metric'
+  }
+  url = f'{BASE_WEATHER_URL}/onecall?{urllib.parse.urlencode(params)}'
 
   response = requests.get(url)
 
@@ -219,7 +212,7 @@ def print_json(json_obj, level):
         print(offset + key)
         print_json(value, level + 1)
       else:
-        print (offset + key + ' = ' + str(value))
+        print(f'{offset}{key} = {value}')
   elif isinstance(json_obj, list):
     for x in json_obj:
 
@@ -230,7 +223,7 @@ def print_json(json_obj, level):
       else:
         print_json(x, level)
   else:
-    print (offset + str(json_obj))
+    print(f"{offset}{json_obj}")
 
 
 ##
@@ -262,15 +255,15 @@ def load_log_into_gsheet(days_to_load):
           if log_date > threshold:
             # write this into Google Sheet
             inputs.append({
-              'range': 'log!A' + str(2 + count),
+              'range': f'log!A{2 + count}',
               'values': [[level]]
             })
             inputs.append({
-              'range': 'log!B' + str(2 + count),
+              'range': f'log!B{2 + count}',
               'values': [[timestamp]]
             })
             inputs.append({
-              'range': 'log!C' + str(2 + count),
+              'range': f'log!C{2 + count}',
               'values': [[message]]
             })
 

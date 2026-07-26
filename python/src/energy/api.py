@@ -66,11 +66,10 @@ def get_site_history(period, target_date):
     0
   ), is_dst=None)
 
-  command = ('calendar_history'
-              + '?kind=energy'
-              + '&end_date=' 
-              + datetime.strftime(e_date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ')
-              + '&period=' + period)
+  command = (f'calendar_history'
+             f'?kind=energy'
+             f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+             f'&period={period}')
 
   return json.loads(
     send_get(get_url(command)).text
@@ -116,17 +115,11 @@ def get_site_tou_history(period, target_date):
     0
   ), is_dst=None)
 
-  command = ('calendar_history'
-              + '?kind=time_of_use_energy'
-              + '&period=' + period
-              + '&start_date=' 
-              + datetime.strftime(
-                s_date.astimezone(pytz.utc), 
-                '%Y-%m-%dT%H:%M:%SZ')
-              + '&end_date=' 
-              + datetime.strftime(
-                e_date.astimezone(pytz.utc), 
-                '%Y-%m-%dT%H:%M:%SZ'))
+  command = (f'calendar_history'
+             f'?kind=time_of_use_energy'
+             f'&period={period}'
+             f'&start_date={s_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+             f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}')
 
   return json.loads(
     send_get(get_url(command)).text
@@ -151,11 +144,10 @@ def get_battery_charge_history(period, target_date):
     0
   ), is_dst=None)
 
-  command = ('calendar_history'
-              + '?kind=soe'
-              + '&period=' + period
-              + '&end_date='
-              + datetime.strftime(e_date.astimezone(pytz.utc), '%Y-%m-%dT%H:%M:%SZ'))
+  command = (f'calendar_history'
+             f'?kind=soe'
+             f'&period={period}'
+             f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}')
 
   return json.loads(
     send_get(get_url(command)).text
@@ -190,17 +182,11 @@ def get_power_history(period, target_date):
     0
   ), is_dst=None)
 
-  command = ('calendar_history'
-              + '?kind=power'
-              + '&start_date='
-              + datetime.strftime(
-                s_date.astimezone(pytz.utc), 
-                '%Y-%m-%dT%H:%M:%SZ')
-              + '&end_date='
-              + datetime.strftime(
-                e_date.astimezone(pytz.utc), 
-                '%Y-%m-%dT%H:%M:%SZ')
-              + '&period=' + period)
+  command = (f'calendar_history'
+             f'?kind=power'
+             f'&period={period}'
+             f'&start_date={s_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+             f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}')
 
   return json.loads(
     send_get(get_url(command)).text
@@ -213,9 +199,7 @@ def get_power_history(period, target_date):
 # author: mjhwa@yahoo.com
 ##
 def get_rate_tariffs():
-  url = (BASE_PROXY_URL
-         + '/api/1/energy_sites/' 
-         + 'rate_tariffs')
+  url = f'{BASE_PROXY_URL}/api/1/energy_sites/rate_tariffs'
 
   return json.loads(
     send_get(url).text
@@ -273,18 +257,12 @@ def get_savings_forecast(period, target_date):
     0
   ), is_dst=None)
 
-  command = ('calendar_history'
-              + '?kind=savings'
-              + '&period=' + period
-              + '&start_date=' 
-              + datetime.strftime(
-                s_date.astimezone(pytz.utc),
-                '%Y-%m-%dT%H:%M:%SZ')
-              + '&end_date=' 
-              + datetime.strftime(
-                e_date.astimezone(pytz.utc),
-                '%Y-%m-%dT%H:%M:%SZ')
-              + '&tariff=PGE-EV2-A')
+  command = (f'calendar_history'
+             f'?kind=savings'
+             f'&period={period}'
+             f'&start_date={s_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+             f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
+             f'&tariff=PGE-EV2-A')
 
   return json.loads(
     send_get(get_url(command)).text
@@ -403,11 +381,7 @@ def set_off_grid_vehicle_charging_reserve(percent):
 # author: mjhwa@yahoo.com
 ##
 def get_url(command):
-  return (BASE_PROXY_URL
-          + '/api/1/energy_sites/' 
-          + SITE_ID 
-          + '/'
-          + command)
+  return f'{BASE_PROXY_URL}/api/1/energy_sites/{SITE_ID}/{command}'
 
 
 def send_get(url):

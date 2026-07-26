@@ -248,11 +248,12 @@ def charge_earliest():
   m3_finish_time = finish_times['m3_finish_time']
   mx_finish_time = finish_times['mx_finish_time']
 
+  DATE_FMT = '%B %d, %Y %I:%M %p'
   print('Charging at earliest off-peak time')
   print('==================================')
-  print('Start time:  ' + get_tomorrow_time(EARLIEST_CHARGING_START_TIME).strftime('%B %d, %Y %I:%M %p'))
-  print('Model 3 estimated finish time:  ' + m3_finish_time.strftime('%B %d, %Y %I:%M %p'))
-  print('Model X estimated finish time:  ' + mx_finish_time.strftime('%B %d, %Y %I:%M %p'))
+  print(f'Start time: {get_tomorrow_time(EARLIEST_CHARGING_START_TIME):{DATE_FMT}}')
+  print(f'Model 3 estimated finish time: {m3_finish_time:{DATE_FMT}}')
+  print(f'Model X estimated finish time: {mx_finish_time:{DATE_FMT}}')
   confirm = input('\nDo you want to override scheduled departure to scheduled start at earliest off-peak time (y/N)?: ')
   if confirm == 'y':
     # set cars for scheduled charging at the earliest off-peak time
@@ -340,11 +341,11 @@ def schedule_backup_charging(data, start_time):
 
   if is_vehicle_at_primary(data):
     # create backup charging start crontab at target time tomorrow
-    delete_cron(config['cron']['charge_check'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'])
-    create_cron(config['cron']['charge_check'] + ('m3' if vin == M3_VIN else 'mx') + ' ' + config['cron']['redirect'], 
-                start_time.month, 
-                start_time.day, 
-                start_time.hour, 
+    delete_cron(f'{config["cron"]["charge_check"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}')
+    create_cron(f'{config["cron"]["charge_check"]}{"m3" if vin == M3_VIN else "mx"} {config["cron"]["redirect"]}',
+                start_time.month,
+                start_time.day,
+                start_time.hour,
                 start_time.minute)
 
 
@@ -613,12 +614,10 @@ def send_plugged_in_message(vehicle, battery_level, battery_range, charge_port_d
   if notify == 'on':
     # send an email if the charge port door is not open, i.e. not plugged in
     if not charge_port_door_open:
-      message = ('Your car is not plugged in.  \n\nCurrent battery level is '
-                  + str(battery_level) 
-                  + '%, '
-                  + str(battery_range) 
-                  + ' estimated miles.  \n\n-Your ' + vehicle)
-      send_email('Please Plug In Your ' + vehicle, 
+      message = (f'Your car is not plugged in.\n\n'
+                 f'Current battery level is {battery_level}%, {battery_range} estimated miles.\n\n'
+                 f'-Your {vehicle}')
+      send_email(f'Please Plug In Your {vehicle}', 
                  message, 
                  to,
                  cc,
@@ -631,28 +630,28 @@ def send_scheduled_charge_message(vehicle, data, charge_start_time, finish_time,
   message = ''
   subject = ''
 
+  battery_lvl = data['response']['charge_state']['battery_level']
+  battery_rng = data['response']['charge_state']['battery_range']
+  charge_lim  = data['response']['charge_state']['charge_limit_soc']
+  est_limit_range = round((battery_rng / battery_lvl) * charge_lim)
+  est_curr_range  = round(battery_rng)
+
   if charge_start_time is not None:
-    message = ('The ' + vehicle + ' is set to charge at ' 
-                + charge_start_time.strftime('%B %d, %Y %H:%M')
-                + ' to '
-                + str(data['response']['charge_state']['charge_limit_soc']) + '%'
-                + ' by ' + finish_time.strftime('%H:%M') + ', ' 
-                + str(round(data['response']['charge_state']['battery_range']
-                      / data['response']['charge_state']['battery_level']
-                      * data['response']['charge_state']['charge_limit_soc']))  + ' miles of estimated range.  '
-                + 'The ' + vehicle + ' is currently at '
-                + str(data['response']['charge_state']['battery_level']) + '%, '
-                + str(round(data['response']['charge_state']['battery_range'])) + ' miles of estimated range.\n\n')
+    message += (
+        f'The {vehicle} is set to charge at {charge_start_time:%B %d, %Y %H:%M} '
+        f'to {charge_lim}% by {finish_time:%H:%M}, {est_limit_range} miles of estimated range. '
+        f'The {vehicle} is currently at {battery_lvl}%, {est_curr_range} miles of estimated range.\n\n'
+    )
   
   if climate_start_time is not None:
-    message += 'Preconditioning is set to start at ' + climate_start_time.strftime('%B %d, %Y %H:%M') + '.'
+    message += f'Preconditioning is set to start at {climate_start_time:%B %d, %Y %H:%M}.'
 
   if charge_start_time is not None and climate_start_time is not None:
-    subject = vehicle + ' Set to Charge and Precondition'
+    subject = f'{vehicle} Set to Charge and Precondition'
   elif charge_start_time is not None:
-    subject = vehicle + ' Set to Charge'
+    subject = f'{vehicle} Set to Charge'
   elif climate_start_time is not None:
-    subject = vehicle + ' Set to Precondition'
+    subject = f'{vehicle} Set to Precondition'
 
   if subject and message:
     send_email(subject, 

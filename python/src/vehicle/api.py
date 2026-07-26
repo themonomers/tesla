@@ -29,17 +29,19 @@ def get_vehicle_data(vin):
     time.sleep(WAIT_TIME)
     return get_vehicle_data(vin)
 
-  url = (get_url(vin)
-        + '/vehicle_data?endpoints='
-        + urllib.parse.quote(
-            'location_data;'
-            + 'charge_state;'
-            + 'climate_state;'
-            + 'vehicle_state;'
-            + 'gui_settings;'
-            + 'vehicle_config;'
-            + 'drive_state;'
-            + 'charge_schedule_data'))
+  endpoints = [
+      'location_data',
+      'charge_state',
+      'climate_state',
+      'vehicle_state',
+      'gui_settings',
+      'vehicle_config',
+      'drive_state',
+      'charge_schedule_data',
+  ]
+  encoded_endpoints = urllib.parse.quote(';'.join(endpoints))
+
+  url = f'{get_url(vin)}/vehicle_data?endpoints={encoded_endpoints}'
 
   return json.loads(send_get(url).text)
 
@@ -60,8 +62,7 @@ def vehicle(vin):
 # author: mjhwa@yahoo.com
 ##
 def wake_vehicle(vin):
-  url = (get_url(vin)
-        + '/wake_up')
+  url = f'{get_url(vin)}/wake_up'
 
   return send_post(url, None)
 
@@ -283,14 +284,11 @@ def schedule_software_update(vin, offset_sec):
 # author: mjhwa@yahoo.com
 ##
 def get_url(vin, command=None):
-  url = (BASE_PROXY_URL
-         + '/api/1/vehicles/'
-         + vin)
+  url = f'{BASE_PROXY_URL}/api/1/vehicles/{vin}'
 
   if command is not None:
-    url += ('/command/'
-            + command)
-
+      url += f'/command/{command}'
+  
   return url
 
 

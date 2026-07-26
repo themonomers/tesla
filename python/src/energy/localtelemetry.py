@@ -219,7 +219,7 @@ def get_local_system_status():
 # author: mjhwa@yahoo.com
 ##
 def get_url(command):
-  return (BASE_URL + command)
+  return BASE_URL + command
 
 
 def send_get(url):

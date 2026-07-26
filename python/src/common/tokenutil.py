@@ -59,13 +59,13 @@ def refresh_token():
   dt = datetime.now().replace(tzinfo=PAC)
 
   # Format output
-  message = ( '[tesla]\n'
-            + 'access_token=' + (response)['access_token'] + '\n'
-            + 'id_token=' + (response)['id_token'] + '\n'
-            + 'refresh_token=' + (response)['refresh_token'] + '\n'
-            + 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
-            + 'expires_at=' + datetime.strftime(dt + timedelta(seconds=(response)['expires_in']), 
-                                                '%Y-%m-%d %H:%M:%S') + '\n')
+  message = (f'[tesla]\n'
+             f'access_token={response["access_token"]}\n'
+             f'id_token={response["id_token"]}\n'
+             f'refresh_token={response["refresh_token"]}\n'
+             f'created_at={dt:%Y-%m-%d %H:%M:%S}\n'
+             f'expires_at={dt + timedelta(seconds=response["expires_in"]):%Y-%m-%d %H:%M:%S}\n')
+
   log().debug('refreshed tokens: ' + message)
 
   # Encrypt config file
@@ -104,10 +104,13 @@ def check_token_expiration():
 ##
 def new_token():
   print('Please go to this URL: \n')
-  url = (USER_AUTH_URL
-        + '&client_id=' + urllib.parse.quote(CLIENT_ID, safe='')
-        + '&redirect_uri=' + urllib.parse.quote(REDIRECT_URI, safe='')
-        + '&scope=' + urllib.parse.quote(SCOPE, safe=''))
+
+  params = {
+      'client_id': CLIENT_ID,
+      'redirect_uri': REDIRECT_URI,
+      'scope': SCOPE
+  }
+  url = f'{USER_AUTH_URL}&{urllib.parse.urlencode(params)}'
 
   print(url)
   print('\nAfter successful Tesla account authorization, you will be redirected to the specified redirect_uri.')
@@ -133,13 +136,13 @@ def new_token():
 
   dt = datetime.now().replace(tzinfo=PAC)
 
-  message = ( '[tesla]\n'
-            + 'access_token=' + (response)['access_token'] + '\n'
-            + 'id_token=' + (response)['id_token'] + '\n'
-            + 'refresh_token=' + (response)['refresh_token'] + '\n'
-            + 'created_at=' + datetime.strftime(dt, '%Y-%m-%d %H:%M:%S') + '\n'
-            + 'expires_at=' + datetime.strftime(dt + timedelta(seconds=(response)['expires_in']), 
-                                                '%Y-%m-%d %H:%M:%S') + '\n')
+  message = (f'[tesla]\n'
+             f'access_token={response["access_token"]}\n'
+             f'id_token={response["id_token"]}\n'
+             f'refresh_token={response["refresh_token"]}\n'
+             f'created_at={dt:%Y-%m-%d %H:%M:%S}\n'
+             f'expires_at={dt + timedelta(seconds=response["expires_in"]):%Y-%m-%d %H:%M:%S}\n')
+
   log().debug('tokens: ' + message)
 
   f = open('tesla_token.ini', 'wb')
