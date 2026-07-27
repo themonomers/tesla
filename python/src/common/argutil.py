@@ -18,4 +18,4 @@ class CustomHelpFormatter(argparse.HelpFormatter):
     
     default = self._get_default_metavar_for_optional(action)
     args_string = self._format_args(action, default)
-    return ', '.join(action.option_strings) + ' ' + args_string
+    return f"{', '.join(action.option_strings)} {args_string}"

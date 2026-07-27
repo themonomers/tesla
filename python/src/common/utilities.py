@@ -169,7 +169,7 @@ def send_request(method, url, token, payload, cert):
     method,
     url, 
     **({'json': payload} if payload else {}),
-    headers={'authorization': 'Bearer ' + token},
+    headers={'authorization': f'Bearer {token}'},
     **({'verify': cert} if cert else {})
   )
 
