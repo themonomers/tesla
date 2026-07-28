@@ -155,19 +155,20 @@ def write_local_live_site_telemetry():
 # author: mjhwa@yahoo.com
 ##
 def get_local_meters_aggregates():
-  response = send_get(get_url('/meters/aggregates'))
+  while True:
+    response = send_get(get_url('/meters/aggregates'))
 
-  # Detect expired local token and re-auth
-  resp = json.loads(response.text)
-  if 'message' in resp:
-    if resp['message'] == EXPIRED_TOKEN_MESSAGE:
+    if response.status_code != 200:
+      time.sleep(WAIT_TIME)
+      continue
+
+    # Detect expired local token and re-auth
+    resp = json.loads(response.text)
+    if 'message' in resp and resp['message'] == EXPIRED_TOKEN_MESSAGE:
       auth_local_token()
-      write_local_live_site_telemetry()
-  elif response.status_code != 200:
-    time.sleep(WAIT_TIME)
-    return get_local_meters_aggregates()
+      continue
 
-  return resp
+    return resp
 
 
 ##
@@ -177,19 +178,20 @@ def get_local_meters_aggregates():
 # author: mjhwa@yahoo.com
 ##
 def get_local_system_status_soe():
-  response = send_get(get_url('/system_status/soe'))
+  while True:
+    response = send_get(get_url('/system_status/soe'))
 
-  # Detect expired local token and re-auth
-  resp = json.loads(response.text)    
-  if 'message' in resp:
-    if resp['message'] == EXPIRED_TOKEN_MESSAGE:
+    if response.status_code != 200:
+      time.sleep(WAIT_TIME)
+      continue
+
+    # Detect expired local token and re-auth
+    resp = json.loads(response.text)
+    if 'message' in resp and resp['message'] == EXPIRED_TOKEN_MESSAGE:
       auth_local_token()
-      write_local_live_site_telemetry()
-  elif response.status_code != 200:
-    time.sleep(WAIT_TIME)
-    return get_local_system_status_soe()
+      continue
 
-  return resp
+    return resp
 
 
 ##
@@ -198,19 +200,20 @@ def get_local_system_status_soe():
 # author: mjhwa@yahoo.com
 ##
 def get_local_system_status():
-  response = send_get(get_url('/system_status'))
+  while True:
+    response = send_get(get_url('/system_status'))
 
-  # Detect expired local token and re-auth
-  resp = json.loads(response.text)    
-  if 'message' in resp:
-    if resp['message'] == EXPIRED_TOKEN_MESSAGE:
+    if response.status_code != 200:
+      time.sleep(WAIT_TIME)
+      continue
+
+    # Detect expired local token and re-auth
+    resp = json.loads(response.text)
+    if 'message' in resp and resp['message'] == EXPIRED_TOKEN_MESSAGE:
       auth_local_token()
-      write_local_live_site_telemetry()
-  elif response.status_code != 200:
-    time.sleep(WAIT_TIME)
-    return get_local_system_status()
+      continue
 
-  return resp
+    return resp
 
 
 ###

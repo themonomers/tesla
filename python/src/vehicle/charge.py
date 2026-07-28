@@ -113,8 +113,7 @@ def notify_is_tesla_plugged_in():
     m3_charge_start_time = schedule_m3_charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
     mx_charge_start_time = schedule_mx_charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
-    # set cabin preconditioning the next morning and check that it's not 
-    # "skip"
+    # set cabin preconditioning the next morning and check that it's not "skip"
     m3_climate_start_time = None
     mx_climate_start_time = None
     dow_index = [index for index, element in enumerate(climate_config) if day_of_week in element]

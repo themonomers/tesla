@@ -22,9 +22,7 @@ SITE_ID = encrypted_config['energy']['site_id']
 # author: mjhwa@yahoo.com
 ##
 def get_site_status():
-  return json.loads(
-    send_get(get_url('site_status')).text
-  )
+  return json.loads(send_get(get_url('site_status')).text)
 
 
 ##
@@ -33,9 +31,7 @@ def get_site_status():
 # author: mjhwa@yahoo.com
 ##
 def get_site_live_status():
-  return json.loads(
-    send_get(get_url('live_status')).text
-  )
+  return json.loads(send_get(get_url('live_status')).text)
 
 
 ##
@@ -44,9 +40,7 @@ def get_site_live_status():
 # author: mjhwa@yahoo.com
 ##
 def get_site_info():
-  return json.loads(
-    send_get(get_url('site_info')).text
-  )
+  return json.loads(send_get(get_url('site_info')).text)
 
 
 ##
@@ -74,9 +68,7 @@ def get_site_history(period, target_date):
     f'&period={period}'
   )
 
-  return json.loads(
-    send_get(get_url(command)).text
-  )
+  return json.loads(send_get(get_url(command)).text)
 
 
 ##
@@ -85,9 +77,7 @@ def get_site_history(period, target_date):
 # author: mjhwa@yahoo.com
 ##
 def get_battery_backup_history():
-  return json.loads(
-    send_get(get_url('calendar_history?kind=backup')).text
-  )
+  return json.loads(send_get(get_url('calendar_history?kind=backup')).text)
 
 
 ##
@@ -126,9 +116,7 @@ def get_site_tou_history(period, target_date):
     f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
   )
 
-  return json.loads(
-    send_get(get_url(command)).text
-  )
+  return json.loads(send_get(get_url(command)).text)
 
 
 ##
@@ -156,9 +144,7 @@ def get_battery_charge_history(period, target_date):
     f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
   )
 
-  return json.loads(
-    send_get(get_url(command)).text
-  )
+  return json.loads(send_get(get_url(command)).text)
 
 
 ##
@@ -197,9 +183,7 @@ def get_power_history(period, target_date):
     f'&end_date={e_date.astimezone(pytz.utc):%Y-%m-%dT%H:%M:%SZ}'
   )
 
-  return json.loads(
-    send_get(get_url(command)).text
-  )
+  return json.loads(send_get(get_url(command)).text)
 
 
 ##
@@ -210,9 +194,7 @@ def get_power_history(period, target_date):
 def get_rate_tariffs():
   url = f'{BASE_PROXY_URL}/api/1/energy_sites/rate_tariffs'
 
-  return json.loads(
-    send_get(url).text
-  )
+  return json.loads(send_get(url).text)
 
 
 ##
@@ -222,9 +204,7 @@ def get_rate_tariffs():
 # author: mjhwa@yahoo.com
 ##
 def get_site_tariff():
-  return json.loads(
-    send_get(get_url('tariff_rate')).text
-  )
+  return json.loads(send_get(get_url('tariff_rate')).text)
 
 
 ##
@@ -233,9 +213,7 @@ def get_site_tariff():
 # author: mjhwa@yahoo.com
 ##
 def get_backup_time_remaining():
-  return json.loads(
-    send_get(get_url('backup_time_remaining')).text
-  )
+  return json.loads(send_get(get_url('backup_time_remaining')).text)
 
 
 ##
@@ -275,9 +253,7 @@ def get_savings_forecast(period, target_date):
     f'&tariff=PGE-EV2-A'
   )
 
-  return json.loads(
-    send_get(get_url(command)).text
-  )
+  return json.loads(send_get(get_url(command)).text)
 
 
 ##
