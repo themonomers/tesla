@@ -28,14 +28,17 @@ TELEMETRY_SHEET_ID = encrypted_config['google']['telemetry_sheet_id']
 ##
 def write_m3_telemetry():
   try:
-    # get rollup of vehicle data
-    data = get_vehicle_data(M3_VIN)  
+    while True:
+      # get rollup of vehicle data
+      data = get_vehicle_data(M3_VIN)  
 
-    # check for missing data and retry
-    if not any(get_check_list(data)):
-      log().warning('Retry write_m3_telemetry() due to empty data set: %s', data)
-      time.sleep(WAIT_TIME)
-      write_m3_telemetry()
+      # check for missing data and retry
+      if not any(get_check_list(data)):
+        log().warning('Retry write_m3_telemetry() due to empty data set: %s', data)
+        time.sleep(WAIT_TIME)
+        continue
+
+      break
     
     inputs = []
     # write odometer value
@@ -203,14 +206,17 @@ def write_m3_telemetry():
 
 def write_mx_telemetry():
   try:
-    # get rollup of vehicle data
-    data = get_vehicle_data(MX_VIN)  
-    
-    # check for missing data and retry
-    if not any(get_check_list(data)):
-      log().warning('Retry write_mx_telemetry() due to missing data: %s', data)
-      time.sleep(WAIT_TIME)
-      write_mx_telemetry()
+    while True:
+      # get rollup of vehicle data
+      data = get_vehicle_data(MX_VIN)  
+      
+      # check for missing data and retry
+      if not any(get_check_list(data)):
+        log().warning('Retry write_mx_telemetry() due to missing data: %s', data)
+        time.sleep(WAIT_TIME)
+        continue
+
+      break
 
     inputs = []
     # write odometer value

@@ -25,10 +25,13 @@ VEHICLE_STATE_ONLINE = 'online'
 # author: mjhwa@yahoo.com 
 ##
 def get_vehicle_data(vin):
-  if vehicle(vin)['response']['state'] != VEHICLE_STATE_ONLINE:
-    wake_vehicle(vin)
-    time.sleep(WAIT_TIME)
-    return get_vehicle_data(vin)
+  while True:
+    if vehicle(vin)['response']['state'] != VEHICLE_STATE_ONLINE:
+      wake_vehicle(vin)
+      time.sleep(WAIT_TIME)
+      continue
+
+    break
 
   endpoints = [
     'location_data',
@@ -264,12 +267,15 @@ def stop_precondition(vin):
 # author: mjhwa@yahoo.com
 ##
 def schedule_software_update(vin, offset_sec):
-  try:
+  while True:
     if vehicle(vin)['response']['state'] != VEHICLE_STATE_ONLINE:
       wake_vehicle(vin)
       time.sleep(WAIT_TIME)
-      return schedule_software_update(vin, offset_sec)
+      continue
 
+    break
+
+  try:
     payload = {
       'offset_sec': offset_sec
     }

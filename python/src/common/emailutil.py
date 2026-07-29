@@ -8,7 +8,6 @@ from common.argutil import CustomHelpFormatter
 from common.logutil import log
 from common.configutil import encrypted_config
 from common.constants import WAIT_TIME
-from email.mime.image import MIMEImage
 from email.message import EmailMessage
 from datetime import datetime, timedelta
 
@@ -23,44 +22,40 @@ DELETE_THRESHOLD = 30
 #
 # author: mjhwa@yahoo.com
 ##
-def send_email(subject, body, to, cc='', bcc='', filename=None):
-  try:
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg['From'] = SENDER_EMAIL
-    msg['Subject'] = subject
-    msg['To'] = to
+def send_email(subject, body, to, cc=None, bcc=None, filename=None):
+  msg = EmailMessage()
+  msg.set_content(body)
+  msg['From'] = SENDER_EMAIL
+  msg['Subject'] = subject
+  msg['To'] = to
 
-    if cc:
-      msg['Cc'] = cc
-    if bcc:
-      msg['Bcc'] = bcc
+  if cc:
+    msg['Cc'] = cc
+  if bcc:
+    msg['Bcc'] = bcc
 
-    if filename:
-      f = file( # type: ignore
-        os.path.join(
-          os.path.dirname(os.path.abspath(__file__)),
-          filename
-        ), 'rb'
-      )
-      msg.attach(
-        MIMEImage(
-          f.read(),
-          name=os.path.basename(filename),
-          _subtype='svg+xml'
-        )
+  if filename:
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+    with open(file_path, 'rb') as f:
+      msg.add_attachment(
+        f.read(),
+        maintype='image',
+        subtype='svg+xml',
+        filename=os.path.basename(filename)
       )
 
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.ehlo()
-    server.starttls()
-    server.login(SENDER_EMAIL, SENDER_PASSWORD)
-    server.send_message(msg)
-    server.close()
-  except Exception as e:
-    log().warning('Retry send_email(): %s', e)
-    time.sleep(WAIT_TIME)
-    send_email(subject, body, to, cc, bcc, filename)
+  while True:
+    try:
+      with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        server.ehlo()
+        server.starttls()
+        server.login(SENDER_EMAIL, SENDER_PASSWORD)
+        server.send_message(msg)
+      
+      return
+    except Exception as e:
+      log().warning('Retry send_email(): %s', e)
+      time.sleep(WAIT_TIME)
 
 
 ##

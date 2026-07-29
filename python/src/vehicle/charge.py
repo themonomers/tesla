@@ -55,24 +55,26 @@ CHARGING_STATE_CHARGING = 'Charging'
 ##
 def notify_is_tesla_plugged_in():
   try:
-    try:
-      # get charging configuration info
-      service = get_google_sheet_service()
-      charge_config = service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Charge!A3:C11'
-      ).execute().get('values', [])
+    while True:
+      try:
+        # get charging configuration info
+        service = get_google_sheet_service()
+        charge_config = service.spreadsheets().values().get(
+          spreadsheetId=EV_SPREADSHEET_ID, 
+          range='Charge!A3:C11'
+        ).execute().get('values', [])
 
-      # get climate configuration info
-      climate_config = service.spreadsheets().values().get(
-        spreadsheetId=EV_SPREADSHEET_ID, 
-        range='Climate!A3:P22'
-      ).execute().get('values', [])
-      service.close()
-    except Exception as e:
-      log().warning('Retry getting configuration info from Google Sheets: %s', e)
-      time.sleep(WAIT_TIME)
-      notify_is_tesla_plugged_in()
+        # get climate configuration info
+        climate_config = service.spreadsheets().values().get(
+          spreadsheetId=EV_SPREADSHEET_ID, 
+          range='Climate!A3:P22'
+        ).execute().get('values', [])
+        service.close()
+
+        break
+      except Exception as e:
+        log().warning('Retry getting configuration info from Google Sheets: %s', e)
+        time.sleep(WAIT_TIME)
 
     # get all vehicle data to avoid repeat API calls
     m3_data = get_vehicle_data(M3_VIN)

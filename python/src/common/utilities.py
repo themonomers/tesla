@@ -124,13 +124,15 @@ def get_current_weather(lat, lng):
   }
   url = f'{BASE_WEATHER_URL}/onecall?{urllib.parse.urlencode(params)}'
 
-  response = requests.get(url)
+  while True:
+    response = requests.get(url)
 
-  if response.status_code != 200:
-    time.sleep(WAIT_TIME)
-    return get_current_weather(lat, lng)
+    if response.status_code != 200:
+      log().warning('Retry get_current_weather()')
+      time.sleep(WAIT_TIME)
+      continue
 
-  return json.loads(response.text)
+    return json.loads(response.text)
     
 
 ##
@@ -150,13 +152,15 @@ def get_daily_weather(lat, lng):
   }
   url = f'{BASE_WEATHER_URL}/onecall?{urllib.parse.urlencode(params)}'
 
-  response = requests.get(url)
+  while True:
+    response = requests.get(url)
 
-  if response.status_code != 200:
-    time.sleep(WAIT_TIME)
-    return get_daily_weather(lat, lng)
+    if response.status_code != 200:
+      log().warning('Retry get_daily_weather()')
+      time.sleep(WAIT_TIME)
+      continue
 
-  return json.loads(response.text)
+    return json.loads(response.text)
 
 
 ###
