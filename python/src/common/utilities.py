@@ -128,7 +128,7 @@ def get_current_weather(lat, lng):
     response = requests.get(url)
 
     if response.status_code != 200:
-      log().warning('Retry get_current_weather()')
+      log().warning('Retry get_current_weather(): %s', response.reason)
       time.sleep(WAIT_TIME)
       continue
 
@@ -156,7 +156,7 @@ def get_daily_weather(lat, lng):
     response = requests.get(url)
 
     if response.status_code != 200:
-      log().warning('Retry get_daily_weather()')
+      log().warning('Retry get_daily_weather(): %s', response.reason)
       time.sleep(WAIT_TIME)
       continue
 
