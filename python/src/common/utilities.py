@@ -283,7 +283,7 @@ def load_log_into_gsheet(days_to_load):
               'values': [[message]]
             })
 
-            count = count + 1
+            count += 1
 
     # clear sheet then batch write data
     if len(inputs) > 0:

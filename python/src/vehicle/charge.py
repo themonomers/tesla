@@ -103,8 +103,7 @@ def notify_is_tesla_plugged_in():
       charge_port_door_open, 
       charge_config[8][2],
       EMAIL_2,
-      '',
-      EMAIL_1
+      bcc=EMAIL_1
     ) 
 
     # set cars for scheduled charging by daily charge time preference
@@ -650,7 +649,7 @@ def calculate_miles_needed(m3_data, mx_data):
   return miles_needed
 
 
-def send_plugged_in_message(vehicle, battery_level, battery_range, charge_port_door_open, notify, to, cc='', bcc=''):
+def send_plugged_in_message(vehicle, battery_level, battery_range, charge_port_door_open, notify, to, cc=None, bcc=None):
   # check if email notification is set to "on" first 
   if notify == 'on':
     # send an email if the charge port door is not open, i.e. not plugged in
@@ -664,7 +663,7 @@ def send_plugged_in_message(vehicle, battery_level, battery_range, charge_port_d
       log().debug('send email: %s', message)
 
 
-def send_scheduled_charge_message(vehicle, data, charge_start_time, finish_time, climate_start_time, to, cc='', bcc=''):
+def send_scheduled_charge_message(vehicle, data, charge_start_time, finish_time, climate_start_time, to, cc=None, bcc=None):
   message = ''
   subject = ''
 

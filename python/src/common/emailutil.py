@@ -29,9 +29,9 @@ def send_email(subject, body, to, cc=None, bcc=None, filename=None):
   msg['Subject'] = subject
   msg['To'] = to
 
-  if cc:
+  if cc is not None:
     msg['Cc'] = cc
-  if bcc:
+  if bcc is not None:
     msg['Bcc'] = bcc
 
   if filename:
