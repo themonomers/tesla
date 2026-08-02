@@ -33,20 +33,35 @@ BASE_URL = local_config['energy']['base_url']
 PAC = zoneinfo.ZoneInfo(local_config['general']['timezone'])
 
 
-##
-# Retrieves dictionary for a local token for direct 
-# access to the Tesla Energy Gateway.
+
+###
+# Centralize repetitive URL construction.
 #
 # author: mjhwa@yahoo.com
 ##
-def get_local_token():
-  # Check for the file which stores the latest local token
-  if not os.path.exists(LOCAL_TOKEN):
-    auth_local_token()
+def get_url(command):
+  return BASE_URL + command
 
-  return get_config(LOCAL_TOKEN, TESLA_KEY)
 
-LOCAL_TOKEN = get_local_token()['tesla']['token']
+def send_get(url):
+  return send_request('GET', url, LOCAL_BEARER_TOKEN, None)
+
+
+###
+# Centralize repetitive HTTP Request calls.
+#
+# author: mjhwa@yahoo.com
+##
+def send_request(method, url, token=None, payload=None):
+  urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+  return requests.request(
+    method,
+    url, 
+    **({'json': payload} if payload else {}),
+    **({'headers': {'authorization': f'Bearer {token}'}} if token else {}),
+    verify=False
+  )
 
 
 ##
@@ -63,12 +78,28 @@ def auth_local_token():
     'force_sm_off': False
   }
 
-  response = json.loads(send_request('POST', get_url('/login/Basic'), LOCAL_TOKEN, payload).text)
+  response = json.loads(send_request('POST', get_url('/login/Basic'), payload=payload).text)
 
   message = f'[tesla]\ntoken={response["token"]}\n'
 
   # Encrypt config file
   encrypt(message, LOCAL_TOKEN, TESLA_KEY)
+
+
+##
+# Retrieves dictionary for a local token for direct 
+# access to the Tesla Energy Gateway.
+#
+# author: mjhwa@yahoo.com
+##
+def get_local_token():
+  # Check for the file which stores the latest local token
+  if not os.path.exists(LOCAL_TOKEN):
+    auth_local_token()
+
+  return get_config(LOCAL_TOKEN, TESLA_KEY)
+
+LOCAL_BEARER_TOKEN = get_local_token()['tesla']['token']
 
 
 ##
@@ -214,36 +245,6 @@ def get_local_system_status():
       continue
 
     return resp
-
-
-###
-# Centralize repetitive URL construction.
-#
-# author: mjhwa@yahoo.com
-##
-def get_url(command):
-  return BASE_URL + command
-
-
-def send_get(url):
-  return send_request('GET', url, LOCAL_TOKEN, None)
-
-
-###
-# Centralize repetitive HTTP Request calls.
-#
-# author: mjhwa@yahoo.com
-##
-def send_request(method, url, token, payload):
-  urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-  return requests.request(
-    method,
-    url, 
-    **({'json': payload} if payload else {}),
-    headers={'authorization': f'Bearer {token}'},
-    verify=False
-  )
 
 
 ##
