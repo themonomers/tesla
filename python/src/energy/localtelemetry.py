@@ -33,7 +33,6 @@ BASE_URL = local_config['energy']['base_url']
 PAC = zoneinfo.ZoneInfo(local_config['general']['timezone'])
 
 
-
 ###
 # Centralize repetitive URL construction.
 #
