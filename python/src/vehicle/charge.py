@@ -77,8 +77,26 @@ def notify_is_tesla_plugged_in():
         time.sleep(WAIT_TIME)
 
     # get all vehicle data to avoid repeat API calls
-    m3_data = get_vehicle_data(M3_VIN)
-    mx_data = get_vehicle_data(MX_VIN)
+    while True:
+      m3_data = get_vehicle_data(M3_VIN)
+
+      # check for missing data and retry
+      if m3_data['response']['charge_state']['charge_port_door_open'] is None:
+        log().warning('Retry notify_is_tesla_plugged_in(), get_vehicle_data(%s) due to empty data set: %s', M3_VIN, m3_data)
+        time.sleep(WAIT_TIME)
+        continue
+
+      break
+
+    while True:
+      mx_data = get_vehicle_data(MX_VIN)
+
+      if mx_data['response']['charge_state']['charge_port_door_open'] is None:
+        log().warning('Retry notify_is_tesla_plugged_in(), get_vehicle_data(%s) due to empty data set: %s', MX_VIN, mx_data)
+        time.sleep(WAIT_TIME)
+        continue
+
+      break
 
     # send email notification if the car is not plugged in
     charge_port_door_open = m3_data['response']['charge_state']['charge_port_door_open']
