@@ -1,3 +1,4 @@
+import time
 import argparse
 import vehicle.api as api
 
@@ -23,7 +24,8 @@ from common.constants import (
   MX_VIN,
   EV_SPREADSHEET_ID,
   PRIMARY_LAT,
-  PRIMARY_LNG
+  PRIMARY_LNG,
+  WAIT_TIME
 )
 from datetime import datetime
 
@@ -149,7 +151,16 @@ def start_m3_precondition():
     log().debug('p_temp: %s', p_temp)
     log().debug('seats: %s', seats)
     # no need to execute if the car is not at primary location
-    data = get_vehicle_data(M3_VIN)
+    while True:
+      data = get_vehicle_data(M3_VIN)
+
+      if data['response']['drive_state']['latitude'] is None:
+        log().warning('Retry start_m3_precondition(): get_vehicle_data() returned empty data set: %s', data)
+        time.sleep(WAIT_TIME)
+        continue
+      
+      break
+
     if is_vehicle_at_primary(data):
       # send command to start auto conditioning
       api.start_precondition(M3_VIN)
@@ -238,7 +249,16 @@ def start_mx_precondition():
     log().debug('p_temp: %s', p_temp)
     log().debug('seats: %s', seats)
     # no need to execute if the car is not at primary location
-    data = get_vehicle_data(MX_VIN)
+    while True:
+      data = get_vehicle_data(MX_VIN)
+
+      if data['response']['drive_state']['latitude'] is None:
+        log().warning('Retry start_mx_precondition(): get_vehicle_data() returned empty data set: %s', data)
+        time.sleep(WAIT_TIME)
+        continue
+      
+      break
+
     if is_vehicle_at_primary(data):
       # send command to start auto conditioning
       api.start_precondition(MX_VIN)
@@ -275,7 +295,16 @@ def setup_stop_cron(vin, stop_time):
 ##
 def stop_precondition(vin):
   try:
-    data = get_vehicle_data(vin)
+    while True:
+      data = get_vehicle_data(vin)
+
+      if data['response']['drive_state']['latitude'] is None:
+        log().warning('Retry stop_precondition(): get_vehicle_data(%s) returned empty data set: %s', vin, data)
+        time.sleep(WAIT_TIME)
+        continue
+      
+      break
+
     if (
       is_vehicle_at_primary(data)
       and data['response']['drive_state']['shift_state'] not in {'D', 'R', 'N'}
