@@ -34,7 +34,7 @@ def write_m3_telemetry():
 
       # check for missing data and retry
       if any(x is None for x in get_check_list(data)):
-        log().warning('Retry write_m3_telemetry(), get_vehicle_data() returned empty data set: %s', data)
+        log().warning('Retry write_m3_telemetry(), get_vehicle_data() returned None for one or more values: %s', data)
         time.sleep(WAIT_TIME)
         continue
 
@@ -212,7 +212,7 @@ def write_mx_telemetry():
       
       # check for missing data and retry
       if any(x is None for x in get_check_list(data)):
-        log().warning('Retry write_mx_telemetry(), get_vehicle_data() returned empty data set: %s', data)
+        log().warning('Retry write_mx_telemetry(), get_vehicle_data() returned None for one or more values: %s', data)
         time.sleep(WAIT_TIME)
         continue
 

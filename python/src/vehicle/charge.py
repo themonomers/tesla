@@ -82,7 +82,8 @@ def notify_is_tesla_plugged_in():
 
       # check for missing data and retry
       if m3_data['response']['charge_state']['charge_port_door_open'] is None:
-        log().warning('Retry notify_is_tesla_plugged_in(), get_vehicle_data(%s) returned empty data set: %s', M3_VIN, m3_data)
+        log().warning('Retry notify_is_tesla_plugged_in(), get_vehicle_data(%s) '
+                      'returned None for charge_state.charge_port_door_open: %s', M3_VIN, m3_data)
         time.sleep(WAIT_TIME)
         continue
 
@@ -92,7 +93,8 @@ def notify_is_tesla_plugged_in():
       mx_data = get_vehicle_data(MX_VIN)
 
       if mx_data['response']['charge_state']['charge_port_door_open'] is None:
-        log().warning('Retry notify_is_tesla_plugged_in(), get_vehicle_data(%s) returned empty data set: %s', MX_VIN, mx_data)
+        log().warning('Retry notify_is_tesla_plugged_in(), get_vehicle_data(%s) '
+                      'returned None for charge_state.charge_port_door_open: %s', MX_VIN, mx_data)
         time.sleep(WAIT_TIME)
         continue
 
@@ -270,7 +272,7 @@ def charge_earliest():
     m3_data = get_vehicle_data(M3_VIN)
 
     if m3_data['response']['charge_state']['battery_range'] is None:
-      log().warning('Retry charge_earliest(), get_vehicle_data(%s) returned empty data set: %s', M3_VIN, m3_data)
+      log().warning('Retry charge_earliest(), get_vehicle_data(%s) returned None for charge_state.battery_range: %s', M3_VIN, m3_data)
       time.sleep(WAIT_TIME)
       continue
     
@@ -280,7 +282,7 @@ def charge_earliest():
     mx_data = get_vehicle_data(MX_VIN)
 
     if mx_data['response']['charge_state']['battery_range'] is None:
-      log().warning('Retry charge_earliest(), get_vehicle_data(%s) returned empty data set: %s', MX_VIN, mx_data)
+      log().warning('Retry charge_earliest(), get_vehicle_data(%s) returned None for charge_state.battery_range: %s', MX_VIN, mx_data)
       time.sleep(WAIT_TIME)
       continue
 
@@ -369,7 +371,7 @@ def check_charge(vin):
       data = get_vehicle_data(vin)
 
       if data['response']['drive_state']['latitude'] is None:
-        log().warning('Retry check_charge(), get_vehicle_data(%s) returned empty data set: %s', vin, data)
+        log().warning('Retry check_charge(), get_vehicle_data(%s) returned None for drive_state.latitude: %s', vin, data)
         time.sleep(WAIT_TIME)
         continue
       

@@ -155,7 +155,7 @@ def start_m3_precondition():
       data = get_vehicle_data(M3_VIN)
 
       if data['response']['drive_state']['latitude'] is None:
-        log().warning('Retry start_m3_precondition(): get_vehicle_data() returned empty data set: %s', data)
+        log().warning('Retry start_m3_precondition(): get_vehicle_data() returned None for drive_state.latitude: %s', data)
         time.sleep(WAIT_TIME)
         continue
       
@@ -253,7 +253,7 @@ def start_mx_precondition():
       data = get_vehicle_data(MX_VIN)
 
       if data['response']['drive_state']['latitude'] is None:
-        log().warning('Retry start_mx_precondition(): get_vehicle_data() returned empty data set: %s', data)
+        log().warning('Retry start_mx_precondition(): get_vehicle_data() returned None for drive_state.latitude: %s', data)
         time.sleep(WAIT_TIME)
         continue
       
@@ -299,7 +299,7 @@ def stop_precondition(vin):
       data = get_vehicle_data(vin)
 
       if data['response']['drive_state']['latitude'] is None:
-        log().warning('Retry stop_precondition(): get_vehicle_data(%s) returned empty data set: %s', vin, data)
+        log().warning('Retry stop_precondition(): get_vehicle_data(%s) returned None for drive_state.latitude: %s', vin, data)
         time.sleep(WAIT_TIME)
         continue
       
