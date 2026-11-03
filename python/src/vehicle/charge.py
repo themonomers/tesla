@@ -16,7 +16,8 @@ from common.utilities import (
   is_vehicle_at_secondary, 
   get_tomorrow_time,
   delete_cron,
-  create_cron
+  create_cron,
+  send_webhook
 )
 from common.argutil import CustomHelpFormatter
 from common.logutil import log
@@ -39,6 +40,8 @@ MX_FULL_CHARGE_RATE_AT_SECONDARY = 20  # (mi/hr)
 M3_FULL_CHARGE_RATE_AT_SECONDARY = 30  # (mi/hr)
 EARLIEST_CHARGING_START_TIME = '00:00'
 CHARGING_STATE_CHARGING = 'Charging'
+RECOMMENDED_TIRE_PRESSURE_M3 = 42  # (psi)
+RECOMMENDED_TIRE_PRESSURE_MX = 42  # (psi)
 
 
 ##
@@ -162,6 +165,10 @@ def notify_is_tesla_plugged_in():
       mx_climate_start_time,
       EMAIL_1
     )
+
+    # check tire pressure and send webhook notification if low
+    check_tire_pressure(m3_data)
+    check_tire_pressure(mx_data)
   except Exception as e:
     log().error('notify_is_tesla_plugged_in(): %s', e, exc_info=True)
     
@@ -692,6 +699,11 @@ def calculate_miles_needed(m3_data, mx_data):
   return miles_needed
 
 
+##
+# Email message to notify if a car is not plugged in with range info.
+#
+# author: mjhwa@yahoo.com
+##
 def send_plugged_in_message(vehicle, battery_level, battery_range, charge_port_door_open, notify, to, cc=None, bcc=None):
   # check if email notification is set to "on" first 
   if notify == 'on':
@@ -706,6 +718,11 @@ def send_plugged_in_message(vehicle, battery_level, battery_range, charge_port_d
       log().debug('send email: %s', message)
 
 
+##
+# Email message to notify when a car is scheduled for charging and/or preconditioning with range info.
+#
+# author: mjhwa@yahoo.com
+##
 def send_scheduled_charge_message(vehicle, data, charge_start_time, finish_time, climate_start_time, to, cc=None, bcc=None):
   message = ''
   subject = ''
@@ -735,6 +752,37 @@ def send_scheduled_charge_message(vehicle, data, charge_start_time, finish_time,
 
   if subject and message:
     send_email(subject, message, to, cc, bcc)
+
+
+##
+# Send webhook notification if any tire is below the recommended pressure.
+#
+# author: mjhwa@yahoo.com
+##
+def check_tire_pressure(data):
+  recommended_tire_pressure = 0
+  if data['response']['vin'] == M3_VIN:
+    recommended_tire_pressure = RECOMMENDED_TIRE_PRESSURE_M3
+  elif data['response']['vin'] == MX_VIN:
+    recommended_tire_pressure = RECOMMENDED_TIRE_PRESSURE_MX
+
+  fl_tp = data['response']['vehicle_state']['tpms_pressure_fl'] * 14.5038
+  fr_tp = data['response']['vehicle_state']['tpms_pressure_fr'] * 14.5038
+  rl_tp = data['response']['vehicle_state']['tpms_pressure_rl'] * 14.5038
+  rr_tp = data['response']['vehicle_state']['tpms_pressure_rr'] * 14.5038
+
+  if (fl_tp < recommended_tire_pressure 
+    or fr_tp < recommended_tire_pressure
+    or rl_tp < recommended_tire_pressure
+    or rr_tp < recommended_tire_pressure):
+    send_webhook(
+      'Vehicle Alerts', f'{data["response"]["vehicle_state"]["vehicle_name"]} tire pressure is low:  \n'
+      f'  Front Left:  {fl_tp}\n'
+      f'  Front Right:  {fr_tp}\n'
+      f'  Rear Left:  {rl_tp}\n'
+      f'  Rear Right:  {rr_tp}\n\n'
+      f'Please check and inflate to {recommended_tire_pressure} psi.'
+    )
 
 
 def main(parser):

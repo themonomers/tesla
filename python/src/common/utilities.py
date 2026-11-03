@@ -25,6 +25,7 @@ from crontab import CronTab
 
 SECONDARY_LAT = float(encrypted_config['vehicle']['secondary_lat'])
 SECONDARY_LNG = float(encrypted_config['vehicle']['secondary_lng'])
+WEBHOOK_URL = encrypted_config['notification']['discord_webhook']
 OPENWEATHERMAP_KEY = encrypted_config['weather']['openweathermap_key']
 LOG_SPREADSHEET_ID = encrypted_config['google']['log_spreadsheet_id']
 BASE_WEATHER_URL = config['uri']['openweathermap_base_url']
@@ -176,6 +177,20 @@ def send_request(method, url, token, payload, cert):
     headers={'authorization': f'Bearer {token}'},
     **({'verify': cert} if cert else {})
   )
+
+
+###
+# Sends a message to a webhook for notifications.
+#
+# author: mjhwa@yahoo.com
+##
+def send_webhook(name, msg):
+  payload = {
+    'username': name,
+    'content': msg
+  }
+
+  requests.post(WEBHOOK_URL, json=payload)
 
 
 ##

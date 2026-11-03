@@ -70,6 +70,7 @@ type EncryptedAppConfig struct {
 		SenderPassword string `ini:"sender_password"`
 		Email1         string `ini:"email_1"`
 		Email2         string `ini:"email_2"`
+		DiscordWebhook string `ini:"discord_webhook"`
 	} `ini:"notification"`
 	Query struct {
 		Query1 string `ini:"query_1"`

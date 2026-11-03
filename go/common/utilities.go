@@ -133,6 +133,17 @@ func GetDailyWeather(lat, lng float64) map[string]any {
 	return body
 }
 
+// Sends a message to a webhook for notifications.
+func SendWebhook(name, msg string) {
+	payload, _ := json.Marshal(map[string]any{
+		"username": name,
+		"content":  msg,
+	})
+
+	req, _ := http.NewRequest("POST", EncryptedCfg.Notification.DiscordWebhook, bytes.NewBuffer(payload))
+	req.Header.Set("Content-Type", "application/json")
+}
+
 // Creates crontab entry for a single command.
 func CreateCronTab(command string, minute int, hour int, dom int, mon int) {
 	cron := fmt.Sprint(minute) + " " + fmt.Sprint(hour) + " " + fmt.Sprint(dom) + " " + fmt.Sprint(mon) + " * " + command

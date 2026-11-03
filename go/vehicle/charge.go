@@ -16,6 +16,7 @@ import (
 var IsVehicleAtPrimary = common.IsVehicleAtPrimary
 var IsVehicleAtSecondary = common.IsVehicleAtSecondary
 var GetTomorrowTime = common.GetTomorrowTime
+var SendWebhook = common.SendWebhook
 var CreateCronTab = common.CreateCronTab
 var DeleteCronTab = common.DeleteCronTab
 var FindStringIn2DArray = common.FindStringIn2DArray
@@ -35,6 +36,8 @@ var M3_FULL_CHARGE_RATE_AT_SECONDARY float64 = 30 // (mi/hr)
 var EARLIEST_CHARGING_START_TIME string = "00:00"
 var CHARGING_STATE_COMPLETE = "Complete"
 var CHARGING_STATE_CHARGING = "Charging"
+var RECOMMENDED_TIRE_PRESSURE_M3 float64 = 42 // (psi)
+var RECOMMENDED_TIRE_PRESSURE_MX float64 = 42 // (psi)
 
 // Checks to see if the vehicles are plugged in, inferred from the charge
 // port door status, and sends an email to notify if it's not.  Also sets
@@ -97,8 +100,7 @@ func NotifyIsTeslaPluggedIn() {
 	m3_charge_start_time := scheduleM3Charging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 	mx_charge_start_time := scheduleMXCharging(m3_data, mx_data, m3_target_finish_time, mx_target_finish_time)
 
-	// set cabin preconditioning the next morning and check that it's not
-	// "skip"
+	// set cabin preconditioning the next morning and check that it's not "skip"
 	m3_climate_start_time := time.Time{}
 	mx_climate_start_time := time.Time{}
 	dow_index = FindStringIn2DArray(climate_config.Values, day_of_week)
@@ -126,6 +128,10 @@ func NotifyIsTeslaPluggedIn() {
 		mx_climate_start_time,
 		common.EncryptedCfg.Notification.Email1,
 		"")
+
+	// check tire pressure and send webhook notification if low
+	checkTirePressure(m3_data)
+	checkTirePressure(mx_data)
 }
 
 // Schedule vehicle charging based on start time.  Assumes
@@ -222,7 +228,11 @@ func scheduleM3Charging(m3_data map[string]any, mx_data map[string]any, m3_targe
 		// id=1, until I can figure out how to view the list of charge schedules and
 		// their corresponding ID's.
 		RemoveChargeSchedule(common.EncryptedCfg.Vehicle.M3Vin, 1)
-		AddChargeSchedule(common.EncryptedCfg.Vehicle.M3Vin, m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
+		AddChargeSchedule(common.EncryptedCfg.Vehicle.M3Vin,
+			m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64),
+			m3_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64),
+			total_minutes,
+			1)
 		StopCharge(common.EncryptedCfg.Vehicle.M3Vin) // for some reason charging starts sometimes after scheduled charging API is called
 
 		scheduleBackupCharging(m3_data, start_time.Add(10*time.Minute))
@@ -267,7 +277,11 @@ func scheduleMXCharging(m3_data map[string]any, mx_data map[string]any, m3_targe
 		total_minutes := (start_time.Hour() * 60) + start_time.Minute()
 
 		RemoveChargeSchedule(common.EncryptedCfg.Vehicle.MxVin, 1)
-		AddChargeSchedule(common.EncryptedCfg.Vehicle.MxVin, mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
+		AddChargeSchedule(common.EncryptedCfg.Vehicle.MxVin,
+			mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64),
+			mx_data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64),
+			total_minutes,
+			1)
 		StopCharge(common.EncryptedCfg.Vehicle.MxVin) // for some reason charging starts sometimes after scheduled charging API is called
 
 		scheduleBackupCharging(mx_data, start_time.Add(10*time.Minute))
@@ -293,7 +307,11 @@ func scheduleEarliestCharging(data map[string]any) time.Time {
 		// id=1, until I can figure out how to view the list of charge schedules and
 		// their corresponding ID's.
 		RemoveChargeSchedule(vin, 1)
-		AddChargeSchedule(vin, data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64), data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64), total_minutes, 1)
+		AddChargeSchedule(vin,
+			data["response"].(map[string]any)["drive_state"].(map[string]any)["latitude"].(float64),
+			data["response"].(map[string]any)["drive_state"].(map[string]any)["longitude"].(float64),
+			total_minutes,
+			1)
 		StopCharge(vin) // for some reason charging starts sometimes after scheduled charging API is called
 
 		scheduleBackupCharging(data, start_time.Add(10*time.Minute))
@@ -621,6 +639,26 @@ func calculateMilesNeeded(m3_data, mx_data map[string]any) map[string]float64 {
 	return miles_needed
 }
 
+// Email message to notify if a car is not plugged in with range info.
+func sendPluggedInMessage(vehicle string, battery_level float64, battery_range float64, charge_port_door_open bool, notify any, to string, cc string) {
+	// check if email notification is set to "on" first
+	if notify == "on" {
+		// send an email if the charge port door is not open, i.e. not plugged in
+		if !charge_port_door_open {
+			message := "Your car is not plugged in.  \n\nCurrent battery level is " +
+				strconv.FormatFloat(battery_level, 'f', -1, 64) +
+				"%, " +
+				strconv.FormatFloat(battery_range, 'f', -1, 64) +
+				" estimated miles.  \n\n-Your " + vehicle
+			SendEmail(to,
+				"Please Plug In Your "+vehicle,
+				message,
+				cc)
+		}
+	}
+}
+
+// Email message to notify when a car is scheduled for charging and/or preconditioning with range info.
 func sendScheduledChargeMessage(vehicle string, data map[string]any, charge_start_time time.Time, finish_time time.Time, climate_start_time time.Time, to string, cc string) {
 	var message string
 	var subject string
@@ -659,20 +697,32 @@ func sendScheduledChargeMessage(vehicle string, data map[string]any, charge_star
 	}
 }
 
-func sendPluggedInMessage(vehicle string, battery_level float64, battery_range float64, charge_port_door_open bool, notify any, to string, cc string) {
-	// check if email notification is set to "on" first
-	if notify == "on" {
-		// send an email if the charge port door is not open, i.e. not plugged in
-		if !charge_port_door_open {
-			message := "Your car is not plugged in.  \n\nCurrent battery level is " +
-				strconv.FormatFloat(battery_level, 'f', -1, 64) +
-				"%, " +
-				strconv.FormatFloat(battery_range, 'f', -1, 64) +
-				" estimated miles.  \n\n-Your " + vehicle
-			SendEmail(to,
-				"Please Plug In Your "+vehicle,
-				message,
-				cc)
-		}
+// Send webhook notification if any tire is below the recommended pressure.
+func checkTirePressure(data map[string]any) {
+	var recommended_tire_pressure float64 = 0
+	switch data["response"].(map[string]any)["vin"].(string) {
+	case common.EncryptedCfg.Vehicle.M3Vin:
+		recommended_tire_pressure = RECOMMENDED_TIRE_PRESSURE_M3
+	case common.EncryptedCfg.Vehicle.MxVin:
+		recommended_tire_pressure = RECOMMENDED_TIRE_PRESSURE_MX
+	}
+
+	fl_tp := data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fl"].(float64) * 14.5038
+	fr_tp := data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fr"].(float64) * 14.5038
+	rl_tp := data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rl"].(float64) * 14.5038
+	rr_tp := data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rr"].(float64) * 14.5038
+
+	if fl_tp < recommended_tire_pressure ||
+		fr_tp < recommended_tire_pressure ||
+		rl_tp < recommended_tire_pressure ||
+		rr_tp < recommended_tire_pressure {
+		SendWebhook("Vehicle Alerts",
+			data["response"].(map[string]any)["vehicle_state"].(map[string]any)["vehicle_name"].(string)+
+				" tire pressure is low:  \n"+
+				"  Front Left:  "+strconv.FormatFloat(fl_tp, 'f', 0, 64)+"\n"+
+				"  Front Right:  "+strconv.FormatFloat(fr_tp, 'f', 0, 64)+"\n"+
+				"  Rear Left:  "+strconv.FormatFloat(rl_tp, 'f', 0, 64)+"\n"+
+				"  Rear Right:  "+strconv.FormatFloat(rr_tp, 'f', 0, 64)+"\n\n"+
+				"Please check and inflate to "+strconv.FormatFloat(recommended_tire_pressure, 'f', 0, 64)+" psi.")
 	}
 }
