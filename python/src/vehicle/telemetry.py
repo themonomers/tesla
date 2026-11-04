@@ -4,6 +4,7 @@ import argparse
 from vehicle.api import get_vehicle_data
 from common.googleutil import get_google_sheet_service, find_open_row
 from common.emailutil import send_email
+from common.utilities import bar_to_psi, celsius_to_fahrenheit
 from common.argutil import CustomHelpFormatter
 from common.logutil import log
 from common.configutil import encrypted_config
@@ -155,8 +156,8 @@ def write_m3_telemetry():
     })
     
     # write temperature data into telemetry sheet
-    inside_temp = data['response']['climate_state']['inside_temp'] * 9/5 + 32
-    outside_temp = data['response']['climate_state']['outside_temp'] * 9/5 + 32
+    inside_temp = celsius_to_fahrenheit(data['response']['climate_state']['inside_temp'])
+    outside_temp = celsius_to_fahrenheit(data['response']['climate_state']['outside_temp'])
 
     inputs.append({
       'range': f'Telemetry!P{open_row - 1}',
@@ -170,19 +171,19 @@ def write_m3_telemetry():
     # write tire pressure data into telemetry sheet
     inputs.append({
       'range': f'Telemetry!R{open_row - 1}',
-      'values': [[data['response']['vehicle_state']['tpms_pressure_fl'] * 14.5038]]
+      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fl'])]]
     })
     inputs.append({
       'range': f'Telemetry!S{open_row - 1}',
-      'values': [[data['response']['vehicle_state']['tpms_pressure_fr'] * 14.5038]]
+      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fr'])]]
     })
     inputs.append({
       'range': f'Telemetry!T{open_row - 1}',
-      'values': [[data['response']['vehicle_state']['tpms_pressure_rl'] * 14.5038]]
+      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_rl'])]]
     })
     inputs.append({
       'range': f'Telemetry!U{open_row - 1}',
-      'values': [[data['response']['vehicle_state']['tpms_pressure_rr'] * 14.5038]]
+      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_rr'])]]
     })
 
     # batch write data and formula copies to sheet
@@ -333,8 +334,8 @@ def write_mx_telemetry():
     })
     
     # write temperature data into telemetry sheet
-    inside_temp = data['response']['climate_state']['inside_temp'] * 9/5 + 32
-    outside_temp = data['response']['climate_state']['outside_temp'] * 9/5 + 32
+    inside_temp = celsius_to_fahrenheit(data['response']['climate_state']['inside_temp'])
+    outside_temp = celsius_to_fahrenheit(data['response']['climate_state']['outside_temp'])
 
     inputs.append({
       'range': f'Telemetry!AK{open_row - 1}',
@@ -348,19 +349,19 @@ def write_mx_telemetry():
     # write tire pressure data into telemetry sheet
     inputs.append({
       'range': f'Telemetry!AM{open_row - 1}',
-      'values': [[data['response']['vehicle_state']['tpms_pressure_fl'] * 14.5038]]
+      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fl'])]]
     })
     inputs.append({
       'range': f'Telemetry!AN{open_row - 1}',
-      'values': [[data['response']['vehicle_state']['tpms_pressure_fr'] * 14.5038]]
+      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fr'])]]
     })
     inputs.append({
       'range': f'Telemetry!AO{open_row - 1}',
-      'values': [[data['response']['vehicle_state']['tpms_pressure_rl'] * 14.5038]]
+      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_rl'])]]
     })
     inputs.append({
       'range': f'Telemetry!AP{open_row - 1}',
-      'values': [[data['response']['vehicle_state']['tpms_pressure_rr'] * 14.5038]]
+      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_rr'])]]
     })
 
     # batch write data and formula copies to sheet

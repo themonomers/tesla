@@ -14,6 +14,7 @@ from common.emailutil import send_email
 from common.utilities import (
   is_vehicle_at_primary, 
   is_vehicle_at_secondary, 
+  bar_to_psi, 
   get_tomorrow_time,
   delete_cron,
   create_cron,
@@ -766,10 +767,10 @@ def check_tire_pressure(data):
   elif data['response']['vin'] == MX_VIN:
     recommended_tire_pressure = RECOMMENDED_TIRE_PRESSURE_MX
 
-  fl_tp = data['response']['vehicle_state']['tpms_pressure_fl'] * 14.5038
-  fr_tp = data['response']['vehicle_state']['tpms_pressure_fr'] * 14.5038
-  rl_tp = data['response']['vehicle_state']['tpms_pressure_rl'] * 14.5038
-  rr_tp = data['response']['vehicle_state']['tpms_pressure_rr'] * 14.5038
+  fl_tp = bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fl'])
+  fr_tp = bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fr'])
+  rl_tp = bar_to_psi(data['response']['vehicle_state']['tpms_pressure_rl'])
+  rr_tp = bar_to_psi(data['response']['vehicle_state']['tpms_pressure_rr'])
 
   if (fl_tp < recommended_tire_pressure 
     or fr_tp < recommended_tire_pressure

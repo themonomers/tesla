@@ -46,8 +46,8 @@ func isVehicleAtLocation(data map[string]any, lat float64, lng float64) bool {
 }
 
 func getDistance(car_lat, car_lng, x_lat, x_lng float64) float64 {
-	diff_lat := toRad(car_lat - x_lat)
-	diff_lng := toRad(car_lng - x_lng)
+	diff_lat := degreeToRadian(car_lat - x_lat)
+	diff_lng := degreeToRadian(car_lng - x_lng)
 
 	a := ((math.Sin(diff_lat/2) * math.Sin(diff_lat/2)) +
 		math.Cos(x_lat)*
@@ -59,8 +59,16 @@ func getDistance(car_lat, car_lng, x_lat, x_lng float64) float64 {
 	return d
 }
 
-func toRad(x float64) float64 {
+func degreeToRadian(x float64) float64 {
 	return x * math.Pi / 180
+}
+
+func BarToPsi(x float64) float64 {
+	return x * 14.5038
+}
+
+func CelsiusToFahrenheit(x float64) float64 {
+	return (x * 9 / 5) + 32
 }
 
 // Helps format the charging or preconditioning time by defaulting the date.

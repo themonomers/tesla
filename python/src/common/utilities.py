@@ -71,8 +71,8 @@ def is_vehicle_at_location(data, lat, lng):
 
 
 def get_distance(car_lat, car_lng, x_lat, x_lng):
-  diff_lat = to_rad(car_lat - x_lat)
-  diff_lng = to_rad(car_lng - x_lng)  
+  diff_lat = degree_to_radian(car_lat - x_lat)
+  diff_lng = degree_to_radian(car_lng - x_lng)  
   
   a = (
     (math.sin(diff_lat / 2) * math.sin(diff_lat / 2)) 
@@ -86,8 +86,16 @@ def get_distance(car_lat, car_lng, x_lat, x_lng):
   return d
 
 
-def to_rad(x):
+def degree_to_radian(x):
   return x * math.pi / 180
+
+
+def bar_to_psi(x):
+  return x * 14.5038
+
+
+def celsius_to_fahrenheit(x):
+  return (x * 9/5) + 32
 
 
 ##

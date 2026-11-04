@@ -142,12 +142,8 @@ func writeM3Telemetry() {
 	request = append(request, &sheets.Request{CopyPaste: copy_paste_requests})
 
 	// write temperature data into telemetry sheet
-	inside_temp := data["response"].(map[string]any)["climate_state"].(map[string]any)["inside_temp"].(float64)*
-		9/5 +
-		32 // convert to Fahrenheit
-	outside_temp := data["response"].(map[string]any)["climate_state"].(map[string]any)["outside_temp"].(float64)*
-		9/5 +
-		32 // convert to Fahrenheit
+	inside_temp := common.CelsiusToFahrenheit(data["response"].(map[string]any)["climate_state"].(map[string]any)["inside_temp"].(float64))
+	outside_temp := common.CelsiusToFahrenheit(data["response"].(map[string]any)["climate_state"].(map[string]any)["outside_temp"].(float64))
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!P" + strconv.Itoa(open_row-1),
 		Values: [][]any{{inside_temp}},
@@ -159,24 +155,20 @@ func writeM3Telemetry() {
 
 	// write tire pressure data into telemetry sheet
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range: "Telemetry!R" + strconv.Itoa(open_row-1),
-		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fl"].(float64) *
-			14.5038}},
+		Range:  "Telemetry!R" + strconv.Itoa(open_row-1),
+		Values: [][]any{{common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fl"].(float64))}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range: "Telemetry!S" + strconv.Itoa(open_row-1),
-		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fr"].(float64) *
-			14.5038}},
+		Range:  "Telemetry!S" + strconv.Itoa(open_row-1),
+		Values: [][]any{{common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fr"].(float64))}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range: "Telemetry!T" + strconv.Itoa(open_row-1),
-		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rl"].(float64) *
-			14.5038}},
+		Range:  "Telemetry!T" + strconv.Itoa(open_row-1),
+		Values: [][]any{{common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rl"].(float64))}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range: "Telemetry!U" + strconv.Itoa(open_row-1),
-		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rr"].(float64) *
-			14.5038}},
+		Range:  "Telemetry!U" + strconv.Itoa(open_row-1),
+		Values: [][]any{{common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rr"].(float64))}},
 	})
 
 	// batch write data and formula copies to sheet
@@ -323,12 +315,8 @@ func writeMXTelemetry() {
 	request = append(request, &sheets.Request{CopyPaste: copy_paste_requests})
 
 	// write temperature data into telemetry sheet
-	inside_temp := data["response"].(map[string]any)["climate_state"].(map[string]any)["inside_temp"].(float64)*
-		9/5 +
-		32 // convert to Fahrenheit
-	outside_temp := data["response"].(map[string]any)["climate_state"].(map[string]any)["outside_temp"].(float64)*
-		9/5 +
-		32 // convert to Fahrenheit
+	inside_temp := common.CelsiusToFahrenheit(data["response"].(map[string]any)["climate_state"].(map[string]any)["inside_temp"].(float64))
+	outside_temp := common.CelsiusToFahrenheit(data["response"].(map[string]any)["climate_state"].(map[string]any)["outside_temp"].(float64))
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!AK" + strconv.Itoa(open_row-1),
 		Values: [][]any{{inside_temp}},
@@ -340,24 +328,20 @@ func writeMXTelemetry() {
 
 	// write tire pressure data into telemetry sheet
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range: "Telemetry!AM" + strconv.Itoa(open_row-1),
-		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fl"].(float64) *
-			14.5038}},
+		Range:  "Telemetry!AM" + strconv.Itoa(open_row-1),
+		Values: [][]any{{common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fl"].(float64))}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range: "Telemetry!AN" + strconv.Itoa(open_row-1),
-		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fr"].(float64) *
-			14.5038}},
+		Range:  "Telemetry!AN" + strconv.Itoa(open_row-1),
+		Values: [][]any{{common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fr"].(float64))}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range: "Telemetry!AO" + strconv.Itoa(open_row-1),
-		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rl"].(float64) *
-			14.5038}},
+		Range:  "Telemetry!AO" + strconv.Itoa(open_row-1),
+		Values: [][]any{{common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rl"].(float64))}},
 	})
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range: "Telemetry!AP" + strconv.Itoa(open_row-1),
-		Values: [][]any{{data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rr"].(float64) *
-			14.5038}},
+		Range:  "Telemetry!AP" + strconv.Itoa(open_row-1),
+		Values: [][]any{{common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rr"].(float64))}},
 	})
 
 	// batch write data and formula copies to sheet

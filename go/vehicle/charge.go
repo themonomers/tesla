@@ -707,10 +707,10 @@ func checkTirePressure(data map[string]any) {
 		recommended_tire_pressure = RECOMMENDED_TIRE_PRESSURE_MX
 	}
 
-	fl_tp := data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fl"].(float64) * 14.5038
-	fr_tp := data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fr"].(float64) * 14.5038
-	rl_tp := data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rl"].(float64) * 14.5038
-	rr_tp := data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rr"].(float64) * 14.5038
+	fl_tp := common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fl"].(float64))
+	fr_tp := common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_fr"].(float64))
+	rl_tp := common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rl"].(float64))
+	rr_tp := common.BarToPsi(data["response"].(map[string]any)["vehicle_state"].(map[string]any)["tpms_pressure_rr"].(float64))
 
 	if fl_tp < recommended_tire_pressure ||
 		fr_tp < recommended_tire_pressure ||
