@@ -198,7 +198,7 @@ def send_webhook(name, msg):
     'content': msg
   }
 
-  requests.post(WEBHOOK_URL, json=payload)
+  send_request('POST', WEBHOOK_URL, None, payload, None)
 
 
 ##

@@ -761,11 +761,7 @@ def send_scheduled_charge_message(vehicle, data, charge_start_time, finish_time,
 # author: mjhwa@yahoo.com
 ##
 def check_tire_pressure(data):
-  recommended_tire_pressure = 0
-  if data['response']['vin'] == M3_VIN:
-    recommended_tire_pressure = RECOMMENDED_TIRE_PRESSURE_M3
-  elif data['response']['vin'] == MX_VIN:
-    recommended_tire_pressure = RECOMMENDED_TIRE_PRESSURE_MX
+  recommended_tire_pressure = RECOMMENDED_TIRE_PRESSURE_M3 if data['response']['vin'] == M3_VIN else RECOMMENDED_TIRE_PRESSURE_MX
 
   fl_tp = bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fl'])
   fr_tp = bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fr'])
@@ -777,11 +773,12 @@ def check_tire_pressure(data):
     or rl_tp < recommended_tire_pressure
     or rr_tp < recommended_tire_pressure):
     send_webhook(
-      'Vehicle Alerts', f'{data["response"]["vehicle_state"]["vehicle_name"]} tire pressure is low:  \n'
-      f'  Front Left:  {fl_tp}\n'
-      f'  Front Right:  {fr_tp}\n'
-      f'  Rear Left:  {rl_tp}\n'
-      f'  Rear Right:  {rr_tp}\n\n'
+      'Vehicle Alerts', 
+      f'{data["response"]["vehicle_state"]["vehicle_name"]} tire pressure is low:  \n'
+      f'  Front Left:  {round(fl_tp, 1)} psi\n'
+      f'  Front Right: {round(fr_tp, 1)} psi\n'
+      f'  Rear Left:   {round(rl_tp, 1)} psi\n'
+      f'  Rear Right:  {round(rr_tp, 1)} psi\n\n'
       f'Please check and inflate to {recommended_tire_pressure} psi.'
     )
 

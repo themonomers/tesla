@@ -148,8 +148,7 @@ func SendWebhook(name, msg string) {
 		"content":  msg,
 	})
 
-	req, _ := http.NewRequest("POST", EncryptedCfg.Notification.DiscordWebhook, bytes.NewBuffer(payload))
-	req.Header.Set("Content-Type", "application/json")
+	SendRequest("POST", EncryptedCfg.Notification.DiscordWebhook, "", payload)
 }
 
 // Creates crontab entry for a single command.
@@ -207,6 +206,8 @@ func SendRequest(method, url, token string, payload []byte) *http.Response {
 			resp, _ = http.DefaultClient.Do(req)
 		}
 	case LocalTokenCfg.Tesla.Token:
+		resp, _ = getHttpsClient().Do(req)
+	default:
 		resp, _ = getHttpsClient().Do(req)
 	}
 

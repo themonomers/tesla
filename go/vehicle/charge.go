@@ -719,10 +719,10 @@ func checkTirePressure(data map[string]any) {
 		SendWebhook("Vehicle Alerts",
 			data["response"].(map[string]any)["vehicle_state"].(map[string]any)["vehicle_name"].(string)+
 				" tire pressure is low:  \n"+
-				"  Front Left:  "+strconv.FormatFloat(fl_tp, 'f', 0, 64)+"\n"+
-				"  Front Right:  "+strconv.FormatFloat(fr_tp, 'f', 0, 64)+"\n"+
-				"  Rear Left:  "+strconv.FormatFloat(rl_tp, 'f', 0, 64)+"\n"+
-				"  Rear Right:  "+strconv.FormatFloat(rr_tp, 'f', 0, 64)+"\n\n"+
+				"  Front Left:  "+strconv.FormatFloat(fl_tp, 'f', 1, 64)+" psi\n"+
+				"  Front Right: "+strconv.FormatFloat(fr_tp, 'f', 1, 64)+" psi\n"+
+				"  Rear Left:   "+strconv.FormatFloat(rl_tp, 'f', 1, 64)+" psi\n"+
+				"  Rear Right:  "+strconv.FormatFloat(rr_tp, 'f', 1, 64)+" psi\n\n"+
 				"Please check and inflate to "+strconv.FormatFloat(recommended_tire_pressure, 'f', 0, 64)+" psi.")
 	}
 }
