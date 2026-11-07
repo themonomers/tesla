@@ -834,9 +834,47 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	}
 	request = append(request, &sheets.Request{CopyPaste: copy_paste_requests})
 
-	// batch write data and formula copies to sheet
+	// get battery backup history data
+	data = GetBatteryBackupHistory()
+
+	// get existing list of backup events saved to gsheet
 	srv := common.GetGoogleSheetService()
-	_, err := srv.Spreadsheets.Values.BatchUpdate(common.EncryptedCfg.Google.EnergySpreadsheetId, inputs).Do()
+	event_list, err := srv.Spreadsheets.Values.Get(common.EncryptedCfg.Google.EnergySpreadsheetId, "Outage!A2:C").Do()
+
+	open_row = common.FindOpenRow(common.EncryptedCfg.Google.EnergySpreadsheetId, "Outage!A:A")
+
+	for _, val := range data["response"].(map[string]any)["events"].([]any) {
+		var skip bool = false
+		var dt time.Time
+
+		// convert duration to hours
+		duration := val.(map[string]any)["duration"].(float64) / 1000 / 60 / 60
+		start, _ := time.Parse("2006-01-02T15:04:05-07:00", val.(map[string]any)["timestamp"].(string))
+
+		for _, item := range event_list.Values {
+			loc, _ := time.LoadLocation("America/Los_Angeles")
+			dt, _ = time.Parse("2006-01-02T15:04:05Z", item[0].(string))
+			dt = dt.In(loc)
+
+			if start.Equal(dt) {
+				skip = true
+			}
+		}
+
+		if !skip {
+			inputs.Data = append(inputs.Data, &sheets.ValueRange{
+				Range:  "Outage!A" + strconv.Itoa(open_row),
+				Values: [][]any{{start}},
+			})
+			inputs.Data = append(inputs.Data, &sheets.ValueRange{
+				Range:  "Outage!C" + strconv.Itoa(open_row),
+				Values: [][]any{{duration * 60}},
+			})
+		}
+	}
+
+	// batch write data and formula copies to sheet
+	_, err = srv.Spreadsheets.Values.BatchUpdate(common.EncryptedCfg.Google.EnergySpreadsheetId, inputs).Do()
 	if err != nil {
 		slog.Error("WriteEnergyDataToGsheet(): srv.Spreadsheets.Values.BatchUpdate(): " + err.Error())
 	}

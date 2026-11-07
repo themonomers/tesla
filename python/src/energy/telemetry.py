@@ -886,8 +886,50 @@ def write_energy_data_to_gsheet(target_date):
       }
     })
 
-    # batch write data to sheet
+    # get battery backup history data
+    data = get_battery_backup_history()
+
+    # get existing list of backup events saved to gsheet
     service = get_google_sheet_service()
+    event_list = service.spreadsheets().values().get(
+      spreadsheetId=ENERGY_SPREADSHEET_ID, 
+      range='Outage!A2:C'
+    ).execute().get('values', [])
+    
+    open_row = find_open_row(ENERGY_SPREADSHEET_ID, 'Outage!A:A')
+    local = pytz.timezone(TIME_ZONE)
+
+    for i in range(len(data['response']['events'])):
+      duration = -1
+      start = ''
+      skip = False
+
+      for key, value in data['response']['events'][i].items():
+        if key == 'duration':
+          duration = float(value) / 1000 / 60 / 60
+
+        if key == 'timestamp':
+          start = value[0:len(value) - 6:1]
+          start = local.localize(datetime.strptime(start, '%Y-%m-%dT%H:%M:%S'), is_dst=None)
+
+        for j in range(len(event_list)):
+          dt = local.localize(datetime.strptime(str(event_list[j][0]), '%b %d, %Y %H:%M:%S'), is_dst=None)
+
+          if start == dt:
+            skip = True  # event already in gsheet, skip
+
+        if duration != -1 and start and not skip:
+          inputs.append({
+            'range': f'Outage!A{open_row}',
+            'values': [[start.strftime('%b %d, %Y %H:%M:%S')]]
+          })
+
+          inputs.append({
+            'range': f'Outage!C{open_row}',
+            'values': [[duration * 60]]
+          })
+
+    # batch write data to sheet
     service.spreadsheets().values().batchUpdate(
       spreadsheetId=ENERGY_SPREADSHEET_ID,
       body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
