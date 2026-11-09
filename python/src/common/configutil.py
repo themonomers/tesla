@@ -12,9 +12,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 #
 # author: mjhwa@yahoo.com
 ##
-def get_config(read_fn, token_fn=None):
-  if token_fn is not None:
-    buffer = StringIO(decrypt(read_fn, token_fn))
+def get_config(read_fn, key_fn=None):
+  if key_fn is not None:
+    buffer = StringIO(decrypt(read_fn, key_fn))
   else: 
     buffer = StringIO(read_fn.read_text())
 
@@ -37,4 +37,4 @@ def get_filepath(item):
 
 
 config = get_config(PROJECT_ROOT / './configs/config.ini')
-encrypted_config = get_config(get_filepath('config'), get_filepath('tesla_key'))
+encrypted_config = get_config(get_filepath('config'), get_filepath('pynacl_key'))

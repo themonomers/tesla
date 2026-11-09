@@ -28,7 +28,7 @@ SCOPE = (
 )
 PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
 TOKEN = get_filepath('token')
-TESLA_KEY = get_filepath('tesla_key')
+PYNACL_KEY = get_filepath('pynacl_key')
 
 
 ##
@@ -37,7 +37,7 @@ TESLA_KEY = get_filepath('tesla_key')
 # author: mjhwa@yahoo.com
 ##
 def get_token():
-  return get_config(TOKEN, TESLA_KEY)
+  return get_config(TOKEN, PYNACL_KEY)
 
 token = get_token()
 REFRESH_TOKEN = token['tesla']['refresh_token']
@@ -74,7 +74,7 @@ def refresh_token():
   log().debug('refreshed tokens: %s', message)
 
   # Encrypt config file
-  encrypt(message, TOKEN, TESLA_KEY)
+  encrypt(message, TOKEN, PYNACL_KEY)
 
 
 ##

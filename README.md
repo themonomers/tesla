@@ -46,6 +46,7 @@ Packages needed for Python:
   * python-crontab
   * pytz
   * influxdb
+  * pynacl
 
 Packages needed for Tesla Vehicle Command SDK:
   * go

@@ -7,7 +7,7 @@ import os
 
 from common.influxdb import get_db_client
 from common.crypto import encrypt
-from common.tokenutil import TESLA_KEY
+from common.tokenutil import PYNACL_KEY
 from common.logutil import log
 from common.configutil import get_filepath, get_config
 from common.constants import WAIT_TIME
@@ -24,7 +24,7 @@ EXPIRED_TOKEN_MESSAGE = 'Invalid bearer token'
 # author: mjhwa@yahoo.com
 ##
 def get_local_config():
-  return get_config(get_filepath('local_config'), TESLA_KEY)
+  return get_config(get_filepath('local_config'), PYNACL_KEY)
 
 local_config = get_local_config()
 USERNAME = local_config['energy']['email']
@@ -82,7 +82,7 @@ def auth_local_token():
   message = f'[tesla]\ntoken={response["token"]}\n'
 
   # Encrypt config file
-  encrypt(message, LOCAL_TOKEN, TESLA_KEY)
+  encrypt(message, LOCAL_TOKEN, PYNACL_KEY)
 
 
 ##
@@ -96,7 +96,7 @@ def get_local_token():
   if not os.path.exists(LOCAL_TOKEN):
     auth_local_token()
 
-  return get_config(LOCAL_TOKEN, TESLA_KEY)
+  return get_config(LOCAL_TOKEN, PYNACL_KEY)
 
 LOCAL_BEARER_TOKEN = get_local_token()['tesla']['token']
 

@@ -15,6 +15,7 @@ type AppConfig struct {
 		LocalToken       string `ini:"local_token"`
 		TeslaKey         string `ini:"tesla_key"`
 		TeslaCert        string `ini:"tesla_cert"`
+		PyNaClKey        string `ini:"pynacl_key"`
 		GoogleMailSecret string `ini:"google_mail_secret"`
 		GoogleMailToken  string `ini:"google_mail_token"`
 		GoogleSheetCred  string `ini:"google_sheet_cred"`
