@@ -1,12 +1,10 @@
 import nacl.pwhash
 import getpass
-import sys
 import argparse
 
 from common.argutil import CustomHelpFormatter
 from nacl.secret import SecretBox
 from nacl.utils import random
-from pathlib import Path
 
 ##
 # Read an unencrypted file and encrypt it.
@@ -77,7 +75,7 @@ def generate_password_key(write_fn, ss_fn):
 
   # Derive the 32-byte key deterministically
   key = nacl.pwhash.argon2id.kdf(
-      nacl.secret.SecretBox.KEY_SIZE,
+      SecretBox.KEY_SIZE,
       password.encode(),
       static_salt,
       opslimit=nacl.pwhash.OPSLIMIT_INTERACTIVE,
@@ -114,16 +112,17 @@ def get_box(key_fn):
 
 
 ##
-# Centralized file writing with an optional check for an existing file.
+# Centralized file writing with default exclusive creation mode to
+# prevent overwriting an existing file.
 #
 # author: mjhwa@yahoo.com
 ##
 def write_file(write_fn, content, check_file=True):
-  if check_file is True and Path(write_fn).is_file():
-    print(f'Cannot write file: {write_fn}.  The file already exists.')
-    sys.exit(1)
+  mode = 'xb'
+  if check_file is False:
+    mode = 'wb'
 
-  f = open(write_fn, 'wb')
+  f = open(write_fn, mode)
   f.write(content)
   f.close()
 

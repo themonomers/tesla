@@ -27,7 +27,7 @@ SCOPE = (
   'vehicle_specs energy_device_data energy_cmds'
 )
 PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
-TOKEN = get_filepath('token')
+TOKEN = get_filepath('tesla_token')
 PYNACL_KEY = get_filepath('pynacl_key')
 
 

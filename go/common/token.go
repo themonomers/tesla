@@ -27,11 +27,11 @@ var LocalTokenCfg *LocalTokenConfig
 
 // Token loader
 func LoadTokenConfig() {
-	tokenCfgFile, _ := ini.Load(Decrypt(GetFilePath(Cfg.File.Token)))
+	tokenCfgFile, _ := ini.Load(Decrypt(GetFilePath(Cfg.File.TeslaToken)))
 	TokenCfg = &TokenConfig{}
 	tokenCfgFile.MapTo(TokenCfg)
 
-	localTokenCfgFile, _ := ini.Load(Decrypt(GetFilePath(Cfg.File.LocalToken)))
+	localTokenCfgFile, _ := ini.Load(Decrypt(GetFilePath(Cfg.File.TeslaLocalToken)))
 	LocalTokenCfg = &LocalTokenConfig{}
 	localTokenCfgFile.MapTo(LocalTokenCfg)
 

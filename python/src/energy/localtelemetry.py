@@ -13,7 +13,7 @@ from common.configutil import get_filepath, get_config
 from common.constants import WAIT_TIME
 from datetime import datetime
 
-LOCAL_TOKEN = get_filepath('local_token')
+LOCAL_TOKEN = get_filepath('tesla_local_token')
 EXPIRED_TOKEN_MESSAGE = 'Invalid bearer token'
 
 

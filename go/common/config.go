@@ -10,15 +10,15 @@ type AppConfig struct {
 	File struct {
 		Config           string `ini:"config"`
 		LocalConfig      string `ini:"local_config"`
-		LogConfig        string `ini:"log_config"`
-		Token            string `ini:"token"`
-		LocalToken       string `ini:"local_token"`
+		TeslaToken       string `ini:"tesla_token"`
+		TeslaLocalToken  string `ini:"tesla_local_token"`
 		TeslaKey         string `ini:"tesla_key"`
 		TeslaCert        string `ini:"tesla_cert"`
 		PyNaClKey        string `ini:"pynacl_key"`
 		GoogleMailSecret string `ini:"google_mail_secret"`
 		GoogleMailToken  string `ini:"google_mail_token"`
 		GoogleSheetCred  string `ini:"google_sheet_cred"`
+		LogConfig        string `ini:"log_config"`
 		LogFilename      string `ini:"log_filename"`
 	} `ini:"file"`
 	Cron struct {
