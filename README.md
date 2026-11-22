@@ -7,7 +7,7 @@ Before running the tesla-http-proxy, you need to follow [instructions](https://g
 
 ### /python
 
-Track Tesla Vehicle data in Google Sheets ([example](https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing)), send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB. 
+Track Tesla Vehicle data in Google Sheets ([example](https://docs.google.com/spreadsheets/d/1662a1ma0Z2cdnkKvn2JWClFGsu-T-QS6NNCyyuyEweA/edit?usp=sharing)), send email reminders to plug in car, calculate charging start times, and advanced schedule based preconditioning.  Additional code for Tesla Energy products that writes data to InfluxDB and visualized in Grafana ([example](https://github.com/themonomers/raspberrypi/tree/master/grafana)). 
 ```
 src/
 

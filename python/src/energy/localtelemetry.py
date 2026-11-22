@@ -42,12 +42,30 @@ def get_url(command):
   return BASE_URL + command
 
 
+###
+# Centralize retries when responses fail and re-auth of local token.
+#
+# author: mjhwa@yahoo.com
+##
 def send_get(url):
-  return send_request('GET', url, LOCAL_BEARER_TOKEN, None)
+  while True:
+    response = send_request('GET', url, LOCAL_BEARER_TOKEN, None)
+
+    if response.status_code != 200:
+      time.sleep(WAIT_TIME)
+      continue
+
+    # Detect expired local token and re-auth
+    resp = json.loads(response.text)
+    if 'message' in resp and resp['message'] == EXPIRED_TOKEN_MESSAGE:
+      auth_local_token()
+      continue
+
+    return resp
 
 
 ###
-# Centralize repetitive HTTP Request calls.
+# Helper function for HTTP Requests.
 #
 # author: mjhwa@yahoo.com
 ##
@@ -185,20 +203,7 @@ def write_local_live_site_telemetry():
 # author: mjhwa@yahoo.com
 ##
 def get_local_meters_aggregates():
-  while True:
-    response = send_get(get_url('/meters/aggregates'))
-
-    if response.status_code != 200:
-      time.sleep(WAIT_TIME)
-      continue
-
-    # Detect expired local token and re-auth
-    resp = json.loads(response.text)
-    if 'message' in resp and resp['message'] == EXPIRED_TOKEN_MESSAGE:
-      auth_local_token()
-      continue
-
-    return resp
+  return send_get(get_url('/meters/aggregates'))
 
 
 ##
@@ -208,20 +213,7 @@ def get_local_meters_aggregates():
 # author: mjhwa@yahoo.com
 ##
 def get_local_system_status_soe():
-  while True:
-    response = send_get(get_url('/system_status/soe'))
-
-    if response.status_code != 200:
-      time.sleep(WAIT_TIME)
-      continue
-
-    # Detect expired local token and re-auth
-    resp = json.loads(response.text)
-    if 'message' in resp and resp['message'] == EXPIRED_TOKEN_MESSAGE:
-      auth_local_token()
-      continue
-
-    return resp
+  return send_get(get_url('/system_status/soe'))
 
 
 ##
@@ -230,20 +222,7 @@ def get_local_system_status_soe():
 # author: mjhwa@yahoo.com
 ##
 def get_local_system_status():
-  while True:
-    response = send_get(get_url('/system_status'))
-
-    if response.status_code != 200:
-      time.sleep(WAIT_TIME)
-      continue
-
-    # Detect expired local token and re-auth
-    resp = json.loads(response.text)
-    if 'message' in resp and resp['message'] == EXPIRED_TOKEN_MESSAGE:
-      auth_local_token()
-      continue
-
-    return resp
+  return send_get(get_url('/system_status'))
 
 
 ##
