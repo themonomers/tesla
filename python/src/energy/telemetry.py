@@ -29,19 +29,15 @@ SUMMARY_SHEET_ID = encrypted_config['google']['summary_sheet_id']
 
 
 ##
-# This writes solar and battery data in 5 minute increments in InfluxDB
+# Creates solar and battery payload in 5 minute increments in InfluxDB
 # for a given day that can be visualized in Grafana.  This recreates the 
 # "Energy Usage" graph from the mobile app.  
 #
 # author: mjhwa@yahoo.com
 ##
-def write_energy_detail_to_db(target_date):
+def create_energy_detail_payload(power_history, json_body, target_date):
   try:
-    # get time series data
-    data = get_power_history('day', target_date)
-
-    json_body = []
-    for x in data['response']['time_series']:
+    for x in power_history['response']['time_series']:
       d = datetime.strptime(x['timestamp'].split('T',1)[0], '%Y-%m-%d')
 
       if d.date() == target_date.date():
@@ -68,29 +64,18 @@ def write_energy_detail_to_db(target_date):
           }
         })
 
-    # Write to Influxdb
-    client = get_db_client()
-    client.switch_database('energy')
-    client.write_points(json_body)
-    client.close()
+    return json_body
   except Exception as e:
-    log().error('write_energy_detail_to_db(): %s', e, exc_info=True)
+    log().error('create_energy_detail_payload(): %s', e, exc_info=True)
 
 
 ##
-# Contains functions to read/write the solar and powerwall data into a 
-# InfluxDB for tracking, analysis, and graphs.  The data is a summary level 
-# down to the day.
+# Creates solar and powerwall summary level payload down to the day.
 #
 # author: mjhwa@yahoo.com
 ##
-def write_energy_summary_to_db(target_date):
+def create_energy_summary_payload(local_system_status, site_status, site_history, savings_forecast, json_body, target_date):
   try:
-    # get local battery data
-    data = get_local_system_status()  
-    
-    json_body = []
-    # write battery data
     json_body.append({
       'measurement': 'energy_summary',
       'tags': {
@@ -106,12 +91,9 @@ def write_energy_summary_to_db(target_date):
         target_date.microsecond
       ).replace(tzinfo=PAC)),
       'fields': {
-        'value': float(data['nominal_full_pack_energy'])
+        'value': float(local_system_status['nominal_full_pack_energy'])
       }
     })
-
-    # get battery data
-    data = get_site_status()  
 
     json_body.append({
       'measurement': 'energy_summary',
@@ -128,17 +110,13 @@ def write_energy_summary_to_db(target_date):
         target_date.microsecond
       ).replace(tzinfo=PAC)),
       'fields': {
-        'value': float(data['response']['percentage_charged'])
+        'value': float(site_status['response']['percentage_charged'])
       }
     })
 
-    # get solar data
-    data = get_site_history('day', target_date)
-
-    # write solar data
     cumulative_data = {}
 
-    for items in data['response']['time_series']:
+    for items in site_history['response']['time_series']:
       d = datetime.strptime(items['timestamp'].split('T',1)[0], '%Y-%m-%d')
 
       if d.date() == target_date.date():
@@ -172,11 +150,8 @@ def write_energy_summary_to_db(target_date):
         }
       })
 
-    # get solar value 
-    data = get_savings_forecast('day', target_date)
-
-    for i in range(len(data['response'])):
-      d = datetime.strptime(data['response'][i]['timestamp'].split('T',1)[0], '%Y-%m-%d')
+    for i in range(len(savings_forecast['response'])):
+      d = datetime.strptime(savings_forecast['response'][i]['timestamp'].split('T',1)[0], '%Y-%m-%d')
       local = pytz.timezone('UTC')
       d = local.localize(d, is_dst=None)
 
@@ -191,36 +166,28 @@ def write_energy_summary_to_db(target_date):
           'tags': {
             'source': 'savings_forecast'
           },
-          'time': data['response'][i]['timestamp'],
+          'time': savings_forecast['response'][i]['timestamp'],
           'fields': {
-            'value': float(data['response'][i]['value'])
+            'value': float(savings_forecast['response'][i]['value'])
           }
         })
 
-    # Write to Influxdb
-    client = get_db_client()
-    client.switch_database('energy')
-    client.write_points(json_body)
-    client.close()
+    return json_body
   except Exception as e:
-    log().error('write_energy_summary_to_db(): %s', e, exc_info=True)
+    log().error('create_energy_summary_payload(): %s', e, exc_info=True)
 
 
 ##
-# Writes Tesla battery charge state history into an InfluxDB for 
-# Grafana visualization.  These are in 15 minute increments.
+# Creates battery charge state history payload in 15 minute increments.
 #
 # author: mjhwa@yahoo.com
 ##
-def write_battery_charge_to_db(target_date):
+def create_battery_charge_payload(battery_charge_history, json_body):
   try:
-    # get battery charge history data
-    data = get_battery_charge_history('day', target_date)
-
-    json_body = []
     dt = ''
     soe = ''
-    for x in data['response']['time_series']:
+
+    for x in battery_charge_history['response']['time_series']:
       for key, value in x.items():
         if key == 'timestamp':
           dt = value
@@ -238,33 +205,23 @@ def write_battery_charge_to_db(target_date):
             }
           })
 
-    # Write to Influxdb
-    client = get_db_client()
-    client.switch_database('energy')
-    client.write_points(json_body)
-    client.close()
+    return json_body
   except Exception as e:
-    log().error('write_battery_charge_to_db(): %s', e, exc_info=True)
+    log().error('create_battery_charge_payload(): %s', e, exc_info=True)
 
 
 ##
-# Contains functions to read/write the solar and powerwall data, separated 
-# by peak/partial peak/off peak, into InfluxDB for tracking, analysis, 
-# and graphs.  The data is a summary level down to the day.
+# Creates solar and powerwall payload, separated by peak/partial peak/off peak 
+# in summary level down to the day.
 #
 # author: mjhwa@yahoo.com
 ##
-def write_energy_tou_summary_to_db(target_date):
+def create_energy_tou_summary_payload(site_history, site_tou_history, json_body, target_date):
   try:
-    json_body = []
-
-    # get solar data for all day
-    data = get_site_history('day', target_date)
-
-    # write solar data for all day
+    # solar data for all day
     cumulative_data = {}
 
-    for items in data['response']['time_series']:
+    for items in site_history['response']['time_series']:
       d = datetime.strptime(items['timestamp'].split('T',1)[0], '%Y-%m-%d')
 
       if d.date() == target_date.date():
@@ -292,20 +249,17 @@ def write_energy_tou_summary_to_db(target_date):
         }
       })
 
-    # get solar data for TOU
-    data = get_site_tou_history('day', target_date)
-
-    # write solar data for TOU
-    for key_1, _ in data['response'].items():
+    # solar data for TOU
+    for key_1, _ in site_tou_history['response'].items():
       if key_1 in {'off_peak', 'partial_peak', 'peak'}:
-        for i in range(len(data['response'][key_1]['time_series'])):
+        for i in range(len(site_tou_history['response'][key_1]['time_series'])):
           d = datetime.strptime(
-            data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
+            site_tou_history['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
             '%Y-%m-%d'
           )
 
           if d.date() == target_date.date():
-            for key_2, value_2 in data['response'][key_1]['time_series'][i].items():
+            for key_2, value_2 in site_tou_history['response'][key_1]['time_series'][i].items():
               if key_2 not in {'timestamp', 'raw_timestamp'}:
                 json_body.append({
                   'measurement': key_1,
@@ -326,46 +280,92 @@ def write_energy_tou_summary_to_db(target_date):
                   }
                 })
 
-    # Write to Influxdb
-    client = get_db_client()
-    client.switch_database('summary')
-    client.write_points(json_body)
-    client.close()
+    return json_body
   except Exception as e:
-    log().error('write_energy_tou_summary_to_db(): %s', e, exc_info=True)
+    log().error('create_energy_tou_summary_payload(): %s', e, exc_info=True)
 
 
 ##
-# Contains functions to read/write the solar and powerwall data, separated 
-# by peak/partial peak/off peak, into a Google Sheet for tracking, analysis, 
-# and graphs.  The data is a summary level down to the day.
+# Compares the list of backup events already stored in the DB vs. the list
+# from the Tesla and creates payload of any missing events.
 #
 # author: mjhwa@yahoo.com
 ##
-def write_energy_data_to_gsheet(target_date):
+def create_battery_backup_payload(battery_backup_history, json_body):
   try:
-    # get local battery data
-    data = get_local_system_status()
+    local = pytz.timezone(TIME_ZONE)
 
+    # get existing list of backup events saved to DB
+    client = get_db_client()
+    client.switch_database('outage')
+    db = client.query(query='SELECT * FROM "backup"')
+
+    for i in range(len(battery_backup_history['response']['events'])):
+      duration = -1
+      start = ''
+      skip = False
+
+      for key, value in battery_backup_history['response']['events'][i].items():
+        if key == 'duration':
+          duration = float(value) / 1000 / 60 / 60
+
+        if key == 'timestamp':
+          start = value[0:len(value) - 6:1]
+          start = local.localize(datetime.strptime(start, '%Y-%m-%dT%H:%M:%S'), is_dst=None)
+
+        for item in db:
+          for j in range(len(item)):
+            dt = datetime.strptime(item[j]['time'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.utc)
+            dt = dt.astimezone(pytz.timezone(TIME_ZONE))
+
+            if start == dt:
+              skip = True  # event already in DB, skip
+
+        if duration != -1 and start and not skip:
+          json_body.append({
+            'measurement': 'backup',
+            'tags': {
+              'source': 'event'
+            },
+            'time': str(start),
+            'fields': {
+              'value': float(duration)
+            }
+          })
+
+    client.close()
+    return json_body
+  except Exception as e:
+    log().error('create_battery_backup_payload(): %s', e, exc_info=True)
+
+
+##
+# Write the solar and powerwall data, separated by peak/partial peak/off peak, 
+# into a Google Sheet for tracking, analysis, and graphs.  The data is a 
+# summary level down to the day.
+#
+# author: mjhwa@yahoo.com
+##
+def write_energy_data_to_gsheet(local_system_status, site_status, site_history, site_tou_history, battery_backup_history, target_date):
+  try:
     inputs = []
+
     # write total pack energy value
     open_row = find_open_row(ENERGY_SPREADSHEET_ID, 'Telemetry!A:A')
     inputs.append({
       'range': f'Telemetry!A{open_row}',
-      'values': [[(datetime.today() - timedelta(1)).strftime('%B %d, %Y')]]
+      'values': [[target_date.strftime('%B %d, %Y')]]
     })
 
     inputs.append({
       'range': f'Telemetry!B{open_row}',
-      'values': [[data['nominal_full_pack_energy']]]
+      'values': [[local_system_status['nominal_full_pack_energy']]]
     })
 
-    # get battery data
-    data = get_site_status()
-
+    # write battery SoC
     inputs.append({
       'range': f'Telemetry!C{open_row}',
-      'values': [[data['response']['percentage_charged']]]
+      'values': [[site_status['response']['percentage_charged']]]
     })
 
     # copy formula down: column D
@@ -390,13 +390,10 @@ def write_energy_data_to_gsheet(target_date):
       }
     })
 
-    # get solar data for all day
-    data = get_site_history('day', target_date)
-
     # write solar data for all day
     cumulative_data = {}
 
-    for items in data['response']['time_series']:
+    for items in site_history['response']['time_series']:
       d = datetime.strptime(items['timestamp'].split('T',1)[0], '%Y-%m-%d')
 
       if d.date() == target_date.date():
@@ -510,100 +507,95 @@ def write_energy_data_to_gsheet(target_date):
       }
     })
 
-    # get solar data for TOU
-    data = get_site_tou_history('day', target_date)
-
-    # skip if system set to self-powered
-    if data['response']:
-
-      # write solar data for off peak
-      for key_1, _ in data['response'].items():
+    # write solar data for TOU, skip if system set to self-powered
+    if site_tou_history['response']:
+      for key_1, _ in site_tou_history['response'].items():
         if key_1 == 'off_peak':
-          for i in range(len(data['response'][key_1]['time_series'])):
+          for i in range(len(site_tou_history['response'][key_1]['time_series'])):
             d = datetime.strptime(
-              data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
+              site_tou_history['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
               '%Y-%m-%d'
             )
 
             if d.date() == target_date.date():
               inputs.append({
                 'range': f'Telemetry!AE{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AF{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_battery']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_battery']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AG{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_grid']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_grid']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AH{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_generator']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_generator']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AI{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['solar_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['solar_energy_exported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AJ{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_exported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AK{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_solar']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_imported_from_solar']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AL{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_grid']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_imported_from_grid']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AM{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_generator']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_imported_from_generator']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AN{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_imported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_imported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AO{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_solar']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_exported_from_solar']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AP{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_battery']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_exported_from_battery']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AQ{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_generator']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_exported_from_generator']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AR{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_services_energy_exported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AS{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_imported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_services_energy_imported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!AT{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['generator_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['generator_energy_exported']]]
               })
 
               # copy formulas down: column AU to AZ
@@ -627,91 +619,91 @@ def write_energy_data_to_gsheet(target_date):
                 }
               })
         elif key_1 == 'partial_peak':
-          for i in range(len(data['response'][key_1]['time_series'])):
+          for i in range(len(site_tou_history['response'][key_1]['time_series'])):
             d = datetime.strptime(
-              data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
+              site_tou_history['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
               '%Y-%m-%d'
             )
 
             if d.date() == target_date.date():
               inputs.append({
                 'range': f'Telemetry!BB{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BC{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_battery']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_battery']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BD{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_grid']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_grid']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BE{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_generator']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_generator']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BF{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['solar_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['solar_energy_exported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BG{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_exported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BH{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_solar']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_imported_from_solar']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BI{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_grid']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_imported_from_grid']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BJ{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_generator']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_imported_from_generator']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BK{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_imported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_imported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BL{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_solar']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_exported_from_solar']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BM{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_battery']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_exported_from_battery']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BN{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_generator']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_exported_from_generator']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BO{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_services_energy_exported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BP{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_imported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_services_energy_imported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BQ{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['generator_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['generator_energy_exported']]]
               })
 
               # copy formulas down: column BR to BW
@@ -735,91 +727,91 @@ def write_energy_data_to_gsheet(target_date):
                 }
               })
         elif key_1 == 'peak':
-          for i in range(len(data['response'][key_1]['time_series'])):
+          for i in range(len(site_tou_history['response'][key_1]['time_series'])):
             d = datetime.strptime(
-              data['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
+              site_tou_history['response'][key_1]['time_series'][i]['timestamp'].split('T',1)[0],
               '%Y-%m-%d'
             )
       
             if d.date() == target_date.date():
               inputs.append({
                 'range': f'Telemetry!BY{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_solar']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!BZ{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_battery']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_battery']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CA{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_grid']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_grid']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CB{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['consumer_energy_imported_from_generator']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['consumer_energy_imported_from_generator']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CC{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['solar_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['solar_energy_exported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CD{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_exported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CE{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_solar']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_imported_from_solar']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CF{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_grid']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_imported_from_grid']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CG{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['battery_energy_imported_from_generator']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['battery_energy_imported_from_generator']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CH{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_imported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_imported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CI{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_solar']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_exported_from_solar']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CJ{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_battery']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_exported_from_battery']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CK{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_energy_exported_from_generator']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_energy_exported_from_generator']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CL{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_services_energy_exported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CM{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['grid_services_energy_imported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['grid_services_energy_imported']]]
               })
 
               inputs.append({
                 'range': f'Telemetry!CN{open_row}',
-                'values': [[data['response'][key_1]['time_series'][i]['generator_energy_exported']]]
+                'values': [[site_tou_history['response'][key_1]['time_series'][i]['generator_energy_exported']]]
               })
 
               # copy formulas down: column CO to CT
@@ -886,9 +878,7 @@ def write_energy_data_to_gsheet(target_date):
       }
     })
 
-    # get battery backup history data
-    data = get_battery_backup_history()
-
+    # write battery backup history data
     # get existing list of backup events saved to gsheet
     service = get_google_sheet_service()
     event_list = service.spreadsheets().values().get(
@@ -899,12 +889,12 @@ def write_energy_data_to_gsheet(target_date):
     open_row = find_open_row(ENERGY_SPREADSHEET_ID, 'Outage!A:A')
     local = pytz.timezone(TIME_ZONE)
 
-    for i in range(len(data['response']['events'])):
+    for i in range(len(battery_backup_history['response']['events'])):
       duration = -1
       start = ''
       skip = False
 
-      for key, value in data['response']['events'][i].items():
+      for key, value in battery_backup_history['response']['events'][i].items():
         if key == 'duration':
           duration = float(value) / 1000 / 60 / 60
 
@@ -946,137 +936,96 @@ def write_energy_data_to_gsheet(target_date):
 
 
 ##
-# Compares the list of backup events already stored in the DB vs. the list
-# from the Tesla and inserts any missing events.
+# Write all energy data and send email notification after successful completion.  
 #
 # author: mjhwa@yahoo.com
 ##
-def write_battery_backup_history_to_db():
+def write_energy_data(target_date):
   try:
+    json_body_energy = []
+    # get time series data
+    power_history = get_power_history('day', target_date)
+    json_body_energy = create_energy_detail_payload(power_history, json_body_energy, target_date)
+
+    # get summary data
+    local_system_status = get_local_system_status()
+    site_status = get_site_status()
+    site_history = get_site_history('day', target_date)
+    savings_forecast = get_savings_forecast('day', target_date)
+    json_body_energy = create_energy_summary_payload(
+      local_system_status, 
+      site_status, 
+      site_history, 
+      savings_forecast, 
+      json_body_energy, 
+      target_date
+    )
+
+    # get battery charge history data
+    battery_charge_history = get_battery_charge_history('day', target_date)
+    json_body_energy = create_battery_charge_payload(battery_charge_history, json_body_energy)
+
+    json_body_summary = []
+    # get solar data for TOU
+    site_tou_history = get_site_tou_history('day', target_date)
+    json_body_summary = create_energy_tou_summary_payload(
+      site_history, 
+      site_tou_history, 
+      json_body_summary, 
+      target_date
+    )
+
+    json_body_outage = []
     # get battery backup history data
-    data = get_battery_backup_history()
+    battery_backup_history = get_battery_backup_history()
+    json_body_outage = create_battery_backup_payload(battery_backup_history, json_body_outage)
 
-    json_body = []
-    local = pytz.timezone(TIME_ZONE)
-
-    # get existing list of backup events saved to DB
+    # write to Influxdb
     client = get_db_client()
+    client.switch_database('energy')
+    client.write_points(json_body_energy)
+    client.switch_database('summary')
+    client.write_points(json_body_summary)
     client.switch_database('outage')
-    db = client.query(query='SELECT * FROM "backup"')
-
-    for i in range(len(data['response']['events'])):
-      duration = -1
-      start = ''
-      skip = False
-
-      for key, value in data['response']['events'][i].items():
-        if key == 'duration':
-          duration = float(value) / 1000 / 60 / 60
-
-        if key == 'timestamp':
-          start = value[0:len(value) - 6:1]
-          start = local.localize(datetime.strptime(start, '%Y-%m-%dT%H:%M:%S'), is_dst=None)
-
-        for item in db:
-          for j in range(len(item)):
-            dt = datetime.strptime(item[j]['time'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.utc)
-            dt = dt.astimezone(pytz.timezone(TIME_ZONE))
-
-            if start == dt:
-              skip = True  # event already in DB, skip
-
-        if duration != -1 and start and not skip:
-          json_body.append({
-            'measurement': 'backup',
-            'tags': {
-              'source': 'event'
-            },
-            'time': str(start),
-            'fields': {
-              'value': float(duration)
-            }
-          })
-
-    # Write to Influxdb
-    client.write_points(json_body)
+    client.write_points(json_body_outage)
     client.close()
+
+    # write to Gsheet
+    write_energy_data_to_gsheet(
+      local_system_status, 
+      site_status, 
+      site_history, 
+      site_tou_history, 
+      battery_backup_history, 
+      target_date
+    )
+
+    # send email notification
+    message = f'Energy telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
+    send_email('Energy Telemetry Logged', message, EMAIL_1)
   except Exception as e:
-    log().error('write_battery_backup_history_to_db(): %s', e, exc_info=True)
+    log().error('write_energy_data(): %s', e, exc_info=True)
 
 
 ##
-# Write the data for the previous day based on a cron job that runs just after
-# midnight to ensure we get a full day's worth of data.  Also supports manually run 
-# data collection for automated routines that failed.
+# Write the energy data for the previous day based on a cron job that runs just after
+# midnight to ensure we get a full day's worth of data.  Also supports writing energy 
+# data by a specific date for any missing dates.
 #
 # author: mjhwa@yahoo.com
 ##
 def main(parser):
   args = parser.parse_args()
 
-  if not any(vars(args).values()):
+  if args.write_previous_day:
+    target_date = datetime.today() - timedelta(1)
+  elif args.write_date:
+    target_date = datetime.strptime(args.write_date[0].strftime('%m/%d/%Y'), '%m/%d/%Y') 
+  else:
     parser.print_help()
     return
 
-  options = [
-    args.detail_to_db, 
-    args.summary_to_db, 
-    args.tou_summary_to_db, 
-    args.data_to_gsheet, 
-    args.battery_charge_to_db,
-    args.outage_to_db
-  ]
-  if args.write_all and any(options):
-    parser.error('-a, --all cannot be used with any other options')
-
-  if (
-      (
-        args.detail_to_db 
-        or args.summary_to_db
-        or args.tou_summary_to_db
-        or args.data_to_gsheet
-        or args.battery_charge_to_db
-      )
-      and not args.target_date
-  ):
-    parser.error(
-      '--target_date (m/d/yyyy) is required when --detail_to_db, --summary_to_db, --tou_summary_to_db, '
-      '--data_to_gsheet, or --battery_charge_to_db is used'
-    )
-
-  if args.write_all:
-    write_energy_detail_to_db(datetime.today() - timedelta(1))
-    write_energy_summary_to_db(datetime.today() - timedelta(1))
-    write_battery_charge_to_db(datetime.today() - timedelta(1))
-    write_energy_tou_summary_to_db(datetime.today() - timedelta(1))
-    write_energy_data_to_gsheet(datetime.today() - timedelta(1))
-    write_battery_backup_history_to_db()
-
-    # send email notification
-    message = f'Energy telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
-    send_email('Energy Telemetry Logged', message, EMAIL_1)
-  else:
-    target_date = None
-    if args.target_date:
-      target_date = datetime.strptime(args.target_date[0].strftime('%m/%d/%Y'), '%m/%d/%Y') 
-
-    if args.detail_to_db:
-      write_energy_detail_to_db(target_date)
-    
-    if args.summary_to_db:
-      write_energy_summary_to_db(target_date)
-
-    if args.tou_summary_to_db:
-      write_energy_tou_summary_to_db(target_date)
-
-    if args.data_to_gsheet:
-      write_energy_data_to_gsheet(target_date)
-
-    if args.battery_charge_to_db:
-      write_battery_charge_to_db(target_date)
-
-    if args.outage_to_db:
-      write_battery_backup_history_to_db()
+  write_energy_data(target_date)
 
 
 if __name__ == '__main__':
@@ -1085,54 +1034,17 @@ if __name__ == '__main__':
     description='Writes energy data to store for analysis and visualization.',
     formatter_class=CustomHelpFormatter
   )
-  parser.add_argument(
-    '-a', 
-    '--write_all', 
-    help='writes all energy data from previous day as part of an automated routine',
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument(
+    '-p', 
+    '--write_previous_day', 
+    help='writes all energy data from previous day',
     action='store_true'
   )
-  parser.add_argument(
-    '-e', 
-    '--detail_to_db', 
-    help='writes energy data to InfluxDB in 5 minute increments for Home, Solar, Powerall, and Grid',
-    action='store_true'
-  )
-  parser.add_argument(
-    '-s', 
-    '--summary_to_db', 
-    help='writes energy data to InfluxDB of daily totals for Home, Solar, Powerall, and Grid',
-    action='store_true'
-  )
-  parser.add_argument(
-    '-t', 
-    '--tou_summary_to_db', 
-    help='writes energy data to InfluxDB of TOU (off peak, partial peak, and peak) breakdowns of '
-         'Solar, Powerall, Grid, etc., Energy Value, and Solar Offset',
-    action='store_true'
-  )
-  parser.add_argument(
-    '-g', 
-    '--data_to_gsheet', 
-    help='writes energy data to Google Sheet of TOU (off peak, partial peak, and peak) breakdowns of '
-         'Solar, Powerall, Grid, etc., Energy Value, and Solar Offset',
-    action='store_true'
-  )
-  parser.add_argument(
-    '-b', 
-    '--battery_charge_to_db', 
-    help='writes battery charge state history to InfluxDB in 15 minute increments',
-    action='store_true'
-  )
-  parser.add_argument(
-    '-o', 
-    '--outage_to_db', 
-    help='writes system backup history/grid outages to InfluxDB',
-    action='store_true'
-  )
-  parser.add_argument(
+  group.add_argument(
     '-d', 
-    '--target_date', 
-    help='DATE of data import in m/d/yyyy format',
+    '--write_date', 
+    help='writes all energy data from a specified day; DATE of data import in m/d/yyyy format',
     type=lambda d: datetime.strptime(d, '%m/%d/%Y'),
     nargs=1,
     metavar='DATE'
