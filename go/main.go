@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/themonomers/tesla/go/common"
 	"github.com/themonomers/tesla/go/energy"
@@ -60,21 +61,11 @@ func main() {
 		case "-writelivesitetelemetry":
 			energy.WriteLiveSiteTelemetry()
 		case "-writeenergytelemetry":
-			energy.WriteEnergyTelemetry()
+			energy.WriteEnergyData(time.Now().Add(time.Duration(-24 * time.Hour)))
 		case "-setenergymodebasedonweather":
 			energy.SetEnergyModeBasedOnWeather()
-		case "-importenergydetailtodb":
-			energy.ImportEnergyDetailToDB()
-		case "-importenergysummarytodb":
-			energy.ImportEnergySummaryToDB()
-		case "-importenergytousummarytodb":
-			energy.ImportEnergyTOUSummaryToDB()
-		case "-importenergydatatogsheet":
-			energy.ImportEnergyDataToGsheet()
-		case "-importbatterychargetodb":
-			energy.ImportBatteryChargeToDB()
-		case "-importoutagetodb":
-			energy.ImportOutageToDB()
+		case "-importenergydata":
+			energy.ImportEnergyData()
 		// maintenance
 		case "-truncateemail":
 			common.TruncateEmail()

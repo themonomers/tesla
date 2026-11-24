@@ -2,7 +2,6 @@ package energy
 
 import (
 	"log/slog"
-	"net/http"
 	"time"
 
 	"github.com/influxdata/influxdb/client/v2"
@@ -75,48 +74,18 @@ func WriteLiveSiteTelemetry() {
 // Retrieves site energy data locally from the Tesla
 // Energy Gateway.
 func getLocalMetersAggregates() map[string]any {
-	url := common.LocalCfg.Energy.BaseUrl +
-		"/meters/aggregates"
-
-	resp := sendGet(url)
-
-	if resp.StatusCode != 200 {
-		time.Sleep(WAIT_TIME * time.Second)
-		return getLocalMetersAggregates()
-	}
-
-	return GetJson(resp)
+	return sendGet(getLocalUrl("/meters/aggregates"))
 }
 
 // Retrieves battery charge state locally from the Tesla
 // Energy Gateway.
 func getLocalSystemStatusSOE() map[string]any {
-	url := common.LocalCfg.Energy.BaseUrl +
-		"/system_status/soe"
-
-	resp := sendGet(url)
-
-	if resp.StatusCode != 200 {
-		time.Sleep(WAIT_TIME * time.Second)
-		return getLocalSystemStatusSOE()
-	}
-
-	return GetJson(resp)
+	return sendGet(getLocalUrl("/system_status/soe"))
 }
 
 // Provides information on batteries and inverters.
 func getLocalSystemStatus() map[string]any {
-	url := common.LocalCfg.Energy.BaseUrl +
-		"/system_status"
-
-	resp := sendGet(url)
-
-	if resp.StatusCode != 200 {
-		time.Sleep(WAIT_TIME * time.Second)
-		return getLocalSystemStatus()
-	}
-
-	return GetJson(resp)
+	return sendGet(getLocalUrl("/system_status"))
 }
 
 // Handles the nanoseconds in the timestamp provided by the
@@ -133,6 +102,18 @@ func splitTimestamp(timestamp string) time.Time {
 	return t
 }
 
-func sendGet(url string) *http.Response {
-	return SendRequest("GET", url, common.LocalTokenCfg.Tesla.Token, nil)
+// Centralize repetitive URL construction.
+func getLocalUrl(command string) string {
+	return common.LocalCfg.Energy.BaseUrl + command
+}
+
+func sendGet(url string) map[string]any {
+	resp := SendRequest("GET", url, common.LocalTokenCfg.Tesla.Token, nil)
+
+	if resp.StatusCode != 200 {
+		time.Sleep(WAIT_TIME * time.Second)
+		return sendGet(url)
+	}
+
+	return GetJson(resp)
 }

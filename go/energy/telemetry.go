@@ -14,14 +14,62 @@ var GetDBClient = common.GetDBClient
 
 // Write the data for the previous day based on a cron job that runs just after
 // midnight to ensure we get a full day's worth of data.
-func WriteEnergyTelemetry() {
-	yest := time.Now().Add(time.Duration(-24 * time.Hour))
-	WriteEnergyDetailToDB(yest)
-	WriteEnergySummaryToDB(yest)
-	WriteBatteryChargeToDB(yest)
-	WriteEnergyTOUSummaryToDB(yest)
-	WriteEnergyDataToGsheet(yest)
-	WriteBatteryBackupHistoryToDB()
+func WriteEnergyData(targetDate time.Time) {
+	c := GetDBClient()
+	defer c.Close()
+	// get time series data
+	powerHistory := GetPowerHistory("day", targetDate)
+
+	// Create a new point batch
+	bpEnergy, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		Database: "energy",
+	})
+	bpEnergy = createEnergyDetailPayload(powerHistory, bpEnergy, targetDate)
+
+	// get summary data
+	localSystemStatus := getLocalSystemStatus()
+	siteStatus := GetSiteStatus()
+	siteHistory := GetSiteHistory("day", targetDate)
+	savingsForecast := GetSavingsForecast("day", targetDate)
+	bpEnergy = createEnergySummaryPayload(localSystemStatus, siteStatus, siteHistory, savingsForecast, bpEnergy, targetDate)
+
+	// get battery charge history data
+	batteryChargeHistory := GetBatteryChargeHistory("day", targetDate)
+	bpEnergy = createBatteryChargePayload(batteryChargeHistory, bpEnergy)
+
+	bpSummary, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		Database: "summary",
+	})
+	// get solar data for TOU
+	siteTOUHistory := GetSiteTOUHistory("day", targetDate)
+	bpSummary = createEnergyTOUSummaryPayload(siteHistory, siteTOUHistory, bpSummary, targetDate)
+
+	bpOutage, _ := client.NewBatchPoints(client.BatchPointsConfig{
+		Database: "outage",
+	})
+	// get battery backup history data
+	batteryBackupHistory := GetBatteryBackupHistory()
+	bpOutage = createBatteryBackupPayload(batteryBackupHistory, bpOutage)
+
+	// Write the batch
+	err := c.Write(bpEnergy)
+	if err != nil {
+		slog.Error("WriteEnergyData(): c.Write(energy): " + err.Error())
+	}
+	err = c.Write(bpSummary)
+	if err != nil {
+		slog.Error("WriteEnergyData(): c.Write(summary): " + err.Error())
+	}
+	err = c.Write(bpOutage)
+	if err != nil {
+		slog.Error("WriteEnergyData(): c.Write(outage): " + err.Error())
+	}
+
+	// Close client resources
+	c.Close()
+
+	// write to Gsheet
+	writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOUHistory, batteryBackupHistory, targetDate)
 
 	// send email notification
 	message := ("Energy telemetry successfully logged on " +
@@ -30,28 +78,17 @@ func WriteEnergyTelemetry() {
 	common.SendEmail(common.EncryptedCfg.Notification.Email1, "Energy Telemetry Logged", message, "")
 }
 
-// This writes solar and battery data in 5 minute increments in InfluxDB
+// Creates solar and battery payload in 5 minute increments in InfluxDB
 // for a given day that can be visualized in Grafana.  This recreates the
 // "Energy Usage" graph from the mobile app.
-func WriteEnergyDetailToDB(date time.Time) {
-	// get time series data
-	data := GetPowerHistory("day", date)
-
-	c := GetDBClient()
-	defer c.Close()
-
-	// Create a new point batch
-	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
-		Database: "energy",
-	})
-
-	for _, val := range data["response"].(map[string]any)["time_series"].([]any) {
+func createEnergyDetailPayload(powerHistory map[string]any, bp client.BatchPoints, targetDate time.Time) client.BatchPoints {
+	for _, val := range powerHistory["response"].(map[string]any)["time_series"].([]any) {
 		//d, err := time.Parse("2006-01-02", strings.Split(val.(map[string]any)["timestamp"].(string), "T")[0])
 		d, _ := time.Parse("2006-01-02T15:04:05-07:00", val.(map[string]any)["timestamp"].(string))
 
-		if d.Year() == date.Year() &&
-			d.Month() == date.Month() &&
-			d.Day() == date.Day() {
+		if d.Year() == targetDate.Year() &&
+			d.Month() == targetDate.Month() &&
+			d.Day() == targetDate.Day() {
 			for key, val := range val.(map[string]any) {
 				if key != "timestamp" {
 					// Create points and add to batch
@@ -63,65 +100,37 @@ func WriteEnergyDetailToDB(date time.Time) {
 					bp.AddPoint(pt)
 				}
 			}
-			// Write the batch
-			err := c.Write(bp)
-			if err != nil {
-				slog.Error("WriteEnergyDetailToDB(): c.Write(): " + err.Error())
-			}
-
-			// Close client resources
-			c.Close()
 		}
 	}
+
+	return bp
 }
 
-// Contains functions to read/write the solar and powerwall data into a
-// InfluxDB for tracking, analysis, and graphs.  The data is a summary level
-// down to the day.
-func WriteEnergySummaryToDB(date time.Time) {
-	// get local battery data
-	data := getLocalSystemStatus()
-	date = time.Date(date.Year(), date.Month(), date.Day(), date.Hour(), date.Minute(), date.Second(), date.Nanosecond(), time.Local)
+// Creates solar and powerwall summary level payload down to the day.
+func createEnergySummaryPayload(localSystemStatus, siteStatus, siteHistory, savingsForecast map[string]any, bp client.BatchPoints, targetDate time.Time) client.BatchPoints {
+	targetDate = time.Date(targetDate.Year(), targetDate.Month(), targetDate.Day(), targetDate.Hour(), targetDate.Minute(), targetDate.Second(), targetDate.Nanosecond(), time.Local)
 
-	c := GetDBClient()
-	defer c.Close()
-
-	// Create a new point batch
-	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
-		Database: "energy",
-	})
-
-	// write battery data
-	// Create points and add to batch
 	tags := map[string]string{"source": "total_pack_energy"}
 	fields := map[string]any{
-		"value": data["nominal_full_pack_energy"].(float64),
+		"value": localSystemStatus["nominal_full_pack_energy"].(float64),
 	}
-	pt, _ := client.NewPoint("energy_summary", tags, fields, date.Local().UTC())
+	pt, _ := client.NewPoint("energy_summary", tags, fields, targetDate.Local().UTC())
 	bp.AddPoint(pt)
 
-	// get battery data
-	data = GetSiteStatus()
 	tags = map[string]string{"source": "percentage_charged"}
 	fields = map[string]any{
-		"value": data["response"].(map[string]any)["percentage_charged"].(float64),
+		"value": siteStatus["response"].(map[string]any)["percentage_charged"].(float64),
 	}
-	pt, _ = client.NewPoint("energy_summary", tags, fields, date.Local().UTC())
+	pt, _ = client.NewPoint("energy_summary", tags, fields, targetDate.Local().UTC())
 	bp.AddPoint(pt)
 
-	// get solar data
-	data = GetSiteHistory("day", date)
-	//	json, _ := json.MarshalIndent(data, "", "  ")
-	//	println(string(json))
-
-	// write solar data
 	cumulative_data := make(map[string]float64)
-	for _, items := range data["response"].(map[string]any)["time_series"].([]any) {
+	for _, items := range siteHistory["response"].(map[string]any)["time_series"].([]any) {
 		d, _ := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
 
-		if d.Year() == date.Year() &&
-			d.Month() == date.Month() &&
-			d.Day() == date.Day() {
+		if d.Year() == targetDate.Year() &&
+			d.Month() == targetDate.Month() &&
+			d.Day() == targetDate.Day() {
 			for key, value := range items.(map[string]any) {
 				if (key != "timestamp") &&
 					(key != "raw_timestamp") &&
@@ -139,13 +148,11 @@ func WriteEnergySummaryToDB(date time.Time) {
 		fields = map[string]any{
 			"value": val,
 		}
-		pt, _ = client.NewPoint("energy_summary", tags, fields, date)
+		pt, _ = client.NewPoint("energy_summary", tags, fields, targetDate)
 		bp.AddPoint(pt)
 	}
 
-	// get solar value
-	data = GetSavingsForecast("day", date)
-	for _, j := range data["response"].([]any) {
+	for _, j := range savingsForecast["response"].([]any) {
 		d, _ := time.Parse(time.RFC3339, j.(map[string]any)["timestamp"].(string))
 
 		// timestamp in data is in UTC, convert to local time
@@ -153,7 +160,7 @@ func WriteEnergySummaryToDB(date time.Time) {
 
 		// need to adjust an additional -1 days because of the lag in
 		// availability of this data
-		date_adj := date.Add(time.Duration(-24 * time.Hour))
+		date_adj := targetDate.Add(time.Duration(-24 * time.Hour))
 
 		if d_local.Year() == date_adj.Year() &&
 			d_local.Month() == date_adj.Month() &&
@@ -167,31 +174,12 @@ func WriteEnergySummaryToDB(date time.Time) {
 		}
 	}
 
-	// Write the batch
-	err := c.Write(bp)
-	if err != nil {
-		slog.Error("WriteEnergySummaryToDB(): c.Write(): " + err.Error())
-	}
-
-	// Close client resources
-	c.Close()
+	return bp
 }
 
-// Writes Tesla battery charge state history into an InfluxDB for
-// Grafana visualization.  These are in 15 minute increments.
-func WriteBatteryChargeToDB(date time.Time) {
-	// get battery charge history data
-	data := GetBatteryChargeHistory("day", date)
-
-	c := GetDBClient()
-	defer c.Close()
-
-	// Create a new point batch
-	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
-		Database: "energy",
-	})
-
-	for _, val := range data["response"].(map[string]any)["time_series"].([]any) {
+// Creates battery charge state history payload in 15 minute increments.
+func createBatteryChargePayload(batteryChargeHistory map[string]any, bp client.BatchPoints) client.BatchPoints {
+	for _, val := range batteryChargeHistory["response"].(map[string]any)["time_series"].([]any) {
 		tags := map[string]string{"source": "percentage_charged"}
 		fields := map[string]any{
 			"value": val.(map[string]any)["soe"].(float64),
@@ -201,40 +189,21 @@ func WriteBatteryChargeToDB(date time.Time) {
 		bp.AddPoint(pt)
 	}
 
-	// Write the batch
-	err := c.Write(bp)
-	if err != nil {
-		slog.Error("WriteBatteryChargeToDB(): c.Write(): " + err.Error())
-	}
-
-	// Close client resources
-	c.Close()
+	return bp
 }
 
-// Contains functions to read/write the solar and powerwall data, separated
-// by peak/partial peak/off peak, into InfluxDB for tracking, analysis,
-// and graphs.  The data is a summary level down to the day.
-func WriteEnergyTOUSummaryToDB(date time.Time) {
-	// get solar data for all day
-	data := GetSiteHistory("day", date)
-	date = time.Date(date.Year(), date.Month(), date.Day(), date.Hour(), date.Minute(), date.Second(), date.Nanosecond(), time.Local)
-
-	// write solar data for all day
-	c := GetDBClient()
-	defer c.Close()
-
-	// Create a new point batch
-	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
-		Database: "summary",
-	})
+// Creates solar and powerwall payload, separated by peak/partial peak/off peak
+// in summary level down to the day.
+func createEnergyTOUSummaryPayload(siteHistory, siteTOUHistory map[string]any, bp client.BatchPoints, targetDate time.Time) client.BatchPoints {
+	targetDate = time.Date(targetDate.Year(), targetDate.Month(), targetDate.Day(), targetDate.Hour(), targetDate.Minute(), targetDate.Second(), targetDate.Nanosecond(), time.Local)
 
 	cumulative_data := make(map[string]float64)
-	for _, items := range data["response"].(map[string]any)["time_series"].([]any) {
+	for _, items := range siteHistory["response"].(map[string]any)["time_series"].([]any) {
 		d, _ := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
 
-		if d.Year() == date.Year() &&
-			d.Month() == date.Month() &&
-			d.Day() == date.Day() {
+		if d.Year() == targetDate.Year() &&
+			d.Month() == targetDate.Month() &&
+			d.Day() == targetDate.Day() {
 			for key, value := range items.(map[string]any) {
 				if (key != "timestamp") && (key != "raw_timestamp") {
 					cumulative_data[key] += value.(float64)
@@ -247,48 +216,80 @@ func WriteEnergyTOUSummaryToDB(date time.Time) {
 		fields := map[string]any{
 			"value": val,
 		}
-		pt, _ := client.NewPoint("all_day", tags, fields, date)
+		pt, _ := client.NewPoint("all_day", tags, fields, targetDate)
 		bp.AddPoint(pt)
 	}
 
-	// get solar data for TOU
-	data = GetSiteTOUHistory("day", date)
-
-	// write solar data for TOU
-	for key_1 := range data["response"].(map[string]any) {
+	for key_1 := range siteTOUHistory["response"].(map[string]any) {
 		if key_1 == "off_peak" ||
 			key_1 == "partial_peak" ||
 			key_1 == "peak" {
-			for key_2, val_2 := range data["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any)[0].(map[string]any) {
+			for key_2, val_2 := range siteTOUHistory["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any)[0].(map[string]any) {
 				if key_2 != "timestamp" && key_2 != "raw_timestamp" {
 					tags := map[string]string{"source": key_2}
 					fields := map[string]any{
 						"value": val_2.(float64),
 					}
-					pt, _ := client.NewPoint(key_1, tags, fields, date)
+					pt, _ := client.NewPoint(key_1, tags, fields, targetDate)
 					bp.AddPoint(pt)
 				}
 			}
 		}
 	}
 
-	// Write the batch
-	err := c.Write(bp)
-	if err != nil {
-		slog.Error("WriteEnergyTOUSummaryToDB(): c.Write(): " + err.Error())
+	return bp
+}
+
+// Compares the list of backup events already stored in the DB vs. the list
+// from the Tesla and creates payload of any missing events.
+func createBatteryBackupPayload(batteryBackupHistory map[string]any, bp client.BatchPoints) client.BatchPoints {
+	c := GetDBClient()
+	defer c.Close()
+
+	// get existing list of backup events saved to DB
+	q := client.NewQuery("SELECT * FROM backup", "outage", "")
+	db, _ := c.Query(q)
+
+	for _, val := range batteryBackupHistory["response"].(map[string]any)["events"].([]any) {
+		var skip bool = false
+		var dt time.Time
+
+		// convert duration to hours
+		duration := val.(map[string]any)["duration"].(float64) / 1000 / 60 / 60
+		start, _ := time.Parse("2006-01-02T15:04:05-07:00", val.(map[string]any)["timestamp"].(string))
+
+		if len(db.Results[0].Series) > 0 {
+			for _, item := range db.Results[0].Series[0].Values {
+				loc, _ := time.LoadLocation("America/Los_Angeles")
+				dt, _ = time.Parse("2006-01-02T15:04:05Z", item[0].(string))
+				dt = dt.In(loc)
+
+				if start.Equal(dt) {
+					skip = true
+				}
+			}
+		}
+
+		if !skip {
+			tags := map[string]string{"source": "event"}
+			fields := map[string]any{
+				"value": duration,
+			}
+			pt, _ := client.NewPoint("backup", tags, fields, start)
+			bp.AddPoint(pt)
+		}
 	}
 
 	// Close client resources
 	c.Close()
+
+	return bp
 }
 
-// Contains functions to read/write the solar and powerwall data, separated
-// by peak/partial peak/off peak, into a Google Sheet for tracking, analysis,
-// and graphs.  The data is a summary level down to the day.
-func WriteEnergyDataToGsheet(date time.Time) {
-	// get local battery data
-	data := getLocalSystemStatus()
-
+// Write the solar and powerwall data, separated by peak/partial peak/off peak,
+// into a Google Sheet for tracking, analysis, and graphs.  The data is a
+// summary level down to the day.
+func writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOUHistory, batteryBackupHistory map[string]any, targetDate time.Time) {
 	// write total pack energy value
 	open_row := common.FindOpenRow(common.EncryptedCfg.Google.EnergySpreadsheetId, "Telemetry!A:A")
 	inputs := &sheets.BatchUpdateValuesRequest{
@@ -297,19 +298,17 @@ func WriteEnergyDataToGsheet(date time.Time) {
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!A" + strconv.Itoa(open_row),
-		Values: [][]any{{time.Now().Add(time.Duration(-24 * time.Hour)).Format("January 02, 2006")}},
+		Values: [][]any{{targetDate.Format("January 02, 2006")}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!B" + strconv.Itoa(open_row),
-		Values: [][]any{{data["nominal_full_pack_energy"].(float64)}},
+		Values: [][]any{{localSystemStatus["nominal_full_pack_energy"].(float64)}},
 	})
 
-	// get battery data
-	data = GetSiteStatus()
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!C" + strconv.Itoa(open_row),
-		Values: [][]any{{data["response"].(map[string]any)["percentage_charged"].(float64)}},
+		Values: [][]any{{siteStatus["response"].(map[string]any)["percentage_charged"].(float64)}},
 	})
 
 	// copy formula down: column D
@@ -334,16 +333,13 @@ func WriteEnergyDataToGsheet(date time.Time) {
 		CopyPaste: copy_paste_requests,
 	}}
 
-	// get solar data for all day
-	data = GetSiteHistory("day", date)
-
 	cumulative_data := make(map[string]float64)
-	for _, items := range data["response"].(map[string]any)["time_series"].([]any) {
+	for _, items := range siteHistory["response"].(map[string]any)["time_series"].([]any) {
 		d, _ := time.Parse("2006-01-02T15:04:05-07:00", items.(map[string]any)["timestamp"].(string))
 
-		if d.Year() == date.Year() &&
-			d.Month() == date.Month() &&
-			d.Day() == date.Day() {
+		if d.Year() == targetDate.Year() &&
+			d.Month() == targetDate.Month() &&
+			d.Day() == targetDate.Day() {
 			for key, value := range items.(map[string]any) {
 				if (key != "timestamp") && (key != "raw_timestamp") {
 					cumulative_data[key] += value.(float64)
@@ -355,7 +351,7 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	// write solar data for all day
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
 		Range:  "Telemetry!F" + strconv.Itoa(open_row),
-		Values: [][]any{{date.Format("January 02, 2006")}},
+		Values: [][]any{{targetDate.Format("January 02, 2006")}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
@@ -458,20 +454,17 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	}
 	request = append(request, &sheets.Request{CopyPaste: copy_paste_requests})
 
-	// get solar data for TOU
-	data = GetSiteTOUHistory("day", date)
-
 	// skip if system set to self-powered
-	if data["response"] != "" {
-		for key_1 := range data["response"].(map[string]any) { // write solar data for off peak
+	if siteTOUHistory["response"] != "" {
+		for key_1 := range siteTOUHistory["response"].(map[string]any) { // write solar data for off peak
 			switch key_1 {
 			case "off_peak": // write solar data for off peak
-				for _, val_2 := range data["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
+				for _, val_2 := range siteTOUHistory["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
 					d, _ := time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
 
-					if d.Year() == date.Year() &&
-						d.Month() == date.Month() &&
-						d.Day() == date.Day() {
+					if d.Year() == targetDate.Year() &&
+						d.Month() == targetDate.Month() &&
+						d.Day() == targetDate.Day() {
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
 							Range:  "Telemetry!AE" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_solar"].(float64)}},
@@ -574,12 +567,12 @@ func WriteEnergyDataToGsheet(date time.Time) {
 					}
 				}
 			case "partial_peak": // write solar data for partial peak
-				for _, val_2 := range data["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
+				for _, val_2 := range siteTOUHistory["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
 					d, _ := time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
 
-					if d.Year() == date.Year() &&
-						d.Month() == date.Month() &&
-						d.Day() == date.Day() {
+					if d.Year() == targetDate.Year() &&
+						d.Month() == targetDate.Month() &&
+						d.Day() == targetDate.Day() {
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
 							Range:  "Telemetry!BB" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_solar"].(float64)}},
@@ -682,12 +675,12 @@ func WriteEnergyDataToGsheet(date time.Time) {
 					}
 				}
 			case "peak": // write solar data for peak
-				for _, val_2 := range data["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
+				for _, val_2 := range siteTOUHistory["response"].(map[string]any)[key_1].(map[string]any)["time_series"].([]any) {
 					d, _ := time.Parse("2006-01-02T15:04:05-07:00", (val_2.(map[string]any)["timestamp"].(string)))
 
-					if d.Year() == date.Year() &&
-						d.Month() == date.Month() &&
-						d.Day() == date.Day() {
+					if d.Year() == targetDate.Year() &&
+						d.Month() == targetDate.Month() &&
+						d.Day() == targetDate.Day() {
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
 							Range:  "Telemetry!BY" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_solar"].(float64)}},
@@ -834,16 +827,13 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	}
 	request = append(request, &sheets.Request{CopyPaste: copy_paste_requests})
 
-	// get battery backup history data
-	data = GetBatteryBackupHistory()
-
 	// get existing list of backup events saved to gsheet
 	srv := common.GetGoogleSheetService()
 	event_list, err := srv.Spreadsheets.Values.Get(common.EncryptedCfg.Google.EnergySpreadsheetId, "Outage!A2:C").Do()
 
 	open_row = common.FindOpenRow(common.EncryptedCfg.Google.EnergySpreadsheetId, "Outage!A:A")
 
-	for _, val := range data["response"].(map[string]any)["events"].([]any) {
+	for _, val := range batteryBackupHistory["response"].(map[string]any)["events"].([]any) {
 		var skip bool = false
 		var dt time.Time
 
@@ -876,68 +866,10 @@ func WriteEnergyDataToGsheet(date time.Time) {
 	// batch write data and formula copies to sheet
 	_, err = srv.Spreadsheets.Values.BatchUpdate(common.EncryptedCfg.Google.EnergySpreadsheetId, inputs).Do()
 	if err != nil {
-		slog.Error("WriteEnergyDataToGsheet(): srv.Spreadsheets.Values.BatchUpdate(): " + err.Error())
+		slog.Error("writeEnergyDataToGsheet(): srv.Spreadsheets.Values.BatchUpdate(): " + err.Error())
 	}
 	_, err = srv.Spreadsheets.BatchUpdate(common.EncryptedCfg.Google.EnergySpreadsheetId, &sheets.BatchUpdateSpreadsheetRequest{Requests: request}).Do()
 	if err != nil {
-		slog.Error("WriteEnergyDataToGsheet(): srv.Spreadsheets.BatchUpdate(): " + err.Error())
+		slog.Error("writeEnergyDataToGsheet(): srv.Spreadsheets.BatchUpdate(): " + err.Error())
 	}
-}
-
-// Compares the list of backup events already stored in the DB vs. the list
-// from the Tesla and inserts any missing events.
-func WriteBatteryBackupHistoryToDB() {
-	// get battery backup history data
-	data := GetBatteryBackupHistory()
-
-	c := GetDBClient()
-	defer c.Close()
-
-	// get existing list of backup events saved to DB
-	q := client.NewQuery("SELECT * FROM backup", "outage", "")
-	db, _ := c.Query(q)
-
-	// Create a new point batch
-	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
-		Database: "outage",
-	})
-
-	for _, val := range data["response"].(map[string]any)["events"].([]any) {
-		var skip bool = false
-		var dt time.Time
-
-		// convert duration to hours
-		duration := val.(map[string]any)["duration"].(float64) / 1000 / 60 / 60
-		start, _ := time.Parse("2006-01-02T15:04:05-07:00", val.(map[string]any)["timestamp"].(string))
-
-		if len(db.Results[0].Series) > 0 {
-			for _, item := range db.Results[0].Series[0].Values {
-				loc, _ := time.LoadLocation("America/Los_Angeles")
-				dt, _ = time.Parse("2006-01-02T15:04:05Z", item[0].(string))
-				dt = dt.In(loc)
-
-				if start.Equal(dt) {
-					skip = true
-				}
-			}
-		}
-
-		if !skip {
-			tags := map[string]string{"source": "event"}
-			fields := map[string]any{
-				"value": duration,
-			}
-			pt, _ := client.NewPoint("backup", tags, fields, start)
-			bp.AddPoint(pt)
-		}
-	}
-
-	// Write the batch
-	err := c.Write(bp)
-	if err != nil {
-		slog.Error("WriteBatteryBackupHistoryToDB(): c.Write(): " + err.Error())
-	}
-
-	// Close client resources
-	c.Close()
 }
