@@ -29,6 +29,7 @@ SCOPE = (
 PAC = zoneinfo.ZoneInfo(config['general']['timezone'])
 TOKEN = get_filepath('tesla_token')
 PYNACL_KEY = get_filepath('pynacl_key')
+NEW_TOKEN_FILENAME = get_filepath('new_tesla_token_filename')
 
 
 ##
@@ -152,14 +153,14 @@ def new_token():
 
   log().debug('tokens: %s', message)
 
-  f = open('tesla_token.ini', 'wb')
+  f = open(NEW_TOKEN_FILENAME, 'wb')
   f.write(str.encode(message))
   f.close()
 
   print(
-    '\nTokens saved in current working directory in tesla_token.ini.  Never share these tokens with anyone, '
-    'as it acts as a digital "valet key" that allows third-party services or malicious actors to track your '
-    'car\'s location, control climate settings, and even unlock or drive your vehicle without a physical key.'
+    f'\nTokens saved in {NEW_TOKEN_FILENAME}.  Never share these tokens with anyone, as it acts as a digital '
+    f'"valet key" that allows third-party services or malicious actors to track your car\'s location, control '
+    f'climate settings, and even unlock or drive your vehicle without a physical key.'
   )
 
 

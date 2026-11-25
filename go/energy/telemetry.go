@@ -10,6 +10,10 @@ import (
 	"google.golang.org/api/sheets/v4"
 )
 
+var TELEMETRY_SHEET_NAME = "Telemetry"
+var OUTAGE_SHEET_NAME = "Outage"
+var SHEET_PASTE_TYPE = "PASTE_NORMAL"
+
 var GetDBClient = common.GetDBClient
 
 // Write the data for the previous day based on a cron job that runs just after
@@ -291,29 +295,29 @@ func createBatteryBackupPayload(batteryBackupHistory map[string]any, bp client.B
 // summary level down to the day.
 func writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOUHistory, batteryBackupHistory map[string]any, targetDate time.Time) {
 	// write total pack energy value
-	open_row := common.FindOpenRow(common.EncryptedCfg.Google.EnergySpreadsheetId, "Telemetry!A:A")
+	open_row := common.FindOpenRow(common.EncryptedCfg.Google.EnergySpreadsheetId, TELEMETRY_SHEET_NAME + "!A:A")
 	inputs := &sheets.BatchUpdateValuesRequest{
 		ValueInputOption: "USER_ENTERED",
 	}
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!A" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!A" + strconv.Itoa(open_row),
 		Values: [][]any{{targetDate.Format("January 02, 2006")}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!B" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!B" + strconv.Itoa(open_row),
 		Values: [][]any{{localSystemStatus["nominal_full_pack_energy"].(float64)}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!C" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!C" + strconv.Itoa(open_row),
 		Values: [][]any{{siteStatus["response"].(map[string]any)["percentage_charged"].(float64)}},
 	})
 
 	// copy formula down: column D
 	copy_paste_requests := &sheets.CopyPasteRequest{
-		PasteType: "PASTE_NORMAL",
+		PasteType: SHEET_PASTE_TYPE,
 		Source: &sheets.GridRange{
 			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    4,
@@ -350,93 +354,93 @@ func writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOU
 
 	// write solar data for all day
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!F" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!F" + strconv.Itoa(open_row),
 		Values: [][]any{{targetDate.Format("January 02, 2006")}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!H" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!H" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["consumer_energy_imported_from_solar"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!I" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!I" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["consumer_energy_imported_from_battery"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!J" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!J" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["consumer_energy_imported_from_grid"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!K" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!K" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["consumer_energy_imported_from_generator"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!L" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!L" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["solar_energy_exported"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!M" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!M" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["battery_energy_exported"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!N" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!N" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["battery_energy_imported_from_solar"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!O" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!O" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["battery_energy_imported_from_grid"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!P" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!P" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["battery_energy_imported_from_generator"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!Q" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!Q" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["grid_energy_imported"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!R" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!R" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["grid_energy_exported_from_solar"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!S" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!S" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["grid_energy_exported_from_battery"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!T" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!T" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["grid_energy_exported_from_generator"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!U" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!U" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["grid_services_energy_exported"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!V" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!V" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["grid_services_energy_imported"]}},
 	})
 
 	inputs.Data = append(inputs.Data, &sheets.ValueRange{
-		Range:  "Telemetry!W" + strconv.Itoa(open_row),
+		Range:  TELEMETRY_SHEET_NAME + "!W" + strconv.Itoa(open_row),
 		Values: [][]any{{cumulative_data["generator_energy_exported"]}},
 	})
 
 	// copy formulas down: column X to AC
 	copy_paste_requests = &sheets.CopyPasteRequest{
-		PasteType: "PASTE_NORMAL",
+		PasteType: SHEET_PASTE_TYPE,
 		Source: &sheets.GridRange{
 			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    4,
@@ -466,88 +470,88 @@ func writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOU
 						d.Month() == targetDate.Month() &&
 						d.Day() == targetDate.Day() {
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AE" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AE" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_solar"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AF" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AF" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_battery"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AG" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AG" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_grid"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AH" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AH" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_generator"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AI" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AI" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["solar_energy_exported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AJ" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AJ" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_exported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AK" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AK" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_imported_from_solar"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AL" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AL" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_imported_from_grid"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AM" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AM" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_imported_from_generator"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AN" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AN" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_imported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AO" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AO" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_exported_from_solar"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AP" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AP" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_exported_from_battery"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AQ" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AQ" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_exported_from_generator"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AR" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AR" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_services_energy_exported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AS" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AS" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_services_energy_imported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!AT" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!AT" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["generator_energy_exported"].(float64)}},
 						})
 
 						// copy formulas down: column AU to AZ
 						copy_paste_requests = &sheets.CopyPasteRequest{
-							PasteType: "PASTE_NORMAL",
+							PasteType: SHEET_PASTE_TYPE,
 							Source: &sheets.GridRange{
 								SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 								StartRowIndex:    4,
@@ -574,88 +578,88 @@ func writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOU
 						d.Month() == targetDate.Month() &&
 						d.Day() == targetDate.Day() {
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BB" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BB" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_solar"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BC" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BC" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_battery"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BD" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BD" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_grid"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BE" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BE" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_generator"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BF" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BF" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["solar_energy_exported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BG" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BG" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_exported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BH" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BH" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_imported_from_solar"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BI" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BI" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_imported_from_grid"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BJ" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BJ" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_imported_from_generator"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BK" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BK" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_imported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BL" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BL" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_exported_from_solar"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BM" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BM" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_exported_from_battery"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BN" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BN" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_exported_from_generator"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BO" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BO" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_services_energy_exported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BP" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BP" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_services_energy_imported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BQ" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BQ" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["generator_energy_exported"].(float64)}},
 						})
 
 						// copy formulas down: column BR to BW
 						copy_paste_requests = &sheets.CopyPasteRequest{
-							PasteType: "PASTE_NORMAL",
+							PasteType: SHEET_PASTE_TYPE,
 							Source: &sheets.GridRange{
 								SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 								StartRowIndex:    4,
@@ -682,88 +686,88 @@ func writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOU
 						d.Month() == targetDate.Month() &&
 						d.Day() == targetDate.Day() {
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BY" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BY" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_solar"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!BZ" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!BZ" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_battery"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CA" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CA" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_grid"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CB" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CB" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["consumer_energy_imported_from_generator"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CC" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CC" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["solar_energy_exported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CD" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CD" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_exported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CE" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CE" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_imported_from_solar"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CF" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CF" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_imported_from_grid"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CG" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CG" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["battery_energy_imported_from_generator"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CH" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CH" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_imported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CI" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CI" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_exported_from_solar"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CJ" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CJ" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_exported_from_battery"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CK" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CK" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_energy_exported_from_generator"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CL" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CL" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_services_energy_exported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CM" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CM" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["grid_services_energy_imported"].(float64)}},
 						})
 
 						inputs.Data = append(inputs.Data, &sheets.ValueRange{
-							Range:  "Telemetry!CN" + strconv.Itoa(open_row),
+							Range:  TELEMETRY_SHEET_NAME + "!CN" + strconv.Itoa(open_row),
 							Values: [][]any{{val_2.(map[string]any)["generator_energy_exported"].(float64)}},
 						})
 
 						// copy formulas down: column CO to CT
 						copy_paste_requests = &sheets.CopyPasteRequest{
-							PasteType: "PASTE_NORMAL",
+							PasteType: SHEET_PASTE_TYPE,
 							Source: &sheets.GridRange{
 								SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 								StartRowIndex:    4,
@@ -788,7 +792,7 @@ func writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOU
 
 	// copy formulas down: column CV to DK
 	copy_paste_requests = &sheets.CopyPasteRequest{
-		PasteType: "PASTE_NORMAL",
+		PasteType: SHEET_PASTE_TYPE,
 		Source: &sheets.GridRange{
 			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    4,
@@ -809,7 +813,7 @@ func writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOU
 	// copy formulas down: column DM to DP, copy from previous row to allow for
 	// changes in formula due to electricity rate changes
 	copy_paste_requests = &sheets.CopyPasteRequest{
-		PasteType: "PASTE_NORMAL",
+		PasteType: SHEET_PASTE_TYPE,
 		Source: &sheets.GridRange{
 			SheetId:          common.EncryptedCfg.Google.SummarySheetId,
 			StartRowIndex:    int64(open_row) - 2,
@@ -829,9 +833,9 @@ func writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOU
 
 	// get existing list of backup events saved to gsheet
 	srv := common.GetGoogleSheetService()
-	event_list, err := srv.Spreadsheets.Values.Get(common.EncryptedCfg.Google.EnergySpreadsheetId, "Outage!A2:C").Do()
+	event_list, err := srv.Spreadsheets.Values.Get(common.EncryptedCfg.Google.EnergySpreadsheetId, OUTAGE_SHEET_NAME + "!A2:C").Do()
 
-	open_row = common.FindOpenRow(common.EncryptedCfg.Google.EnergySpreadsheetId, "Outage!A:A")
+	open_row = common.FindOpenRow(common.EncryptedCfg.Google.EnergySpreadsheetId, OUTAGE_SHEET_NAME + "!A:A")
 
 	for _, val := range batteryBackupHistory["response"].(map[string]any)["events"].([]any) {
 		var skip bool = false
@@ -853,11 +857,11 @@ func writeEnergyDataToGsheet(localSystemStatus, siteStatus, siteHistory, siteTOU
 
 		if !skip {
 			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Outage!A" + strconv.Itoa(open_row),
+				Range:  OUTAGE_SHEET_NAME + "!A" + strconv.Itoa(open_row),
 				Values: [][]any{{start}},
 			})
 			inputs.Data = append(inputs.Data, &sheets.ValueRange{
-				Range:  "Outage!C" + strconv.Itoa(open_row),
+				Range:  OUTAGE_SHEET_NAME + "!C" + strconv.Itoa(open_row),
 				Values: [][]any{{duration * 60}},
 			})
 		}
