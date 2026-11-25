@@ -1,5 +1,7 @@
 import time
 import argparse
+import itertools
+import string
 
 from vehicle.api import get_vehicle_data
 from common.googleutil import get_google_sheet_service, find_open_row
@@ -19,6 +21,16 @@ from common.constants import (
 from datetime import datetime
 
 TELEMETRY_SHEET_ID = encrypted_config['google']['telemetry_sheet_id']
+TELEMETRY_SHEET_NAME = 'Telemetry'
+SHEET_PASTE_TYPE = 'PASTE_NORMAL'
+
+
+def write_m3_telemetry():
+  write_vehicle_data('Model 3', 'A', 2)
+
+
+def write_mx_telemetry():
+  write_vehicle_data('Model X', 'V', 23)
 
 
 ##
@@ -27,89 +39,57 @@ TELEMETRY_SHEET_ID = encrypted_config['google']['telemetry_sheet_id']
 #
 # author: mjhwa@yahoo.com
 ##
-def write_m3_telemetry():
+def write_vehicle_data(vehicle, start_letter, start_col_idx):
   try:
     while True:
       # get rollup of vehicle data
-      data = get_vehicle_data(M3_VIN)  
+      data = get_vehicle_data(M3_VIN if vehicle == 'Model 3' else MX_VIN)
 
       # check for missing data and retry
       if any(x is None for x in get_check_list(data)):
-        log().warning('Retry write_m3_telemetry(), get_vehicle_data() returned None for one or more values: %s', data)
+        log().warning('Retry write_vehicle_data(), get_vehicle_data(%s) returned None for one or more values: %s', vehicle, data)
         time.sleep(WAIT_TIME)
         continue
 
       break
-    
+
     inputs = []
+    start_index = alpha_to_int(start_letter)
     # write odometer value
-    open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry!A:A')
+    open_row = find_open_row(EV_SPREADSHEET_ID, f'{TELEMETRY_SHEET_NAME}!{start_letter}:{start_letter}')
     inputs.append({
-      'range': f'Telemetry!A{open_row}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{start_letter}{open_row}',
       'values': [[data['response']['vehicle_state']['odometer']]]
     })
    
     # write date stamp
     inputs.append({
-      'range': f'Telemetry!B{open_row}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 1)}{open_row}',
       'values': [[datetime.today().strftime('%B %d, %Y')]]
     })
 
     requests = []
-    # copy mileage formulas down
+    # copy formulas down: Day, Daily (mi), Daily Avg (mi), Days in Svc, Est Annual (mi)
     requests.append({
       'copyPaste': {
         'source': {
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': 2,
           'endRowIndex': 3,
-          'startColumnIndex': 2,
-          'endColumnIndex': 7
+          'startColumnIndex': start_col_idx,
+          'endColumnIndex': start_col_idx + 5
         },
         'destination': {
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': open_row - 2,
           'endRowIndex': open_row - 1,
-          'startColumnIndex': 2,
-          'endColumnIndex': 7
+          'startColumnIndex': start_col_idx,
+          'endColumnIndex': start_col_idx + 5
         },
-        'pasteType': 'PASTE_NORMAL'
+        'pasteType': SHEET_PASTE_TYPE
       }
     })
 
-    # write max battery capacity
-    inputs.append({
-      'range': f'Telemetry!M{open_row - 1}',
-      'values': [[get_battery_capacity(data)]]
-    })
-    
-    # copy down battery degradation % formula
-    requests.append({
-      'copyPaste': {
-        'source': {
-          'sheetId': TELEMETRY_SHEET_ID,
-          'startRowIndex': 2,
-          'endRowIndex': 3,
-          'startColumnIndex': 13,
-          'endColumnIndex': 14
-        },
-        'destination': {
-          'sheetId': TELEMETRY_SHEET_ID,
-          'startRowIndex': open_row - 2,
-          'endRowIndex': open_row - 1,
-          'startColumnIndex': 13,
-          'endColumnIndex': 14
-        },
-        'pasteType': 'PASTE_NORMAL'
-      }
-    })
-
-    # write target SoC %
-    inputs.append({
-      'range': f'Telemetry!O{open_row}',
-      'values': [[data['response']['charge_state']['charge_limit_soc'] / 100.0]]
-    })
-    
     # write data for efficiency calculation
     starting_range = get_starting_range(data)
     eod_range = data['response']['charge_state']['battery_range']
@@ -126,211 +106,66 @@ def write_m3_telemetry():
     
     # write the starting_range for the next day   
     inputs.append({
-      'range': f'Telemetry!H{open_row}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 7)}{open_row}',
       'values': [[starting_range]]
     })
     inputs.append({
-      'range': f'Telemetry!I{open_row - 1}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 8)}{open_row - 1}',
       'values': [[eod_range]]
     })
- 
-    # copy efficiency formulas down
+
+    # copy formulas down: Range Used (mi), Efficiency, Energy Use (Wh/ mi)
     requests.append({
       'copyPaste': {
         'source': {
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': 2,
           'endRowIndex': 3,
-          'startColumnIndex': 9,
-          'endColumnIndex': 12
+          'startColumnIndex': start_col_idx + 7,
+          'endColumnIndex': start_col_idx + 10
         },
         'destination': {
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': open_row - 2,
           'endRowIndex': open_row - 1,
-          'startColumnIndex': 9,
-          'endColumnIndex': 12
+          'startColumnIndex': start_col_idx + 7,
+          'endColumnIndex': start_col_idx + 10
         },
-        'pasteType': 'PASTE_NORMAL'
-      }
-    })
-    
-    # write temperature data into telemetry sheet
-    inside_temp = celsius_to_fahrenheit(data['response']['climate_state']['inside_temp'])
-    outside_temp = celsius_to_fahrenheit(data['response']['climate_state']['outside_temp'])
-
-    inputs.append({
-      'range': f'Telemetry!P{open_row - 1}',
-      'values': [[inside_temp]]
-    })
-    inputs.append({
-      'range': f'Telemetry!Q{open_row - 1}',
-      'values': [[outside_temp]]
-    })
-
-    # write tire pressure data into telemetry sheet
-    inputs.append({
-      'range': f'Telemetry!R{open_row - 1}',
-      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fl'])]]
-    })
-    inputs.append({
-      'range': f'Telemetry!S{open_row - 1}',
-      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fr'])]]
-    })
-    inputs.append({
-      'range': f'Telemetry!T{open_row - 1}',
-      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_rl'])]]
-    })
-    inputs.append({
-      'range': f'Telemetry!U{open_row - 1}',
-      'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_rr'])]]
-    })
-
-    # batch write data and formula copies to sheet
-    service = get_google_sheet_service()
-    service.spreadsheets().values().batchUpdate(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      body={'data': inputs, 'valueInputOption': 'USER_ENTERED'}
-    ).execute()
-    service.spreadsheets().batchUpdate(
-      spreadsheetId=EV_SPREADSHEET_ID, 
-      body={'requests': requests}
-    ).execute()
-    service.close()
-    
-    # send email notification
-    message = f'Model 3 telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
-    send_email('Model 3 Telemetry Logged', message, EMAIL_1)
-  except Exception as e:
-    log().error('write_m3_telemetry(): %s', e, exc_info=True)
-
-
-def write_mx_telemetry():
-  try:
-    while True:
-      # get rollup of vehicle data
-      data = get_vehicle_data(MX_VIN)  
-      
-      # check for missing data and retry
-      if any(x is None for x in get_check_list(data)):
-        log().warning('Retry write_mx_telemetry(), get_vehicle_data() returned None for one or more values: %s', data)
-        time.sleep(WAIT_TIME)
-        continue
-
-      break
-
-    inputs = []
-    # write odometer value
-    open_row = find_open_row(EV_SPREADSHEET_ID, 'Telemetry!V:V')
-    inputs.append({
-      'range': f'Telemetry!V{open_row}',
-      'values': [[data['response']['vehicle_state']['odometer']]]
-    })
-   
-    # write date stamp
-    inputs.append({
-      'range': f'Telemetry!W{open_row}',
-      'values': [[datetime.today().strftime('%B %d, %Y')]]
-    })
-
-    requests = []
-    # copy mileage formulas down
-    requests.append({
-      'copyPaste': {
-        'source': {
-          'sheetId': TELEMETRY_SHEET_ID,
-          'startRowIndex': 2,
-          'endRowIndex': 3,
-          'startColumnIndex': 23,
-          'endColumnIndex': 28
-        },
-        'destination': {
-          'sheetId': TELEMETRY_SHEET_ID,
-          'startRowIndex': open_row - 2,
-          'endRowIndex': open_row - 1,
-          'startColumnIndex': 23,
-          'endColumnIndex': 28
-        },
-        'pasteType': 'PASTE_NORMAL'
+        'pasteType': SHEET_PASTE_TYPE
       }
     })
 
     # write max battery capacity
     inputs.append({
-      'range': f'Telemetry!AH{open_row - 1}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 12)}{open_row - 1}',
       'values': [[get_battery_capacity(data)]]
     })
     
-    # copy down battery degradation % formula
+    # copy formulas down: Battery Degradation
     requests.append({
       'copyPaste': {
         'source': {
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': 2,
           'endRowIndex': 3,
-          'startColumnIndex': 34,
-          'endColumnIndex': 35
+          'startColumnIndex': start_col_idx + 11,
+          'endColumnIndex': start_col_idx + 12
         },
         'destination': {
           'sheetId': TELEMETRY_SHEET_ID,
           'startRowIndex': open_row - 2,
           'endRowIndex': open_row - 1,
-          'startColumnIndex': 34,
-          'endColumnIndex': 35
+          'startColumnIndex': start_col_idx + 11,
+          'endColumnIndex': start_col_idx + 12
         },
-        'pasteType': 'PASTE_NORMAL'
+        'pasteType': SHEET_PASTE_TYPE
       }
     })
 
     # write target SoC %
     inputs.append({
-      'range': f'Telemetry!AJ{open_row}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 14)}{open_row}',
       'values': [[data['response']['charge_state']['charge_limit_soc'] / 100.0]]
-    })
-    
-    # write data for efficiency calculation
-    starting_range = get_starting_range(data)
-    eod_range = data['response']['charge_state']['battery_range']
-    
-    # if the starting range is less than eod range or the car is not plugged 
-    # in or charging state is complete, the starting range is equal to the 
-    # eod range because it won't charge
-    if (
-      starting_range < eod_range
-      or not data['response']['charge_state']['charge_port_door_open']
-      or data['response']['charge_state']['charging_state'] == CHARGING_STATE_COMPLETE
-    ):
-      starting_range = eod_range
-    
-    # write the starting_range for the next day   
-    inputs.append({
-      'range': f'Telemetry!AC{open_row}',
-      'values': [[starting_range]]
-    })
-    inputs.append({
-      'range': f'Telemetry!AD{open_row - 1}',
-      'values': [[eod_range]]
-    })
- 
-    # copy efficiency formulas down
-    requests.append({
-      'copyPaste': {
-        'source': {
-          'sheetId': TELEMETRY_SHEET_ID,
-          'startRowIndex': 2,
-          'endRowIndex': 3,
-          'startColumnIndex': 30,
-          'endColumnIndex': 33
-        },
-        'destination': {
-          'sheetId': TELEMETRY_SHEET_ID,
-          'startRowIndex': open_row - 2,
-          'endRowIndex': open_row - 1,
-          'startColumnIndex': 30,
-          'endColumnIndex': 33
-        },
-        'pasteType': 'PASTE_NORMAL'
-      }
     })
     
     # write temperature data into telemetry sheet
@@ -338,29 +173,29 @@ def write_mx_telemetry():
     outside_temp = celsius_to_fahrenheit(data['response']['climate_state']['outside_temp'])
 
     inputs.append({
-      'range': f'Telemetry!AK{open_row - 1}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 15)}{open_row - 1}',
       'values': [[inside_temp]]
     })
     inputs.append({
-      'range': f'Telemetry!AL{open_row - 1}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 16)}{open_row - 1}',
       'values': [[outside_temp]]
     })
 
     # write tire pressure data into telemetry sheet
     inputs.append({
-      'range': f'Telemetry!AM{open_row - 1}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 17)}{open_row - 1}',
       'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fl'])]]
     })
     inputs.append({
-      'range': f'Telemetry!AN{open_row - 1}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 18)}{open_row - 1}',
       'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_fr'])]]
     })
     inputs.append({
-      'range': f'Telemetry!AO{open_row - 1}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 19)}{open_row - 1}',
       'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_rl'])]]
     })
     inputs.append({
-      'range': f'Telemetry!AP{open_row - 1}',
+      'range': f'{TELEMETRY_SHEET_NAME}!{int_to_alpha(start_index + 20)}{open_row - 1}',
       'values': [[bar_to_psi(data['response']['vehicle_state']['tpms_pressure_rr'])]]
     })
 
@@ -375,12 +210,45 @@ def write_mx_telemetry():
       body={'requests': requests}
     ).execute()
     service.close()
-    
+
     # send email notification
-    message = f'Model X telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
-    send_email('Model X Telemetry Logged', message, EMAIL_1)
+    message = f'{vehicle} telemetry successfully logged on {datetime.today():%B %d, %Y %H:%M:%S}.'
+    send_email(f'{vehicle} Telemetry Logged', message, EMAIL_1)
   except Exception as e:
-    log().error('write_mx_telemetry(): %s', e, exc_info=True)
+    log().error('write_vehicle_data(%s): %s', vehicle, e, exc_info=True)
+
+
+##
+# Convert a letter to its integer based alphabet position, 
+# starting with A = 1.
+#
+# author: mjhwa@yahoo.com
+##
+def alpha_to_int(letters):
+  result = 0
+  for char in letters.upper():
+    result = result * 26 + (ord(char) - ord('A') + 1)
+
+  return result - 1
+
+
+##
+# Converts alphabet integer(s) position (A = 1) back to a letter 
+# or letters for incrementing purposes while also allowing 
+# for wrapping around Z to AA, etc. for continuous incrementing
+# as used in spreadsheet columns.
+#
+# author: mjhwa@yahoo.com
+##
+def int_to_alpha(start_index):
+  alphabet = string.ascii_uppercase
+  for num in itertools.count(start_index):
+    chars = []
+    n = num
+    while n >= 0:
+      chars.append(alphabet[n % 26])
+      n = (n // 26) - 1
+    return ''.join(reversed(chars))
 
 
 ##
