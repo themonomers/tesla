@@ -108,7 +108,12 @@ func getLocalUrl(command string) string {
 }
 
 func sendGet(url string) map[string]any {
-	resp := SendRequest("GET", url, common.LocalTokenCfg.Tesla.Token, nil)
+	resp, err := SendRequest("GET", url, common.LocalTokenCfg.Tesla.Token, nil)
+	if err != nil {
+		slog.Warn("Retry sendGet(): SendRequest(): " + err.Error())
+		time.Sleep(WAIT_TIME * time.Second)
+		sendGet(url)
+	}
 
 	if resp.StatusCode != 200 {
 		time.Sleep(WAIT_TIME * time.Second)

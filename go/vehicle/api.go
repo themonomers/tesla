@@ -2,6 +2,7 @@ package vehicle
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -231,9 +232,19 @@ func getUrl(vin, command string) string {
 }
 
 func SendGet(url string) *http.Response {
-	return SendRequest("GET", url, common.TokenCfg.Tesla.AccessToken, nil)
+	req, err := SendRequest("GET", url, common.TokenCfg.Tesla.AccessToken, nil)
+	if err != nil {
+		slog.Error("SendGet(): SendRequest(): " + err.Error())
+	}
+
+	return req
 }
 
 func SendPost(url string, payload []byte) *http.Response {
-	return SendRequest("POST", url, common.TokenCfg.Tesla.AccessToken, payload)
+	req, err := SendRequest("POST", url, common.TokenCfg.Tesla.AccessToken, payload)
+	if err != nil {
+		slog.Error("SendGet(): SendRequest(): " + err.Error())
+	}
+
+	return req
 }

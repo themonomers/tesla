@@ -191,27 +191,27 @@ func GetFilePath(file string) string {
 }
 
 // Centralize repetitive request posts.
-func SendRequest(method, url, token string, payload []byte) *http.Response {
+func SendRequest(method, url, token string, payload []byte) (*http.Response, error) {
 	var resp *http.Response
 
-	req, _ := http.NewRequest(method, url, bytes.NewBuffer(payload))
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(payload))
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Add("authorization", "Bearer "+token)
 	switch token {
 	case TokenCfg.Tesla.AccessToken:
 		if strings.HasPrefix(url, Cfg.Uri.TeslaBaseProxyUrl) {
-			resp, _ = getHttpsClientWithCert().Do(req)
+			resp, err = getHttpsClientWithCert().Do(req)
 		} else {
-			resp, _ = http.DefaultClient.Do(req)
+			resp, err = http.DefaultClient.Do(req)
 		}
 	case LocalTokenCfg.Tesla.Token:
-		resp, _ = getHttpsClient().Do(req)
+		resp, err = getHttpsClient().Do(req)
 	default:
-		resp, _ = getHttpsClient().Do(req)
+		resp, err = getHttpsClient().Do(req)
 	}
 
-	return resp
+	return resp, err
 }
 
 // Retrieves HTTPS client and ignores x509 certificate error
