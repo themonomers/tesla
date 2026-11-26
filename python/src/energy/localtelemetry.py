@@ -49,8 +49,14 @@ def get_url(command):
 ##
 def send_get(url):
   while True:
-    local_token = get_local_token()['tesla']['token']
-    response = send_request('GET', url, local_token, None)
+    try:
+      local_token = get_local_token()['tesla']['token']
+      response = send_request('GET', url, local_token, None)
+    except Exception as e:
+      log().warning('Retry write_local_live_site_telemetry(): %s', e)
+      time.sleep(WAIT_TIME)
+      continue
+
     resp = json.loads(response.text)
 
     if response.status_code != 200:
