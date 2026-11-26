@@ -49,16 +49,17 @@ def get_url(command):
 ##
 def send_get(url):
   while True:
-    response = send_request('GET', url, LOCAL_BEARER_TOKEN, None)
+    local_token = get_local_token()['tesla']['token']
+    response = send_request('GET', url, local_token, None)
+    resp = json.loads(response.text)
 
     if response.status_code != 200:
-      time.sleep(WAIT_TIME)
-      continue
+      # Detect expired local token and re-auth
+      if 'message' in resp and resp['message'] == EXPIRED_TOKEN_MESSAGE:
+        auth_local_token()
+        continue
 
-    # Detect expired local token and re-auth
-    resp = json.loads(response.text)
-    if 'message' in resp and resp['message'] == EXPIRED_TOKEN_MESSAGE:
-      auth_local_token()
+      time.sleep(WAIT_TIME)
       continue
 
     return resp
@@ -115,8 +116,6 @@ def get_local_token():
     auth_local_token()
 
   return get_config(LOCAL_TOKEN, PYNACL_KEY)
-
-LOCAL_BEARER_TOKEN = get_local_token()['tesla']['token']
 
 
 ##
