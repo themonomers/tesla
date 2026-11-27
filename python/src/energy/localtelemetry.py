@@ -50,10 +50,9 @@ def get_url(command):
 def send_get(url):
   while True:
     try:
-      local_token = get_local_token()['tesla']['token']
-      response = send_request('GET', url, local_token, None)
+      response = send_request('GET', url, get_local_token()['tesla']['token'], None)
     except Exception as e:
-      log().warning('Retry write_local_live_site_telemetry(): %s', e)
+      log().warning('Retry send_get(): %s', e)
       time.sleep(WAIT_TIME)
       continue
 
@@ -65,6 +64,7 @@ def send_get(url):
         auth_local_token()
         continue
 
+      log().warning('Retry send_get(): %s', response.status_code)
       time.sleep(WAIT_TIME)
       continue
 
